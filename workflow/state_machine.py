@@ -110,6 +110,15 @@ class VoucherStateMachine:
         if not can_do:
             raise ValueError(error)
 
+        # Prevent duplicate approvals from the same user
+        if action == 'approve':
+            existing_approval = voucher.approval_history.filter(
+                actor=user,
+                action='APPROVE'
+            ).exists()
+            if existing_approval:
+                raise ValueError(f"{user.get_full_name() or user.username} has already approved this voucher")
+
         # Get next state
         next_state = cls.STATE_TRANSITIONS[voucher.status][action]
 

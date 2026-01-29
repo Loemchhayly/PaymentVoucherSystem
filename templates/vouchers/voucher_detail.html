@@ -194,29 +194,48 @@
         padding: var(--spacing-md);  /* Reduced from xl */
     }
 
-    /* COMPACT Info Table */
-    .info-table {
+    /* Extra compact for info card */
+    .detail-card.info-card {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .detail-card.info-card .detail-card-body {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    /* COMPACT Info Grid - 2 Columns */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px 12px;
         width: 100%;
     }
 
-    .info-table dt {
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        padding: 4px 8px;
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        border-left: 2px solid var(--primary-400);
+    }
+
+    .info-item dt {
         font-family: var(--font-body);
-        font-size: 0.75rem;  /* Reduced */
+        font-size: 0.6875rem;
         font-weight: 600;
         color: var(--gray-600);
         text-transform: uppercase;
         letter-spacing: 0.3px;
-        padding: 4px 0;  /* Compact */
+        margin-bottom: 2px;
     }
 
-    .info-table dd {
+    .info-item dd {
         font-family: var(--font-body);
-        font-size: 0.9375rem;  /* Reduced from 1rem */
+        font-size: 0.875rem;
         color: var(--gray-900);
         font-weight: 500;
-        padding: 4px 0;  /* Compact */
-        margin-bottom: var(--spacing-sm);  /* Reduced */
-        border-bottom: 1px solid var(--gray-200);
+        margin: 0;
     }
 
     /* COMPACT Line Items Table */
@@ -616,6 +635,7 @@
 
         .info-grid {
             grid-template-columns: repeat(2, 1fr);
+            gap: 6px 12px;
         }
     }
 
@@ -661,7 +681,7 @@
 
         .info-grid {
             grid-template-columns: 1fr;
-            gap: var(--spacing-md);
+            gap: 6px;
         }
 
         /* Tables: horizontal scroll */
@@ -776,7 +796,7 @@
         <!-- Main Content -->
         <div class="main-content">
             <!-- Voucher Information -->
-            <div class="detail-card">
+            <div class="detail-card info-card">
                 <div class="detail-card-header">
                     <h2 class="detail-card-title">
                         <i class="bi bi-info-circle"></i>
@@ -784,38 +804,54 @@
                     </h2>
                 </div>
                 <div class="detail-card-body">
-                    <dl class="info-table">
-                        <dt>Payee Name</dt>
-                        <dd>{{ voucher.payee_name }}</dd>
+                    <div class="info-grid">
+                        <dl class="info-item">
+                            <dt>Payee Name</dt>
+                            <dd>{{ voucher.payee_name }}</dd>
+                        </dl>
 
-                        <dt>Payment Date</dt>
-                        <dd>{{ voucher.payment_date|date:"F d, Y" }}</dd>
+                        <dl class="info-item">
+                            <dt>Payment Date</dt>
+                            <dd>{{ voucher.payment_date|date:"F d, Y" }}</dd>
+                        </dl>
 
-                        <dt>Bank Name</dt>
-                        <dd>{{ voucher.bank_name }}</dd>
+                        <dl class="info-item">
+                            <dt>Bank Name</dt>
+                            <dd>{{ voucher.bank_name }}</dd>
+                        </dl>
 
-                        <dt>Account Number</dt>
-                        <dd>{{ voucher.bank_account }}</dd>
+                        <dl class="info-item">
+                            <dt>Account Number</dt>
+                            <dd>{{ voucher.bank_account }}</dd>
+                        </dl>
 
-                        <dt>Created By</dt>
-                        <dd>{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</dd>
+                        <dl class="info-item">
+                            <dt>Created By</dt>
+                            <dd>{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</dd>
+                        </dl>
 
-                        <dt>Created At</dt>
-                        <dd>{{ voucher.created_at|date:"F d, Y g:i A" }}</dd>
+                        <dl class="info-item">
+                            <dt>Created At</dt>
+                            <dd>{{ voucher.created_at|date:"F d, Y g:i A" }}</dd>
+                        </dl>
 
                         {% if voucher.submitted_at %}
-                        <dt>Submitted At</dt>
-                        <dd>{{ voucher.submitted_at|date:"F d, Y g:i A" }}</dd>
+                        <dl class="info-item">
+                            <dt>Submitted At</dt>
+                            <dd>{{ voucher.submitted_at|date:"F d, Y g:i A" }}</dd>
+                        </dl>
                         {% endif %}
 
                         {% if voucher.current_approver %}
-                        <dt>Current Approver</dt>
-                        <dd>
-                            {{ voucher.current_approver.get_full_name|default:voucher.current_approver.username }}
-                            <span style="color: var(--primary-600); font-weight: 600; font-size: 0.875rem;">({{ voucher.current_approver.get_role_level_display }})</span>
-                        </dd>
+                        <dl class="info-item" style="grid-column: 1 / -1;">
+                            <dt>Current Approver</dt>
+                            <dd>
+                                {{ voucher.current_approver.get_full_name|default:voucher.current_approver.username }}
+                                <span style="color: var(--primary-600); font-weight: 600; font-size: 0.75rem;">({{ voucher.current_approver.get_role_level_display }})</span>
+                            </dd>
+                        </dl>
                         {% endif %}
-                    </dl>
+                    </div>
                 </div>
             </div>
 
