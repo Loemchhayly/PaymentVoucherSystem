@@ -23,8 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('vouchers/', include('vouchers.urls')),
-    path('dashboard/', include('dashboard.urls')),
-    path('', include('dashboard.urls')),  # Root goes to dashboard
+    path('', include('dashboard.urls')),  # Dashboard at root
 ]
 
 # Serve media files in development
