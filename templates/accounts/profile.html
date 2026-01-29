@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}My Profile - Payment Voucher System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==================== Profile Page Specific Styles ==================== */
+    .profile-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 var(--spacing-xl);
+    }
+
+    .page-header {
+        margin-bottom: var(--spacing-2xl);
+        text-align: center;
+    }
+
+    .page-title {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-md);
+        margin: 0;
+    }
+
+    .page-title i {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Profile Cards */
+    .profile-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        margin-bottom: var(--spacing-xl);
+        transition: all var(--transition-base);
+    }
+
+    .profile-card:hover {
+        box-shadow: var(--shadow-lg);
+    }
+
+    .profile-card-header {
+        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+        padding: var(--spacing-lg) var(--spacing-xl);
+        border-bottom: 3px solid var(--primary-500);
+    }
+
+    .profile-card-header.info {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border-bottom-color: #60a5fa;
+    }
+
+    .profile-card-header.success {
+        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+        border-bottom-color: #34d399;
+    }
+
+    .profile-card-title {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: white;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .profile-card-title i {
+        font-size: 1.5rem;
+    }
+
+    .profile-card-body {
+        padding: var(--spacing-xl);
+    }
+
+    /* Info Table */
+    .info-table {
+        width: 100%;
+    }
+
+    .info-table dt {
+        font-family: var(--font-body);
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: var(--spacing-sm) 0;
+    }
+
+    .info-table dd {
+        font-family: var(--font-body);
+        font-size: 1rem;
+        color: var(--gray-900);
+        font-weight: 500;
+        padding: var(--spacing-sm) 0;
+        margin-bottom: var(--spacing-md);
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    /* Signature Display */
+    .signature-display {
+        background: var(--gray-50);
+        border: 2px solid var(--gray-200);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        text-align: center;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .signature-label {
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: var(--spacing-md);
+        display: block;
+    }
+
+    .signature-image {
+        max-width: 300px;
+        border: 2px solid var(--gray-300);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-sm);
+        background: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Status Badge */
+    .status-badge-profile {
+        padding: var(--spacing-xs) var(--spacing-md);
+        border-radius: var(--radius-full);
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+    }
+
+    .status-badge-profile i {
+        font-size: 1rem;
+    }
+
+    .status-badge-profile.verified {
+        background: var(--success-light);
+        color: #065f46;
+    }
+
+    .status-badge-profile.not-verified {
+        background: var(--warning-light);
+        color: #92400e;
+    }
+
+    .status-badge-profile.role {
+        background: var(--primary-light);
+        color: var(--primary-700);
+    }
+
+    .status-badge-profile.no-role {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    /* Warning Box */
+    .warning-box {
+        background: var(--warning-light);
+        border-left: 4px solid var(--warning);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .warning-box-title {
+        font-weight: 600;
+        color: #92400e;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .warning-box-title i {
+        font-size: 1.25rem;
+    }
+
+    .warning-box-text {
+        color: #92400e;
+        margin: 0;
+    }
+
+    /* Action Buttons */
+    .action-btn {
+        padding: var(--spacing-md) var(--spacing-2xl);
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 1rem;
+        border-radius: var(--radius-lg);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        transition: all var(--transition-base);
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        box-shadow: var(--shadow-md);
+    }
+
+    .action-btn i {
+        font-size: 1.25rem;
+    }
+
+    .action-btn.primary {
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+        color: white;
+    }
+
+    .action-btn.primary:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+        color: white;
+    }
+
+    .action-btn.success {
+        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+        color: white;
+    }
+
+    .action-btn.success:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: white;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 991px) {
+        .profile-container {
+            padding: 0 var(--spacing-md);
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .profile-card-body {
+            padding: var(--spacing-lg);
+        }
+
+        .signature-image {
+            max-width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-person-circle"></i>
+            <span>My Profile</span>
+        </h1>
+    </div>
+
+    <!-- Profile Information Form -->
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <h2 class="profile-card-title">
+                <i class="bi bi-info-circle"></i>
+                <span>Profile Information</span>
+            </h2>
+        </div>
+        <div class="profile-card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form|crispy }}
+                <button type="submit" class="action-btn primary">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Update Profile</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Account Details -->
+    <div class="profile-card">
+        <div class="profile-card-header info">
+            <h2 class="profile-card-title">
+                <i class="bi bi-shield-check"></i>
+                <span>Account Details</span>
+            </h2>
+        </div>
+        <div class="profile-card-body">
+            <dl class="info-table">
+                <dt>Username</dt>
+                <dd>{{ user.username }}</dd>
+
+                <dt>Role</dt>
+                <dd>
+                    {% if user.role_level %}
+                        <span class="status-badge-profile role">
+                            <i class="bi bi-star-fill"></i>
+                            {{ user.get_role_level_display }}
+                        </span>
+                    {% else %}
+                        <span class="status-badge-profile no-role">
+                            <i class="bi bi-dash-circle"></i>
+                            No Role Assigned
+                        </span>
+                    {% endif %}
+                </dd>
+
+                <dt>Email Verification Status</dt>
+                <dd>
+                    {% if user.email_verified %}
+                        <span class="status-badge-profile verified">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Verified
+                        </span>
+                    {% else %}
+                        <span class="status-badge-profile not-verified">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            Not Verified
+                        </span>
+                    {% endif %}
+                </dd>
+
+                <dt>Date Joined</dt>
+                <dd>{{ user.date_joined|date:"F d, Y" }}</dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Digital Signature -->
+    <div class="profile-card">
+        <div class="profile-card-header success">
+            <h2 class="profile-card-title">
+                <i class="bi bi-pen-fill"></i>
+                <span>Digital Signature</span>
+            </h2>
+        </div>
+        <div class="profile-card-body">
+            {% if user.signature_image %}
+                <div class="signature-display">
+                    <span class="signature-label">Current Signature:</span>
+                    <img src="{{ user.signature_image.url }}" alt="Signature" class="signature-image">
+                </div>
+            {% else %}
+                <div class="warning-box">
+                    <div class="warning-box-title">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>No Signature Uploaded</span>
+                    </div>
+                    <p class="warning-box-text">
+                        Your digital signature will be used on approved vouchers. Please upload a clear image of your signature.
+                    </p>
+                </div>
+            {% endif %}
+
+            <a href="{% url 'accounts:upload_signature' %}" class="action-btn success">
+                <i class="bi bi-cloud-upload"></i>
+                <span>{% if user.signature_image %}Update Signature{% else %}Upload Signature{% endif %}</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

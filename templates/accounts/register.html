@@ -1,0 +1,459 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Register - Garden City Water Park{% endblock %}
+
+{% block extra_head %}
+<!-- Preload background image for smooth loading -->
+<link rel="preload" href="{% static 'images/IMG_8229.jpg' %}" as="image">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==================== Register Page - Glassmorphism Design ==================== */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        font-family: var(--font-body);
+        opacity: 0;
+        animation: fadeInPage 0.5s ease-in forwards;
+    }
+
+    @keyframes fadeInPage {
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Background with blur effect */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("{% static 'images/IMG_8229.jpg' %}") no-repeat center center;
+        background-size: cover;
+        filter: blur(3px);
+        z-index: -1;
+    }
+
+    /* Dark overlay for better contrast */
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: -1;
+    }
+
+    /* Glassmorphic Container */
+    .container {
+        width: 420px;
+        min-height: auto;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(8px);
+        box-shadow: var(--shadow-2xl);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        border-radius: var(--radius-2xl);
+        border: 3px solid rgba(255, 255, 255, 0.5);
+        padding: var(--spacing-xl) var(--spacing-lg);
+        position: relative;
+        z-index: 1;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.6s ease-out 0.2s forwards;
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Page Title */
+    h2 {
+        font-family: var(--font-heading);
+        color: #fff;
+        font-size: 1.625rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: var(--spacing-sm) 0 var(--spacing-md);
+        text-align: center;
+        letter-spacing: 1px;
+    }
+
+    /* Info Box */
+    .info-box {
+        width: 100%;
+        background: linear-gradient(135deg, rgba(25, 145, 185, 0.2) 0%, rgba(25, 145, 185, 0.15) 100%);
+        backdrop-filter: blur(5px);
+        border: 2px solid rgba(25, 145, 185, 0.4);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-sm) var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+        color: #fff;
+        font-size: 0.75rem;
+        line-height: 1.4;
+        display: flex;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+        transition: all var(--transition-base);
+    }
+
+    .info-box:hover {
+        background: linear-gradient(135deg, rgba(25, 145, 185, 0.25) 0%, rgba(25, 145, 185, 0.2) 100%);
+        border-color: rgba(25, 145, 185, 0.5);
+        transform: translateY(-2px);
+    }
+
+    .info-box i {
+        font-size: 1rem;
+        margin-top: 2px;
+        color: var(--primary-300);
+    }
+
+    /* Form Groups with Floating Labels */
+    .form-group {
+        position: relative;
+        width: 100%;
+        margin: var(--spacing-md) 0;
+        border-bottom: 3px solid rgba(255, 255, 255, 0.8);
+        transition: all var(--transition-base);
+    }
+
+    .form-group:focus-within {
+        border-bottom-color: var(--primary-300);
+    }
+
+    .form-group input {
+        width: 100%;
+        height: 46px;
+        padding: 0 38px 0 var(--spacing-sm);
+        font-family: var(--font-body);
+        font-size: 0.9375rem;
+        background-color: transparent;
+        border: none;
+        outline: none;
+        color: #fff;
+        font-weight: 500;
+        transition: all var(--transition-fast);
+    }
+
+    .form-group input::placeholder {
+        color: transparent;
+    }
+
+    .form-group label {
+        position: absolute;
+        top: 50%;
+        left: var(--spacing-sm);
+        transform: translateY(-50%);
+        font-family: var(--font-body);
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        transition: all var(--transition-base);
+        pointer-events: none;
+    }
+
+    .form-group input:focus ~ label,
+    .form-group input:not(:placeholder-shown) ~ label {
+        top: -8px;
+        font-size: 0.8125rem;
+        color: var(--primary-300);
+        font-weight: 600;
+    }
+
+    .form-group i {
+        position: absolute;
+        top: 50%;
+        right: var(--spacing-sm);
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.0625rem;
+        transition: all var(--transition-fast);
+    }
+
+    .form-group:focus-within i {
+        color: var(--primary-300);
+    }
+
+    /* Form Hints */
+    .form-hint {
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.6875rem;
+        margin-top: 4px;
+        margin-left: var(--spacing-sm);
+        font-weight: 500;
+    }
+
+    /* Footer Text */
+    p {
+        text-align: center;
+        color: #fff;
+        margin: var(--spacing-sm) 0;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    p > a {
+        text-decoration: none;
+        color: var(--primary-300);
+        font-weight: 700;
+        transition: all var(--transition-fast);
+    }
+
+    p > a:hover {
+        color: #fff;
+        text-decoration: underline;
+        font-style: italic;
+    }
+
+    /* Submit Button */
+    #btn {
+        width: 100%;
+        height: 46px;
+        border-radius: var(--radius-full);
+        border: none;
+        font-family: var(--font-heading);
+        font-size: 1.125rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin: var(--spacing-md) 0 var(--spacing-sm);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.95) 100%);
+        color: var(--gray-900);
+        box-shadow: var(--shadow-lg);
+    }
+
+    #btn:hover {
+        background: rgba(25, 145, 185, 0.3);
+        color: #fff;
+        border: 2px solid #fff;
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    #btn:active {
+        transform: translateY(-1px);
+    }
+
+    #btn:disabled {
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-loading i {
+        animation: spin 1.5s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Hide Footer on Register Page */
+    .footer-text, footer, [class*="footer"], [class*="copyright"] {
+        display: none !important;
+    }
+
+    /* Alert Messages */
+    .alert {
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--spacing-md);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        font-size: 0.8125rem;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        animation: slideInDown 0.3s ease-out;
+    }
+
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.35);
+        border-color: rgba(239, 68, 68, 0.6);
+        color: #fff;
+    }
+
+    .alert-success {
+        background: rgba(34, 197, 94, 0.35);
+        border-color: rgba(34, 197, 94, 0.6);
+        color: #fff;
+    }
+
+    .alert i {
+        font-size: 1rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            width: 90%;
+            padding: var(--spacing-xl) var(--spacing-lg);
+        }
+
+        h2 {
+            font-size: 1.625rem;
+        }
+
+        .form-group {
+            margin: var(--spacing-md) 0;
+        }
+
+        .form-group input {
+            font-size: 0.9375rem;
+        }
+
+        .form-group label {
+            font-size: 0.9375rem;
+        }
+
+        #btn {
+            font-size: 1.125rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        body {
+            padding: var(--spacing-md) 0;
+        }
+
+        .container {
+            width: 95%;
+            padding: var(--spacing-lg) var(--spacing-md);
+        }
+
+        h2 {
+            font-size: 1.375rem;
+            padding: var(--spacing-xs) 0 var(--spacing-sm);
+        }
+
+        .form-group {
+            margin: var(--spacing-md) 0;
+        }
+
+        .info-box {
+            font-size: 0.75rem;
+            padding: var(--spacing-xs) var(--spacing-sm);
+        }
+
+        #btn {
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Create Account</h2>
+
+    <div class="info-box">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>After registration, verify your email. An admin will assign your role before system access.</span>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" novalidate style="width: 100%;">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <input type="email" name="email" id="id_email" placeholder=" " required>
+            <label for="id_email">Email</label>
+            <i class="bi bi-envelope-fill"></i>
+        </div>
+
+        <div class="form-group">
+            <input type="text" name="username" id="id_username" placeholder=" " required>
+            <label for="id_username">Username</label>
+            <i class="bi bi-person-fill"></i>
+        </div>
+        <small class="form-hint">Choose a unique username</small>
+
+        <div class="form-group">
+            <input type="password" name="password1" id="id_password1" placeholder=" " required>
+            <label for="id_password1">Password</label>
+            <i class="bi bi-lock-fill"></i>
+        </div>
+        <small class="form-hint">Must be at least 8 characters</small>
+
+        <div class="form-group">
+            <input type="password" name="password2" id="id_password2" placeholder=" " required>
+            <label for="id_password2">Confirm Password</label>
+            <i class="bi bi-lock-fill"></i>
+        </div>
+
+        <button type="submit" id="btn">
+            <span class="btn-text">Sign Up</span>
+            <span class="btn-loading" style="display: none;">
+                <i class="bi bi-hourglass-split"></i> Processing...
+            </span>
+        </button>
+    </form>
+
+    <p>Already have an account? <a href="{% url 'accounts:login' %}">Sign In</a></p>
+</div>
+
+<script>
+    // Show loading state on form submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const btn = document.getElementById('btn');
+        const btnText = btn.querySelector('.btn-text');
+        const btnLoading = btn.querySelector('.btn-loading');
+
+        // Disable button and show loading
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+        btn.style.cursor = 'not-allowed';
+        btnText.style.display = 'none';
+        btnLoading.style.display = 'inline';
+    });
+</script>
+{% endblock %}

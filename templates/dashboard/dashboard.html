@@ -1,0 +1,782 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Payment Voucher System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==================== Dashboard Specific Styles ==================== */
+    .dashboard-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 var(--spacing-xl);
+        opacity: 0;
+        animation: fadeInPage 0.5s ease-in 0.1s forwards;
+    }
+
+    @keyframes fadeInPage {
+        to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Extra Large Screens */
+    @media (min-width: 1800px) {
+        .dashboard-container {
+            max-width: 1800px;
+        }
+    }
+
+    .page-header {
+        margin-bottom: var(--spacing-2xl);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+    }
+
+    .page-title {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        margin: 0;
+    }
+
+    .page-title i {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Stats Cards Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-xl);
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition-base);
+        position: relative;
+        overflow: hidden;
+        border: 2px solid transparent;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+
+    /* Staggered animation for stat cards */
+    .stat-card:nth-child(1) { animation-delay: 0.15s; }
+    .stat-card:nth-child(2) { animation-delay: 0.25s; }
+    .stat-card:nth-child(3) { animation-delay: 0.35s; }
+    .stat-card:nth-child(4) { animation-delay: 0.45s; }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-400), var(--primary-600));
+        transition: height var(--transition-base);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-200);
+    }
+
+    .stat-card:hover::before {
+        height: 6px;
+    }
+
+    .stat-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .stat-card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition-base);
+    }
+
+    .stat-card:hover .stat-card-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .stat-card.warning .stat-card-icon {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: white;
+    }
+
+    .stat-card.primary .stat-card-icon {
+        background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
+        color: white;
+    }
+
+    .stat-card.info .stat-card-icon {
+        background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        color: white;
+    }
+
+    .stat-card.success .stat-card-icon {
+        background: linear-gradient(135deg, #34d399, #10b981);
+        color: white;
+    }
+
+    .stat-card-title {
+        font-family: var(--font-body);
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .stat-card-value {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        line-height: 1;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .stat-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: var(--spacing-md);
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .stat-card-link {
+        font-family: var(--font-body);
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--primary-600);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        transition: all var(--transition-fast);
+    }
+
+    .stat-card-link:hover {
+        color: var(--primary-700);
+        gap: var(--spacing-sm);
+    }
+
+    .stat-card-link i {
+        font-size: 1rem;
+        transition: transform var(--transition-fast);
+    }
+
+    .stat-card-link:hover i {
+        transform: translateX(3px);
+    }
+
+    /* Quick Actions Section with Animation */
+    .quick-actions-card {
+        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-2xl);
+        margin-bottom: var(--spacing-2xl);
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s ease-out 0.55s forwards;
+    }
+
+    .quick-actions-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .quick-actions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-lg);
+        position: relative;
+        z-index: 1;
+    }
+
+    .quick-actions-title {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+        margin: 0;
+    }
+
+    .quick-actions-buttons {
+        display: flex;
+        gap: var(--spacing-md);
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+    }
+
+    .action-btn {
+        background: white;
+        color: var(--primary-700);
+        border: none;
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-md) var(--spacing-xl);
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        text-decoration: none;
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition-base);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-xl);
+        background: var(--gray-50);
+        color: var(--primary-800);
+    }
+
+    .action-btn i {
+        font-size: 1.25rem;
+    }
+
+    /* Recent Vouchers Table with Animation */
+    .vouchers-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.5s ease-out 0.65s forwards;
+    }
+
+    .vouchers-card-header {
+        background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
+        padding: var(--spacing-xl);
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    .vouchers-card-title {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .vouchers-card-title i {
+        font-size: 1.75rem;
+        color: var(--primary-600);
+    }
+
+    .vouchers-card-body {
+        padding: 0;
+    }
+
+    /* Modern Table */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .modern-table thead {
+        background: var(--gray-50);
+    }
+
+    .modern-table th {
+        font-family: var(--font-body);
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: var(--spacing-md) var(--spacing-lg);
+        text-align: left;
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    .modern-table td {
+        font-family: var(--font-body);
+        font-size: 0.9375rem;
+        color: var(--gray-800);
+        padding: var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .modern-table tbody tr {
+        transition: all var(--transition-fast);
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeInUp 0.4s ease-out forwards;
+    }
+
+    /* Staggered animation for table rows */
+    .modern-table tbody tr:nth-child(1) { animation-delay: 0.75s; }
+    .modern-table tbody tr:nth-child(2) { animation-delay: 0.8s; }
+    .modern-table tbody tr:nth-child(3) { animation-delay: 0.85s; }
+    .modern-table tbody tr:nth-child(4) { animation-delay: 0.9s; }
+    .modern-table tbody tr:nth-child(5) { animation-delay: 0.95s; }
+    .modern-table tbody tr:nth-child(n+6) { animation-delay: 1s; }
+
+    .modern-table tbody tr:hover {
+        background: var(--primary-50);
+    }
+
+    .modern-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* PV Number Badge */
+    .pv-number {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        color: var(--primary-700);
+        background: var(--primary-50);
+        padding: var(--spacing-xs) var(--spacing-md);
+        border-radius: var(--radius-md);
+        display: inline-block;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: var(--spacing-xs) var(--spacing-md);
+        border-radius: var(--radius-full);
+        font-size: 0.8125rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+    }
+
+    .status-badge i {
+        font-size: 0.875rem;
+    }
+
+    .status-badge.draft {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .status-badge.pending {
+        background: var(--warning-light);
+        color: #92400e;
+    }
+
+    .status-badge.approved {
+        background: var(--success-light);
+        color: #065f46;
+    }
+
+    .status-badge.rejected {
+        background: var(--danger-light);
+        color: #991b1b;
+    }
+
+    .status-badge.revision {
+        background: var(--info-light);
+        color: #1e40af;
+    }
+
+    /* Action Button */
+    .view-btn {
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-family: var(--font-body);
+        font-weight: 500;
+        font-size: 0.875rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        transition: all var(--transition-base);
+    }
+
+    .view-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+        color: white;
+    }
+
+    /* Empty State */
+    .empty-state {
+        padding: var(--spacing-3xl);
+        text-align: center;
+        color: var(--gray-500);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--gray-300);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .empty-state p {
+        font-size: 1.125rem;
+        margin: 0;
+    }
+
+    /* ==================== RESPONSIVE DESIGN ==================== */
+
+    /* Tablet (768-991px) */
+    @media (max-width: 991px) {
+        .dashboard-container {
+            padding: 0 var(--spacing-md);
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .stat-card {
+            padding: var(--spacing-lg);
+        }
+
+        .stat-card-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+
+        .stat-card-value {
+            font-size: 1.75rem;
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Mobile (<768px) */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 0 12px;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .page-title i {
+            font-size: 1.75rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+        }
+
+        .stat-card {
+            padding: var(--spacing-md);
+        }
+
+        .stat-card:hover {
+            transform: none;
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .action-card {
+            padding: var(--spacing-md);
+        }
+
+        .action-btn {
+            width: 100%;
+            min-height: 44px;
+        }
+
+        .quick-actions-card {
+            padding: var(--spacing-md);
+        }
+
+        /* Tables: horizontal scroll */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -12px;
+            padding: 0 12px;
+        }
+
+        .modern-table {
+            min-width: 700px;
+            font-size: 0.875rem;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: var(--spacing-sm) var(--spacing-md);
+        }
+
+        .vouchers-card-header {
+            padding: var(--spacing-md);
+        }
+    }
+
+    /* Small Mobile (<576px) */
+    @media (max-width: 576px) {
+        .dashboard-container {
+            padding: 0 8px;
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+        }
+
+        .stat-card-value {
+            font-size: 1.5rem;
+        }
+
+        .stat-card-label {
+            font-size: 0.8125rem;
+        }
+
+        .modern-table {
+            font-size: 0.8125rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+
+    <!-- Stats Cards Grid -->
+    <div class="stats-grid">
+        <!-- Pending My Action -->
+        <div class="stat-card warning">
+            <div class="stat-card-header">
+                <div>
+                    <div class="stat-card-title">Pending My Action</div>
+                    <div class="stat-card-value">{{ pending_my_action }}</div>
+                </div>
+                <div class="stat-card-icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+            </div>
+            <div class="stat-card-footer">
+                <a href="{% url 'dashboard:pending' %}" class="stat-card-link">
+                    <span>View Details</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- My Vouchers -->
+        <div class="stat-card primary">
+            <div class="stat-card-header">
+                <div>
+                    <div class="stat-card-title">My Vouchers</div>
+                    <div class="stat-card-value">{{ my_vouchers }}</div>
+                </div>
+                <div class="stat-card-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+            </div>
+            <div class="stat-card-footer">
+                <a href="{% url 'dashboard:my_vouchers' %}" class="stat-card-link">
+                    <span>View Details</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="stat-card info">
+            <div class="stat-card-header">
+                <div>
+                    <div class="stat-card-title">In Progress</div>
+                    <div class="stat-card-value">{{ in_progress }}</div>
+                </div>
+                <div class="stat-card-icon">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+            </div>
+            <div class="stat-card-footer">
+                <a href="{% url 'dashboard:in_progress' %}" class="stat-card-link">
+                    <span>View Details</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Approved -->
+        <div class="stat-card success">
+            <div class="stat-card-header">
+                <div>
+                    <div class="stat-card-title">Approved</div>
+                    <div class="stat-card-value">{{ approved_count }}</div>
+                </div>
+                <div class="stat-card-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+            </div>
+            <div class="stat-card-footer">
+                <a href="{% url 'dashboard:approved' %}" class="stat-card-link">
+                    <span>View Details</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    {% if user.role_level == 1 %}
+    <div class="quick-actions-card">
+        <div class="quick-actions-header">
+            <h3 class="quick-actions-title">
+                <i class="bi bi-lightning-charge"></i> Quick Actions
+            </h3>
+        </div>
+        <div class="quick-actions-buttons">
+            <a href="{% url 'vouchers:create' %}" class="action-btn">
+                <i class="bi bi-plus-circle"></i>
+                <span>Create New Voucher</span>
+            </a>
+            <a href="{% url 'dashboard:my_vouchers' %}" class="action-btn">
+                <i class="bi bi-folder"></i>
+                <span>My Vouchers</span>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Vouchers -->
+    <div class="vouchers-card">
+        <div class="vouchers-card-header">
+            <h2 class="vouchers-card-title">
+                <i class="bi bi-clock-history"></i>
+                <span>Recent Vouchers</span>
+            </h2>
+        </div>
+        <div class="vouchers-card-body">
+            {% if vouchers %}
+            <div class="table-container">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>PV Number</th>
+                            <th>Payee</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for voucher in vouchers %}
+                        <tr>
+                            <td>
+                                <span class="pv-number">{{ voucher.pv_number|default:"DRAFT" }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ voucher.payee_name }}</strong>
+                            </td>
+                            <td>
+                                <strong style="color: var(--gray-900);">${{ voucher.calculate_grand_total|floatformat:2 }}</strong>
+                            </td>
+                            <td>
+                                {% if voucher.status == 'DRAFT' %}
+                                    <span class="status-badge draft">
+                                        <i class="bi bi-pencil"></i> {{ voucher.get_status_display }}
+                                    </span>
+                                {% elif voucher.status == 'APPROVED' %}
+                                    <span class="status-badge approved">
+                                        <i class="bi bi-check-circle"></i> {{ voucher.get_status_display }}
+                                    </span>
+                                {% elif voucher.status == 'REJECTED' %}
+                                    <span class="status-badge rejected">
+                                        <i class="bi bi-x-circle"></i> {{ voucher.get_status_display }}
+                                    </span>
+                                {% elif voucher.status == 'ON_REVISION' %}
+                                    <span class="status-badge revision">
+                                        <i class="bi bi-arrow-counterclockwise"></i> {{ voucher.get_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge pending">
+                                        <i class="bi bi-clock"></i> {{ voucher.get_status_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>{{ voucher.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn">
+                                    <i class="bi bi-eye"></i>
+                                    <span>View</span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p>No vouchers found. {% if user.role_level == 1 %}Create your first voucher to get started!{% endif %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,468 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Login - Garden City Water Park{% endblock %}
+
+{% block extra_head %}
+<!-- Preload background image for smooth loading -->
+<link rel="preload" href="{% static 'images/IMG_8229.jpg' %}" as="image">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==================== Login Page - Glassmorphism Design ==================== */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        font-family: var(--font-body);
+        opacity: 0;
+        animation: fadeInPage 0.5s ease-in forwards;
+    }
+
+    @keyframes fadeInPage {
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Background with blur effect */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("{% static 'images/IMG_8229.jpg' %}") no-repeat center center;
+        background-size: cover;
+        filter: blur(3px);
+        z-index: -1;
+    }
+
+    /* Dark overlay for better contrast */
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: -1;
+    }
+
+    /* Glassmorphic Container */
+    .container {
+        width: 440px;
+        min-height: 540px;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(8px);
+        box-shadow: var(--shadow-2xl);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        border-radius: var(--radius-2xl);
+        border: 3px solid rgba(255, 255, 255, 0.5);
+        padding: var(--spacing-2xl) var(--spacing-xl);
+        position: relative;
+        z-index: 1;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.6s ease-out 0.2s forwards;
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Page Title */
+    h2 {
+        font-family: var(--font-heading);
+        color: #fff;
+        font-size: 2rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: var(--spacing-lg) 0;
+        text-align: center;
+        letter-spacing: 1px;
+    }
+
+    /* Info Box */
+    .info-box {
+        width: 100%;
+        background: linear-gradient(135deg, rgba(25, 145, 185, 0.2) 0%, rgba(25, 145, 185, 0.15) 100%);
+        backdrop-filter: blur(5px);
+        border: 2px solid rgba(25, 145, 185, 0.4);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-sm) var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+        color: #fff;
+        font-size: 0.75rem;
+        line-height: 1.4;
+        display: flex;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+        transition: all var(--transition-base);
+    }
+
+    .info-box:hover {
+        background: linear-gradient(135deg, rgba(25, 145, 185, 0.25) 0%, rgba(25, 145, 185, 0.2) 100%);
+        border-color: rgba(25, 145, 185, 0.5);
+        transform: translateY(-2px);
+    }
+
+    .info-box i {
+        font-size: 1rem;
+        margin-top: 2px;
+        color: var(--primary-300);
+    }
+
+    /* Form Groups with Floating Labels */
+    .form-group {
+        position: relative;
+        width: 100%;
+        margin: var(--spacing-xl) 0;
+        border-bottom: 3px solid rgba(255, 255, 255, 0.8);
+        transition: all var(--transition-base);
+    }
+
+    .form-group:focus-within {
+        border-bottom-color: var(--primary-300);
+    }
+
+    .form-group input {
+        width: 100%;
+        height: 52px;
+        padding: 0 40px 0 var(--spacing-sm);
+        font-family: var(--font-body);
+        font-size: 1.125rem;
+        background-color: transparent;
+        border: none;
+        outline: none;
+        color: #fff;
+        font-weight: 500;
+        transition: all var(--transition-fast);
+    }
+
+    .form-group input::placeholder {
+        color: transparent;
+    }
+
+    .form-group label {
+        position: absolute;
+        top: 50%;
+        left: var(--spacing-sm);
+        transform: translateY(-50%);
+        font-family: var(--font-body);
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        transition: all var(--transition-base);
+        pointer-events: none;
+    }
+
+    .form-group input:focus ~ label,
+    .form-group input:not(:placeholder-shown) ~ label {
+        top: -8px;
+        font-size: 0.875rem;
+        color: var(--primary-300);
+        font-weight: 600;
+    }
+
+    .form-group i {
+        position: absolute;
+        top: 50%;
+        right: var(--spacing-sm);
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.25rem;
+        transition: all var(--transition-fast);
+    }
+
+    .form-group:focus-within i {
+        color: var(--primary-300);
+    }
+
+    /* Form Options (Remember Me & Forgot Password) */
+    .form-options {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: var(--spacing-md) 0;
+    }
+
+    .remember-me {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        color: #fff;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        transition: all var(--transition-fast);
+    }
+
+    .remember-me:hover {
+        color: var(--primary-300);
+    }
+
+    .remember-me input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--primary-500);
+        transition: all var(--transition-fast);
+    }
+
+    .remember-me label {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .forgot-link {
+        color: rgba(255, 255, 255, 0.9);
+        text-decoration: none;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        transition: all var(--transition-fast);
+    }
+
+    .forgot-link:hover {
+        color: var(--primary-300);
+        text-decoration: underline;
+        font-style: italic;
+    }
+
+    /* Footer Text */
+    p {
+        text-align: center;
+        color: #fff;
+        margin: var(--spacing-md) 0;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    p > a {
+        text-decoration: none;
+        color: var(--primary-300);
+        font-weight: 700;
+        transition: all var(--transition-fast);
+    }
+
+    p > a:hover {
+        color: #fff;
+        text-decoration: underline;
+        font-style: italic;
+    }
+
+    /* Hide Footer on Login Page */
+    .footer-text, footer, [class*="footer"], [class*="copyright"] {
+        display: none !important;
+    }
+
+    /* Submit Button */
+    #btn {
+        width: 100%;
+        height: 52px;
+        border-radius: var(--radius-full);
+        border: none;
+        font-family: var(--font-heading);
+        font-size: 1.375rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin: var(--spacing-sm) 0;
+        cursor: pointer;
+        transition: all var(--transition-base);
+        background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.95) 100%);
+        color: var(--gray-900);
+        box-shadow: var(--shadow-lg);
+    }
+
+    #btn:hover {
+        background: rgba(25, 145, 185, 0.3);
+        color: #fff;
+        border: 2px solid #fff;
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    #btn:active {
+        transform: translateY(-1px);
+    }
+
+    /* Alert Messages */
+    .alert {
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--spacing-lg);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        font-size: 0.9375rem;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        animation: slideInDown 0.3s ease-out;
+    }
+
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.35);
+        border-color: rgba(239, 68, 68, 0.6);
+        color: #fff;
+    }
+
+    .alert-success {
+        background: rgba(34, 197, 94, 0.35);
+        border-color: rgba(34, 197, 94, 0.6);
+        color: #fff;
+    }
+
+    .alert-warning {
+        background: rgba(251, 191, 36, 0.35);
+        border-color: rgba(251, 191, 36, 0.6);
+        color: #fff;
+    }
+
+    .alert-info {
+        background: rgba(59, 130, 246, 0.35);
+        border-color: rgba(59, 130, 246, 0.6);
+        color: #fff;
+    }
+
+    .alert i {
+        font-size: 1.125rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            width: 90%;
+            padding: var(--spacing-xl) var(--spacing-lg);
+        }
+
+        h2 {
+            font-size: 1.75rem;
+        }
+
+        .form-group {
+            margin: var(--spacing-lg) 0;
+        }
+
+        .form-group input {
+            font-size: 1.0625rem;
+        }
+
+        .form-group label {
+            font-size: 1.0625rem;
+        }
+
+        #btn {
+            font-size: 1.25rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            width: 95%;
+            padding: var(--spacing-lg) var(--spacing-md);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            padding: var(--spacing-md) 0;
+        }
+
+        .form-group {
+            margin: var(--spacing-lg) 0;
+        }
+
+        .form-options {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+        }
+
+        #btn {
+            font-size: 1.125rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Login</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="info-box">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>Enter your email address and password to login. Make sure you've verified your email first.</span>
+    </div>
+
+    <form method="post" novalidate style="width: 100%;">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <input type="email" name="email" id="id_email" placeholder=" " required autocomplete="email" value="{{ remembered_email }}">
+            <label for="id_email">Email Address</label>
+            <i class="bi bi-envelope-fill"></i>
+        </div>
+
+        <div class="form-group">
+            <input type="password" name="password" id="id_password" placeholder=" " required autocomplete="current-password">
+            <label for="id_password">Password</label>
+            <i class="bi bi-lock-fill"></i>
+        </div>
+
+        <div class="form-options">
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember me</label>
+            </div>
+            <a href="{% url 'accounts:password_reset' %}" class="forgot-link">Forgot Password?</a>
+        </div>
+
+        <button type="submit" id="btn">Sign In</button>
+    </form>
+
+    <p>Don't have an account? <a href="{% url 'accounts:register' %}">Sign Up</a></p>
+</div>
+{% endblock %}

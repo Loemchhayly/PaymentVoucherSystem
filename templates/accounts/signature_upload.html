@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Upload Signature - Payment Voucher System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==================== Signature Upload Specific Styles ==================== */
+    .signature-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 0 var(--spacing-xl);
+    }
+
+    .page-header {
+        margin-bottom: var(--spacing-2xl);
+        text-align: center;
+    }
+
+    .page-title {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-md);
+        margin: 0;
+    }
+
+    .page-title i {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Upload Card */
+    .upload-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+
+    .upload-card-body {
+        padding: var(--spacing-2xl);
+    }
+
+    /* Current Signature Display */
+    .current-signature {
+        background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+        border: 2px solid var(--primary-300);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .current-signature-label {
+        font-weight: 600;
+        color: var(--primary-800);
+        margin-bottom: var(--spacing-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+    }
+
+    .current-signature-label i {
+        font-size: 1.25rem;
+    }
+
+    .signature-preview {
+        max-width: 300px;
+        border: 2px solid var(--primary-500);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        background: white;
+        box-shadow: var(--shadow-md);
+        margin: 0 auto;
+    }
+
+    /* Guidelines Box */
+    .guidelines-box {
+        background: linear-gradient(135deg, var(--warning-light) 0%, #fef3c7 100%);
+        border-left: 4px solid var(--warning);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .guidelines-title {
+        font-weight: 700;
+        color: #92400e;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
+        font-size: 1.125rem;
+    }
+
+    .guidelines-title i {
+        font-size: 1.5rem;
+    }
+
+    .guidelines-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .guidelines-list li {
+        color: #92400e;
+        padding: var(--spacing-xs) 0;
+        padding-left: var(--spacing-lg);
+        position: relative;
+        font-weight: 500;
+    }
+
+    .guidelines-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--success);
+        font-weight: 700;
+        font-size: 1.125rem;
+    }
+
+    /* Upload Form */
+    .upload-form {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .file-input-container {
+        position: relative;
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .file-input-label {
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: var(--spacing-sm);
+        display: block;
+        font-size: 1rem;
+    }
+
+    .file-input-wrapper {
+        position: relative;
+        background: var(--gray-50);
+        border: 2px dashed var(--gray-300);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-2xl);
+        text-align: center;
+        transition: all var(--transition-base);
+        cursor: pointer;
+    }
+
+    .file-input-wrapper:hover {
+        background: var(--primary-50);
+        border-color: var(--primary-400);
+    }
+
+    .file-input-wrapper.drag-over {
+        background: var(--primary-100);
+        border-color: var(--primary-500);
+        transform: scale(1.02);
+    }
+
+    .file-input-icon {
+        font-size: 3rem;
+        color: var(--gray-400);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .file-input-wrapper:hover .file-input-icon {
+        color: var(--primary-600);
+    }
+
+    .file-input-text {
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .file-input-hint {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+
+    .form-control-file {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: var(--spacing-md);
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        flex: 1;
+        min-width: 200px;
+        padding: var(--spacing-md) var(--spacing-xl);
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 1rem;
+        border-radius: var(--radius-lg);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        transition: all var(--transition-base);
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        box-shadow: var(--shadow-md);
+    }
+
+    .action-btn i {
+        font-size: 1.25rem;
+    }
+
+    .action-btn.success {
+        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+        color: white;
+    }
+
+    .action-btn.success:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    }
+
+    .action-btn.secondary {
+        background: white;
+        color: var(--gray-700);
+        border: 2px solid var(--gray-300);
+    }
+
+    .action-btn.secondary:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-400);
+        color: var(--gray-900);
+        transform: translateY(-2px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 991px) {
+        .signature-container {
+            padding: 0 var(--spacing-md);
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .upload-card-body {
+            padding: var(--spacing-lg);
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .action-btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="signature-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-pen"></i>
+            <span>Upload Digital Signature</span>
+        </h1>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="upload-card">
+        <div class="upload-card-body">
+            <!-- Current Signature (if exists) -->
+            {% if user.signature_image %}
+            <div class="current-signature">
+                <div class="current-signature-label">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Current Signature</span>
+                </div>
+                <img src="{{ user.signature_image.url }}" alt="Current Signature" class="signature-preview">
+            </div>
+            {% endif %}
+
+            <!-- Guidelines -->
+            <div class="guidelines-box">
+                <div class="guidelines-title">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>Important Guidelines</span>
+                </div>
+                <ul class="guidelines-list">
+                    <li>Upload a clear image of your signature</li>
+                    <li>Supported formats: PNG, JPG, JPEG</li>
+                    <li>Maximum file size: 2MB</li>
+                    <li>Recommended: White background, black ink</li>
+                    <li>This signature will appear on all approved vouchers</li>
+                </ul>
+            </div>
+
+            <!-- Upload Form -->
+            <form method="post" enctype="multipart/form-data" class="upload-form">
+                {% csrf_token %}
+
+                <div class="file-input-container">
+                    <label class="file-input-label">
+                        <i class="bi bi-cloud-arrow-up"></i> Select Signature File
+                    </label>
+                    <div class="file-input-wrapper" id="file-drop-zone">
+                        <div class="file-input-icon">
+                            <i class="bi bi-cloud-upload"></i>
+                        </div>
+                        <div class="file-input-text">
+                            Click to browse or drag and drop
+                        </div>
+                        <div class="file-input-hint">
+                            PNG, JPG, JPEG (Max 2MB)
+                        </div>
+                        {{ form.signature_image }}
+                    </div>
+                    <div id="file-name-display" style="margin-top: var(--spacing-sm); color: var(--gray-600); font-size: 0.875rem; text-align: center;"></div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="action-btn success">
+                        <i class="bi bi-check-circle"></i>
+                        <span>Upload Signature</span>
+                    </button>
+                    <a href="{% url 'accounts:profile' %}" class="action-btn secondary">
+                        <i class="bi bi-arrow-left"></i>
+                        <span>Back to Profile</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // File input enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.querySelector('input[type="file"]');
+        const dropZone = document.getElementById('file-drop-zone');
+        const fileNameDisplay = document.getElementById('file-name-display');
+
+        // Show selected file name
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                fileNameDisplay.textContent = '📄 Selected: ' + this.files[0].name;
+            } else {
+                fileNameDisplay.textContent = '';
+            }
+        });
+
+        // Drag and drop functionality
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileNameDisplay.textContent = '📄 Selected: ' + files[0].name;
+            }
+        });
+    });
+</script>
+{% endblock %}

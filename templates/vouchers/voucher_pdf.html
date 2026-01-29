@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Voucher {{ voucher.pv_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 9pt;
+            line-height: 1.3;
+            color: #000;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .content-wrapper {
+            flex: 1;
+        }
+
+        /* Header - Compact with Logo */
+        .header {
+            position: relative;
+            text-align: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #2c3e50;
+            min-height: 80px;
+        }
+
+        .header-logo {
+            position: absolute;
+            left: 0;
+            top: 0;
+            max-height: 75px;
+            max-width: 160px;
+        }
+
+        .company-name {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 2px;
+        }
+
+        .document-title {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #34495e;
+            margin-top: 3px;
+        }
+
+        .header-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+            position: relative;
+        }
+
+        .pv-number {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #c0392b;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            background-color: #27ae60;
+            color: white;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 8pt;
+            margin-left: auto;
+        }
+
+        /* Info Section - Two Columns */
+        .info-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 8px 0;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            font-size: 8.5pt;
+        }
+
+        .info-col {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .info-row {
+            display: flex;
+        }
+
+        .info-label {
+            width: 90px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #212529;
+        }
+
+        /* Line Items Table - Compact */
+        .line-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 8pt;
+        }
+
+        .line-items-table th {
+            background-color: #34495e;
+            color: white;
+            padding: 5px 4px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 8pt;
+        }
+
+        .line-items-table td {
+            padding: 4px;
+            border: 1px solid #dee2e6;
+            vertical-align: top;
+        }
+
+        .line-items-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .total-row {
+            background-color: #d5e8f7 !important;
+            font-weight: bold;
+            font-size: 9pt;
+        }
+
+        /* Signatures - Fixed at bottom */
+        .signatures-section {
+            margin-top: auto;
+            padding-top: 15px;
+            margin-bottom: 0;
+        }
+
+        .signatures-title {
+            font-size: 10pt;
+            font-weight: bold;
+            margin-bottom: 6px;
+            padding-bottom: 3px;
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        .signature-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .signature-box {
+            border: 1.5px solid #dee2e6;
+            padding: 6px;
+            background-color: #fafbfc;
+            min-height: 110px;
+            text-align: center;
+        }
+
+        .signature-role {
+            font-weight: bold;
+            font-size: 7.5pt;
+            color: #2c3e50;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+        }
+
+        .signature-name {
+            font-size: 7pt;
+            margin-bottom: 6px;
+            color: #495057;
+        }
+
+        .signature-image-container {
+            margin: 4px 0;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed #dee2e6;
+            background-color: #fff;
+        }
+
+        .signature-image {
+            max-width: 100%;
+            max-height: 40px;
+            display: block;
+        }
+
+        .digital-sig-text {
+            color: #adb5bd;
+            font-style: italic;
+            font-size: 6.5pt;
+            text-align: center;
+        }
+
+        .signature-timestamp {
+            font-size: 6pt;
+            color: #6c757d;
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px solid #e9ecef;
+            line-height: 1.3;
+        }
+
+        /* Footer - Minimal */
+        .footer {
+            margin-top: 8px;
+            text-align: center;
+            font-size: 7pt;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+            padding-top: 5px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 7pt;
+            font-weight: bold;
+        }
+
+        .badge-success {
+            background-color: #27ae60;
+            color: white;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="content-wrapper">
+    <!-- Header -->
+    <div class="header">
+        <!-- Company Logo (left side) -->
+        <!-- CORRECTED: Use just "Logo.png" since base_url already points to media folder -->
+        <img src="Logo.png" alt="Company Logo" class="header-logo">
+
+        <div class="company-name">GARDEN CITY WATER PARK</div>
+        <div class="document-title">PAYMENT VOUCHER</div>
+        <div class="header-meta">
+            <div class="pv-number">{{ voucher.pv_number }}</div>
+            <div class="status-badge">{{ voucher.get_status_display|upper }}</div>
+        </div>
+    </div>
+
+    <!-- Voucher Information - Two Columns -->
+    <div class="info-section">
+        <div class="info-col">
+            <div class="info-row">
+                <div class="info-label">Payee:</div>
+                <div class="info-value"><strong>{{ voucher.payee_name }}</strong></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Bank:</div>
+                <div class="info-value">{{ voucher.bank_name }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Account:</div>
+                <div class="info-value">{{ voucher.bank_account }}</div>
+            </div>
+        </div>
+        <div class="info-col">
+            <div class="info-row">
+                <div class="info-label">Payment Date:</div>
+                <div class="info-value">{{ voucher.payment_date|date:"d/m/Y" }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Prepared By:</div>
+                <div class="info-value">{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Created:</div>
+                <div class="info-value">{{ voucher.created_at|date:"d/m/Y H:i" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Line Items -->
+    <table class="line-items-table">
+        <thead>
+            <tr>
+                <th style="width: 3%;">#</th>
+                <th style="width: 32%;">Description</th>
+                <th style="width: 12%;">Department</th>
+                <th style="width: 12%;">Program</th>
+                <th style="width: 13%;" class="text-right">Amount ($)</th>
+                <th style="width: 6%;" class="text-center">VAT</th>
+                <th style="width: 13%;" class="text-right">Total ($)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Display actual line items first -->
+            {% for item in line_items %}
+            <tr>
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td>{{ item.description|truncatewords:8 }}</td>
+                <td>{{ item.department.name|truncatewords:2 }}</td>
+                <td>{{ item.program|default:"-"|truncatewords:2 }}</td>
+                <td class="text-right">{{ item.amount|floatformat:2 }}</td>
+                <td class="text-center">
+                    {% if item.vat_applicable %}
+                        <span class="badge badge-success">10%</span>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td class="text-right"><strong>{{ item.get_total|floatformat:2 }}</strong></td>
+            </tr>
+            {% endfor %}
+
+            <!-- Fill remaining rows up to 20 with blank rows -->
+            {% with item_count=line_items|length %}
+            {% for i in "12345678901234567890" %}
+                {% if forloop.counter > item_count %}
+                <tr>
+                    <td class="text-center">{{ forloop.counter }}</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td class="text-right">&nbsp;</td>
+                    <td class="text-center">&nbsp;</td>
+                    <td class="text-right">&nbsp;</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+            {% endwith %}
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="6" class="text-right"><strong>GRAND TOTAL:</strong></td>
+                <td class="text-right"><strong>${{ grand_total|floatformat:2 }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+
+    <!-- Approval Signatures - 5 Columns -->
+    <div class="signatures-section">
+        <div class="signatures-title">Approvals & Signatures</div>
+
+        <div class="signature-grid">
+            <!-- PREPARED BY - Always first box -->
+            <div class="signature-box">
+                <!-- Display Role/Position Title -->
+                <div class="signature-role">
+                    {% if voucher.created_by.role_level %}
+                        {{ voucher.created_by.get_role_level_display|upper }}
+                    {% elif voucher.created_by.position %}
+                        {{ voucher.created_by.position|upper }}
+                    {% else %}
+                        PREPARED BY
+                    {% endif %}
+                </div>
+
+                <!-- Display User's Full Name -->
+                <div class="signature-name">
+                    {{ voucher.created_by.get_full_name|default:voucher.created_by.username }}
+                </div>
+
+                <!-- Signature Image -->
+                <div class="signature-image-container">
+                    {% if voucher.created_by.signature_image %}
+                        <img src="{{ voucher.created_by.signature_image.name }}" class="signature-image" alt="Signature">
+                    {% else %}
+                        <div class="digital-sig-text">[Digital Signature]</div>
+                    {% endif %}
+                </div>
+
+                <!-- Timestamp -->
+                <div class="signature-timestamp">
+                    {{ voucher.created_at|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+
+            <!-- APPROVERS - Following boxes -->
+            {% for approval in approval_history %}
+            <div class="signature-box">
+                <!-- Display Role/Position Title -->
+                <div class="signature-role">
+                    {% if approval.actor.role_level %}
+                        {{ approval.actor.get_role_level_display|upper }}
+                    {% elif approval.actor.position %}
+                        {{ approval.actor.position|upper }}
+                    {% else %}
+                        APPROVER
+                    {% endif %}
+                </div>
+
+                <!-- Display User's Full Name -->
+                <div class="signature-name">
+                    {{ approval.actor.get_full_name|default:approval.actor.username }}
+                </div>
+
+                <!-- Signature Image -->
+                <div class="signature-image-container">
+                    {% if approval.actor.signature_image %}
+                        <img src="{{ approval.actor.signature_image.name }}" class="signature-image" alt="Signature">
+                    {% else %}
+                        <div class="digital-sig-text">[Digital Signature]</div>
+                    {% endif %}
+                </div>
+
+                <!-- Timestamp -->
+                <div class="signature-timestamp">
+                    {{ approval.timestamp|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="footer">
+        Generated: {% now "d/m/Y H:i" %} | © 2026 Garden City Water Park | Digital signatures are legally binding
+    </div>
+</body>
+</html>

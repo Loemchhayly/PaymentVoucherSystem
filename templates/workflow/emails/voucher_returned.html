@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #ffc107; color: #333; padding: 20px; text-align: center; }
+        .content { background-color: #f8f9fa; padding: 30px; }
+        .voucher-info { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #ffc107; }
+        .warning-badge { background-color: #ffc107; color: #333; padding: 8px 15px; border-radius: 20px; display: inline-block; margin: 10px 0; }
+        .comments { background-color: #fff3cd; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #ffc107; }
+        .button { display: inline-block; padding: 12px 30px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; padding: 20px; color: #6c757d; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Voucher Returned for Revision</h1>
+        </div>
+
+        <div class="content">
+            <h2>Hello {{ creator.get_full_name|default:creator.username }},</h2>
+
+            <p>Your payment voucher has been <span class="warning-badge">RETURNED FOR REVISION</span></p>
+
+            <div class="voucher-info">
+                <strong>PV Number:</strong> {{ voucher.pv_number }}<br>
+                <strong>Payee:</strong> {{ voucher.payee_name }}<br>
+                <strong>Amount:</strong> ${{ voucher.calculate_grand_total|floatformat:2 }}<br>
+                <strong>Payment Date:</strong> {{ voucher.payment_date|date:"F d, Y" }}<br>
+                <strong>Returned By:</strong> {{ returner.get_full_name|default:returner.username }} ({{ returner.get_role_level_display }})<br>
+                <strong>Returned At:</strong> {{ voucher.updated_at|date:"F d, Y g:i A" }}
+            </div>
+
+            {% if comments %}
+            <div class="comments">
+                <strong>Revision Comments:</strong><br>
+                {{ comments }}
+            </div>
+            {% endif %}
+
+            <p><strong>Action Required:</strong> Please review the comments, make necessary changes, and resubmit the voucher.</p>
+
+            <p><strong>Note:</strong> All previous approval signatures have been cleared. The voucher will go through the full approval chain again after resubmission.</p>
+
+            <div style="text-align: center;">
+                <a href="{{ site_url }}/vouchers/{{ voucher.id }}/edit/" class="button">Edit Voucher</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2026 Garden City Water Park<br>
+            Payment Voucher System</p>
+        </div>
+    </div>
+</body>
+</html>

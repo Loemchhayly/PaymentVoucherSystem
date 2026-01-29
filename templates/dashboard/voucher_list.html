@@ -1,0 +1,1073 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Payment Voucher System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==================== ULTRA COMPACT Voucher List ==================== */
+    .voucher-list-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: var(--spacing-sm) var(--spacing-md) 0;  /* Minimal top padding */
+        opacity: 0;
+        animation: fadeInPage 0.5s ease-in 0.1s forwards;
+    }
+
+    @keyframes fadeInPage {
+        to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (min-width: 1800px) {
+        .voucher-list-container {
+            max-width: 1800px;
+        }
+    }
+
+    /* MINIMAL Page Header */
+    .page-header {
+        margin-bottom: var(--spacing-sm);  /* Very small margin */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+        padding: 0;  /* No extra padding */
+        margin-top: -45px;
+     
+
+
+    }
+
+    .page-title {
+        font-family: var(--font-heading);
+        font-size: 1.375rem;  /* Compact size */
+        font-weight: 700;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: 20px;
+    }
+
+    .page-title i {
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-actions {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+
+    .back-btn {
+        background: white;
+        color: var(--gray-700);
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-sm);
+        padding: 5px var(--spacing-sm);
+        font-family: var(--font-body);
+        font-weight: 500;
+        font-size: 0.8125rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all var(--transition-base);
+        height: 32px;  /* Fixed compact height */
+    }
+
+    .back-btn:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-400);
+        color: var(--gray-900);
+        transform: translateX(-3px);
+    }
+
+    /* ULTRA COMPACT Search & Filter with Animation */
+    .search-filter-card {
+        background: white;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        padding: var(--spacing-sm);  /* Minimal padding */
+        margin-bottom: var(--spacing-sm);  /* Small margin */
+        border: 1px solid var(--gray-200);
+        opacity: 0;
+        transform: translateY(15px);
+        animation: fadeInUp 0.5s ease-out 0.2s forwards;
+    }
+
+    .filter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-xs);  /* Minimal margin */
+        cursor: pointer;
+        user-select: none;
+        padding: 2px 0;  /* Almost no padding */
+    }
+
+    .filter-header h3 {
+        font-family: var(--font-heading);
+        font-size: 0.875rem;  /* Small */
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .filter-header i {
+        color: var(--primary-600);
+        transition: transform var(--transition-base);
+        font-size: 0.75rem;
+    }
+
+    .filter-header.collapsed i {
+        transform: rotate(-90deg);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);  /* 5 columns for compact layout */
+        gap: 8px;  /* Minimal gap */
+        margin-bottom: 0;
+    }
+
+    .filter-field {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;  /* Tiny gap */
+    }
+
+    .filter-field label {
+        font-family: var(--font-body);
+        font-size: 0.6875rem;  /* Very small label */
+        font-weight: 600;
+        color: var(--gray-700);
+    }
+
+    .filter-field input,
+    .filter-field select {
+        padding: 5px 8px;  /* Very compact */
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-sm);
+        font-family: var(--font-body);
+        font-size: 0.8125rem;
+        transition: all var(--transition-base);
+        height: 32px;  /* Compact height */
+    }
+
+    .filter-field input:focus,
+    .filter-field select:focus {
+        outline: none;
+        border-color: var(--primary-500);
+        box-shadow: 0 0 0 2px var(--primary-100);
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+        margin-top: 8px;
+        grid-column: 1 / -1;
+    }
+
+    .filter-btn {
+        padding: 5px var(--spacing-sm);
+        border: none;
+        border-radius: var(--radius-sm);
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all var(--transition-base);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        height: 32px;
+    }
+
+    .filter-btn.primary {
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+        color: white;
+    }
+
+    .filter-btn.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .filter-btn.secondary {
+        background: white;
+        color: var(--gray-700);
+        border: 1px solid var(--gray-300);
+    }
+
+    .filter-btn.secondary:hover {
+        background: var(--gray-50);
+    }
+
+    .filter-content {
+        max-height: 350px;
+        overflow: hidden;
+        transition: max-height 0.3s ease-in-out;
+    }
+
+    .filter-content.collapsed {
+        max-height: 0;
+    }
+
+    /* Vouchers Card with Animation */
+    .vouchers-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        margin-bottom: var(--spacing-xl);
+        opacity: 0;
+        transform: translateY(15px);
+        animation: fadeInUp 0.5s ease-out 0.3s forwards;
+    }
+
+    .vouchers-card-header {
+        background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
+        padding: var(--spacing-sm) var(--spacing-md);  /* Compact */
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-xs);
+    }
+
+    .vouchers-count {
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        background: white;
+        padding: 3px 10px;
+        border-radius: var(--radius-full);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .vouchers-card-body {
+        padding: 0;
+    }
+
+    /* Compact Table */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .modern-table thead {
+        background: var(--gray-50);
+    }
+
+    .modern-table th {
+        font-family: var(--font-body);
+        font-size: 0.6875rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--gray-200);
+        white-space: nowrap;
+    }
+
+    .modern-table td {
+        font-family: var(--font-body);
+        font-size: 0.8125rem;
+        color: var(--gray-800);
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--gray-100);
+        vertical-align: middle;
+    }
+
+    .modern-table tbody tr {
+        transition: all var(--transition-fast);
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeInUp 0.4s ease-out forwards;
+    }
+
+    /* Staggered animation for table rows */
+    .modern-table tbody tr:nth-child(1) { animation-delay: 0.4s; }
+    .modern-table tbody tr:nth-child(2) { animation-delay: 0.45s; }
+    .modern-table tbody tr:nth-child(3) { animation-delay: 0.5s; }
+    .modern-table tbody tr:nth-child(4) { animation-delay: 0.55s; }
+    .modern-table tbody tr:nth-child(5) { animation-delay: 0.6s; }
+    .modern-table tbody tr:nth-child(6) { animation-delay: 0.65s; }
+    .modern-table tbody tr:nth-child(7) { animation-delay: 0.7s; }
+    .modern-table tbody tr:nth-child(8) { animation-delay: 0.75s; }
+    .modern-table tbody tr:nth-child(9) { animation-delay: 0.8s; }
+    .modern-table tbody tr:nth-child(10) { animation-delay: 0.85s; }
+    .modern-table tbody tr:nth-child(n+11) { animation-delay: 0.9s; }
+
+    .modern-table tbody tr:hover {
+        background: var(--primary-50);
+        transform: scale(1.002);
+    }
+
+    .modern-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* PV Number Badge */
+    .pv-number {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 0.8125rem;
+        color: var(--primary-700);
+        background: var(--primary-50);
+        padding: 3px 8px;
+        border-radius: var(--radius-sm);
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 3px 8px;
+        border-radius: var(--radius-full);
+        font-size: 0.6875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        white-space: nowrap;
+    }
+
+    .status-badge i {
+        font-size: 0.6875rem;
+    }
+
+    .status-badge.draft {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .status-badge.pending {
+        background: var(--warning-light);
+        color: #92400e;
+    }
+
+    .status-badge.approved {
+        background: var(--success-light);
+        color: #065f46;
+    }
+
+    .status-badge.rejected {
+        background: var(--danger-light);
+        color: #991b1b;
+    }
+
+    .status-badge.revision {
+        background: var(--info-light);
+        color: #1e40af;
+    }
+
+    /* User Badge */
+    .user-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--gray-700);
+        font-size: 0.8125rem;
+    }
+
+    .user-badge i {
+        color: var(--primary-600);
+        font-size: 0.8125rem;
+    }
+
+    /* Amount Display */
+    .amount-display {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 0.9375rem;
+        color: var(--gray-900);
+    }
+
+    /* Action Buttons */
+    .view-btn, .edit-btn, .delete-btn {
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 4px 8px;
+        font-family: var(--font-body);
+        font-weight: 500;
+        font-size: 0.6875rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        transition: all var(--transition-base);
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .view-btn {
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+        color: white;
+    }
+
+    .view-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: white;
+    }
+
+    .edit-btn {
+        background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+        color: white;
+    }
+
+    .edit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: white;
+    }
+
+    .delete-btn {
+        background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+        color: white;
+    }
+
+    .delete-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: white;
+    }
+
+    /* Pagination */
+    .pagination-container {
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: var(--gray-50);
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .modern-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .pagination-btn {
+        background: white;
+        color: var(--gray-700);
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-sm);
+        padding: 5px 8px;
+        font-family: var(--font-body);
+        font-weight: 500;
+        font-size: 0.75rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        transition: all var(--transition-base);
+        min-width: 32px;
+        height: 32px;
+        justify-content: center;
+    }
+
+    .pagination-btn:hover {
+        background: var(--primary-50);
+        border-color: var(--primary-500);
+        color: var(--primary-700);
+    }
+
+    .pagination-btn.active {
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+        border-color: var(--primary-600);
+        color: white;
+        font-weight: 600;
+    }
+
+    .pagination-btn.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .pagination-info {
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        color: var(--gray-600);
+        padding: 5px 8px;
+        font-weight: 500;
+    }
+
+    /* Empty State */
+    .empty-state {
+        padding: var(--spacing-xl);
+        text-align: center;
+        color: var(--gray-500);
+    }
+
+    .empty-state-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto var(--spacing-sm);
+        background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state-icon i {
+        font-size: 2rem;
+        color: var(--gray-400);
+    }
+
+    .empty-state-title {
+        font-family: var(--font-heading);
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 4px;
+    }
+
+    .empty-state-text {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+        margin-bottom: var(--spacing-md);
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+
+    @media (max-width: 991px) {
+        .voucher-list-container {
+            padding: var(--spacing-xs) var(--spacing-sm) 0;
+        }
+
+        .filter-form {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .voucher-list-container {
+            padding: 8px 12px 0;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .page-title {
+            font-size: 1.125rem;
+        }
+
+        .page-actions {
+            width: 100%;
+        }
+
+        .back-btn {
+            width: 100%;
+            justify-content: center;
+            min-height: 44px;
+        }
+
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-actions {
+            flex-direction: column;
+        }
+
+        .filter-btn {
+            width: 100%;
+            min-height: 44px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -12px;
+            padding: 0 12px;
+        }
+
+        .modern-table {
+            min-width: 900px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .page-title {
+            font-size: 1rem;
+        }
+
+        .modern-table {
+            font-size: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="voucher-list-container">
+    <!-- MINIMAL Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-list-ul"></i>
+            <span>{{ title }}</span>
+        </h1>
+        <div class="page-actions">
+            <a href="{% url 'dashboard:home' %}" class="back-btn">
+                <i class="bi bi-arrow-left"></i>
+                <span>Back to Dashboard</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ULTRA COMPACT Search & Filter -->
+    <div class="search-filter-card">
+        <div class="filter-header" onclick="toggleFilters()">
+            <h3>
+                <i class="bi bi-funnel"></i>
+                <span>Search & Filter</span>
+            </h3>
+            <i class="bi bi-chevron-down" id="filterToggleIcon"></i>
+        </div>
+        <div class="filter-content" id="filterContent">
+            <form method="get" action="" class="filter-form">
+                <div class="filter-field">
+                    <label for="pv_number">PV Number</label>
+                    <input type="text" id="pv_number" name="pv_number" placeholder="2601-0001" value="{{ request.GET.pv_number }}">
+                </div>
+                <div class="filter-field">
+                    <label for="payee_name">Payee Name</label>
+                    <input type="text" id="payee_name" name="payee_name" placeholder="Payee name" value="{{ request.GET.payee_name }}">
+                </div>
+                <div class="filter-field">
+                    <label for="date_from">From Date</label>
+                    <input type="date" id="date_from" name="date_from" value="{{ request.GET.date_from }}">
+                </div>
+                <div class="filter-field">
+                    <label for="date_to">To Date</label>
+                    <input type="date" id="date_to" name="date_to" value="{{ request.GET.date_to }}">
+                </div>
+                <div class="filter-field">
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="DRAFT" {% if request.GET.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+                        <option value="PENDING_L2" {% if request.GET.status == 'PENDING_L2' %}selected{% endif %}>Pending L2</option>
+                        <option value="PENDING_L3" {% if request.GET.status == 'PENDING_L3' %}selected{% endif %}>Pending L3</option>
+                        <option value="PENDING_L4" {% if request.GET.status == 'PENDING_L4' %}selected{% endif %}>Pending L4</option>
+                        <option value="PENDING_L5" {% if request.GET.status == 'PENDING_L5' %}selected{% endif %}>Pending L5</option>
+                        <option value="ON_REVISION" {% if request.GET.status == 'ON_REVISION' %}selected{% endif %}>On Revision</option>
+                        <option value="APPROVED" {% if request.GET.status == 'APPROVED' %}selected{% endif %}>Approved</option>
+                        <option value="REJECTED" {% if request.GET.status == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="filter-btn primary">
+                        <i class="bi bi-search"></i>
+                        <span>Search</span>
+                    </button>
+                    <a href="?" class="filter-btn secondary">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Clear</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vouchers Card -->
+    <div class="vouchers-card">
+        <div class="vouchers-card-header">
+            <h2 style="margin: 0; font-size: 0.9375rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                <i class="bi bi-file-earmark-text" style="color: var(--primary-600); font-size: 1rem;"></i>
+                <span style="color: var(--gray-900);">All Vouchers</span>
+            </h2>
+            {% if vouchers %}
+            <div class="vouchers-count">
+                {{ vouchers|length }} voucher{{ vouchers|length|pluralize }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="vouchers-card-body">
+            {% if vouchers %}
+            <div class="table-container">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>PV Number</th>
+                            <th>Payee</th>
+                            <th>Payment Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Created By</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for voucher in vouchers %}
+                        <tr>
+                            <td>
+                                <span class="pv-number">{{ voucher.pv_number|default:"DRAFT" }}</span>
+                            </td>
+                            <td><strong>{{ voucher.payee_name }}</strong></td>
+                            <td>{{ voucher.payment_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="amount-display">${{ voucher.calculate_grand_total|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                {% if voucher.status == 'DRAFT' %}
+                                    <span class="status-badge draft">
+                                        <i class="bi bi-pencil"></i> {{ voucher.get_status_display }}
+                                    </span>
+                                {% elif voucher.status == 'APPROVED' %}
+                                    <span class="status-badge approved">
+                                        <i class="bi bi-check-circle"></i> {{ voucher.get_status_display }}
+                                    </span>
+                                {% elif voucher.status == 'REJECTED' %}
+                                    <span class="status-badge rejected">
+                                        <i class="bi bi-x-circle"></i> {{ voucher.get_status_display }}
+                                    </span>
+                                {% elif voucher.status == 'ON_REVISION' %}
+                                    <span class="status-badge revision">
+                                        <i class="bi bi-arrow-counterclockwise"></i> {{ voucher.get_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge pending">
+                                        <i class="bi bi-clock"></i> {{ voucher.get_status_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="user-badge">
+                                    <i class="bi bi-person-circle"></i>
+                                    <span>{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</span>
+                                </div>
+                            </td>
+                            <td>{{ voucher.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                {% if voucher.status == 'DRAFT' %}
+                                    <div style="display: flex; gap: 3px; flex-wrap: wrap;">
+                                        <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn" title="View">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a href="{% url 'vouchers:edit' voucher.pk %}" class="edit-btn" title="Edit">
+                                            <i class="bi bi-pencil-square"></i> Edit
+                                        </a>
+                                        <form method="post" action="{% url 'vouchers:delete' voucher.pk %}" style="display: inline;" class="delete-form-{{ voucher.pk }}">
+                                            {% csrf_token %}
+                                            <button type="button" class="delete-btn" title="Delete" onclick="showDeleteModal({{ voucher.pk }}, '{{ voucher.pv_number|default:"DRAFT" }}')">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if is_paginated %}
+            <div class="pagination-container">
+                <div class="modern-pagination">
+                    {% if page_obj.has_previous %}
+                    <a href="?{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page=1" class="pagination-btn" title="First">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                    <a href="?{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}" class="pagination-btn" title="Previous">
+                        <i class="bi bi-chevron-left"></i> Prev
+                    </a>
+                    {% else %}
+                    <button class="pagination-btn disabled" disabled><i class="bi bi-chevron-double-left"></i></button>
+                    <button class="pagination-btn disabled" disabled><i class="bi bi-chevron-left"></i> Prev</button>
+                    {% endif %}
+
+                    <div class="pagination-info">
+                        <strong>{{ page_obj.number }}</strong> / <strong>{{ page_obj.paginator.num_pages }}</strong>
+                    </div>
+
+                    {% if page_obj.has_next %}
+                    <a href="?{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}" class="pagination-btn" title="Next">
+                        Next <i class="bi bi-chevron-right"></i>
+                    </a>
+                    <a href="?{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="pagination-btn" title="Last">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                    {% else %}
+                    <button class="pagination-btn disabled" disabled>Next <i class="bi bi-chevron-right"></i></button>
+                    <button class="pagination-btn disabled" disabled><i class="bi bi-chevron-double-right"></i></button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <h3 class="empty-state-title">No Vouchers Found</h3>
+                <p class="empty-state-text">There are no vouchers in this category yet.</p>
+                {% if user.role_level == 1 %}
+                <a href="{% url 'vouchers:create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create New Voucher
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleFilters() {
+        const content = document.getElementById('filterContent');
+        const icon = document.getElementById('filterToggleIcon');
+        const header = document.querySelector('.filter-header');
+        content.classList.toggle('collapsed');
+        header.classList.toggle('collapsed');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasFilters = urlParams.has('pv_number') || urlParams.has('payee_name') ||
+                          urlParams.has('date_from') || urlParams.has('date_to') || urlParams.has('status');
+        if (!hasFilters) {
+            const content = document.getElementById('filterContent');
+            const header = document.querySelector('.filter-header');
+            content.classList.add('collapsed');
+            header.classList.add('collapsed');
+        }
+    });
+
+    // Delete confirmation functions
+    let deleteVoucherId = null;
+
+    function showDeleteModal(voucherId, pvNumber) {
+        deleteVoucherId = voucherId;
+        document.getElementById('delete-pv-number').textContent = pvNumber;
+        document.getElementById('delete-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideDeleteModal() {
+        deleteVoucherId = null;
+        document.getElementById('delete-modal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function confirmDelete() {
+        if (deleteVoucherId) {
+            document.querySelector('.delete-form-' + deleteVoucherId).submit();
+        }
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && deleteVoucherId) {
+            hideDeleteModal();
+        }
+    });
+</script>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="delete-modal" style="display: none;">
+    <div class="delete-overlay" onclick="hideDeleteModal()"></div>
+    <div class="delete-dialog">
+        <div class="delete-header">
+            <i class="bi bi-trash"></i>
+            <h3>Delete Voucher?</h3>
+        </div>
+        <div class="delete-body">
+            <p>Are you sure you want to delete voucher <strong id="delete-pv-number"></strong>?</p>
+            <p class="delete-hint">This action cannot be undone. All line items and attachments will be permanently deleted.</p>
+        </div>
+        <div class="delete-actions">
+            <button type="button" class="delete-confirm-btn cancel" onclick="hideDeleteModal()">
+                <i class="bi bi-x-circle"></i> Cancel
+            </button>
+            <button type="button" class="delete-confirm-btn delete" onclick="confirmDelete()">
+                <i class="bi bi-trash"></i> Yes, Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.delete-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.delete-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.delete-dialog {
+    position: relative;
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 480px;
+    width: 90%;
+    animation: slideUp 0.3s ease-out;
+    overflow: hidden;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.delete-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    padding: var(--spacing-lg);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.delete-header i {
+    font-size: 2rem;
+}
+
+.delete-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.delete-body {
+    padding: var(--spacing-xl);
+}
+
+.delete-body p {
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: 1rem;
+    color: var(--gray-900);
+    line-height: 1.6;
+}
+
+.delete-hint {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    background: var(--gray-50);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--danger);
+}
+
+.delete-actions {
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--gray-50);
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+}
+
+.delete-confirm-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    transition: all var(--transition-base);
+}
+
+.delete-confirm-btn.cancel {
+    background: white;
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+}
+
+.delete-confirm-btn.cancel:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-400);
+}
+
+.delete-confirm-btn.delete {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.delete-confirm-btn.delete:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 576px) {
+    .delete-dialog {
+        width: 95%;
+        margin: 0 10px;
+    }
+
+    .delete-actions {
+        flex-direction: column;
+    }
+
+    .delete-confirm-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

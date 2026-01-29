@@ -1,0 +1,37 @@
+# Django Framework
+Django==6.0.1
+
+# Database
+# PostgreSQL adapter (install on production server when USE_SQLITE=False)
+# psycopg[binary]>=3.1.0  # For Python 3.13+
+# psycopg2-binary>=2.9.9  # For older Python versions
+
+# Image Processing
+Pillow>=10.2.0
+
+# PDF Generation
+weasyprint>=60.1
+
+# Forms
+django-crispy-forms==2.1
+crispy-bootstrap5==0.7
+
+# Environment Variables
+django-environ==0.11.2
+
+# File Validation
+python-magic==0.4.27
+
+# Utilities
+python-dateutil==2.8.2
+
+# Development Tools
+django-debug-toolbar==4.2.0
+django-extensions==3.2.3
+
+# Testing
+pytest-django==4.7.0
+factory-boy==3.3.0
+
+# Production Server
+gunicorn==21.2.0
