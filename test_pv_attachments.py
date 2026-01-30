@@ -29,14 +29,20 @@ print(f"Using test user: {user.username}")
 # Create a test voucher (simulating the view logic)
 from workflow.state_machine import VoucherStateMachine
 
-voucher = PaymentVoucher.objects.create(
+# First create voucher instance without saving
+voucher = PaymentVoucher(
     created_by=user,
     payee_name="Test Payee",
     payment_date=timezone.now().date(),
     bank_name="Test Bank",
-    bank_account="123456789",
-    pv_number=VoucherStateMachine.generate_pv_number()  # This simulates what the view does
+    bank_account="123456789"
 )
+
+# Generate PV number using payment_date
+voucher.pv_number = VoucherStateMachine.generate_pv_number(voucher)
+
+# Now save the voucher
+voucher.save()
 
 print(f"[OK] Voucher created with ID: {voucher.id}")
 print(f"[OK] PV Number assigned: {voucher.pv_number}")

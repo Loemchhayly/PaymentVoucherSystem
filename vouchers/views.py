@@ -47,9 +47,9 @@ class VoucherCreateView(LoginRequiredMixin, CreateView):
         # Set creator
         form.instance.created_by = self.request.user
 
-        # Generate PV number immediately upon creation
+        # Generate PV number immediately upon creation (using payment_date)
         from workflow.state_machine import VoucherStateMachine
-        form.instance.pv_number = VoucherStateMachine.generate_pv_number()
+        form.instance.pv_number = VoucherStateMachine.generate_pv_number(form.instance)
 
         self.object = form.save()
 
@@ -527,8 +527,8 @@ class FormCreateView(LoginRequiredMixin, CreateView):
         # Set creator
         form.instance.created_by = self.request.user
 
-        # Generate PF number immediately upon creation
-        form.instance.pf_number = VoucherStateMachine.generate_pf_number()
+        # Generate PF number immediately upon creation (using payment_date)
+        form.instance.pf_number = VoucherStateMachine.generate_pf_number(form.instance)
 
         self.object = form.save()
 

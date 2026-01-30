@@ -135,7 +135,7 @@ class VoucherStateMachine:
             if voucher.status == 'DRAFT':
                 # First submission - ensure PV number exists
                 if not voucher.pv_number:
-                    voucher.pv_number = cls.generate_pv_number()
+                    voucher.pv_number = cls.generate_pv_number(voucher)
                 voucher.submitted_at = timezone.now()
             elif voucher.status == 'ON_REVISION':
                 # Resubmission after revision
@@ -169,15 +169,18 @@ class VoucherStateMachine:
         return voucher
 
     @staticmethod
-    def generate_pv_number():
+    def generate_pv_number(voucher):
         """
         Generate unique PV number in format YYMM-NNNN.
-        Counter resets every month.
-        """
-        now = timezone.now()
-        prefix = now.strftime('%y%m')
+        Counter resets every month based on payment date.
 
-        # Get last number for this month
+        Args:
+            voucher: PaymentVoucher instance (to get payment_date)
+        """
+        # Use payment date instead of current date for numbering
+        prefix = voucher.payment_date.strftime('%y%m')
+
+        # Get last number for this payment month
         last_pv = PaymentVoucher.objects.filter(
             pv_number__startswith=prefix
         ).aggregate(Max('pv_number'))['pv_number__max']
@@ -193,15 +196,18 @@ class VoucherStateMachine:
         return f"{prefix}-{next_num:04d}"
 
     @staticmethod
-    def generate_pf_number():
+    def generate_pf_number(payment_form):
         """
         Generate unique PF number in format YYMM-PF-NNNN.
-        Counter resets every month.
-        """
-        now = timezone.now()
-        prefix = now.strftime('%y%m')
+        Counter resets every month based on payment date.
 
-        # Get last number for this month (PF numbers include '-PF-' in format)
+        Args:
+            payment_form: PaymentForm instance (to get payment_date)
+        """
+        # Use payment date instead of current date for numbering
+        prefix = payment_form.payment_date.strftime('%y%m')
+
+        # Get last number for this payment month (PF numbers include '-PF-' in format)
         last_pf = PaymentForm.objects.filter(
             pf_number__startswith=f"{prefix}-PF"
         ).aggregate(Max('pf_number'))['pf_number__max']
@@ -381,7 +387,7 @@ class FormStateMachine:
             if payment_form.status == 'DRAFT':
                 # First submission - ensure PF number exists
                 if not payment_form.pf_number:
-                    payment_form.pf_number = VoucherStateMachine.generate_pf_number()
+                    payment_form.pf_number = VoucherStateMachine.generate_pf_number(payment_form)
                 payment_form.submitted_at = timezone.now()
             elif payment_form.status == 'ON_REVISION':
                 # Resubmission after revision
