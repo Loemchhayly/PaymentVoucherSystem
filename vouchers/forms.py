@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
-from .models import PaymentVoucher, VoucherLineItem, VoucherAttachment, Department, PaymentForm, FormLineItem, FormAttachment
+from .models import PaymentVoucher, VoucherLineItem, VoucherAttachment, Department, PaymentForm, FormLineItem, FormAttachment, CAMBODIAN_BANKS
 from decimal import Decimal
 
 
@@ -29,13 +29,18 @@ class MultipleFileField(forms.FileField):
 class PaymentVoucherForm(forms.ModelForm):
     """Form for creating/editing payment vouchers"""
 
+    bank_name = forms.ChoiceField(
+        choices=CAMBODIAN_BANKS,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Bank Name'
+    )
+
     class Meta:
         model = PaymentVoucher
         fields = ['payee_name', 'payment_date', 'bank_name', 'bank_account']
         widgets = {
             'payee_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter payee name'}),
             'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'bank_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank name'}),
             'bank_account': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account number'}),
         }
 
@@ -198,13 +203,18 @@ class ApprovalActionForm(forms.Form):
 class PaymentFormForm(forms.ModelForm):
     """Form for creating/editing payment forms"""
 
+    bank_name = forms.ChoiceField(
+        choices=CAMBODIAN_BANKS,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Bank Name'
+    )
+
     class Meta:
         model = PaymentForm
         fields = ['payee_name', 'payment_date', 'bank_name', 'bank_account']
         widgets = {
             'payee_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter payee name'}),
             'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'bank_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank name'}),
             'bank_account': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account number'}),
         }
 

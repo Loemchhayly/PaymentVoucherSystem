@@ -206,7 +206,7 @@
     /* COMPACT Info Grid - 3 Columns */
     .info-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 6px 12px;
         width: 100%;
     }
@@ -236,6 +236,7 @@
         color: var(--gray-900);
         font-weight: 500;
         margin: 0;
+        word-break: break-word;
     }
 
     /* COMPACT Line Items Table */
@@ -614,7 +615,7 @@
     /* Large Tablets and Small Desktops (992-1199px) */
     @media (max-width: 1199px) {
         .info-grid {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 6px 10px;
         }
     }
@@ -642,7 +643,7 @@
         }
 
         .info-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 6px 10px;
         }
     }
@@ -688,7 +689,7 @@
         }
 
         .info-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 6px;
         }
 

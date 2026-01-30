@@ -4,860 +4,870 @@
 {% block title %}{{ title }} - Payment Voucher System{% endblock %}
 
 {% block extra_css %}
-<style>
-    /* ==================== Voucher Form Specific Styles ==================== */
-    .voucher-form-container {
-        max-width: 1600px;  /* CHANGED from 1200px to 1600px */
-        margin: 0 auto;
-        padding: 0 var(--spacing-md);  /* CHANGED from var(--spacing-xl) to var(--spacing-md) */
-        opacity: 0;
-        animation: fadeInPage 0.5s ease-in 0.1s forwards;
-    }
-
-    @keyframes fadeInPage {
-        to { opacity: 1; }
-    }
-
-    @keyframes fadeInUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* For very large screens, use even more space */
-    @media (min-width: 1800px) {
+    <style>
+        /* ==================== Voucher Form Specific Styles ==================== */
         .voucher-form-container {
-            max-width: 1800px;
-            padding: 0 var(--spacing-lg);
-        }
-    }
-
-    .page-header {
-        margin-bottom: var(--spacing-2xl);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: var(--spacing-md);
-        
-    }
-
-    .page-title {
-        font-family: var(--font-heading);
-        font-size: 2rem;
-        font-weight: 500;
-        color: var(--gray-900);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
-        margin-top: -30px;
-    }
-
-    .page-title i {
-        font-size: 2.5rem;
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        
-    }
-
-    /* Form Cards with Animation */
-    .form-card {
-        background: white;
-        border-radius: var(--radius-xl);
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-        margin-bottom: var(--spacing-xl);
-        transition: all var(--transition-base);
-        opacity: 0;
-        transform: translateY(20px);
-        animation: fadeInUp 0.5s ease-out forwards;
-        margin-top: -40px;
-    }
-
-    /* Staggered animation for form cards */
-    .form-card:nth-of-type(1) { animation-delay: 0.15s; }
-    .form-card:nth-of-type(2) { animation-delay: 0.25s; }
-    .form-card:nth-of-type(3) { animation-delay: 0.35s; }
-
-    .form-card:hover {
-        box-shadow: var(--shadow-lg);
-    }
-
-    .form-card-header {
-        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-        padding: var(--spacing-lg) var(--spacing-xl);
-        border-bottom: 3px solid var(--primary-500);
-    }
-
-    .form-card-header.info {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        border-bottom-color: #60a5fa;
-    }
-
-    .form-card-title {
-        font-family: var(--font-heading);
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: white;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
-
-    .form-card-title i {
-        font-size: 1.5rem;
-    }
-
-    .form-card-body {
-        padding: var(--spacing-xl);
-    }
-
-    /* Enhanced Form Fields */
-    .form-group {
-        margin-bottom: var(--spacing-lg);
-    }
-
-    .form-label {
-        font-family: var(--font-body);
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        margin-bottom: var(--spacing-sm);
-        display: block;
-    }
-
-    .form-control,
-    .form-select {
-        font-family: var(--font-body);
-        font-size: 0.9375rem;
-        padding: var(--spacing-sm) var(--spacing-md);
-        border: 2px solid var(--gray-300);
-        border-radius: var(--radius-md);
-        transition: all var(--transition-fast);
-        background: white;
-    }
-
-    .form-control:focus,
-    .form-select:focus {
-        border-color: var(--primary-500);
-        box-shadow: 0 0 0 3px rgba(25, 145, 185, 0.1);
-        outline: none;
-    }
-
-    .form-control:hover,
-    .form-select:hover {
-        border-color: var(--primary-400);
-    }
-
-    /* Line Items Table */
-    .line-items-table-container {
-        overflow-x: auto;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .line-items-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .line-items-table thead {
-        background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
-    }
-
-    .line-items-table th {
-        font-family: var(--font-body);
-        font-size: 0.8125rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: var(--spacing-md);
-        text-align: left;
-        border-bottom: 2px solid var(--primary-200);
-        white-space: nowrap;
-    }
-
-    .line-items-table tbody tr {
-        transition: all var(--transition-base);
-    }
-
-    .line-items-table tbody tr:hover {
-        background: var(--primary-50);
-    }
-
-    /* Row animation for removal */
-    .line-item-row {
-        transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-    }
-
-    .line-items-table td {
-        padding: var(--spacing-sm);
-        border-bottom: 1px solid var(--gray-200);
-        vertical-align: middle;
-    }
-
-    .line-items-table td input,
-    .line-items-table td select,
-    .line-items-table td textarea {
-        width: 100%;
-        font-size: 0.875rem;
-        padding: var(--spacing-xs) var(--spacing-sm);
-        border: 2px solid var(--gray-300);
-        border-radius: var(--radius-sm);
-        transition: all var(--transition-fast);
-    }
-
-    .line-items-table td input:focus,
-    .line-items-table td select:focus,
-    .line-items-table td textarea:focus {
-        border-color: var(--primary-500);
-        box-shadow: 0 0 0 3px rgba(25, 145, 185, 0.1);
-        outline: none;
-    }
-
-    .line-items-table td textarea {
-        min-height: 60px;
-        resize: vertical;
-    }
-
-    /* Hidden fields */
-    .line-items-table td input[type="hidden"] {
-        display: none;
-    }
-
-    /* Line Number Badge */
-    .line-number-badge {
-        display: inline-block;
-        width: 32px;
-        height: 32px;
-        line-height: 32px;
-        text-align: center;
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        color: white;
-        border-radius: var(--radius-md);
-        font-weight: 700;
-        font-size: 0.875rem;
-    }
-
-    /* VAT Checkbox */
-    .vat-checkbox-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .vat-checkbox {
-        width: 24px;
-        height: 24px;
-        cursor: pointer;
-        accent-color: var(--primary-500);
-    }
-
-    /* Line Total Display */
-    .line-total {
-        font-family: var(--font-heading);
-        font-weight: 700;
-        font-size: 1rem;
-        color: var(--gray-900);
-        text-align: right;
-        white-space: nowrap;
-    }
-
-    /* Grand Total Footer */
-    .line-items-table tfoot {
-        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-    }
-
-    .line-items-table tfoot th {
-        color: white;
-        font-size: 1rem;
-        padding: var(--spacing-md);
-        border: none;
-    }
-
-    .grand-total-value {
-        font-family: var(--font-heading);
-        font-size: 1.5rem;
-        font-weight: 700;
-        text-align: right;
-    }
-
-    /* Add Line Item Button */
-    .add-line-btn {
-        background: white;
-        color: var(--primary-600);
-        border: 2px solid var(--primary-500);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-sm) var(--spacing-lg);
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 0.9375rem;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        transition: all var(--transition-base);
-        cursor: pointer;
-    }
-
-    .add-line-btn:hover {
-        background: var(--primary-500);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .add-line-btn i {
-        font-size: 1.25rem;
-    }
-
-    /* Delete Line Button */
-    .delete-line-btn {
-        background: transparent;
-        color: var(--gray-500);
-        border: none;
-        padding: var(--spacing-xs);
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        transition: all var(--transition-fast);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .delete-line-btn:hover {
-        background: rgba(239, 68, 68, 0.1);
-        color: #dc2626;
-        transform: scale(1.1);
-    }
-
-    .delete-line-btn i {
-        font-size: 1.125rem;
-    }
-
-    /* Toast Notification */
-    .toast-notification {
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        min-width: 300px;
-        max-width: 400px;
-        background: white;
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-xl);
-        padding: var(--spacing-md) var(--spacing-lg);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        z-index: 9999;
-        animation: slideInRight 0.3s ease-out;
-        border-left: 4px solid var(--primary-500);
-    }
-
-    .toast-notification.success {
-        border-left-color: var(--success);
-    }
-
-    .toast-notification.warning {
-        border-left-color: var(--warning);
-    }
-
-    .toast-notification.danger {
-        border-left-color: var(--danger);
-    }
-
-    .toast-notification i {
-        font-size: 1.25rem;
-        flex-shrink: 0;
-    }
-
-    .toast-notification.success i {
-        color: var(--success);
-    }
-
-    .toast-notification.warning i {
-        color: var(--warning);
-    }
-
-    .toast-notification.danger i {
-        color: var(--danger);
-    }
-
-    .toast-notification .toast-message {
-        flex: 1;
-        font-family: var(--font-body);
-        font-size: 0.9375rem;
-        font-weight: 500;
-        color: var(--gray-900);
-    }
-
-    .toast-notification.fadeOut {
-        animation: fadeOut 0.3s ease-out forwards;
-    }
-
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
+            max-width: 1600px; /* CHANGED from 1200px to 1600px */
+            margin: 0 auto;
+            padding: 0 var(--spacing-md); /* CHANGED from var(--spacing-xl) to var(--spacing-md) */
             opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes fadeOut {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-    }
-
-    /* Attachment Upload Styles */
-    .attachment-upload-area {
-        margin-bottom: var(--spacing-md);
-    }
-
-    .attachment-upload-label {
-        display: block;
-        border: 2px dashed var(--primary-300);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-2xl);
-        text-align: center;
-        cursor: pointer;
-        transition: all var(--transition-base);
-        background: var(--primary-50);
-    }
-
-    .attachment-upload-label:hover {
-        border-color: var(--primary-500);
-        background: var(--primary-100);
-        transform: translateY(-2px);
-    }
-
-    .attachment-input {
-        display: none;
-    }
-
-    .upload-icon {
-        font-size: 3rem;
-        color: var(--primary-500);
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .upload-text {
-        font-size: 1rem;
-        color: var(--gray-700);
-        margin-bottom: var(--spacing-xs);
-    }
-
-    .upload-text strong {
-        color: var(--primary-600);
-    }
-
-    .upload-hint {
-        font-size: 0.875rem;
-        color: var(--gray-600);
-    }
-
-    .selected-files-list {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);
-        border-radius: var(--radius-md);
-        padding: var(--spacing-md);
-        margin-top: var(--spacing-md);
-    }
-
-    .files-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .files-list li {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: var(--spacing-sm);
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: var(--radius-sm);
-        margin-bottom: var(--spacing-xs);
-        font-size: 0.875rem;
-    }
-
-    .files-list li:last-child {
-        margin-bottom: 0;
-    }
-
-    .file-info {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        flex: 1;
-    }
-
-    .file-icon {
-        color: var(--primary-600);
-        font-size: 1.25rem;
-    }
-
-    .file-name {
-        font-weight: 500;
-        color: var(--gray-900);
-    }
-
-    .file-size {
-        color: var(--gray-600);
-        font-size: 0.8125rem;
-        margin-left: var(--spacing-xs);
-    }
-
-    .remove-file-btn {
-        background: var(--danger);
-        color: white;
-        border: none;
-        border-radius: var(--radius-sm);
-        padding: 4px 8px;
-        font-size: 0.75rem;
-        cursor: pointer;
-        transition: all var(--transition-fast);
-    }
-
-    .remove-file-btn:hover {
-        background: #b91c1c;
-        transform: scale(1.05);
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: var(--spacing-md);
-        flex-wrap: wrap;
-    }
-
-    .save-btn.submitting {
-        opacity: 0.7;
-        cursor: not-allowed;
-        position: relative;
-    }
-
-    .save-btn.submitting::after {
-        content: ' Saving...';
-    }
-
-    .save-btn {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        color: white;
-        border: none;
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-md) var(--spacing-2xl);
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 1rem;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        transition: all var(--transition-base);
-        box-shadow: var(--shadow-md);
-        cursor: pointer;
-    }
-
-    .save-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    }
-
-    .save-btn i {
-        font-size: 1.25rem;
-    }
-
-    .cancel-btn {
-        background: white;
-        color: var(--gray-700);
-        border: 2px solid var(--gray-300);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-md) var(--spacing-2xl);
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 1rem;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        text-decoration: none;
-        transition: all var(--transition-base);
-    }
-
-    .cancel-btn:hover {
-        background: var(--gray-50);
-        border-color: var(--gray-400);
-        color: var(--gray-900);
-        transform: translateY(-2px);
-    }
-
-    .cancel-btn i {
-        font-size: 1.25rem;
-    }
-
-    /* Helper Text */
-    .helper-text {
-        font-size: 0.8125rem;
-        color: var(--gray-600);
-        margin-top: var(--spacing-xs);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-xs);
-    }
-
-    .helper-text i {
-        color: var(--primary-500);
-    }
-
-    /* ==================== RESPONSIVE DESIGN ==================== */
-
-    /* Tablet (768-991px) */
-    @media (max-width: 991px) {
-        .voucher-form-container {
-            padding: 0 var(--spacing-md);
+            animation: fadeInPage 0.5s ease-in 0.1s forwards;
         }
 
-        .page-title {
-            font-size: 1.75rem;
+        @keyframes fadeInPage {
+            to {
+                opacity: 1;
+            }
         }
 
-        .form-card-body {
-            padding: var(--spacing-lg);
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .form-row {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    /* Mobile (<768px) */
-    @media (max-width: 768px) {
-        .voucher-form-container {
-            padding: 0 12px;
+        /* For very large screens, use even more space */
+        @media (min-width: 1800px) {
+            .voucher-form-container {
+                max-width: 1800px;
+                padding: 0 var(--spacing-lg);
+            }
         }
 
         .page-header {
-            flex-direction: column;
-            align-items: flex-start;
+            margin-bottom: var(--spacing-2xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+
         }
 
         .page-title {
-            font-size: 1.5rem;
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            font-weight: 500;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-top: -30px;
         }
 
         .page-title i {
-            font-size: 1.75rem;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+
         }
 
-        .form-card-header,
+        /* Form Cards with Animation */
+        .form-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            margin-bottom: var(--spacing-xl);
+            transition: all var(--transition-base);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease-out forwards;
+            margin-top: -40px;
+        }
+
+        /* Staggered animation for form cards */
+        .form-card:nth-of-type(1) {
+            animation-delay: 0.15s;
+        }
+
+        .form-card:nth-of-type(2) {
+            animation-delay: 0.25s;
+        }
+
+        .form-card:nth-of-type(3) {
+            animation-delay: 0.35s;
+        }
+
+        .form-card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .form-card-header {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+            padding: var(--spacing-lg) var(--spacing-xl);
+            border-bottom: 3px solid var(--primary-500);
+        }
+
+        .form-card-header.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-bottom-color: #60a5fa;
+        }
+
+        .form-card-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .form-card-title i {
+            font-size: 1.5rem;
+        }
+
         .form-card-body {
-            padding: var(--spacing-md);
+            padding: var(--spacing-xl);
         }
 
-        /* Forms: single column */
-        .form-row {
-            grid-template-columns: 1fr !important;
-        }
-
+        /* Enhanced Form Fields */
         .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-label {
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: var(--spacing-sm);
+            display: block;
+        }
+
+        .form-control,
+        .form-select {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            background: white;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(25, 145, 185, 0.1);
+            outline: none;
+        }
+
+        .form-control:hover,
+        .form-select:hover {
+            border-color: var(--primary-400);
+        }
+
+        /* Line Items Table */
+        .line-items-table-container {
+            overflow-x: auto;
             margin-bottom: var(--spacing-md);
         }
 
-        /* Tables: horizontal scroll */
-        .line-items-table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 0 -12px;
-            padding: 0 12px;
-        }
-
         .line-items-table {
-            min-width: 800px;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .line-items-table thead {
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
+        }
+
+        .line-items-table th {
+            font-family: var(--font-body);
             font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: var(--spacing-md);
+            text-align: left;
+            border-bottom: 2px solid var(--primary-200);
+            white-space: nowrap;
         }
 
-        .line-items-table th,
+        .line-items-table tbody tr {
+            transition: all var(--transition-base);
+        }
+
+        .line-items-table tbody tr:hover {
+            background: var(--primary-50);
+        }
+
+        /* Row animation for removal */
+        .line-item-row {
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+        }
+
         .line-items-table td {
+            padding: var(--spacing-sm);
+            border-bottom: 1px solid var(--gray-200);
+            vertical-align: middle;
+        }
+
+        .line-items-table td input,
+        .line-items-table td select,
+        .line-items-table td textarea {
+            width: 100%;
+            font-size: 0.875rem;
             padding: var(--spacing-xs) var(--spacing-sm);
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
         }
 
-        /* Attachment upload mobile */
-        .attachment-upload-label {
-            padding: var(--spacing-lg);
+        .line-items-table td input:focus,
+        .line-items-table td select:focus,
+        .line-items-table td textarea:focus {
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(25, 145, 185, 0.1);
+            outline: none;
         }
 
-        .upload-icon {
-            font-size: 2rem;
+        .line-items-table td textarea {
+            min-height: 60px;
+            resize: vertical;
         }
 
-        .upload-text {
+        /* Hidden fields */
+        .line-items-table td input[type="hidden"] {
+            display: none;
+        }
+
+        /* Line Number Badge */
+        .line-number-badge {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+            color: white;
+            border-radius: var(--radius-md);
+            font-weight: 700;
             font-size: 0.875rem;
         }
 
-        .upload-hint {
-            font-size: 0.75rem;
-        }
-
-        /* Buttons: full width and stacked */
-        .action-buttons {
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .save-btn,
-        .cancel-btn,
-        .add-line-btn,
-        .delete-line-btn {
-            width: 100%;
+        /* VAT Checkbox */
+        .vat-checkbox-container {
+            display: flex;
+            align-items: center;
             justify-content: center;
-            min-height: 44px;
         }
 
-        .toast-notification {
-            right: 10px;
-            left: 10px;
-            top: 70px;
-            min-width: auto;
-            max-width: none;
-        }
-    }
-
-    /* Small Mobile (<576px) */
-    @media (max-width: 576px) {
-        .voucher-form-container {
-            padding: 0 8px;
+        .vat-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: var(--primary-500);
         }
 
-        .page-title {
-            font-size: 1.25rem;
-        }
-
-        .form-card-header h3 {
+        /* Line Total Display */
+        .line-total {
+            font-family: var(--font-heading);
+            font-weight: 700;
             font-size: 1rem;
+            color: var(--gray-900);
+            text-align: right;
+            white-space: nowrap;
         }
 
-        .line-items-table {
-            font-size: 0.75rem;
-            min-width: 700px;
+        /* Grand Total Footer */
+        .line-items-table tfoot {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
         }
 
-        .line-items-table th,
-        .line-items-table td {
-            padding: var(--spacing-xs);
+        .line-items-table tfoot th {
+            color: white;
+            font-size: 1rem;
+            padding: var(--spacing-md);
+            border: none;
         }
 
-        .grand-total {
+        .grand-total-value {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        /* Add Line Item Button */
+        .add-line-btn {
+            background: white;
+            color: var(--primary-600);
+            border: 2px solid var(--primary-500);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 0.9375rem;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
+
+        .add-line-btn:hover {
+            background: var(--primary-500);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .add-line-btn i {
             font-size: 1.25rem;
         }
-    }
-</style>
+
+        /* Delete Line Button */
+        .delete-line-btn {
+            background: transparent;
+            color: var(--gray-500);
+            border: none;
+            padding: var(--spacing-xs);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-line-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            transform: scale(1.1);
+        }
+
+        .delete-line-btn i {
+            font-size: 1.125rem;
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            min-width: 300px;
+            max-width: 400px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            padding: var(--spacing-md) var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            z-index: 9999;
+            animation: slideInRight 0.3s ease-out;
+            border-left: 4px solid var(--primary-500);
+        }
+
+        .toast-notification.success {
+            border-left-color: var(--success);
+        }
+
+        .toast-notification.warning {
+            border-left-color: var(--warning);
+        }
+
+        .toast-notification.danger {
+            border-left-color: var(--danger);
+        }
+
+        .toast-notification i {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .toast-notification.success i {
+            color: var(--success);
+        }
+
+        .toast-notification.warning i {
+            color: var(--warning);
+        }
+
+        .toast-notification.danger i {
+            color: var(--danger);
+        }
+
+        .toast-notification .toast-message {
+            flex: 1;
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--gray-900);
+        }
+
+        .toast-notification.fadeOut {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        /* Attachment Upload Styles */
+        .attachment-upload-area {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .attachment-upload-label {
+            display: block;
+            border: 2px dashed var(--primary-300);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            background: var(--primary-50);
+        }
+
+        .attachment-upload-label:hover {
+            border-color: var(--primary-500);
+            background: var(--primary-100);
+            transform: translateY(-2px);
+        }
+
+        .attachment-input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-500);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .upload-text {
+            font-size: 1rem;
+            color: var(--gray-700);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .upload-text strong {
+            color: var(--primary-600);
+        }
+
+        .upload-hint {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .selected-files-list {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+
+        .files-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .files-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm);
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--spacing-xs);
+            font-size: 0.875rem;
+        }
+
+        .files-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            flex: 1;
+        }
+
+        .file-icon {
+            color: var(--primary-600);
+            font-size: 1.25rem;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: var(--gray-900);
+        }
+
+        .file-size {
+            color: var(--gray-600);
+            font-size: 0.8125rem;
+            margin-left: var(--spacing-xs);
+        }
+
+        .remove-file-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .remove-file-btn:hover {
+            background: #b91c1c;
+            transform: scale(1.05);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+
+        .save-btn.submitting {
+            opacity: 0.7;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .save-btn.submitting::after {
+            content: ' Saving...';
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md) var(--spacing-2xl);
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        .save-btn i {
+            font-size: 1.25rem;
+        }
+
+        .cancel-btn {
+            background: white;
+            color: var(--gray-700);
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md) var(--spacing-2xl);
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            text-decoration: none;
+            transition: all var(--transition-base);
+        }
+
+        .cancel-btn:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+            color: var(--gray-900);
+            transform: translateY(-2px);
+        }
+
+        .cancel-btn i {
+            font-size: 1.25rem;
+        }
+
+        /* Helper Text */
+        .helper-text {
+            font-size: 0.8125rem;
+            color: var(--gray-600);
+            margin-top: var(--spacing-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .helper-text i {
+            color: var(--primary-500);
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+
+        /* Tablet (768-991px) */
+        @media (max-width: 991px) {
+            .voucher-form-container {
+                padding: 0 var(--spacing-md);
+            }
+
+            .page-title {
+                font-size: 1.75rem;
+            }
+
+            .form-card-body {
+                padding: var(--spacing-lg);
+            }
+
+            .form-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Mobile (<768px) */
+        @media (max-width: 768px) {
+            .voucher-form-container {
+                padding: 0 12px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .page-title i {
+                font-size: 1.75rem;
+            }
+
+            .form-card-header,
+            .form-card-body {
+                padding: var(--spacing-md);
+            }
+
+            /* Forms: single column */
+            .form-row {
+                grid-template-columns: 1fr !important;
+            }
+
+            .form-group {
+                margin-bottom: var(--spacing-md);
+            }
+
+            /* Tables: horizontal scroll */
+            .line-items-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 0 -12px;
+                padding: 0 12px;
+            }
+
+            .line-items-table {
+                min-width: 800px;
+                font-size: 0.8125rem;
+            }
+
+            .line-items-table th,
+            .line-items-table td {
+                padding: var(--spacing-xs) var(--spacing-sm);
+            }
+
+            /* Attachment upload mobile */
+            .attachment-upload-label {
+                padding: var(--spacing-lg);
+            }
+
+            .upload-icon {
+                font-size: 2rem;
+            }
+
+            .upload-text {
+                font-size: 0.875rem;
+            }
+
+            .upload-hint {
+                font-size: 0.75rem;
+            }
+
+            /* Buttons: full width and stacked */
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .save-btn,
+            .cancel-btn,
+            .add-line-btn,
+            .delete-line-btn {
+                width: 100%;
+                justify-content: center;
+                min-height: 44px;
+            }
+
+            .toast-notification {
+                right: 10px;
+                left: 10px;
+                top: 70px;
+                min-width: auto;
+                max-width: none;
+            }
+        }
+
+        /* Small Mobile (<576px) */
+        @media (max-width: 576px) {
+            .voucher-form-container {
+                padding: 0 8px;
+            }
+
+            .page-title {
+                font-size: 1.25rem;
+            }
+
+            .form-card-header h3 {
+                font-size: 1rem;
+            }
+
+            .line-items-table {
+                font-size: 0.75rem;
+                min-width: 700px;
+            }
+
+            .line-items-table th,
+            .line-items-table td {
+                padding: var(--spacing-xs);
+            }
+
+            .grand-total {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-<div class="voucher-form-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1 class="page-title">
+    <div class="voucher-form-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">
 
-            <span>{{ title }}</span>
-        </h1>
-    </div>
-
-    <!-- Debug: Show all errors -->
-    {% if form.errors or formset.errors or formset.non_form_errors %}
-    <div class="alert alert-danger" style="margin-bottom: var(--spacing-xl);">
-        <h4><i class="bi bi-exclamation-triangle-fill"></i> Form Validation Errors:</h4>
-        {% if form.errors %}
-            <strong>Header Form Errors:</strong>
-            <ul>
-            {% for field, errors in form.errors.items %}
-                <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
-        {% if formset.non_form_errors %}
-            <strong>Line Items General Errors:</strong>
-            <ul>
-                <li>{{ formset.non_form_errors }}</li>
-            </ul>
-        {% endif %}
-        {% if formset.errors %}
-            <strong>Line Item Errors:</strong>
-            <ul>
-            {% for line_form in formset %}
-                {% if line_form.errors %}
-                    <li>Line {{ forloop.counter }}: {{ line_form.errors }}</li>
-                {% endif %}
-            {% endfor %}
-            </ul>
-        {% endif %}
-    </div>
-    {% endif %}
-
-    <form method="post" id="voucher-form" enctype="multipart/form-data">
-        {% csrf_token %}
-
-        <!-- Voucher Information Card -->
-        <div class="form-card">
-            <div class="form-card-header">
-                <h2 class="form-card-title">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Voucher Information</span>
-                </h2>
-            </div>
-            <div class="form-card-body">
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {{ form.non_field_errors }}
-                    </div>
-                {% endif %}
-                {{ form|crispy }}
-                <div class="helper-text">
-                    <i class="bi bi-lightbulb"></i>
-                    <span>Fill in all required fields before proceeding to line items.</span>
-                </div>
-            </div>
+                <span>{{ title }}</span>
+            </h1>
         </div>
 
-        <!-- Line Items Card -->
-        <div class="form-card">
-            <div class="form-card-header info">
-                <h2 class="form-card-title">
-                    <i class="bi bi-list-check"></i>
-                    <span>Line Items</span>
-                </h2>
-            </div>
-            <div class="form-card-body">
-                {% if formset.non_form_errors %}
-                    <div class="alert alert-danger">
-                        <strong>Line Items Error:</strong>
-                        {{ formset.non_form_errors }}
-                    </div>
+        <!-- Debug: Show all errors -->
+        {% if form.errors or formset.errors or formset.non_form_errors %}
+            <div class="alert alert-danger" style="margin-bottom: var(--spacing-xl);">
+                <h4><i class="bi bi-exclamation-triangle-fill"></i> Form Validation Errors:</h4>
+                {% if form.errors %}
+                    <strong>Header Form Errors:</strong>
+                    <ul>
+                        {% for field, errors in form.errors.items %}
+                            <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+                        {% endfor %}
+                    </ul>
                 {% endif %}
+                {% if formset.non_form_errors %}
+                    <strong>Line Items General Errors:</strong>
+                    <ul>
+                        <li>{{ formset.non_form_errors }}</li>
+                    </ul>
+                {% endif %}
+                {% if formset.errors %}
+                    <strong>Line Item Errors:</strong>
+                    <ul>
+                        {% for line_form in formset %}
+                            {% if line_form.errors %}
+                                <li>Line {{ forloop.counter }}: {{ line_form.errors }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endif %}
 
-                <div class="helper-text" style="margin-bottom: var(--spacing-md);">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Fill in the table below with your voucher line items. At least one line item is required. Click "Add Line Item" button below to add more rows (up to 50).</span>
+        <form method="post" id="voucher-form" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Voucher Information Card -->
+            <div class="form-card">
+                <div class="form-card-header">
+                    <h2 class="form-card-title">
+                        <i class="bi bi-info-circle"></i>
+                        <span>Voucher Information</span>
+                    </h2>
                 </div>
+                <div class="form-card-body">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    {{ form|crispy }}
+                    <div class="helper-text">
+                        <i class="bi bi-lightbulb"></i>
+                        <span>Fill in all required fields before proceeding to line items.</span>
+                    </div>
+                </div>
+            </div>
 
-                {{ formset.management_form }}
+            <!-- Line Items Card -->
+            <div class="form-card">
+                <div class="form-card-header info">
+                    <h2 class="form-card-title">
+                        <i class="bi bi-list-check"></i>
+                        <span>Line Items</span>
+                    </h2>
+                </div>
+                <div class="form-card-body">
+                    {% if formset.non_form_errors %}
+                        <div class="alert alert-danger">
+                            <strong>Line Items Error:</strong>
+                            {{ formset.non_form_errors }}
+                        </div>
+                    {% endif %}
 
-                <div class="line-items-table-container">
-                    <table class="line-items-table" id="line-items-table">
-                        <thead>
+                    <div class="helper-text" style="margin-bottom: var(--spacing-md);">
+                        <i class="bi bi-info-circle"></i>
+                        <span>Fill in the table below with your voucher line items. At least one line item is required. Click "Add Line Item" button below to add more rows (up to 50).</span>
+                    </div>
+
+                    {{ formset.management_form }}
+
+                    <div class="line-items-table-container">
+                        <table class="line-items-table" id="line-items-table">
+                            <thead>
                             <tr>
                                 <th style="width: 5%;">#</th>
                                 <th style="width: 27%;">Description</th>
@@ -868,55 +878,56 @@
                                 <th style="width: 11%;">Total ($)</th>
                                 <th style="width: 5%;">Action</th>
                             </tr>
-                        </thead>
-                        <tbody id="line-items-body">
+                            </thead>
+                            <tbody id="line-items-body">
                             {% for form in formset %}
-                            <tr class="line-item-row" data-form-index="{{ forloop.counter0 }}">
-                                <td class="text-center">
-                                    <span class="line-number-badge">{{ forloop.counter }}</span>
-                                    <!-- Hidden fields -->
-                                    {{ form.line_number }}
-                                    {{ form.id }}
-                                </td>
-                                <td>
-                                    {{ form.description }}
-                                    {% if form.description.errors %}
-                                        <small style="color: #dc3545;">{{ form.description.errors|first }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {{ form.department }}
-                                    {% if form.department.errors %}
-                                        <small style="color: #dc3545;">{{ form.department.errors|first }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {{ form.program }}
-                                    {% if form.program.errors %}
-                                        <small style="color: #dc3545;">{{ form.program.errors|first }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {{ form.amount }}
-                                    {% if form.amount.errors %}
-                                        <small style="color: #dc3545;">{{ form.amount.errors|first }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="vat-checkbox-container">
-                                        {{ form.vat_applicable }}
-                                    </div>
-                                </td>
-                                <td class="line-total">$0.00</td>
-                                <td class="text-center">
-                                    <button type="button" class="delete-line-btn" onclick="removeLineItem(this)" title="Remove this line">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                                <tr class="line-item-row" data-form-index="{{ forloop.counter0 }}">
+                                    <td class="text-center">
+                                        <span class="line-number-badge">{{ forloop.counter }}</span>
+                                        <!-- Hidden fields -->
+                                        {{ form.line_number }}
+                                        {{ form.id }}
+                                    </td>
+                                    <td>
+                                        {{ form.description }}
+                                        {% if form.description.errors %}
+                                            <small style="color: #dc3545;">{{ form.description.errors|first }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.department }}
+                                        {% if form.department.errors %}
+                                            <small style="color: #dc3545;">{{ form.department.errors|first }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.program }}
+                                        {% if form.program.errors %}
+                                            <small style="color: #dc3545;">{{ form.program.errors|first }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.amount }}
+                                        {% if form.amount.errors %}
+                                            <small style="color: #dc3545;">{{ form.amount.errors|first }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="vat-checkbox-container">
+                                            {{ form.vat_applicable }}
+                                        </div>
+                                    </td>
+                                    <td class="line-total">$0.00</td>
+                                    <td class="text-center">
+                                        <button type="button" class="delete-line-btn" onclick="removeLineItem(this)"
+                                                title="Remove this line">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
                             {% endfor %}
-                        </tbody>
-                        <tfoot>
+                            </tbody>
+                            <tfoot>
                             <tr>
                                 <th colspan="6" style="text-align: right;">GRAND TOTAL:</th>
                                 <th>
@@ -924,441 +935,554 @@
                                 </th>
                                 <th></th>
                             </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                            </tfoot>
+                        </table>
+                    </div>
 
-                <button type="button" class="add-line-btn" onclick="addLineItem()">
-                    <i class="bi bi-plus-circle"></i>
-                    <span>Add Line Item</span>
-                </button>
-
-                <div class="helper-text" style="margin-top: var(--spacing-md);">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Check the VAT box to add 10% tax to the line item amount. Click "Add Line Item" to add more rows.</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Attachments Card -->
-        <div class="form-card">
-            <div class="form-card-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-bottom-color: #34d399;">
-                <h2 class="form-card-title">
-                    <i class="bi bi-paperclip"></i>
-                    <span>Attachments (Optional)</span>
-                </h2>
-            </div>
-            <div class="form-card-body">
-                {% if object and object.pv_number %}
-                <div style="background: var(--primary-50); border-left: 3px solid var(--primary-500); padding: var(--spacing-sm); border-radius: var(--radius-sm); margin-bottom: var(--spacing-md); font-size: 0.8125rem; color: var(--gray-700);">
-                    <i class="bi bi-folder2-open"></i> <strong>Storage Location:</strong> voucher_attachments/{{ object.pv_number }}/
-                </div>
-                {% endif %}
-
-                <div class="helper-text" style="margin-bottom: var(--spacing-md);">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Upload supporting documents such as invoices, receipts, or contracts. You can select multiple files at once.
-                    {% if not object %}Files will be organized using a PV number that will be generated when you save this voucher.{% endif %}</span>
-                </div>
-
-                <div class="attachment-upload-area">
-                    <label for="id_attachments" class="attachment-upload-label">
-                        <div class="upload-icon">
-                            <i class="bi bi-cloud-upload"></i>
-                        </div>
-                        <div class="upload-text">
-                            <strong>Click to upload</strong> or drag and drop
-                        </div>
-                        <div class="upload-hint">
-                            PDF, JPG, PNG (Max 10MB per file)
-                        </div>
-                    </label>
-                    <input type="file" name="attachments" id="id_attachments" class="attachment-input" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="displaySelectedFiles(this)">
-                </div>
-
-                <div id="selected-files-list" class="selected-files-list" style="display: none;">
-                    <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--gray-700); margin-bottom: var(--spacing-sm);">
-                        <i class="bi bi-files"></i> Selected Files:
-                    </h4>
-                    <ul id="files-list" class="files-list"></ul>
-                </div>
-
-                <div class="helper-text" style="margin-top: var(--spacing-sm);">
-                    <i class="bi bi-shield-check"></i>
-                    <span>Files are securely stored and only accessible to authorized users.</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Action Buttons Card -->
-        <div class="form-card">
-            <div class="form-card-body">
-                <div class="action-buttons">
-                    <button type="submit" class="save-btn">
-                        <i class="bi bi-check-circle"></i>
-                        <span>Save Voucher</span>
+                    <button type="button" class="add-line-btn" onclick="addLineItem()">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Add Line Item</span>
                     </button>
-                    <a href="{% if object %}{% url 'vouchers:detail' object.pk %}{% else %}{% url 'dashboard:home' %}{% endif %}" class="cancel-btn">
-                        <i class="bi bi-x-circle"></i>
-                        <span>Cancel</span>
-                    </a>
+
+                    <div class="helper-text" style="margin-top: var(--spacing-md);">
+                        <i class="bi bi-info-circle"></i>
+                        <span>Check the VAT box to add 10% tax to the line item amount. Click "Add Line Item" to add more rows.</span>
+                    </div>
                 </div>
             </div>
-        </div>
-    </form>
-</div>
+            <!-- Attachments Card -->
+            <div class="form-card">
+                <div class="form-card-header"
+                     style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-bottom-color: #34d399;">
+                    <h2 class="form-card-title">
+                        <i class="bi bi-paperclip"></i>
+                        <span>Attachments (Optional)</span>
+                    </h2>
+                </div>
+                <div class="form-card-body">
+                    {% if object and object.pv_number %}
+                        <div style="background: var(--primary-50); border-left: 3px solid var(--primary-500); padding: var(--spacing-sm); border-radius: var(--radius-sm); margin-bottom: var(--spacing-md); font-size: 0.8125rem; color: var(--gray-700);">
+                            <i class="bi bi-folder2-open"></i> <strong>Storage Location:</strong>
+                            voucher_attachments/{{ object.pv_number }}/
+                        </div>
+                    {% endif %}
+
+                    <!-- ✅ MOVED HIDDEN INPUT HERE - OUTSIDE THE CONTAINER THAT GETS REPLACED -->
+                    <input type="hidden" name="deleted_attachments" id="deleted-attachments" value="">
+
+                    <!-- Existing Attachments (for edit mode) -->
+                    {% if object %}
+                        {% if object.attachments.exists %}
+                            <div id="existing-attachments-container"
+                                 style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                                <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--gray-700); margin-bottom: var(--spacing-sm); display: flex; align-items: center; gap: var(--spacing-xs);">
+                                    <i class="bi bi-folder-check"></i>
+                                    <span>Existing Attachments ({{ object.attachments.count }})</span>
+                                </h4>
+                                <ul class="files-list" id="existing-files-list">
+                                    {% for attachment in object.attachments.all %}
+                                        <li data-attachment-id="{{ attachment.id }}">
+                                            <div class="file-info">
+                                                {% if '.pdf' in attachment.file.name|lower or '.PDF' in attachment.file.name %}
+                                                    <i class="bi bi-file-earmark-pdf file-icon"></i>
+                                                {% elif '.jpg' in attachment.file.name|lower or '.jpeg' in attachment.file.name|lower or '.png' in attachment.file.name|lower %}
+                                                    <i class="bi bi-file-earmark-image file-icon"></i>
+                                                {% else %}
+                                                    <i class="bi bi-file-earmark file-icon"></i>
+                                                {% endif %}
+                                                <a href="{{ attachment.file.url }}" target="_blank" class="file-name"
+                                                   style="text-decoration: none; color: var(--primary-600);">
+                                                    {{ attachment.filename }}
+                                                </a>
+                                                <span class="file-size">({{ attachment.file_size|filesizeformat }})</span>
+                                            </div>
+                                            <button type="button" class="remove-file-btn"
+                                                    onclick="removeExistingAttachment({{ attachment.id }}, '{{ attachment.filename|escapejs }}')">
+                                                <i class="bi bi-x"></i> Remove
+                                            </button>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% else %}
+                            <div id="existing-attachments-container"
+                                 style="background: var(--gray-50); border: 1px dashed var(--gray-300); border-radius: var(--radius-md); padding: var(--spacing-md); margin-bottom: var(--spacing-lg); text-align: center; color: var(--gray-600); font-size: 0.875rem;">
+                                <i class="bi bi-inbox"></i> No attachments found for this voucher.
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <div class="helper-text" style="margin-bottom: var(--spacing-md);">
+                        <i class="bi bi-info-circle"></i>
+                        <span>Upload supporting documents such as invoices, receipts, or contracts. You can select multiple files at once.
+                            {% if not object %}Files will be organized using a PV number that will be generated when you
+                                save this voucher.{% endif %}</span>
+                    </div>
+
+                    <div class="attachment-upload-area">
+                        <label for="id_attachments" class="attachment-upload-label">
+                            <div class="upload-icon">
+                                <i class="bi bi-cloud-upload"></i>
+                            </div>
+                            <div class="upload-text">
+                                <strong>Click to upload</strong> or drag and drop
+                            </div>
+                            <div class="upload-hint">
+                                PDF, JPG, PNG (Max 10MB per file)
+                            </div>
+                        </label>
+                        <input type="file" name="attachments" id="id_attachments" class="attachment-input" multiple
+                               accept=".pdf,.jpg,.jpeg,.png" onchange="displaySelectedFiles(this)">
+                    </div>
+
+                    <div id="selected-files-list" class="selected-files-list" style="display: none;">
+                        <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--gray-700); margin-bottom: var(--spacing-sm);">
+                            <i class="bi bi-files"></i> Selected Files:
+                        </h4>
+                        <ul id="files-list" class="files-list"></ul>
+                    </div>
+
+                    <div class="helper-text" style="margin-top: var(--spacing-sm);">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Files are securely stored and only accessible to authorized users.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons Card -->
+            <div class="form-card">
+                <div class="form-card-body">
+                    <div class="action-buttons">
+                        <button type="submit" class="save-btn">
+                            <i class="bi bi-check-circle"></i>
+                            <span>Save Voucher</span>
+                        </button>
+                        <a href="
+                                {% if object %}{% url 'vouchers:detail' object.pk %}{% else %}{% url 'dashboard:home' %}{% endif %}"
+                           class="cancel-btn">
+                            <i class="bi bi-x-circle"></i>
+                            <span>Cancel</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Toast notification function
-function showNotification(message, type = 'info') {
-    const iconMap = {
-        success: 'bi-check-circle-fill',
-        warning: 'bi-exclamation-triangle-fill',
-        danger: 'bi-x-circle-fill',
-        info: 'bi-info-circle-fill'
-    };
+    <script>
+        // ✅ DECLARE THIS AT THE TOP - BEFORE ANY FUNCTIONS
+        let deletedAttachments = [];
 
-    const toast = document.createElement('div');
-    toast.className = `toast-notification ${type}`;
-    toast.innerHTML = `
-        <i class="bi ${iconMap[type] || iconMap.info}"></i>
-        <span class="toast-message">${message}</span>
-    `;
+        // Toast notification function
+        function showNotification(message, type = 'info') {
+            const iconMap = {
+                success: 'bi-check-circle-fill',
+                warning: 'bi-exclamation-triangle-fill',
+                danger: 'bi-x-circle-fill',
+                info: 'bi-info-circle-fill'
+            };
 
-    document.body.appendChild(toast);
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            toast.innerHTML = `
+                <i class="bi ${iconMap[type] || iconMap.info}"></i>
+                <span class="toast-message">${message}</span>
+            `;
 
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        toast.classList.add('fadeOut');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
+            document.body.appendChild(toast);
 
-function calculateLineTotals() {
-    let grandTotal = 0;
-    document.querySelectorAll('.line-item-row').forEach(row => {
-        const amountInput = row.querySelector('[name$="-amount"]');
-        const vatCheckbox = row.querySelector('[name$="-vat_applicable"]');
-        const totalCell = row.querySelector('.line-total');
-
-        if (amountInput && amountInput.value) {
-            let amount = parseFloat(amountInput.value) || 0;
-            let total = vatCheckbox && vatCheckbox.checked ? amount * 1.1 : amount;
-            totalCell.textContent = '$' + total.toFixed(2);
-            grandTotal += total;
-        } else {
-            totalCell.textContent = '$0.00';
-        }
-    });
-
-    document.getElementById('grand-total').textContent = '$' + grandTotal.toFixed(2);
-}
-
-// Calculate on page load and on change
-document.addEventListener('DOMContentLoaded', function() {
-    calculateLineTotals();
-
-    // Add event listeners to all amount inputs and VAT checkboxes
-    document.querySelectorAll('[name$="-amount"], [name$="-vat_applicable"]').forEach(el => {
-        el.addEventListener('change', calculateLineTotals);
-        el.addEventListener('input', calculateLineTotals);
-    });
-
-    // Style the VAT checkboxes
-    document.querySelectorAll('[name$="-vat_applicable"]').forEach(checkbox => {
-        checkbox.classList.add('vat-checkbox');
-    });
-
-    // Form submission logging
-    const form = document.getElementById('voucher-form');
-    const submitBtn = form.querySelector('.save-btn');
-
-    form.addEventListener('submit', function(e) {
-        console.log('Form submitting...');
-
-        // Show submitting state
-        submitBtn.classList.add('submitting');
-        submitBtn.disabled = true;
-
-        // Let Django handle validation
-        console.log('Form submitted, Django will validate...');
-    });
-});
-
-function addLineItem() {
-    const tbody = document.getElementById('line-items-body');
-    const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
-    const maxFormsInput = document.querySelector('input[name$="MAX_NUM_FORMS"]');
-
-    let totalForms = parseInt(totalFormsInput.value);
-    const maxForms = parseInt(maxFormsInput.value);
-
-    // Check if we've reached the maximum
-    if (totalForms >= maxForms) {
-        showNotification('Maximum number of line items reached (50).', 'warning');
-        return;
-    }
-
-    // Get the first row as template
-    const firstRow = tbody.querySelector('.line-item-row');
-    if (!firstRow) {
-        showNotification('Error: No template row found.', 'danger');
-        return;
-    }
-
-    // Clone the first row
-    const newRow = firstRow.cloneNode(true);
-    const newIndex = totalForms;
-
-    // Update the line number badge
-    const badge = newRow.querySelector('.line-number-badge');
-    badge.textContent = newIndex + 1;
-
-    // Update all form field names and IDs
-    const fields = newRow.querySelectorAll('input, select, textarea');
-    fields.forEach(field => {
-        if (field.name) {
-            // Replace the form index in the name
-            field.name = field.name.replace(/line_items-\d+-/, `line_items-${newIndex}-`);
-        }
-        if (field.id) {
-            // Replace the form index in the ID
-            field.id = field.id.replace(/id_line_items-\d+-/, `id_line_items-${newIndex}-`);
+            setTimeout(() => {
+                toast.classList.add('fadeOut');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
-        // Clear the value (except for hidden fields)
-        if (field.type !== 'hidden') {
-            if (field.type === 'checkbox') {
-                field.checked = false;
-            } else {
-                field.value = '';
-            }
+        function calculateLineTotals() {
+            let grandTotal = 0;
+            document.querySelectorAll('.line-item-row').forEach(row => {
+                const amountInput = row.querySelector('[name$="-amount"]');
+                const vatCheckbox = row.querySelector('[name$="-vat_applicable"]');
+                const totalCell = row.querySelector('.line-total');
+
+                if (amountInput && amountInput.value) {
+                    let amount = parseFloat(amountInput.value) || 0;
+                    let total = vatCheckbox && vatCheckbox.checked ? amount * 1.1 : amount;
+                    totalCell.textContent = '$' + total.toFixed(2);
+                    grandTotal += total;
+                } else {
+                    totalCell.textContent = '$0.00';
+                }
+            });
+
+            document.getElementById('grand-total').textContent = '$' + grandTotal.toFixed(2);
         }
 
-        // For line_number hidden field, set empty
-        if (field.name && field.name.includes('line_number')) {
-            field.value = '';
-        }
-    });
+        // Calculate on page load and on change
+        document.addEventListener('DOMContentLoaded', function () {
+            calculateLineTotals();
 
-    // Clear error messages
-    const errorMessages = newRow.querySelectorAll('small[style*="color"]');
-    errorMessages.forEach(msg => msg.remove());
+            // Add event listeners to all amount inputs and VAT checkboxes
+            document.querySelectorAll('[name$="-amount"], [name$="-vat_applicable"]').forEach(el => {
+                el.addEventListener('change', calculateLineTotals);
+                el.addEventListener('input', calculateLineTotals);
+            });
 
-    // Update the total cell
-    const totalCell = newRow.querySelector('.line-total');
-    if (totalCell) {
-        totalCell.textContent = '$0.00';
-    }
+            // Style the VAT checkboxes
+            document.querySelectorAll('[name$="-vat_applicable"]').forEach(checkbox => {
+                checkbox.classList.add('vat-checkbox');
+            });
 
-    // Add the new row to the table
-    tbody.appendChild(newRow);
+            // Form submission logging
+            const form = document.getElementById('voucher-form');
+            const submitBtn = form.querySelector('.save-btn');
 
-    // Update TOTAL_FORMS count
-    totalFormsInput.value = totalForms + 1;
+            form.addEventListener('submit', function (e) {
+                console.log('=== FORM SUBMISSION DEBUG ===');
+                console.log('Deleted attachments array:', deletedAttachments);
+                
+                const hiddenInput = document.getElementById('deleted-attachments');
+                console.log('Hidden input exists:', !!hiddenInput);
+                console.log('Hidden input value:', hiddenInput ? hiddenInput.value : 'NOT FOUND!');
+                
+                // Log form data
+                const formData = new FormData(form);
+                for (let [key, value] of formData.entries()) {
+                    if (key === 'deleted_attachments') {
+                        console.log(`✅ Form data contains deleted_attachments: "${value}"`);
+                    }
+                }
+                console.log('=============================');
 
-    // Add event listeners to the new row
-    const newAmountInput = newRow.querySelector('[name$="-amount"]');
-    const newVatCheckbox = newRow.querySelector('[name$="-vat_applicable"]');
-    if (newAmountInput) {
-        newAmountInput.addEventListener('change', calculateLineTotals);
-        newAmountInput.addEventListener('input', calculateLineTotals);
-    }
-    if (newVatCheckbox) {
-        newVatCheckbox.addEventListener('change', calculateLineTotals);
-        newVatCheckbox.classList.add('vat-checkbox');
-    }
-
-    // Scroll to the new row
-    newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    // Focus on the description field
-    const descField = newRow.querySelector('[name$="-description"]');
-    if (descField) {
-        setTimeout(() => descField.focus(), 300);
-    }
-
-    // Show success notification
-    showNotification(`Line item ${newIndex + 1} added successfully!`, 'success');
-
-    console.log(`Added line item ${newIndex + 1}. Total forms: ${totalForms + 1}`);
-}
-
-function removeLineItem(button) {
-    const tbody = document.getElementById('line-items-body');
-    const rows = tbody.querySelectorAll('.line-item-row');
-
-    // Don't allow removing if only one row left
-    if (rows.length <= 1) {
-        showNotification('You must have at least one line item.', 'warning');
-        return;
-    }
-
-    // Get the row to remove
-    const row = button.closest('.line-item-row');
-
-    // Remove the row (no confirmation needed - just remove it)
-    row.style.opacity = '0';
-    row.style.transform = 'translateX(-20px)';
-
-    setTimeout(() => {
-        row.remove();
-
-        // Update TOTAL_FORMS count
-        const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
-        totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
-
-        // Renumber remaining rows
-        renumberRows();
-
-        // Recalculate totals
-        calculateLineTotals();
-
-        showNotification('Line item removed successfully.', 'success');
-        console.log('Line item removed. Total forms:', totalFormsInput.value);
-    }, 200);
-}
-
-function renumberRows() {
-    const rows = document.querySelectorAll('.line-item-row');
-    rows.forEach((row, index) => {
-        // Update the badge number
-        const badge = row.querySelector('.line-number-badge');
-        if (badge) {
-            badge.textContent = index + 1;
-        }
-
-        // Update form field names and IDs
-        const fields = row.querySelectorAll('input, select, textarea');
-        fields.forEach(field => {
-            if (field.name) {
-                field.name = field.name.replace(/line_items-\d+-/, `line_items-${index}-`);
-            }
-            if (field.id) {
-                field.id = field.id.replace(/id_line_items-\d+-/, `id_line_items-${index}-`);
-            }
+                // Show submitting state
+                submitBtn.classList.add('submitting');
+                submitBtn.disabled = true;
+            });
         });
-    });
-}
 
-// Display selected files
-function displaySelectedFiles(input) {
-    const filesList = document.getElementById('files-list');
-    const selectedFilesDiv = document.getElementById('selected-files-list');
+        function addLineItem() {
+            const tbody = document.getElementById('line-items-body');
+            const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
+            const maxFormsInput = document.querySelector('input[name$="MAX_NUM_FORMS"]');
 
-    filesList.innerHTML = '';
+            let totalForms = parseInt(totalFormsInput.value);
+            const maxForms = parseInt(maxFormsInput.value);
 
-    if (input.files.length === 0) {
-        selectedFilesDiv.style.display = 'none';
-        return;
-    }
+            // Check if we've reached the maximum
+            if (totalForms >= maxForms) {
+                showNotification('Maximum number of line items reached (50).', 'warning');
+                return;
+            }
 
-    selectedFilesDiv.style.display = 'block';
+            // Get the first row as template
+            const firstRow = tbody.querySelector('.line-item-row');
+            if (!firstRow) {
+                showNotification('Error: No template row found.', 'danger');
+                return;
+            }
 
-    // Create a DataTransfer object to manage files
-    const dataTransfer = new DataTransfer();
+            // Clone the first row
+            const newRow = firstRow.cloneNode(true);
+            const newIndex = totalForms;
 
-    Array.from(input.files).forEach((file, index) => {
-        dataTransfer.items.add(file);
+            // Update the line number badge
+            const badge = newRow.querySelector('.line-number-badge');
+            badge.textContent = newIndex + 1;
 
-        const li = document.createElement('li');
+            // Update all form field names and IDs
+            const fields = newRow.querySelectorAll('input, select, textarea');
+            fields.forEach(field => {
+                if (field.name) {
+                    field.name = field.name.replace(/line_items-\d+-/, `line_items-${newIndex}-`);
+                }
+                if (field.id) {
+                    field.id = field.id.replace(/id_line_items-\d+-/, `id_line_items-${newIndex}-`);
+                }
 
-        const fileInfo = document.createElement('div');
-        fileInfo.className = 'file-info';
+                // Clear the value (except for hidden fields)
+                if (field.type !== 'hidden') {
+                    if (field.type === 'checkbox') {
+                        field.checked = false;
+                    } else {
+                        field.value = '';
+                    }
+                }
 
-        const icon = document.createElement('i');
-        icon.className = 'bi bi-file-earmark-pdf file-icon';
-        if (file.type.startsWith('image/')) {
-            icon.className = 'bi bi-file-earmark-image file-icon';
+                // For line_number hidden field, set empty
+                if (field.name && field.name.includes('line_number')) {
+                    field.value = '';
+                }
+            });
+
+            // Clear error messages
+            const errorMessages = newRow.querySelectorAll('small[style*="color"]');
+            errorMessages.forEach(msg => msg.remove());
+
+            // Update the total cell
+            const totalCell = newRow.querySelector('.line-total');
+            if (totalCell) {
+                totalCell.textContent = '$0.00';
+            }
+
+            // Add the new row to the table
+            tbody.appendChild(newRow);
+
+            // Update TOTAL_FORMS count
+            totalFormsInput.value = totalForms + 1;
+
+            // Add event listeners to the new row
+            const newAmountInput = newRow.querySelector('[name$="-amount"]');
+            const newVatCheckbox = newRow.querySelector('[name$="-vat_applicable"]');
+            if (newAmountInput) {
+                newAmountInput.addEventListener('change', calculateLineTotals);
+                newAmountInput.addEventListener('input', calculateLineTotals);
+            }
+            if (newVatCheckbox) {
+                newVatCheckbox.addEventListener('change', calculateLineTotals);
+                newVatCheckbox.classList.add('vat-checkbox');
+            }
+
+            // Scroll to the new row
+            newRow.scrollIntoView({behavior: 'smooth', block: 'center'});
+
+            // Focus on the description field
+            const descField = newRow.querySelector('[name$="-description"]');
+            if (descField) {
+                setTimeout(() => descField.focus(), 300);
+            }
+
+            // Show success notification
+            showNotification(`Line item ${newIndex + 1} added successfully!`, 'success');
+
+            console.log(`Added line item ${newIndex + 1}. Total forms: ${totalForms + 1}`);
         }
 
-        const fileName = document.createElement('span');
-        fileName.className = 'file-name';
-        fileName.textContent = file.name;
+        function removeLineItem(button) {
+            const tbody = document.getElementById('line-items-body');
+            const rows = tbody.querySelectorAll('.line-item-row');
 
-        const fileSize = document.createElement('span');
-        fileSize.className = 'file-size';
-        fileSize.textContent = `(${(file.size / 1024).toFixed(1)} KB)`;
+            // Don't allow removing if only one row left
+            if (rows.length <= 1) {
+                showNotification('You must have at least one line item.', 'warning');
+                return;
+            }
 
-        fileInfo.appendChild(icon);
-        fileInfo.appendChild(fileName);
-        fileInfo.appendChild(fileSize);
+            // Get the row to remove
+            const row = button.closest('.line-item-row');
 
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'remove-file-btn';
-        removeBtn.innerHTML = '<i class="bi bi-x"></i> Remove';
-        removeBtn.onclick = function() {
-            removeFile(index, input);
-        };
+            // Remove the row (no confirmation needed - just remove it)
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(-20px)';
 
-        li.appendChild(fileInfo);
-        li.appendChild(removeBtn);
-        filesList.appendChild(li);
-    });
+            setTimeout(() => {
+                row.remove();
 
-    // Update the input's files
-    input.files = dataTransfer.files;
-}
+                // Update TOTAL_FORMS count
+                const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
+                totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
 
-function removeFile(index, input) {
-    const dataTransfer = new DataTransfer();
+                // Renumber remaining rows
+                renumberRows();
 
-    Array.from(input.files).forEach((file, i) => {
-        if (i !== index) {
-            dataTransfer.items.add(file);
+                // Recalculate totals
+                calculateLineTotals();
+
+                showNotification('Line item removed successfully.', 'success');
+                console.log('Line item removed. Total forms:', totalFormsInput.value);
+            }, 200);
         }
-    });
 
-    input.files = dataTransfer.files;
-    displaySelectedFiles(input);
+        function renumberRows() {
+            const rows = document.querySelectorAll('.line-item-row');
+            rows.forEach((row, index) => {
+                // Update the badge number
+                const badge = row.querySelector('.line-number-badge');
+                if (badge) {
+                    badge.textContent = index + 1;
+                }
 
-    showNotification('File removed successfully.', 'success');
-}
-
-// Drag and drop functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadLabel = document.querySelector('.attachment-upload-label');
-    const fileInput = document.getElementById('id_attachments');
-
-    if (!uploadLabel || !fileInput) return;
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadLabel.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        uploadLabel.addEventListener(eventName, () => {
-            uploadLabel.style.borderColor = 'var(--primary-600)';
-            uploadLabel.style.background = 'var(--primary-200)';
-        }, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        uploadLabel.addEventListener(eventName, () => {
-            uploadLabel.style.borderColor = 'var(--primary-300)';
-            uploadLabel.style.background = 'var(--primary-50)';
-        }, false);
-    });
-
-    uploadLabel.addEventListener('drop', function(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-
-        fileInput.files = files;
-        displaySelectedFiles(fileInput);
-
-        if (files.length > 0) {
-            showNotification(`${files.length} file(s) selected successfully.`, 'success');
+                // Update form field names and IDs
+                const fields = row.querySelectorAll('input, select, textarea');
+                fields.forEach(field => {
+                    if (field.name) {
+                        field.name = field.name.replace(/line_items-\d+-/, `line_items-${index}-`);
+                    }
+                    if (field.id) {
+                        field.id = field.id.replace(/id_line_items-\d+-/, `id_line_items-${index}-`);
+                    }
+                });
+            });
         }
-    }, false);
-});
-</script>
+
+        // Display selected files
+        function displaySelectedFiles(input) {
+            const filesList = document.getElementById('files-list');
+            const selectedFilesDiv = document.getElementById('selected-files-list');
+
+            filesList.innerHTML = '';
+
+            if (input.files.length === 0) {
+                selectedFilesDiv.style.display = 'none';
+                return;
+            }
+
+            selectedFilesDiv.style.display = 'block';
+
+            // Create a DataTransfer object to manage files
+            const dataTransfer = new DataTransfer();
+
+            Array.from(input.files).forEach((file, index) => {
+                dataTransfer.items.add(file);
+
+                const li = document.createElement('li');
+
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'file-info';
+
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-file-earmark-pdf file-icon';
+                if (file.type.startsWith('image/')) {
+                    icon.className = 'bi bi-file-earmark-image file-icon';
+                }
+
+                const fileName = document.createElement('span');
+                fileName.className = 'file-name';
+                fileName.textContent = file.name;
+
+                const fileSize = document.createElement('span');
+                fileSize.className = 'file-size';
+                fileSize.textContent = `(${(file.size / 1024).toFixed(1)} KB)`;
+
+                fileInfo.appendChild(icon);
+                fileInfo.appendChild(fileName);
+                fileInfo.appendChild(fileSize);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-file-btn';
+                removeBtn.innerHTML = '<i class="bi bi-x"></i> Remove';
+                removeBtn.onclick = function () {
+                    removeFile(index, input);
+                };
+
+                li.appendChild(fileInfo);
+                li.appendChild(removeBtn);
+                filesList.appendChild(li);
+            });
+
+            // Update the input's files
+            input.files = dataTransfer.files;
+        }
+
+        function removeFile(index, input) {
+            const dataTransfer = new DataTransfer();
+
+            Array.from(input.files).forEach((file, i) => {
+                if (i !== index) {
+                    dataTransfer.items.add(file);
+                }
+            });
+
+            input.files = dataTransfer.files;
+            displaySelectedFiles(input);
+
+            showNotification('File removed successfully.', 'success');
+        }
+
+        // ✅ FIXED: Remove existing attachment with proper hidden input handling
+        function removeExistingAttachment(attachmentId, fileName) {
+            if (!confirm(`Are you sure you want to remove "${fileName}"?\n\nThis file will be permanently deleted when you save the voucher.`)) {
+                return;
+            }
+
+            console.log('=== REMOVING ATTACHMENT ===');
+            console.log('Attachment ID:', attachmentId);
+            console.log('Before - deletedAttachments array:', deletedAttachments);
+
+            // Add to deleted list
+            deletedAttachments.push(attachmentId);
+            
+            // Update hidden input
+            const hiddenInput = document.getElementById('deleted-attachments');
+            if (hiddenInput) {
+                hiddenInput.value = deletedAttachments.join(',');
+                console.log('After - deletedAttachments array:', deletedAttachments);
+                console.log('Hidden input value:', hiddenInput.value);
+            } else {
+                console.error('❌ Hidden input NOT FOUND!');
+            }
+            console.log('============================');
+
+            // Remove from UI
+            const listItem = document.querySelector(`li[data-attachment-id="${attachmentId}"]`);
+            if (listItem) {
+                listItem.style.opacity = '0';
+                listItem.style.transform = 'translateX(-20px)';
+
+                setTimeout(() => {
+                    listItem.remove();
+
+                    // Check if list is empty
+                    const existingFilesList = document.getElementById('existing-files-list');
+                    if (existingFilesList && existingFilesList.children.length === 0) {
+                        // ✅ FIXED: Only replace the container content, not the parent
+                        const container = document.getElementById('existing-attachments-container');
+                        if (container) {
+                            container.innerHTML = `
+                                <div style="background: var(--gray-50); border: 1px dashed var(--gray-300); border-radius: var(--radius-md); padding: var(--spacing-md); text-align: center; color: var(--gray-600); font-size: 0.875rem;">
+                                    <i class="bi bi-inbox"></i> All attachments removed. They will be deleted when you save.
+                                </div>
+                            `;
+                        }
+                    }
+
+                    showNotification(`"${fileName}" will be deleted when you save the voucher.`, 'warning');
+                }, 200);
+            }
+        }
+
+        // Drag and drop functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const uploadLabel = document.querySelector('.attachment-upload-label');
+            const fileInput = document.getElementById('id_attachments');
+
+            if (!uploadLabel || !fileInput) return;
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadLabel.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadLabel.addEventListener(eventName, () => {
+                    uploadLabel.style.borderColor = 'var(--primary-600)';
+                    uploadLabel.style.background = 'var(--primary-200)';
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadLabel.addEventListener(eventName, () => {
+                    uploadLabel.style.borderColor = 'var(--primary-300)';
+                    uploadLabel.style.background = 'var(--primary-50)';
+                }, false);
+            });
+
+            uploadLabel.addEventListener('drop', function (e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                fileInput.files = files;
+                displaySelectedFiles(fileInput);
+
+                if (files.length > 0) {
+                    showNotification(`${files.length} file(s) selected successfully.`, 'success');
+                }
+            }, false);
+        });
+    </script>
 {% endblock %}

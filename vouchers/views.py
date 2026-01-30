@@ -133,21 +133,54 @@ class VoucherEditView(LoginRequiredMixin, UpdateView):
         if not formset.is_valid():
             return self.form_invalid(form)
 
+        # Handle deleted attachments FIRST (before saving anything else)
+        deleted_attachments_ids = self.request.POST.get('deleted_attachments', '')
+        if deleted_attachments_ids:
+            ids_list = [int(id.strip()) for id in deleted_attachments_ids.split(',') if id.strip()]
+            if ids_list:
+                # Delete the attachments
+                attachments_to_delete = VoucherAttachment.objects.filter(
+                    id__in=ids_list,
+                    voucher=self.object
+                )
+
+                deleted_count = 0
+                for attachment in attachments_to_delete:
+                    try:
+                        # Delete the actual file from storage
+                        if attachment.file:
+                            attachment.file.delete(save=False)
+                        # Delete the database record
+                        attachment.delete()
+                        deleted_count += 1
+                    except Exception as e:
+                        print(f"Error deleting attachment: {e}")
+
+                if deleted_count > 0:
+                    messages.info(self.request, f'{deleted_count} existing attachment(s) removed.')
+
+        # Save the voucher header
         self.object = form.save()
 
-        # FIXED: Delete all existing line items first to avoid unique constraint issues
-        self.object.line_items.all().delete()
-
-        # Now save the new line items from the formset
+        # Set the formset instance
         formset.instance = self.object
-        line_items = formset.save(commit=False)
 
-        # Number them sequentially
-        for i, item in enumerate(line_items, start=1):
+        # ✅ Save the formset to get access to deleted_objects
+        saved_items = formset.save(commit=False)
+
+        # Delete items marked for deletion in the formset
+        for obj in formset.deleted_objects:
+            obj.delete()
+
+        # Save new/updated line items with sequential numbering
+        for i, item in enumerate(saved_items, start=1):
             item.line_number = i
             item.save()
 
-        # Handle file uploads
+        # Save many-to-many relationships if any
+        formset.save_m2m()
+
+        # Handle NEW file uploads
         files = self.request.FILES.getlist('attachments')
         if files:
             for file in files:
@@ -164,6 +197,12 @@ class VoucherEditView(LoginRequiredMixin, UpdateView):
 
         return redirect('vouchers:detail', pk=self.object.pk)
 
+    def _renumber_line_items(self, voucher):
+        """Renumber line items sequentially"""
+        for i, item in enumerate(voucher.line_items.all().order_by('id'), start=1):
+            if item.line_number != i:
+                item.line_number = i
+                item.save(update_fields=['line_number'])
 class VoucherDetailView(LoginRequiredMixin, DetailView):
     """View for displaying voucher details"""
     model = PaymentVoucher
@@ -612,21 +651,54 @@ class FormEditView(LoginRequiredMixin, UpdateView):
         if not formset.is_valid():
             return self.form_invalid(form)
 
+        # Handle deleted attachments FIRST
+        deleted_attachments_ids = self.request.POST.get('deleted_attachments', '')
+        if deleted_attachments_ids:
+            ids_list = [int(id.strip()) for id in deleted_attachments_ids.split(',') if id.strip()]
+            if ids_list:
+                # Delete the attachments - Use FormAttachment for PaymentForm
+                attachments_to_delete = FormAttachment.objects.filter(
+                    id__in=ids_list,
+                    payment_form=self.object
+                )
+
+                deleted_count = 0
+                for attachment in attachments_to_delete:
+                    try:
+                        # Delete the actual file from storage
+                        if attachment.file:
+                            attachment.file.delete(save=False)
+                        # Delete the database record
+                        attachment.delete()
+                        deleted_count += 1
+                    except Exception as e:
+                        print(f"Error deleting attachment: {e}")
+
+                if deleted_count > 0:
+                    messages.info(self.request, f'{deleted_count} existing attachment(s) removed.')
+
+        # Save the payment form header
         self.object = form.save()
 
-        # Delete all existing line items first
-        self.object.line_items.all().delete()
-
-        # Save the new line items
+        # Set the formset instance
         formset.instance = self.object
-        line_items = formset.save(commit=False)
 
-        # Number them sequentially
-        for i, item in enumerate(line_items, start=1):
+        # ✅ Save the formset to get access to deleted_objects
+        saved_items = formset.save(commit=False)
+
+        # Delete items marked for deletion in the formset
+        for obj in formset.deleted_objects:
+            obj.delete()
+
+        # Save new/updated line items with sequential numbering
+        for i, item in enumerate(saved_items, start=1):
             item.line_number = i
             item.save()
 
-        # Handle file uploads
+        # Save many-to-many relationships if any
+        formset.save_m2m()
+
+        # Handle NEW file uploads
         files = self.request.FILES.getlist('attachments')
         if files:
             for file in files:
@@ -642,6 +714,12 @@ class FormEditView(LoginRequiredMixin, UpdateView):
             messages.success(self.request, 'Payment Form updated successfully!')
 
         return redirect('vouchers:pf_detail', pk=self.object.pk)
+    def _renumber_line_items(self, payment_form):
+        """Renumber line items sequentially"""
+        for i, item in enumerate(payment_form.line_items.all().order_by('id'), start=1):
+            if item.line_number != i:
+                item.line_number = i
+                item.save(update_fields=['line_number'])
 
 
 class FormDetailView(LoginRequiredMixin, DetailView):

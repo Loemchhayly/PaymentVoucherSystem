@@ -5,6 +5,16 @@ from decimal import Decimal
 import os
 
 
+# Cambodian Banks Choices
+CAMBODIAN_BANKS = [
+    ('ABA Bank', 'ABA Bank'),
+    ('ACLEDA Bank', 'ACLEDA Bank'),
+    ('MAYBANK (CAMBODIA)PLC', 'MAYBANK (CAMBODIA)PLC'),
+    ('HONG LEONG BANK', 'HONG LEONG BANK'),
+    ('BANK_EMIRATES NBD', 'BANK_EMIRATES NBD'),
+]
+
+
 class Department(models.Model):
     """Department master data for line items"""
     name = models.CharField(max_length=100, unique=True)
@@ -60,7 +70,7 @@ class PaymentVoucher(models.Model):
     # Header information
     payee_name = models.CharField(max_length=200)
     payment_date = models.DateField()
-    bank_name = models.CharField(max_length=100)
+    bank_name = models.CharField(max_length=100, choices=CAMBODIAN_BANKS)
     bank_account = models.CharField(max_length=50)
 
     # GM decision
@@ -264,7 +274,7 @@ class PaymentForm(models.Model):
     # Header information
     payee_name = models.CharField(max_length=200)
     payment_date = models.DateField()
-    bank_name = models.CharField(max_length=100)
+    bank_name = models.CharField(max_length=100, choices=CAMBODIAN_BANKS)
     bank_account = models.CharField(max_length=50)
 
     # GM decision
