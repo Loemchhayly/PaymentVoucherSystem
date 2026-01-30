@@ -1048,11 +1048,23 @@
                         </a>
                     </li>
                     {% if user.role_level == 1 %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'vouchers:create' %}">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="createDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-plus-circle"></i>
-                            <span>Create Voucher</span>
+                            <span>Create New</span>
                         </a>
+                        <ul class="dropdown-menu" aria-labelledby="createDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'vouchers:create' %}">
+                                    <i class="bi bi-file-earmark-text text-primary"></i> Payment Voucher (PV)
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'vouchers:pf_create' %}">
+                                    <i class="bi bi-file-earmark-check text-success"></i> Payment Form (PF)
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     {% endif %}
                 </ul>
@@ -1077,7 +1089,7 @@
                                         <i class="bi bi-clock-history"></i>
                                     </div>
                                     <div class="notification-content">
-                                        <strong>{{ pending_count }} voucher{{ pending_count|pluralize }} pending</strong>
+                                        <strong>{{ pending_count }} document{{ pending_count|pluralize }} pending</strong>
                                         <small>Requires your approval</small>
                                     </div>
                                 </a>
@@ -1182,7 +1194,8 @@
                     <a href="{% url 'dashboard:home' %}">Dashboard</a>
                     <a href="{% url 'dashboard:pending' %}">Pending Actions</a>
                     {% if user.role_level == 1 %}
-                    <a href="{% url 'vouchers:create' %}">Create Voucher</a>
+                    <a href="{% url 'vouchers:create' %}">Create Payment Voucher</a>
+                    <a href="{% url 'vouchers:pf_create' %}">Create Payment Form</a>
                     {% endif %}
                     {% else %}
                     <a href="{% url 'accounts:login' %}">Login</a>

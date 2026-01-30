@@ -4,7 +4,7 @@ A Django-based web application for managing payment voucher approvals with a 5-l
 
 ## Features
 
-- 5-level approval workflow (Financial Officer → Supervisor → Finance Manager → General Manager → Managing Director)
+- 5-level approval workflow (Account Payable → Account Supervisor → Finance Manager → General Manager → Managing Director)
 - Auto-generated PV numbers (YYMM-NNNN format, resets monthly)
 - Email notifications at each approval stage
 - PDF generation with digital signatures
@@ -67,8 +67,8 @@ Access the application at: http://localhost:8000
 1. Go to http://localhost:8000/admin
 2. Login with superuser credentials
 3. Create 5 test users (one for each role level):
-   - User 1: Financial Officer (role_level=1)
-   - User 2: Financial Supervisor (role_level=2)
+   - User 1: Account Payable (role_level=1)
+   - User 2: Account Supervisor (role_level=2)
    - User 3: Finance Manager (role_level=3)
    - User 4: General Manager (role_level=4)
    - User 5: Managing Director (role_level=5)

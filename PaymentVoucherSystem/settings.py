@@ -100,6 +100,9 @@ if USE_SQLITE:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
+            'OPTIONS': {
+                'timeout': 20,  # 20 seconds timeout to prevent database lock errors
+            },
         }
     }
 else:
@@ -184,6 +187,10 @@ SITE_NAME = 'Garden City Water Park - Payment Voucher System'
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'dashboard:home'
 LOGOUT_REDIRECT_URL = 'accounts:login'
+
+# Password Reset and Email Verification Token Timeout
+# Default is 259200 seconds (3 days), setting to 604800 seconds (7 days)
+PASSWORD_RESET_TIMEOUT = 604800  # 7 days in seconds
 
 # Session Settings
 SESSION_COOKIE_AGE = 28800  # 8 hours (default if remember me not used)

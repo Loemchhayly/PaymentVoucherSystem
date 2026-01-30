@@ -8,12 +8,26 @@ class NotificationService:
     """Service for sending email notifications on workflow events"""
 
     @staticmethod
+    def _get_document_info(document):
+        """
+        Get document type and number from either PaymentVoucher or PaymentForm.
+
+        Returns: (doc_type, doc_number) e.g., ('Payment Voucher', '2601-0001')
+        """
+        if hasattr(document, 'pv_number'):
+            return 'Payment Voucher', document.pv_number or 'DRAFT'
+        elif hasattr(document, 'pf_number'):
+            return 'Payment Form', document.pf_number or 'DRAFT'
+        else:
+            return 'Document', 'Unknown'
+
+    @staticmethod
     def send_notification(voucher, action, actor, comments=''):
         """
         Send email notification based on workflow action.
 
         Args:
-            voucher: PaymentVoucher instance
+            voucher: PaymentVoucher or PaymentForm instance
             action: str - 'submit', 'approve', 'reject', 'return'
             actor: User who performed the action
             comments: Optional comments
@@ -38,13 +52,16 @@ class NotificationService:
         if not voucher.current_approver:
             return
 
-        subject = f"Payment Voucher {voucher.pv_number} - Pending Your Approval"
+        doc_type, doc_number = NotificationService._get_document_info(voucher)
+        subject = f"{doc_type} {doc_number} - Pending Your Approval"
 
         context = {
             'voucher': voucher,
             'approver': voucher.current_approver,
             'previous_actor': previous_actor,
             'site_url': settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:8000',
+            'doc_type': doc_type,
+            'doc_number': doc_number,
         }
 
         html_message = render_to_string('workflow/emails/pending_approval.html', context)
@@ -65,13 +82,16 @@ class NotificationService:
     @staticmethod
     def _notify_creator_approved(voucher, approver):
         """Notify creator that voucher was approved"""
-        subject = f"Payment Voucher {voucher.pv_number} - APPROVED"
+        doc_type, doc_number = NotificationService._get_document_info(voucher)
+        subject = f"{doc_type} {doc_number} - APPROVED"
 
         context = {
             'voucher': voucher,
             'creator': voucher.created_by,
             'approver': approver,
             'site_url': settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:8000',
+            'doc_type': doc_type,
+            'doc_number': doc_number,
         }
 
         html_message = render_to_string('workflow/emails/voucher_approved.html', context)
@@ -92,7 +112,8 @@ class NotificationService:
     @staticmethod
     def _notify_creator_rejected(voucher, rejector, comments):
         """Notify creator that voucher was rejected"""
-        subject = f"Payment Voucher {voucher.pv_number} - REJECTED"
+        doc_type, doc_number = NotificationService._get_document_info(voucher)
+        subject = f"{doc_type} {doc_number} - REJECTED"
 
         context = {
             'voucher': voucher,
@@ -100,6 +121,8 @@ class NotificationService:
             'rejector': rejector,
             'comments': comments,
             'site_url': settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:8000',
+            'doc_type': doc_type,
+            'doc_number': doc_number,
         }
 
         html_message = render_to_string('workflow/emails/voucher_rejected.html', context)
@@ -120,7 +143,8 @@ class NotificationService:
     @staticmethod
     def _notify_creator_returned(voucher, returner, comments):
         """Notify creator that voucher was returned for revision"""
-        subject = f"Payment Voucher {voucher.pv_number} - Returned for Revision"
+        doc_type, doc_number = NotificationService._get_document_info(voucher)
+        subject = f"{doc_type} {doc_number} - Returned for Revision"
 
         context = {
             'voucher': voucher,
@@ -128,6 +152,8 @@ class NotificationService:
             'returner': returner,
             'comments': comments,
             'site_url': settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:8000',
+            'doc_type': doc_type,
+            'doc_number': doc_number,
         }
 
         html_message = render_to_string('workflow/emails/voucher_returned.html', context)

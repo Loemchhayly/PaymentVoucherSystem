@@ -2,12 +2,13 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 from django.db.models import Q
-from vouchers.models import PaymentVoucher
+from vouchers.models import PaymentVoucher, PaymentForm
+from itertools import chain
+from operator import attrgetter
 
 
 class DashboardView(LoginRequiredMixin, ListView):
     """Main dashboard view"""
-    model = PaymentVoucher
     template_name = 'dashboard/dashboard.html'
     context_object_name = 'vouchers'
     paginate_by = 20
@@ -15,15 +16,42 @@ class DashboardView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
 
-        if user.is_staff:
-            return PaymentVoucher.objects.all()
+        # Check document type filter
+        doc_type = self.request.GET.get('doc_type', 'all')
 
-        # User can see vouchers they created, are assigned to, or have approved
-        return PaymentVoucher.objects.filter(
-            Q(created_by=user) |
-            Q(current_approver=user) |
-            Q(approval_history__actor=user)
-        ).distinct().order_by('-created_at')
+        if user.is_staff:
+            pv_queryset = PaymentVoucher.objects.all()
+            pf_queryset = PaymentForm.objects.all()
+        else:
+            # User can see vouchers/forms they created, are assigned to, or have approved
+            pv_queryset = PaymentVoucher.objects.filter(
+                Q(created_by=user) |
+                Q(current_approver=user) |
+                Q(approval_history__actor=user)
+            ).distinct()
+
+            pf_queryset = PaymentForm.objects.filter(
+                Q(created_by=user) |
+                Q(current_approver=user) |
+                Q(approval_history__actor=user)
+            ).distinct()
+
+        # Filter by document type
+        if doc_type == 'pv':
+            # Only Payment Vouchers
+            combined = sorted(pv_queryset, key=attrgetter('created_at'), reverse=True)
+        elif doc_type == 'pf':
+            # Only Payment Forms
+            combined = sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
+        else:
+            # All documents (default)
+            combined = sorted(
+                chain(pv_queryset, pf_queryset),
+                key=attrgetter('created_at'),
+                reverse=True
+            )
+
+        return combined
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -31,68 +59,106 @@ class DashboardView(LoginRequiredMixin, ListView):
 
         # Base queryset for user's accessible vouchers
         if user.is_staff:
-            base_queryset = PaymentVoucher.objects.all()
+            pv_base = PaymentVoucher.objects.all()
+            pf_base = PaymentForm.objects.all()
         else:
-            base_queryset = PaymentVoucher.objects.filter(
+            pv_base = PaymentVoucher.objects.filter(
+                Q(created_by=user) |
+                Q(current_approver=user) |
+                Q(approval_history__actor=user)
+            ).distinct()
+            pf_base = PaymentForm.objects.filter(
                 Q(created_by=user) |
                 Q(current_approver=user) |
                 Q(approval_history__actor=user)
             ).distinct()
 
-        # Summary counts (only vouchers user has access to)
-        context['pending_my_action'] = base_queryset.filter(
-            current_approver=user
-        ).count()
+        # Summary counts (including both PV and PF)
+        context['pending_my_action'] = (
+            pv_base.filter(current_approver=user).count() +
+            pf_base.filter(current_approver=user).count()
+        )
 
-        context['my_vouchers'] = base_queryset.filter(
-            created_by=user
-        ).count()
+        context['my_vouchers'] = (
+            pv_base.filter(created_by=user).count() +
+            pf_base.filter(created_by=user).count()
+        )
 
-        context['in_progress'] = base_queryset.filter(
-            status__startswith='PENDING'
-        ).count()
+        context['in_progress'] = (
+            pv_base.filter(status__startswith='PENDING').count() +
+            pf_base.filter(status__startswith='PENDING').count()
+        )
 
-        context['approved_count'] = base_queryset.filter(
-            status='APPROVED'
-        ).count()
+        context['approved_count'] = (
+            pv_base.filter(status='APPROVED').count() +
+            pf_base.filter(status='APPROVED').count()
+        )
 
         return context
 
 
 class PendingActionView(LoginRequiredMixin, ListView):
-    """Vouchers pending user's action"""
-    model = PaymentVoucher
+    """Vouchers and forms pending user's action"""
     template_name = 'dashboard/voucher_list.html'
     context_object_name = 'vouchers'
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = PaymentVoucher.objects.filter(
+        # Check document type filter
+        doc_type = self.request.GET.get('doc_type', 'all')
+
+        # Get Payment Vouchers pending user's action
+        pv_queryset = PaymentVoucher.objects.filter(
             current_approver=self.request.user
         )
 
-        # Apply search filters
+        # Get Payment Forms pending user's action
+        pf_queryset = PaymentForm.objects.filter(
+            current_approver=self.request.user
+        )
+
+        # Apply search filters to both
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
-            queryset = queryset.filter(pv_number__icontains=pv_number)
+            pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
+            pf_queryset = pf_queryset.filter(pf_number__icontains=pv_number)
 
         payee_name = self.request.GET.get('payee_name', '').strip()
         if payee_name:
-            queryset = queryset.filter(payee_name__icontains=payee_name)
+            pv_queryset = pv_queryset.filter(payee_name__icontains=payee_name)
+            pf_queryset = pf_queryset.filter(payee_name__icontains=payee_name)
 
         date_from = self.request.GET.get('date_from')
         if date_from:
-            queryset = queryset.filter(payment_date__gte=date_from)
+            pv_queryset = pv_queryset.filter(payment_date__gte=date_from)
+            pf_queryset = pf_queryset.filter(payment_date__gte=date_from)
 
         date_to = self.request.GET.get('date_to')
         if date_to:
-            queryset = queryset.filter(payment_date__lte=date_to)
+            pv_queryset = pv_queryset.filter(payment_date__lte=date_to)
+            pf_queryset = pf_queryset.filter(payment_date__lte=date_to)
 
         status = self.request.GET.get('status')
         if status:
-            queryset = queryset.filter(status=status)
+            pv_queryset = pv_queryset.filter(status=status)
+            pf_queryset = pf_queryset.filter(status=status)
 
-        return queryset.order_by('-created_at')
+        # Filter by document type
+        if doc_type == 'pv':
+            # Only Payment Vouchers
+            combined = sorted(pv_queryset, key=attrgetter('created_at'), reverse=True)
+        elif doc_type == 'pf':
+            # Only Payment Forms
+            combined = sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
+        else:
+            # All documents (default)
+            combined = sorted(
+                chain(pv_queryset, pf_queryset),
+                key=attrgetter('created_at'),
+                reverse=True
+            )
+
+        return combined
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -101,8 +167,7 @@ class PendingActionView(LoginRequiredMixin, ListView):
 
 
 class InProgressView(LoginRequiredMixin, ListView):
-    """All in-progress vouchers (that user has access to)"""
-    model = PaymentVoucher
+    """All in-progress vouchers and forms (that user has access to)"""
     template_name = 'dashboard/voucher_list.html'
     context_object_name = 'vouchers'
     paginate_by = 20
@@ -110,38 +175,68 @@ class InProgressView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
 
-        # Base queryset - only vouchers user has access to
+        # Check document type filter
+        doc_type = self.request.GET.get('doc_type', 'all')
+
+        # Base queryset - only vouchers/forms user has access to
         if user.is_staff:
-            queryset = PaymentVoucher.objects.filter(status__startswith='PENDING')
+            pv_queryset = PaymentVoucher.objects.filter(status__startswith='PENDING')
+            pf_queryset = PaymentForm.objects.filter(status__startswith='PENDING')
         else:
-            queryset = PaymentVoucher.objects.filter(
+            pv_queryset = PaymentVoucher.objects.filter(
                 Q(created_by=user) |
                 Q(current_approver=user) |
                 Q(approval_history__actor=user)
             ).filter(status__startswith='PENDING').distinct()
 
-        # Apply search filters
+            pf_queryset = PaymentForm.objects.filter(
+                Q(created_by=user) |
+                Q(current_approver=user) |
+                Q(approval_history__actor=user)
+            ).filter(status__startswith='PENDING').distinct()
+
+        # Apply search filters to both
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
-            queryset = queryset.filter(pv_number__icontains=pv_number)
+            pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
+            pf_queryset = pf_queryset.filter(pf_number__icontains=pv_number)
 
         payee_name = self.request.GET.get('payee_name', '').strip()
         if payee_name:
-            queryset = queryset.filter(payee_name__icontains=payee_name)
+            pv_queryset = pv_queryset.filter(payee_name__icontains=payee_name)
+            pf_queryset = pf_queryset.filter(payee_name__icontains=payee_name)
 
         date_from = self.request.GET.get('date_from')
         if date_from:
-            queryset = queryset.filter(payment_date__gte=date_from)
+            pv_queryset = pv_queryset.filter(payment_date__gte=date_from)
+            pf_queryset = pf_queryset.filter(payment_date__gte=date_from)
 
         date_to = self.request.GET.get('date_to')
         if date_to:
-            queryset = queryset.filter(payment_date__lte=date_to)
+            pv_queryset = pv_queryset.filter(payment_date__lte=date_to)
+            pf_queryset = pf_queryset.filter(payment_date__lte=date_to)
 
         status = self.request.GET.get('status')
         if status:
-            queryset = queryset.filter(status=status)
+            pv_queryset = pv_queryset.filter(status=status)
+            pf_queryset = pf_queryset.filter(status=status)
 
-        return queryset.order_by('-created_at')
+        # Filter by document type
+        if doc_type == 'pv':
+            # Only Payment Vouchers
+            combined = sorted(pv_queryset, key=attrgetter('created_at'), reverse=True)
+        elif doc_type == 'pf':
+            # Only Payment Forms
+            combined = sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
+        else:
+            # All documents (default)
+            combined = sorted(
+                chain(pv_queryset, pf_queryset),
+                key=attrgetter('created_at'),
+                reverse=True
+            )
+
+        return combined
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -150,8 +245,7 @@ class InProgressView(LoginRequiredMixin, ListView):
 
 
 class ApprovedView(LoginRequiredMixin, ListView):
-    """Approved vouchers (that user has access to)"""
-    model = PaymentVoucher
+    """Approved vouchers and forms (that user has access to)"""
     template_name = 'dashboard/voucher_list.html'
     context_object_name = 'vouchers'
     paginate_by = 20
@@ -159,44 +253,72 @@ class ApprovedView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
 
-        # Base queryset - only vouchers user has access to
+        # Check document type filter
+        doc_type = self.request.GET.get('doc_type', 'all')
+
+        # Base queryset - only vouchers/forms user has access to
         if user.is_staff:
-            queryset = PaymentVoucher.objects.filter(status='APPROVED')
+            pv_queryset = PaymentVoucher.objects.filter(status='APPROVED')
+            pf_queryset = PaymentForm.objects.filter(status='APPROVED')
         else:
-            queryset = PaymentVoucher.objects.filter(
+            pv_queryset = PaymentVoucher.objects.filter(
                 Q(created_by=user) |
                 Q(current_approver=user) |
                 Q(approval_history__actor=user)
             ).filter(status='APPROVED').distinct()
 
-        # Apply search filters
+            pf_queryset = PaymentForm.objects.filter(
+                Q(created_by=user) |
+                Q(current_approver=user) |
+                Q(approval_history__actor=user)
+            ).filter(status='APPROVED').distinct()
+
+        # Apply search filters to both
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
-            queryset = queryset.filter(pv_number__icontains=pv_number)
+            pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
+            pf_queryset = pf_queryset.filter(pf_number__icontains=pv_number)
 
         payee_name = self.request.GET.get('payee_name', '').strip()
         if payee_name:
-            queryset = queryset.filter(payee_name__icontains=payee_name)
+            pv_queryset = pv_queryset.filter(payee_name__icontains=payee_name)
+            pf_queryset = pf_queryset.filter(payee_name__icontains=payee_name)
 
         date_from = self.request.GET.get('date_from')
         if date_from:
-            queryset = queryset.filter(payment_date__gte=date_from)
+            pv_queryset = pv_queryset.filter(payment_date__gte=date_from)
+            pf_queryset = pf_queryset.filter(payment_date__gte=date_from)
 
         date_to = self.request.GET.get('date_to')
         if date_to:
-            queryset = queryset.filter(payment_date__lte=date_to)
+            pv_queryset = pv_queryset.filter(payment_date__lte=date_to)
+            pf_queryset = pf_queryset.filter(payment_date__lte=date_to)
 
-        return queryset.order_by('-created_at')
+        # Filter by document type
+        if doc_type == 'pv':
+            # Only Payment Vouchers
+            combined = sorted(pv_queryset, key=attrgetter('created_at'), reverse=True)
+        elif doc_type == 'pf':
+            # Only Payment Forms
+            combined = sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
+        else:
+            # All documents (default)
+            combined = sorted(
+                chain(pv_queryset, pf_queryset),
+                key=attrgetter('created_at'),
+                reverse=True
+            )
+
+        return combined
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Approved Vouchers'
+        context['title'] = 'Approved Vouchers & Forms'
         return context
 
 
 class CancelledView(LoginRequiredMixin, ListView):
-    """Rejected vouchers (that user has access to)"""
-    model = PaymentVoucher
+    """Rejected vouchers and forms (that user has access to)"""
     template_name = 'dashboard/voucher_list.html'
     context_object_name = 'vouchers'
     paginate_by = 20
@@ -204,77 +326,134 @@ class CancelledView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
 
-        # Base queryset - only vouchers user has access to
+        # Check document type filter
+        doc_type = self.request.GET.get('doc_type', 'all')
+
+        # Base queryset - only vouchers/forms user has access to
         if user.is_staff:
-            queryset = PaymentVoucher.objects.filter(status='REJECTED')
+            pv_queryset = PaymentVoucher.objects.filter(status='REJECTED')
+            pf_queryset = PaymentForm.objects.filter(status='REJECTED')
         else:
-            queryset = PaymentVoucher.objects.filter(
+            pv_queryset = PaymentVoucher.objects.filter(
                 Q(created_by=user) |
                 Q(current_approver=user) |
                 Q(approval_history__actor=user)
             ).filter(status='REJECTED').distinct()
 
-        # Apply search filters
+            pf_queryset = PaymentForm.objects.filter(
+                Q(created_by=user) |
+                Q(current_approver=user) |
+                Q(approval_history__actor=user)
+            ).filter(status='REJECTED').distinct()
+
+        # Apply search filters to both
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
-            queryset = queryset.filter(pv_number__icontains=pv_number)
+            pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
+            pf_queryset = pf_queryset.filter(pf_number__icontains=pv_number)
 
         payee_name = self.request.GET.get('payee_name', '').strip()
         if payee_name:
-            queryset = queryset.filter(payee_name__icontains=payee_name)
+            pv_queryset = pv_queryset.filter(payee_name__icontains=payee_name)
+            pf_queryset = pf_queryset.filter(payee_name__icontains=payee_name)
 
         date_from = self.request.GET.get('date_from')
         if date_from:
-            queryset = queryset.filter(payment_date__gte=date_from)
+            pv_queryset = pv_queryset.filter(payment_date__gte=date_from)
+            pf_queryset = pf_queryset.filter(payment_date__gte=date_from)
 
         date_to = self.request.GET.get('date_to')
         if date_to:
-            queryset = queryset.filter(payment_date__lte=date_to)
+            pv_queryset = pv_queryset.filter(payment_date__lte=date_to)
+            pf_queryset = pf_queryset.filter(payment_date__lte=date_to)
 
-        return queryset.order_by('-created_at')
+        # Filter by document type
+        if doc_type == 'pv':
+            # Only Payment Vouchers
+            combined = sorted(pv_queryset, key=attrgetter('created_at'), reverse=True)
+        elif doc_type == 'pf':
+            # Only Payment Forms
+            combined = sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
+        else:
+            # All documents (default)
+            combined = sorted(
+                chain(pv_queryset, pf_queryset),
+                key=attrgetter('created_at'),
+                reverse=True
+            )
+
+        return combined
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Rejected Vouchers'
+        context['title'] = 'Rejected Vouchers & Forms'
         return context
 
 
 class MyVouchersView(LoginRequiredMixin, ListView):
-    """User's own vouchers"""
-    model = PaymentVoucher
+    """User's own vouchers and payment forms"""
     template_name = 'dashboard/voucher_list.html'
     context_object_name = 'vouchers'
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = PaymentVoucher.objects.filter(
+        # Check document type filter
+        doc_type = self.request.GET.get('doc_type', 'all')
+
+        # Get Payment Vouchers
+        pv_queryset = PaymentVoucher.objects.filter(
             created_by=self.request.user
         )
 
-        # Apply search filters
+        # Get Payment Forms
+        pf_queryset = PaymentForm.objects.filter(
+            created_by=self.request.user
+        )
+
+        # Apply search filters to both
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
-            queryset = queryset.filter(pv_number__icontains=pv_number)
+            pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
+            pf_queryset = pf_queryset.filter(pf_number__icontains=pv_number)
 
         payee_name = self.request.GET.get('payee_name', '').strip()
         if payee_name:
-            queryset = queryset.filter(payee_name__icontains=payee_name)
+            pv_queryset = pv_queryset.filter(payee_name__icontains=payee_name)
+            pf_queryset = pf_queryset.filter(payee_name__icontains=payee_name)
 
         date_from = self.request.GET.get('date_from')
         if date_from:
-            queryset = queryset.filter(payment_date__gte=date_from)
+            pv_queryset = pv_queryset.filter(payment_date__gte=date_from)
+            pf_queryset = pf_queryset.filter(payment_date__gte=date_from)
 
         date_to = self.request.GET.get('date_to')
         if date_to:
-            queryset = queryset.filter(payment_date__lte=date_to)
+            pv_queryset = pv_queryset.filter(payment_date__lte=date_to)
+            pf_queryset = pf_queryset.filter(payment_date__lte=date_to)
 
         status = self.request.GET.get('status')
         if status:
-            queryset = queryset.filter(status=status)
+            pv_queryset = pv_queryset.filter(status=status)
+            pf_queryset = pf_queryset.filter(status=status)
 
-        return queryset.order_by('-created_at')
+        # Filter by document type
+        if doc_type == 'pv':
+            # Only Payment Vouchers
+            combined = sorted(pv_queryset, key=attrgetter('created_at'), reverse=True)
+        elif doc_type == 'pf':
+            # Only Payment Forms
+            combined = sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
+        else:
+            # All documents (default)
+            combined = sorted(
+                chain(pv_queryset, pf_queryset),
+                key=attrgetter('created_at'),
+                reverse=True
+            )
+
+        return combined
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'My Vouchers'
+        context['title'] = 'My Vouchers & Forms'
         return context

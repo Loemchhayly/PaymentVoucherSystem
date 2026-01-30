@@ -7,16 +7,16 @@ class User(AbstractUser):
     Custom User model with role levels and digital signature support.
 
     Role Levels:
-    1 - Financial Officer (Creator)
-    2 - Financial Supervisor (First Reviewer)
+    1 - Account Payable (Creator)
+    2 - Account Supervisor (First Reviewer)
     3 - Finance Manager (Second Reviewer)
     4 - General Manager (Third Reviewer)
     5 - Managing Director (Final Optional Reviewer)
     """
 
     ROLE_CHOICES = [
-        (1, 'Financial Officer'),
-        (2, 'Financial Supervisor'),
+        (1, 'Account Payable'),
+        (2, 'Account Supervisor'),
         (3, 'Finance Manager'),
         (4, 'General Manager'),
         (5, 'Managing Director'),

@@ -48,6 +48,28 @@ class RegisterView(CreateView):
 
         return redirect(self.success_url)
 
+    def form_invalid(self, form):
+        """Display form validation errors as Django messages"""
+        # Collect all error messages
+        error_messages = []
+
+        for field, errors in form.errors.items():
+            if field == '__all__':
+                # Non-field errors
+                for error in errors:
+                    error_messages.append(error)
+            else:
+                # Field-specific errors
+                field_name = form.fields[field].label or field
+                for error in errors:
+                    error_messages.append(f"{field_name}: {error}")
+
+        # Display all errors as danger messages
+        for error_msg in error_messages:
+            messages.error(self.request, error_msg)
+
+        return super().form_invalid(form)
+
     def notify_admins_new_registration(self, user):
         """Send email notification to all admin users (runs in background)"""
         admin_users = User.objects.filter(is_staff=True, is_active=True)

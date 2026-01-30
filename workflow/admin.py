@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ApprovalHistory, VoucherComment
+from .models import ApprovalHistory, FormApprovalHistory, VoucherComment
 
 
 @admin.register(ApprovalHistory)
@@ -9,6 +9,25 @@ class ApprovalHistoryAdmin(admin.ModelAdmin):
     list_filter = ['action', 'actor_role_level', 'timestamp']
     search_fields = ['voucher__pv_number', 'voucher__payee_name', 'actor__username', 'actor__email']
     readonly_fields = ['voucher', 'action', 'actor', 'actor_role_level', 'timestamp', 'comments', 'signature_image']
+    date_hierarchy = 'timestamp'
+    ordering = ['-timestamp']
+
+    def has_add_permission(self, request):
+        # Approval history is created automatically, not manually
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        # Immutable audit trail - cannot delete
+        return False
+
+
+@admin.register(FormApprovalHistory)
+class FormApprovalHistoryAdmin(admin.ModelAdmin):
+    """Admin interface for FormApprovalHistory (read-only)"""
+    list_display = ['payment_form', 'action', 'actor', 'actor_role_level', 'timestamp']
+    list_filter = ['action', 'actor_role_level', 'timestamp']
+    search_fields = ['payment_form__pf_number', 'payment_form__payee_name', 'actor__username', 'actor__email']
+    readonly_fields = ['payment_form', 'action', 'actor', 'actor_role_level', 'timestamp', 'comments', 'signature_image']
     date_hierarchy = 'timestamp'
     ordering = ['-timestamp']
 

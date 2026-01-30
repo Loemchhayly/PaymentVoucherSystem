@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
-from .models import PaymentVoucher, VoucherLineItem, VoucherAttachment, Department
+from .models import PaymentVoucher, VoucherLineItem, VoucherAttachment, Department, PaymentForm, FormLineItem, FormAttachment
 from decimal import Decimal
 
 
@@ -189,3 +189,122 @@ class ApprovalActionForm(forms.Form):
             raise forms.ValidationError(f"Comments are required when you {action} a voucher")
 
         return cleaned_data
+
+
+# ============================================================================
+# PAYMENT FORM FORMS (PF)
+# ============================================================================
+
+class PaymentFormForm(forms.ModelForm):
+    """Form for creating/editing payment forms"""
+
+    class Meta:
+        model = PaymentForm
+        fields = ['payee_name', 'payment_date', 'bank_name', 'bank_account']
+        widgets = {
+            'payee_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter payee name'}),
+            'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'bank_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank name'}),
+            'bank_account': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account number'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        # Disable fields if form is locked
+        if self.instance and self.instance.is_locked():
+            for field in self.fields:
+                self.fields[field].disabled = True
+
+
+class FormLineItemForm(forms.ModelForm):
+    """Form for individual line items in payment form"""
+
+    class Meta:
+        model = FormLineItem
+        fields = ['line_number', 'description', 'department', 'program', 'amount', 'vat_applicable']
+        widgets = {
+            'line_number': forms.HiddenInput(),
+            'description': forms.Textarea(
+                attrs={'class': 'form-control form-control-sm', 'rows': 2, 'placeholder': 'Description'}),
+            'department': forms.Select(attrs={'class': 'form-control form-control-sm'}),
+            'program': forms.TextInput(
+                attrs={'class': 'form-control form-control-sm', 'placeholder': 'Program (optional)'}),
+            'amount': forms.NumberInput(
+                attrs={'class': 'form-control form-control-sm', 'step': '0.01', 'min': '0', 'placeholder': '0.00'}),
+            'vat_applicable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make line_number not required since view will auto-generate it
+        self.fields['line_number'].required = False
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount is not None:
+            if amount <= 0:
+                raise forms.ValidationError("Amount must be greater than zero")
+            if amount > Decimal('999999999.99'):
+                raise forms.ValidationError("Amount is too large")
+        return amount
+
+
+# Formset for dynamic line items in payment form
+FormLineItemFormSet = inlineformset_factory(
+    PaymentForm,
+    FormLineItem,
+    form=FormLineItemForm,
+    extra=2,  # Start with 2 empty forms
+    can_delete=True,
+    min_num=1,
+    validate_min=True,
+    max_num=50  # Maximum 50 line items
+)
+
+
+class FormAttachmentForm(forms.Form):
+    """Form for uploading multiple attachments to payment form"""
+
+    files = MultipleFileField(
+        widget=MultipleFileInput(attrs={
+            'class': 'form-control',
+            'accept': '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png'
+        }),
+        required=True,
+        label='Select Files',
+        help_text='Select one or more files to upload (Max 10MB per file)'
+    )
+
+    def clean_files(self):
+        """Validate uploaded files"""
+        files = self.cleaned_data.get('files', [])
+
+        # Handle both single file and list of files
+        if not isinstance(files, list):
+            files = [files] if files else []
+
+        if not files:
+            raise forms.ValidationError('Please select at least one file')
+
+        # File size limit
+        max_size = 10 * 1024 * 1024  # 10MB
+
+        # Allowed extensions
+        allowed_extensions = ['.png', '.jpg', '.jpeg', '.pdf', '.doc', '.docx', '.xls', '.xlsx']
+
+        for file in files:
+            # Check file size
+            if file.size > max_size:
+                raise forms.ValidationError(f'{file.name} exceeds 10MB limit')
+
+            # Check file type
+            file_ext = '.' + file.name.split('.')[-1].lower() if '.' in file.name else ''
+            if file_ext not in allowed_extensions:
+                raise forms.ValidationError(
+                    f'{file.name} has invalid file type. '
+                    f'Allowed: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG'
+                )
+
+        return files

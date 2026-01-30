@@ -37,8 +37,8 @@ The system will be available at: **http://localhost:8000**
 
 | Username | Role Level | Role Name |
 |----------|-----------|-----------|
-| officer1 | 1 | Financial Officer |
-| supervisor1 | 2 | Financial Supervisor |
+| officer1 | 1 | Account Payable |
+| supervisor1 | 2 | Account Supervisor |
 | manager1 | 3 | Finance Manager |
 | gm1 | 4 | General Manager |
 | md1 | 5 | Managing Director |
@@ -67,7 +67,7 @@ Go to **Vouchers > Departments** in admin to verify these departments exist:
 
 ### Test Scenario 1: Full Approval Chain (Without MD)
 
-1. **Login as Financial Officer (officer1)**
+1. **Login as Account Payable (officer1)**
    - Go to: http://localhost:8000/accounts/login/
    - Create a new voucher (Dashboard → Create New Voucher)
    - Add payee details
@@ -77,7 +77,7 @@ Go to **Vouchers > Departments** in admin to verify these departments exist:
    - Click "Submit for Approval"
    - **Verify**: PV Number generated (format: YYMM-0001)
 
-2. **Login as Financial Supervisor (supervisor1)**
+2. **Login as Account Supervisor (supervisor1)**
    - Check Dashboard → "Pending My Action" shows the voucher
    - Click to view voucher details
    - Review details
@@ -97,7 +97,7 @@ Go to **Vouchers > Departments** in admin to verify these departments exist:
    - **Verify**: Status changes to "APPROVED"
    - **Verify**: Email notification sent to officer1
 
-5. **Login as Financial Officer (officer1)**
+5. **Login as Account Payable (officer1)**
    - Go to the approved voucher
    - Click "Download PDF"
    - **Verify**: PDF contains all signatures and timestamps
@@ -177,7 +177,7 @@ Go to **Vouchers > Departments** in admin to verify these departments exist:
 
 ## 📊 Dashboard Features
 
-**For Financial Officers (Level 1):**
+**For Account Payables (Level 1):**
 - Create new vouchers
 - View "My Vouchers"
 - Edit draft/on-revision vouchers

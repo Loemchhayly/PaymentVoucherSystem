@@ -23,6 +23,28 @@ class UserRegistrationForm(UserCreationForm):
         self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
         self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm Password'})
 
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+
+        # Check for spaces
+        if ' ' in username:
+            raise forms.ValidationError("Username cannot contain spaces.")
+
+        # Check minimum length
+        if len(username) < 3:
+            raise forms.ValidationError("Username must be at least 3 characters long.")
+
+        # Check if username already exists
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("This username is already taken.")
+
+        # Check for invalid characters (only letters, numbers, and underscores)
+        import re
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            raise forms.ValidationError("Username can only contain letters, numbers, and underscores.")
+
+        return username
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():

@@ -715,7 +715,7 @@
                 <table class="modern-table">
                     <thead>
                         <tr>
-                            <th>PV Number</th>
+                            <th>Number</th>
                             <th>Payee</th>
                             <th>Amount</th>
                             <th>Status</th>
@@ -727,7 +727,15 @@
                         {% for voucher in vouchers %}
                         <tr>
                             <td>
-                                <span class="pv-number">{{ voucher.pv_number|default:"DRAFT" }}</span>
+                                {% if voucher.pf_number %}
+                                    <span class="pv-number" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46;">
+                                        PF {{ voucher.pf_number|default:"DRAFT" }}
+                                    </span>
+                                {% else %}
+                                    <span class="pv-number">
+                                        PV {{ voucher.pv_number|default:"DRAFT" }}
+                                    </span>
+                                {% endif %}
                             </td>
                             <td>
                                 <strong>{{ voucher.payee_name }}</strong>
@@ -760,10 +768,17 @@
                             </td>
                             <td>{{ voucher.created_at|date:"M d, Y" }}</td>
                             <td>
-                                <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn">
-                                    <i class="bi bi-eye"></i>
-                                    <span>View</span>
-                                </a>
+                                {% if voucher.pf_number %}
+                                    <a href="{% url 'vouchers:pf_detail' voucher.pk %}" class="view-btn">
+                                        <i class="bi bi-eye"></i>
+                                        <span>View</span>
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn">
+                                        <i class="bi bi-eye"></i>
+                                        <span>View</span>
+                                    </a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Payment Voucher {{ voucher.pv_number }}</title>
+    <title>Payment Form PF No: {{ payment_form.pf_number }}</title>
     <style>
         /* Khmer Font Support - Battambang */
         @font-face {
@@ -104,10 +104,10 @@
             font-size: 8pt;
         }
 
-        .pv-number {
+        .pf-number {
             font-size: 11pt;
             font-weight: bold;
-            color: #c0392b;
+            color: #16a085;
         }
 
         .payment-date {
@@ -176,7 +176,7 @@
         }
 
         .line-items-table th {
-            background-color: #34495e;
+            background-color: #16a085;
             color: white;
             padding: 5px 4px;
             text-align: left;
@@ -203,7 +203,7 @@
         }
 
         .total-row {
-            background-color: #d5e8f7 !important;
+            background-color: #d1f2eb !important;
             font-weight: bold;
             font-size: 9pt;
         }
@@ -321,50 +321,47 @@
         <!-- Header -->
         <div class="header">
             <!-- Company Logo (left side) -->
+            <!-- CORRECTED: Use just "Logo.png" since base_url already points to media folder -->
             <img src="Logo.png" alt="Company Logo" class="header-logo">
 
             <div class="company-name-khmer">ហ្គាឌិន ស៊ីធីសួនទឹក</div>
             <div class="company-name">GARDEN CITY-WATER PARK</div>
-            <div class="document-title-khmer">បណ្តាញបង់ប្រាក់</div>
-            <div class="document-title">PAYMENT VOUCHER</div>
+            <div class="document-title-khmer">សំណើរទូទាត់</div>
+            <div class="document-title">PAYMENT FORM</div>
 
             <div class="header-meta">
                 <div class="header-left">
-                    <div class="pv-number">PV No: {{ voucher.pv_number }}</div>
-                    <div class="payment-date">Date: {{ voucher.payment_date|date:"j-M-y" }}</div>
+                    <div class="pf-number">PF No: {{ payment_form.pf_number }}</div>
+                    <div class="payment-date">Date: {{ payment_form.payment_date|date:"j-M-y" }}</div>
                 </div>
-                <div class="status-badge">{{ voucher.get_status_display|upper }}</div>
+                <div class="status-badge">{{ payment_form.get_status_display|upper }}</div>
             </div>
         </div>
 
-        <!-- Voucher Information - Two Columns -->
+        <!-- Payment Form Information - Two Columns -->
         <div class="info-section">
             <div class="info-col">
                 <div class="info-row">
                     <div class="info-label">បង់ទៅ / Pay to:</div>
-                    <div class="info-value"><strong>{{ voucher.payee_name|upper }}</strong></div>
+                    <div class="info-value"><strong>{{ payment_form.payee_name|upper }}</strong></div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Bank Acc/Cheque Name:</div>
-                    <div class="info-value">{{ voucher.payee_name }}</div>
+                    <div class="info-value">{{ payment_form.payee_name }}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Bank's Address:</div>
-                    <div class="info-value">{{ voucher.bank_name }}</div>
+                    <div class="info-value">{{ payment_form.bank_name }}</div>
                 </div>
             </div>
             <div class="info-col">
                 <div class="info-row">
                     <div class="info-label">A/C No.:</div>
-                    <div class="info-value">{{ voucher.bank_account }}</div>
+                    <div class="info-value">{{ payment_form.bank_account }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">Prepared By:</div>
-                    <div class="info-value">{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Created:</div>
-                    <div class="info-value">{{ voucher.created_at|date:"d/m/Y H:i" }}</div>
+                    <div class="info-label">Payment Method:</div>
+                    <div class="info-value">☑ {{ payment_form.get_status_display }}</div>
                 </div>
             </div>
         </div>
@@ -386,22 +383,22 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in line_items %}
+                {% for item in payment_form.line_items.all %}
                 <tr>
                     <td class="text-center">{{ forloop.counter }}</td>
                     <td>{{ item.department.name }}</td>
                     <td>{{ item.program|default:"-" }}</td>
                     <td>{{ item.description }}</td>
-                    <td class="text-right">${{ item.amount|floatformat:2 }}</td>
+                    <td class="text-right">{{ item.amount|floatformat:2 }}</td>
                     <td class="text-center">{% if item.vat_applicable %}10%{% else %}-{% endif %}</td>
-                    <td class="text-right"><strong>${{ item.get_total|floatformat:2 }}</strong></td>
+                    <td class="text-right"><strong>{{ item.get_total|floatformat:2 }}</strong></td>
                 </tr>
                 {% endfor %}
 
                 <!-- Fill empty rows up to 14 total -->
-                {% with total_items=line_items|length %}
+                {% with total_items=payment_form.line_items.count %}
                 {% if total_items < 14 %}
-                    {% for i in "12345678901234" %}
+                    {% for i in "x"|ljust:"14" %}
                         {% if forloop.counter > total_items %}
                         <tr>
                             <td class="text-center">{{ total_items|add:forloop.counter }}</td>
@@ -420,9 +417,9 @@
             <tfoot>
                 <tr class="total-row">
                     <td colspan="4" class="text-right"><strong>សរុបរួម(បន្ថែម) (This payment):</strong></td>
-                    <td class="text-right"><strong>${{ grand_total|floatformat:2 }}</strong></td>
+                    <td class="text-right"><strong>{{ grand_total|floatformat:2 }}</strong></td>
                     <td class="text-center"><strong>-</strong></td>
-                    <td class="text-right"><strong>=&nbsp;&nbsp;${{ grand_total|floatformat:2 }}</strong></td>
+                    <td class="text-right"><strong>=&nbsp;&nbsp;{{ grand_total|floatformat:2 }}</strong></td>
                 </tr>
             </tfoot>
         </table>
@@ -437,10 +434,10 @@
             <div class="signature-box">
                 <!-- Display Role/Position Title -->
                 <div class="signature-role">
-                    {% if voucher.created_by.role_level %}
-                        {{ voucher.created_by.get_role_level_display|upper }}
-                    {% elif voucher.created_by.position %}
-                        {{ voucher.created_by.position|upper }}
+                    {% if payment_form.created_by.role_level %}
+                        {{ payment_form.created_by.get_role_level_display|upper }}
+                    {% elif payment_form.created_by.position %}
+                        {{ payment_form.created_by.position|upper }}
                     {% else %}
                         PREPARED BY
                     {% endif %}
@@ -448,13 +445,13 @@
 
                 <!-- Display User's Full Name -->
                 <div class="signature-name">
-                    {{ voucher.created_by.get_full_name|default:voucher.created_by.username }}
+                    {{ payment_form.created_by.get_full_name|default:payment_form.created_by.username }}
                 </div>
 
                 <!-- Signature Image -->
                 <div class="signature-image-container">
-                    {% if voucher.created_by.signature_image %}
-                        <img src="{{ voucher.created_by.signature_image.name }}" class="signature-image" alt="Signature">
+                    {% if payment_form.created_by.signature_image %}
+                        <img src="{{ payment_form.created_by.signature_image.name }}" class="signature-image" alt="Signature">
                     {% else %}
                         <div class="digital-sig-text">[Digital Signature]</div>
                     {% endif %}
@@ -462,7 +459,7 @@
 
                 <!-- Timestamp -->
                 <div class="signature-timestamp">
-                    {{ voucher.created_at|date:"d/m/Y H:i" }}
+                    {{ payment_form.created_at|date:"d/m/Y H:i" }}
                 </div>
             </div>
 

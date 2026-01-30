@@ -63,25 +63,45 @@
         z-index: -1;
     }
 
-    /* Glassmorphic Container */
+    /* Glassmorphic Container - FIXED */
     .container {
         width: 420px;
-        min-height: auto;
+        max-height: 95vh; /* Prevent overflow */
+        overflow-y: auto; /* Allow scrolling if needed */
         background: rgba(0, 0, 0, 0.35);
         backdrop-filter: blur(8px);
         box-shadow: var(--shadow-2xl);
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start; /* Changed from center */
         flex-direction: column;
         border-radius: var(--radius-2xl);
         border: 3px solid rgba(255, 255, 255, 0.5);
-        padding: var(--spacing-xl) var(--spacing-lg);
+        padding: var(--spacing-lg) var(--spacing-lg);
         position: relative;
         z-index: 1;
         opacity: 0;
         transform: translateY(20px);
         animation: fadeInUp 0.6s ease-out 0.2s forwards;
+    }
+
+    /* Custom scrollbar */
+    .container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .container::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+
+    .container::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+    }
+
+    .container::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
     }
 
     @keyframes fadeInUp {
@@ -101,6 +121,7 @@
         padding: var(--spacing-sm) 0 var(--spacing-md);
         text-align: center;
         letter-spacing: 1px;
+        flex-shrink: 0;
     }
 
     /* Info Box */
@@ -119,6 +140,7 @@
         align-items: flex-start;
         gap: var(--spacing-xs);
         transition: all var(--transition-base);
+        flex-shrink: 0;
     }
 
     .info-box:hover {
@@ -131,6 +153,7 @@
         font-size: 1rem;
         margin-top: 2px;
         color: var(--primary-300);
+        flex-shrink: 0;
     }
 
     /* Form Groups with Floating Labels */
@@ -140,6 +163,7 @@
         margin: var(--spacing-md) 0;
         border-bottom: 3px solid rgba(255, 255, 255, 0.8);
         transition: all var(--transition-base);
+        flex-shrink: 0;
     }
 
     .form-group:focus-within {
@@ -206,6 +230,7 @@
         margin-top: 4px;
         margin-left: var(--spacing-sm);
         font-weight: 500;
+        flex-shrink: 0;
     }
 
     /* Footer Text */
@@ -215,6 +240,7 @@
         margin: var(--spacing-sm) 0;
         font-size: 0.875rem;
         font-weight: 500;
+        flex-shrink: 0;
     }
 
     p > a {
@@ -247,6 +273,7 @@
         background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.95) 100%);
         color: var(--gray-900);
         box-shadow: var(--shadow-lg);
+        flex-shrink: 0;
     }
 
     #btn:hover {
@@ -295,6 +322,7 @@
         backdrop-filter: blur(5px);
         border: 2px solid rgba(255, 255, 255, 0.3);
         animation: slideInDown 0.3s ease-out;
+        flex-shrink: 0;
     }
 
     @keyframes slideInDown {
@@ -322,25 +350,69 @@
 
     .alert i {
         font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    /* Field Error Display */
+    .field-error {
+        color: #fca5a5;
+        font-size: 0.75rem;
+        margin-top: 4px;
+        margin-left: var(--spacing-sm);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .field-error i {
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .form-group.has-error {
+        border-bottom-color: #ef4444;
+    }
+
+    .form-group.has-error input {
+        color: #fca5a5;
+    }
+
+    .form-group.has-error label {
+        color: #fca5a5;
+    }
+
+    .form-group.has-error i {
+        color: #fca5a5;
+    }
+
+    /* Form element */
+    form {
+        width: 100%;
+        flex-shrink: 0;
     }
 
     /* Responsive Design */
     @media (max-width: 768px) {
         .container {
             width: 90%;
-            padding: var(--spacing-xl) var(--spacing-lg);
+            max-height: 90vh;
+            padding: var(--spacing-lg) var(--spacing-lg);
         }
 
         h2 {
-            font-size: 1.625rem;
+            font-size: 1.5rem;
+            padding: var(--spacing-xs) 0 var(--spacing-sm);
         }
 
         .form-group {
-            margin: var(--spacing-md) 0;
+            margin: var(--spacing-sm) 0;
         }
 
         .form-group input {
             font-size: 0.9375rem;
+            height: 44px;
         }
 
         .form-group label {
@@ -348,36 +420,66 @@
         }
 
         #btn {
-            font-size: 1.125rem;
+            font-size: 1.0625rem;
+            height: 44px;
         }
     }
 
     @media (max-width: 480px) {
         body {
-            padding: var(--spacing-md) 0;
+            padding: var(--spacing-sm) 0;
         }
 
         .container {
             width: 95%;
-            padding: var(--spacing-lg) var(--spacing-md);
+            max-height: 85vh;
+            padding: var(--spacing-md) var(--spacing-md);
         }
 
         h2 {
             font-size: 1.375rem;
-            padding: var(--spacing-xs) 0 var(--spacing-sm);
+            padding: var(--spacing-xs) 0 var(--spacing-xs);
         }
 
         .form-group {
-            margin: var(--spacing-md) 0;
+            margin: var(--spacing-xs) 0;
+        }
+
+        .form-group input {
+            height: 42px;
         }
 
         .info-box {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             padding: var(--spacing-xs) var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
         }
 
         #btn {
             font-size: 1rem;
+            height: 42px;
+            margin: var(--spacing-sm) 0 var(--spacing-xs);
+        }
+
+        .alert {
+            font-size: 0.75rem;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .field-error {
+            font-size: 0.7rem;
+            margin-top: 2px;
+        }
+
+        .form-hint {
+            font-size: 0.65rem;
+            margin-top: 2px;
+        }
+
+        p {
+            font-size: 0.8125rem;
+            margin: var(--spacing-xs) 0;
         }
     }
 </style>
@@ -401,34 +503,65 @@
         {% endfor %}
     {% endif %}
 
-    <form method="post" novalidate style="width: 100%;">
+    <form method="post" novalidate>
         {% csrf_token %}
 
-        <div class="form-group">
-            <input type="email" name="email" id="id_email" placeholder=" " required>
+        <div class="form-group{% if form.email.errors %} has-error{% endif %}">
+            <input type="email" name="email" id="id_email" placeholder=" " value="{{ form.email.value|default:'' }}" required>
             <label for="id_email">Email</label>
             <i class="bi bi-envelope-fill"></i>
         </div>
+        {% if form.email.errors %}
+            {% for error in form.email.errors %}
+                <div class="field-error"><i class="bi bi-exclamation-circle-fill"></i>{{ error }}</div>
+            {% endfor %}
+        {% endif %}
 
-        <div class="form-group">
-            <input type="text" name="username" id="id_username" placeholder=" " required>
+        <div class="form-group{% if form.username.errors %} has-error{% endif %}">
+            <input type="text" name="username" id="id_username" placeholder=" " value="{{ form.username.value|default:'' }}" required>
             <label for="id_username">Username</label>
             <i class="bi bi-person-fill"></i>
         </div>
-        <small class="form-hint">Choose a unique username</small>
+        {% if form.username.errors %}
+            {% for error in form.username.errors %}
+                <div class="field-error"><i class="bi bi-exclamation-circle-fill"></i>{{ error }}</div>
+            {% endfor %}
+        {% else %}
+            <small class="form-hint">Letters, numbers, and underscores only. No spaces.</small>
+        {% endif %}
 
-        <div class="form-group">
+        <div class="form-group{% if form.password1.errors %} has-error{% endif %}">
             <input type="password" name="password1" id="id_password1" placeholder=" " required>
             <label for="id_password1">Password</label>
             <i class="bi bi-lock-fill"></i>
         </div>
-        <small class="form-hint">Must be at least 8 characters</small>
+        {% if form.password1.errors %}
+            {% for error in form.password1.errors %}
+                <div class="field-error"><i class="bi bi-exclamation-circle-fill"></i>{{ error }}</div>
+            {% endfor %}
+        {% else %}
+            <small class="form-hint">Must be at least 8 characters</small>
+        {% endif %}
 
-        <div class="form-group">
+        <div class="form-group{% if form.password2.errors %} has-error{% endif %}">
             <input type="password" name="password2" id="id_password2" placeholder=" " required>
             <label for="id_password2">Confirm Password</label>
             <i class="bi bi-lock-fill"></i>
         </div>
+        {% if form.password2.errors %}
+            {% for error in form.password2.errors %}
+                <div class="field-error"><i class="bi bi-exclamation-circle-fill"></i>{{ error }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>{{ error }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
 
         <button type="submit" id="btn">
             <span class="btn-text">Sign Up</span>

@@ -139,7 +139,7 @@
 
     .filter-form {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);  /* 5 columns for compact layout */
+        grid-template-columns: repeat(6, 1fr);  /* 6 columns for compact layout */
         gap: 8px;  /* Minimal gap */
         margin-bottom: 0;
     }
@@ -561,7 +561,7 @@
         }
 
         .filter-form {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 
@@ -654,7 +654,15 @@
         <div class="filter-content" id="filterContent">
             <form method="get" action="" class="filter-form">
                 <div class="filter-field">
-                    <label for="pv_number">PV Number</label>
+                    <label for="doc_type">Document Type</label>
+                    <select id="doc_type" name="doc_type">
+                        <option value="all" {% if request.GET.doc_type == 'all' or not request.GET.doc_type %}selected{% endif %}>All Documents</option>
+                        <option value="pv" {% if request.GET.doc_type == 'pv' %}selected{% endif %}>Payment Voucher (PV)</option>
+                        <option value="pf" {% if request.GET.doc_type == 'pf' %}selected{% endif %}>Payment Form (PF)</option>
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label for="pv_number">PV/PF Number</label>
                     <input type="text" id="pv_number" name="pv_number" placeholder="2601-0001" value="{{ request.GET.pv_number }}">
                 </div>
                 <div class="filter-field">
@@ -731,7 +739,11 @@
                         {% for voucher in vouchers %}
                         <tr>
                             <td>
-                                <span class="pv-number">{{ voucher.pv_number|default:"DRAFT" }}</span>
+                                {% if voucher.pf_number %}
+                                    <span class="pv-number" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">PF {{ voucher.pf_number|default:"DRAFT" }}</span>
+                                {% else %}
+                                    <span class="pv-number">PV {{ voucher.pv_number|default:"DRAFT" }}</span>
+                                {% endif %}
                             </td>
                             <td><strong>{{ voucher.payee_name }}</strong></td>
                             <td>{{ voucher.payment_date|date:"M d, Y" }}</td>
@@ -771,22 +783,43 @@
                             <td>
                                 {% if voucher.status == 'DRAFT' %}
                                     <div style="display: flex; gap: 3px; flex-wrap: wrap;">
-                                        <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn" title="View">
-                                            <i class="bi bi-eye"></i> View
-                                        </a>
-                                        <a href="{% url 'vouchers:edit' voucher.pk %}" class="edit-btn" title="Edit">
-                                            <i class="bi bi-pencil-square"></i> Edit
-                                        </a>
-                                        <form method="post" action="{% url 'vouchers:delete' voucher.pk %}" style="display: inline;" class="delete-form-{{ voucher.pk }}">
-                                            {% csrf_token %}
-                                            <button type="button" class="delete-btn" title="Delete" onclick="showDeleteModal({{ voucher.pk }}, '{{ voucher.pv_number|default:"DRAFT" }}')">
-                                                <i class="bi bi-trash"></i> Delete
-                                            </button>
-                                        </form>
+                                        {% if voucher.pf_number %}
+                                            <a href="{% url 'vouchers:pf_detail' voucher.pk %}" class="view-btn" title="View">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            <a href="{% url 'vouchers:pf_edit' voucher.pk %}" class="edit-btn" title="Edit">
+                                                <i class="bi bi-pencil-square"></i> Edit
+                                            </a>
+                                            <form method="post" action="{% url 'vouchers:pf_delete' voucher.pk %}" style="display: inline;" class="delete-form-{{ voucher.pk }}">
+                                                {% csrf_token %}
+                                                <button type="button" class="delete-btn" title="Delete" onclick="showDeleteModal({{ voucher.pk }}, '{{ voucher.pf_number|default:"DRAFT" }}')">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn" title="View">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            <a href="{% url 'vouchers:edit' voucher.pk %}" class="edit-btn" title="Edit">
+                                                <i class="bi bi-pencil-square"></i> Edit
+                                            </a>
+                                            <form method="post" action="{% url 'vouchers:delete' voucher.pk %}" style="display: inline;" class="delete-form-{{ voucher.pk }}">
+                                                {% csrf_token %}
+                                                <button type="button" class="delete-btn" title="Delete" onclick="showDeleteModal({{ voucher.pk }}, '{{ voucher.pv_number|default:"DRAFT" }}')">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        {% endif %}
                                     </div>
                                 {% else %}
-                                    <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn">
-                                        <i class="bi bi-eye"></i> View
+                                    {% if voucher.pf_number %}
+                                        <a href="{% url 'vouchers:pf_detail' voucher.pk %}" class="view-btn">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn">
+                                            <i class="bi bi-eye"></i> View
+                                    {% endif %}
                                     </a>
                                 {% endif %}
                             </td>
