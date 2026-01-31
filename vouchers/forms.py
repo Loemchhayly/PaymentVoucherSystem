@@ -29,24 +29,67 @@ class MultipleFileField(forms.FileField):
 class PaymentVoucherForm(forms.ModelForm):
     """Form for creating/editing payment vouchers"""
 
-    bank_name = forms.ChoiceField(
-        choices=CAMBODIAN_BANKS,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        label='Bank Name'
-    )
-
     class Meta:
         model = PaymentVoucher
-        fields = ['payee_name', 'payment_date', 'bank_name', 'bank_account']
+        fields = [
+            'pv_number',
+            'payee_name',
+            'payment_date',
+            'bank_address',
+            'bank_name',
+            'bank_account_number',
+            'status',
+        ]
         widgets = {
-            'payee_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter payee name'}),
-            'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'bank_account': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account number'}),
+            'pv_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'readonly': 'readonly',
+                'placeholder': 'Auto-generated on save'
+            }),
+            'payee_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter payee name'
+            }),
+            'payment_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'bank_address': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'bank_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Account holder name'
+            }),
+            'bank_account_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Account number'
+            }),
+            'status': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+        }
+        labels = {
+            'pv_number': 'PV Number',
+            'payee_name': 'Payee Name',
+            'payment_date': 'Payment Date',
+            'bank_address': 'Bank',
+            'bank_name': 'Account Holder Name',
+            'bank_account_number': 'Account Number',
+            'status': 'Status',
         }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        # Make pv_number not required (it's auto-generated)
+        self.fields['pv_number'].required = False
+
+        # For new vouchers, make status hidden and set to DRAFT
+        if not self.instance.pk:
+            self.fields['status'].widget = forms.HiddenInput()
+            self.fields['status'].initial = 'DRAFT'
 
         # Disable fields if voucher is locked
         if self.instance and self.instance.is_locked():
@@ -203,24 +246,67 @@ class ApprovalActionForm(forms.Form):
 class PaymentFormForm(forms.ModelForm):
     """Form for creating/editing payment forms"""
 
-    bank_name = forms.ChoiceField(
-        choices=CAMBODIAN_BANKS,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        label='Bank Name'
-    )
-
     class Meta:
         model = PaymentForm
-        fields = ['payee_name', 'payment_date', 'bank_name', 'bank_account']
+        fields = [
+            'pf_number',
+            'payee_name',
+            'payment_date',
+            'bank_address',
+            'bank_name',
+            'bank_account_number',
+            'status',
+        ]
         widgets = {
-            'payee_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter payee name'}),
-            'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'bank_account': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account number'}),
+            'pf_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'readonly': 'readonly',
+                'placeholder': 'Auto-generated on save'
+            }),
+            'payee_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter payee name'
+            }),
+            'payment_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'bank_address': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'bank_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Account holder name'
+            }),
+            'bank_account_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Account number'
+            }),
+            'status': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+        }
+        labels = {
+            'pf_number': 'PF Number',
+            'payee_name': 'Payee Name',
+            'payment_date': 'Payment Date',
+            'bank_address': 'Bank',
+            'bank_name': 'Account Holder Name',
+            'bank_account_number': 'Account Number',
+            'status': 'Status',
         }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        # Make pf_number not required (it's auto-generated)
+        self.fields['pf_number'].required = False
+
+        # For new forms, make status hidden and set to DRAFT
+        if not self.instance.pk:
+            self.fields['status'].widget = forms.HiddenInput()
+            self.fields['status'].initial = 'DRAFT'
 
         # Disable fields if form is locked
         if self.instance and self.instance.is_locked():

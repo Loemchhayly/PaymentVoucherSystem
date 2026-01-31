@@ -36,28 +36,28 @@
         }
 
         .page-header {
-            margin-bottom: var(--spacing-2xl);
+            margin-bottom: var(--spacing-md);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: var(--spacing-md);
+            gap: var(--spacing-sm);
 
         }
 
         .page-title {
             font-family: var(--font-heading);
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: 500;
             color: var(--gray-900);
             display: flex;
             align-items: center;
             gap: var(--spacing-md);
-            margin-top: -30px;
+            margin-top: -20px;
         }
 
         .page-title i {
-            font-size: 2.5rem;
+            font-size: 1.75rem;
             background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -68,15 +68,15 @@
         /* Form Cards with Animation */
         .form-card {
             background: white;
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-md);
+            border-radius: var(--radius-lg); /* ✅ REDUCED from xl */
+            box-shadow: var(--shadow-sm); /* ✅ REDUCED from md */
             overflow: hidden;
-            margin-bottom: var(--spacing-xl);
+            margin-bottom: var(--spacing-md); /* ✅ REDUCED from lg */
             transition: all var(--transition-base);
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(15px); /* ✅ REDUCED from 20px */
             animation: fadeInUp 0.5s ease-out forwards;
-            margin-top: -40px;
+            margin-top: -20px; /* ✅ REDUCED from -40px */
         }
 
         /* Staggered animation for form cards */
@@ -93,13 +93,13 @@
         }
 
         .form-card:hover {
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
         }
 
         .form-card-header {
             background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-            padding: var(--spacing-lg) var(--spacing-xl);
-            border-bottom: 3px solid var(--primary-500);
+            padding: var(--spacing-sm) var(--spacing-md); /* ✅ REDUCED from md/xl */
+            border-bottom: 2px solid var(--primary-500);
         }
 
         .form-card-header.info {
@@ -115,7 +115,7 @@
             margin: 0;
             display: flex;
             align-items: center;
-            gap: var(--spacing-sm);
+            gap: var(--spacing-xs);
         }
 
         .form-card-title i {
@@ -123,12 +123,12 @@
         }
 
         .form-card-body {
-            padding: var(--spacing-xl);
+            padding: var(--spacing-lg) var(--spacing-xl);
         }
 
         /* Enhanced Form Fields */
         .form-group {
-            margin-bottom: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
         }
 
         .form-label {
@@ -136,25 +136,26 @@
             font-size: 0.875rem;
             font-weight: 600;
             color: var(--gray-700);
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: 4px;
             display: block;
         }
 
         .form-control,
         .form-select {
             font-family: var(--font-body);
-            font-size: 0.9375rem;
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 2px solid var(--gray-300);
-            border-radius: var(--radius-md);
+            font-size: 0.875rem; /* ✅ REDUCED from 0.9375rem */
+            padding: 0.375rem 0.625rem; /* ✅ REDUCED from 0.5rem/0.75rem */
+            border: 1px solid var(--gray-300); /* ✅ REDUCED from 2px */
+            border-radius: var(--radius-sm); /* ✅ REDUCED from md */
             transition: all var(--transition-fast);
             background: white;
+            height: 38px; /* ✅ Fixed height for consistency */
         }
 
         .form-control:focus,
         .form-select:focus {
             border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(25, 145, 185, 0.1);
+            box-shadow: 0 0 0 2px rgba(25, 145, 185, 0.1); /* ✅ REDUCED from 3px */
             outline: none;
         }
 
@@ -163,17 +164,50 @@
             border-color: var(--primary-400);
         }
 
+        /* Three-column grid for voucher information */
+        .form-row-3col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm); /* ✅ REDUCED from md */
+            margin-bottom: 0; /* ✅ REMOVED bottom margin */
+        }
+
+        .form-row-2col {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-sm); /* ✅ REDUCED from md */
+            margin-bottom: 0; /* ✅ REMOVED bottom margin */
+        }
+
+        .form-row-full {
+            margin-bottom: var(--spacing-sm); /* ✅ REDUCED from md */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .form-row-3col {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-row-3col,
+            .form-row-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Line Items Table */
         .line-items-table-container {
             overflow-x: auto;
-            margin-bottom: var(--spacing-md);
+            margin-bottom: var(--spacing-sm); /* ✅ REDUCED from md */
         }
 
         .line-items-table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            margin-bottom: var(--spacing-md);
+            margin-bottom: var(--spacing-sm); /* ✅ REDUCED from md */
         }
 
         .line-items-table thead {
@@ -182,32 +216,19 @@
 
         .line-items-table th {
             font-family: var(--font-body);
-            font-size: 0.8125rem;
+            font-size: 0.75rem; /* ✅ REDUCED from 0.8125rem */
             font-weight: 600;
             color: var(--gray-700);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: var(--spacing-md);
+            letter-spacing: 0.3px; /* ✅ REDUCED from 0.5px */
+            padding: var(--spacing-sm); /* ✅ REDUCED from md */
             text-align: left;
             border-bottom: 2px solid var(--primary-200);
             white-space: nowrap;
         }
 
-        .line-items-table tbody tr {
-            transition: all var(--transition-base);
-        }
-
-        .line-items-table tbody tr:hover {
-            background: var(--primary-50);
-        }
-
-        /* Row animation for removal */
-        .line-item-row {
-            transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-        }
-
         .line-items-table td {
-            padding: var(--spacing-sm);
+            padding: 6px var(--spacing-sm); /* ✅ REDUCED vertical padding */
             border-bottom: 1px solid var(--gray-200);
             vertical-align: middle;
         }
@@ -216,43 +237,30 @@
         .line-items-table td select,
         .line-items-table td textarea {
             width: 100%;
-            font-size: 0.875rem;
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border: 2px solid var(--gray-300);
+            font-size: 0.8125rem; /* ✅ REDUCED from 0.875rem */
+            padding: 4px 8px; /* ✅ REDUCED from var(--spacing-xs)/sm */
+            border: 1px solid var(--gray-300); /* ✅ REDUCED from 2px */
             border-radius: var(--radius-sm);
             transition: all var(--transition-fast);
         }
 
-        .line-items-table td input:focus,
-        .line-items-table td select:focus,
-        .line-items-table td textarea:focus {
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(25, 145, 185, 0.1);
-            outline: none;
-        }
-
         .line-items-table td textarea {
-            min-height: 60px;
+            min-height: 50px; /* ✅ REDUCED from 60px */
             resize: vertical;
         }
 
-        /* Hidden fields */
-        .line-items-table td input[type="hidden"] {
-            display: none;
-        }
-
-        /* Line Number Badge */
+        /* ✅ COMPACT Line Number Badge */
         .line-number-badge {
             display: inline-block;
-            width: 32px;
-            height: 32px;
-            line-height: 32px;
+            width: 28px; /* ✅ REDUCED from 32px */
+            height: 28px; /* ✅ REDUCED from 32px */
+            line-height: 28px;
             text-align: center;
             background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
             color: white;
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-sm); /* ✅ REDUCED from md */
             font-weight: 700;
-            font-size: 0.875rem;
+            font-size: 0.8125rem; /* ✅ REDUCED from 0.875rem */
         }
 
         /* VAT Checkbox */
@@ -263,8 +271,8 @@
         }
 
         .vat-checkbox {
-            width: 24px;
-            height: 24px;
+            width: 20px; /* ✅ REDUCED from 24px */
+            height: 20px; /* ✅ REDUCED from 24px */
             cursor: pointer;
             accent-color: var(--primary-500);
         }
@@ -281,13 +289,14 @@
 
         /* Grand Total Footer */
         .line-items-table tfoot {
-            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         }
 
+        /* ✅ COMPACT Grand Total */
         .line-items-table tfoot th {
             color: white;
-            font-size: 1rem;
-            padding: var(--spacing-md);
+            font-size: 0.875rem; /* ✅ REDUCED from 1rem */
+            padding: var(--spacing-sm); /* ✅ REDUCED from md */
             border: none;
         }
 
@@ -433,14 +442,14 @@
 
         /* Attachment Upload Styles */
         .attachment-upload-area {
-            margin-bottom: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
         }
 
         .attachment-upload-label {
             display: block;
             border: 2px dashed var(--primary-300);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-2xl);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
             text-align: center;
             cursor: pointer;
             transition: all var(--transition-base);
@@ -458,15 +467,15 @@
         }
 
         .upload-icon {
-            font-size: 3rem;
+            font-size: 2rem;
             color: var(--primary-500);
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: 4px
         }
 
         .upload-text {
-            font-size: 1rem;
+            font-size: 0.875rem;
             color: var(--gray-700);
-            margin-bottom: var(--spacing-xs);
+            margin-bottom: 2px;
         }
 
         .upload-text strong {
@@ -474,16 +483,16 @@
         }
 
         .upload-hint {
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             color: var(--gray-600);
         }
 
         .selected-files-list {
             background: var(--gray-50);
             border: 1px solid var(--gray-200);
-            border-radius: var(--radius-md);
-            padding: var(--spacing-md);
-            margin-top: var(--spacing-md);
+            border-radius: var(--radius-sm); /* ✅ REDUCED from md */
+            padding: var(--spacing-sm); /* ✅ REDUCED from md */
+            margin-top: var(--spacing-sm); /* ✅ REDUCED from md */
         }
 
         .files-list {
@@ -496,12 +505,12 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: var(--spacing-sm);
+            padding: 6px var(--spacing-sm); /* ✅ REDUCED padding */
             background: white;
             border: 1px solid var(--gray-200);
             border-radius: var(--radius-sm);
-            margin-bottom: var(--spacing-xs);
-            font-size: 0.875rem;
+            margin-bottom: 4px; /* ✅ REDUCED from xs */
+            font-size: 0.8125rem; /* ✅ REDUCED from 0.875rem */
         }
 
         .files-list li:last-child {
@@ -554,6 +563,53 @@
             flex-wrap: wrap;
         }
 
+        /* ⚡ INSTANT FEEDBACK: Loading overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: var(--spacing-2xl);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-2xl);
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .loading-spinner i {
+            font-size: 3rem;
+            color: var(--primary-600);
+            animation: spin 0.8s linear infinite;
+            display: block;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .loading-spinner p {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         .save-btn.submitting {
             opacity: 0.7;
             cursor: not-allowed;
@@ -564,20 +620,21 @@
             content: ' Saving...';
         }
 
+
         .save-btn {
             background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
             color: white;
             border: none;
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-md) var(--spacing-2xl);
+            border-radius: var(--radius-md); /* ✅ REDUCED from lg */
+            padding: var(--spacing-sm) var(--spacing-lg); /* ✅ REDUCED from md/2xl */
             font-family: var(--font-body);
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.9375rem; /* ✅ REDUCED from 1rem */
             display: inline-flex;
             align-items: center;
-            gap: var(--spacing-sm);
+            gap: 6px; /* ✅ REDUCED from sm */
             transition: all var(--transition-base);
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-sm); /* ✅ REDUCED from md */
             cursor: pointer;
         }
 
@@ -595,14 +652,14 @@
             background: white;
             color: var(--gray-700);
             border: 2px solid var(--gray-300);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-md) var(--spacing-2xl);
+            border-radius: var(--radius-md); /* ✅ REDUCED from lg */
+            padding: var(--spacing-sm) var(--spacing-lg); /* ✅ REDUCED from md/2xl */
             font-family: var(--font-body);
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.9375rem; /* ✅ REDUCED from 1rem */
             display: inline-flex;
             align-items: center;
-            gap: var(--spacing-sm);
+            gap: 6px; /* ✅ REDUCED from sm */
             text-decoration: none;
             transition: all var(--transition-base);
         }
@@ -618,18 +675,19 @@
             font-size: 1.25rem;
         }
 
-        /* Helper Text */
+        /* ✅ COMPACT Helper Text */
         .helper-text {
-            font-size: 0.8125rem;
+            font-size: 0.75rem; /* ✅ REDUCED from 0.8125rem */
             color: var(--gray-600);
-            margin-top: var(--spacing-xs);
+            margin-top: 6px; /* ✅ REDUCED from var(--spacing-xs) */
             display: flex;
             align-items: center;
-            gap: var(--spacing-xs);
+            gap: 4px; /* ✅ REDUCED from var(--spacing-xs) */
         }
 
         .helper-text i {
             color: var(--primary-500);
+            font-size: 0.875rem; /* ✅ Slightly smaller icon */
         }
 
         /* ==================== RESPONSIVE DESIGN ==================== */
@@ -683,7 +741,7 @@
             }
 
             .form-group {
-                margin-bottom: var(--spacing-md);
+                margin-bottom: var(--spacing-sm);
             }
 
             /* Tables: horizontal scroll */
@@ -819,6 +877,8 @@
 
         <form method="post" id="voucher-form" enctype="multipart/form-data">
             {% csrf_token %}
+            <!-- ✅ CRITICAL: Hidden input for tracking deleted attachments (placed at top for reliability) -->
+            <input type="hidden" name="deleted_attachments" id="deleted-attachments" value="">
 
             <!-- Voucher Information Card -->
             <div class="form-card">
@@ -834,14 +894,108 @@
                             {{ form.non_field_errors }}
                         </div>
                     {% endif %}
-                    {{ form|crispy }}
+
+                    <!-- Row 1: PV Number, Payment Date, Payee Name (3 columns) -->
+                    <div class="form-row-3col">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.pv_number.id_for_label }}">
+                                {{ form.pv_number.label }}
+                            </label>
+                            {{ form.pv_number }}
+                            {% if form.pv_number.errors %}
+                                <small style="color: var(--danger);">{{ form.pv_number.errors|first }}</small>
+                            {% endif %}
+                            <small class="form-text text-muted" style="font-size: 0.75rem;">Auto-generated on
+                                save</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.payment_date.id_for_label }}">
+                                {{ form.payment_date.label }}
+                                {% if form.payment_date.field.required %}
+                                    <span style="color: var(--danger);">*</span>{% endif %}
+                            </label>
+                            {{ form.payment_date }}
+                            {% if form.payment_date.errors %}
+                                <small style="color: var(--danger);">{{ form.payment_date.errors|first }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.payee_name.id_for_label }}">
+                                {{ form.payee_name.label }}
+                                {% if form.payee_name.field.required %}
+                                    <span style="color: var(--danger);">*</span>{% endif %}
+                            </label>
+                            {{ form.payee_name }}
+                            {% if form.payee_name.errors %}
+                                <small style="color: var(--danger);">{{ form.payee_name.errors|first }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Bank, Account Holder Name, Account Number (3 columns) -->
+                    <div class="form-row-3col">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.bank_address.id_for_label }}">
+                                {{ form.bank_address.label }}
+                                {% if form.bank_address.field.required %}
+                                    <span style="color: var(--danger);">*</span>{% endif %}
+                            </label>
+                            {{ form.bank_address }}
+                            {% if form.bank_address.errors %}
+                                <small style="color: var(--danger);">{{ form.bank_address.errors|first }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.bank_name.id_for_label }}">
+                                {{ form.bank_name.label }}
+                                {% if form.bank_name.field.required %}
+                                    <span style="color: var(--danger);">*</span>{% endif %}
+                            </label>
+                            {{ form.bank_name }}
+                            {% if form.bank_name.errors %}
+                                <small style="color: var(--danger);">{{ form.bank_name.errors|first }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.bank_account_number.id_for_label }}">
+                                {{ form.bank_account_number.label }}
+                                {% if form.bank_account_number.field.required %}
+                                    <span style="color: var(--danger);">*</span>{% endif %}
+                            </label>
+                            {{ form.bank_account_number }}
+                            {% if form.bank_account_number.errors %}
+                                <small style="color: var(--danger);">{{ form.bank_account_number.errors|first }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Status (only show on edit) -->
+                    {% if object %}
+                        <div class="form-row-full">
+                            <div class="form-group">
+                                <label class="form-label" for="{{ form.status.id_for_label }}">
+                                    {{ form.status.label }}
+                                </label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                    <small style="color: var(--danger);">{{ form.status.errors|first }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        {{ form.status }}  {# Hidden field for new vouchers #}
+                    {% endif %}
+
                     <div class="helper-text">
                         <i class="bi bi-lightbulb"></i>
                         <span>Fill in all required fields before proceeding to line items.</span>
                     </div>
                 </div>
             </div>
-
             <!-- Line Items Card -->
             <div class="form-card">
                 <div class="form-card-header info">
@@ -860,7 +1014,7 @@
 
                     <div class="helper-text" style="margin-bottom: var(--spacing-md);">
                         <i class="bi bi-info-circle"></i>
-                        <span>Fill in the table below with your voucher line items. At least one line item is required. Click "Add Line Item" button below to add more rows (up to 50).</span>
+                        <span>Fill in the table below with your voucher line items...</span>
                     </div>
 
                     {{ formset.management_form }}
@@ -887,6 +1041,7 @@
                                         <!-- Hidden fields -->
                                         {{ form.line_number }}
                                         {{ form.id }}
+                                        <div style="display: none;">{{ form.DELETE }}</div>
                                     </td>
                                     <td>
                                         {{ form.description }}
@@ -949,6 +1104,7 @@
                         <span>Check the VAT box to add 10% tax to the line item amount. Click "Add Line Item" to add more rows.</span>
                     </div>
                 </div>
+
             </div>
             <!-- Attachments Card -->
             <div class="form-card">
@@ -961,14 +1117,11 @@
                 </div>
                 <div class="form-card-body">
                     {% if object and object.pv_number %}
-                        <div style="background: var(--primary-50); border-left: 3px solid var(--primary-500); padding: var(--spacing-sm); border-radius: var(--radius-sm); margin-bottom: var(--spacing-md); font-size: 0.8125rem; color: var(--gray-700);">
-                            <i class="bi bi-folder2-open"></i> <strong>Storage Location:</strong>
+                        <div style="background: var(--primary-50); border-left: 3px solid var(--primary-500); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); margin-bottom: var(--spacing-sm); font-size: 0.75rem; color: var(--gray-700);">
+                            <i class="bi bi-folder2-open"></i> <strong>Storage:</strong>
                             voucher_attachments/{{ object.pv_number }}/
                         </div>
                     {% endif %}
-
-                    <!-- ✅ MOVED HIDDEN INPUT HERE - OUTSIDE THE CONTAINER THAT GETS REPLACED -->
-                    <input type="hidden" name="deleted_attachments" id="deleted-attachments" value="">
 
                     <!-- Existing Attachments (for edit mode) -->
                     {% if object %}
@@ -1019,35 +1172,43 @@
                                 save this voucher.{% endif %}</span>
                     </div>
 
+                    <!-- Upload Area - COMPACT -->
                     <div class="attachment-upload-area">
-                        <label for="id_attachments" class="attachment-upload-label">
-                            <div class="upload-icon">
-                                <i class="bi bi-cloud-upload"></i>
-                            </div>
-                            <div class="upload-text">
-                                <strong>Click to upload</strong> or drag and drop
-                            </div>
-                            <div class="upload-hint">
-                                PDF, JPG, PNG (Max 10MB per file)
+                        <label for="id_attachments" class="attachment-upload-label"
+                               style="padding: var(--spacing-md); min-height: auto;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: var(--spacing-sm);">
+                                <i class="bi bi-cloud-upload" style="font-size: 1.5rem; color: var(--primary-500);"></i>
+                                <div style="text-align: left;">
+                                    <div class="upload-text" style="font-size: 0.875rem; margin-bottom: 2px;">
+                                        <strong>Click to upload</strong> or drag and drop
+                                    </div>
+                                    <div class="upload-hint" style="font-size: 0.75rem;">
+                                        PDF, JPG, PNG (Max 10MB per file)
+                                    </div>
+                                </div>
                             </div>
                         </label>
                         <input type="file" name="attachments" id="id_attachments" class="attachment-input" multiple
                                accept=".pdf,.jpg,.jpeg,.png" onchange="displaySelectedFiles(this)">
                     </div>
 
-                    <div id="selected-files-list" class="selected-files-list" style="display: none;">
-                        <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--gray-700); margin-bottom: var(--spacing-sm);">
-                            <i class="bi bi-files"></i> Selected Files:
+                    <!-- Selected New Files List -->
+                    <div id="selected-files-list" class="selected-files-list"
+                         style="display: none; padding: var(--spacing-sm); margin-top: var(--spacing-sm);">
+                        <h4 style="font-size: 0.8125rem; font-weight: 600; color: var(--gray-700); margin-bottom: var(--spacing-xs);">
+                            <i class="bi bi-files"></i> New Files:
                         </h4>
-                        <ul id="files-list" class="files-list"></ul>
+                        <ul id="files-list" class="files-list" style="gap: 4px;"></ul>
                     </div>
 
+                    <!-- ✅ Helper text INSIDE the Attachments card -->
                     <div class="helper-text" style="margin-top: var(--spacing-sm);">
                         <i class="bi bi-shield-check"></i>
                         <span>Files are securely stored and only accessible to authorized users.</span>
                     </div>
-                </div>
-            </div>
+                </div> <!-- Close form-card-body -->
+            </div> <!-- Close Attachments Card -->
+
 
             <!-- Action Buttons Card -->
             <div class="form-card">
@@ -1058,6 +1219,11 @@
                             <span>Save Voucher</span>
                         </button>
                         <a href="
+                                
+                                
+                                
+                                
+                                
                                 {% if object %}{% url 'vouchers:detail' object.pk %}{% else %}{% url 'dashboard:home' %}{% endif %}"
                            class="cancel-btn">
                             <i class="bi bi-x-circle"></i>
@@ -1067,6 +1233,14 @@
                 </div>
             </div>
         </form>
+    </div>
+
+    <!-- ⚡ Loading Overlay for instant feedback -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">
+            <i class="bi bi-arrow-repeat"></i>
+            <p>Processing...</p>
+        </div>
     </div>
 {% endblock %}
 
@@ -1139,25 +1313,28 @@
             const submitBtn = form.querySelector('.save-btn');
 
             form.addEventListener('submit', function (e) {
-                console.log('=== FORM SUBMISSION DEBUG ===');
-                console.log('Deleted attachments array:', deletedAttachments);
-                
+                // ⚡ OPTIMIZED: Quick validation only, no heavy processing
                 const hiddenInput = document.getElementById('deleted-attachments');
-                console.log('Hidden input exists:', !!hiddenInput);
-                console.log('Hidden input value:', hiddenInput ? hiddenInput.value : 'NOT FOUND!');
-                
-                // Log form data
-                const formData = new FormData(form);
-                for (let [key, value] of formData.entries()) {
-                    if (key === 'deleted_attachments') {
-                        console.log(`✅ Form data contains deleted_attachments: "${value}"`);
-                    }
-                }
-                console.log('=============================');
 
-                // Show submitting state
+                // Critical validation - must exist
+                if (!hiddenInput) {
+                    e.preventDefault();
+                    alert('Form error: Please refresh and try again.');
+                    return false;
+                }
+
+                // Show loading overlay INSTANTLY for immediate feedback
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('active');
+                }
+
+                // Show submitting state on button
                 submitBtn.classList.add('submitting');
                 submitBtn.disabled = true;
+
+                // Optional: Log for debugging (doesn't block submission)
+                console.log('Form submitting...');
             });
         });
 
@@ -1260,9 +1437,9 @@
 
         function removeLineItem(button) {
             const tbody = document.getElementById('line-items-body');
-            const rows = tbody.querySelectorAll('.line-item-row');
+            const rows = tbody.querySelectorAll('.line-item-row:not([data-deleted="true"])');
 
-            // Don't allow removing if only one row left
+            // Don't allow removing if only one visible row left
             if (rows.length <= 1) {
                 showNotification('You must have at least one line item.', 'warning');
                 return;
@@ -1271,37 +1448,74 @@
             // Get the row to remove
             const row = button.closest('.line-item-row');
 
-            // Remove the row (no confirmation needed - just remove it)
-            row.style.opacity = '0';
-            row.style.transform = 'translateX(-20px)';
+            // ✅ FIX: Check if this is an EXISTING item (has an ID) or NEW item
+            const idInput = row.querySelector('input[name$="-id"]');
+            const hasId = idInput && idInput.value;
 
-            setTimeout(() => {
-                row.remove();
+            if (hasId) {
+                // EXISTING item: Mark for deletion and hide (keep in DOM for Django formset)
+                const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+                if (deleteCheckbox) {
+                    deleteCheckbox.checked = true;
+                }
 
-                // Update TOTAL_FORMS count
-                const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
-                totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+                // Mark as deleted and hide
+                row.setAttribute('data-deleted', 'true');
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
 
-                // Renumber remaining rows
-                renumberRows();
+                setTimeout(() => {
+                    row.style.display = 'none';
 
-                // Recalculate totals
-                calculateLineTotals();
+                    // Renumber remaining visible rows
+                    renumberRows();
 
-                showNotification('Line item removed successfully.', 'success');
-                console.log('Line item removed. Total forms:', totalFormsInput.value);
-            }, 200);
+                    // Recalculate totals
+                    calculateLineTotals();
+
+                    showNotification('Line item marked for deletion.', 'success');
+                    console.log(`Existing line item (ID: ${idInput.value}) marked for deletion`);
+                }, 200);
+            } else {
+                // NEW item: Safe to remove from DOM completely
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
+
+                setTimeout(() => {
+                    row.remove();
+
+                    // Update TOTAL_FORMS count (only for new items being removed)
+                    const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
+                    totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+
+                    // Renumber remaining rows
+                    renumberRows();
+
+                    // Recalculate totals
+                    calculateLineTotals();
+
+                    showNotification('Line item removed successfully.', 'success');
+                    console.log('New line item removed from DOM. Total forms:', totalFormsInput.value);
+                }, 200);
+            }
         }
 
         function renumberRows() {
-            const rows = document.querySelectorAll('.line-item-row');
-            rows.forEach((row, index) => {
-                // Update the badge number
+            // ✅ FIX: Only renumber visible rows (skip deleted rows)
+            const allRows = document.querySelectorAll('.line-item-row');
+            const visibleRows = Array.from(allRows).filter(row => !row.hasAttribute('data-deleted'));
+
+            // Renumber only visible rows
+            visibleRows.forEach((row, index) => {
+                // Update the badge number (1-based for display)
                 const badge = row.querySelector('.line-number-badge');
                 if (badge) {
                     badge.textContent = index + 1;
                 }
+            });
 
+            // Renumber ALL rows (including deleted) for proper formset indexing
+            allRows.forEach((row, index) => {
                 // Update form field names and IDs
                 const fields = row.querySelectorAll('input, select, textarea');
                 fields.forEach(field => {
@@ -1313,6 +1527,8 @@
                     }
                 });
             });
+
+            console.log(`Renumbered: ${visibleRows.length} visible rows, ${allRows.length} total rows (including deleted)`);
         }
 
         // Display selected files
@@ -1390,9 +1606,13 @@
             showNotification('File removed successfully.', 'success');
         }
 
-        // ✅ FIXED: Remove existing attachment with proper hidden input handling
+        // ✅ FIXED: Remove existing attachment with defensive validation
         function removeExistingAttachment(attachmentId, fileName) {
-            if (!confirm(`Are you sure you want to remove "${fileName}"?\n\nThis file will be permanently deleted when you save the voucher.`)) {
+            // ✅ FIX: Defensive check - ensure hidden input exists
+            const hiddenInput = document.getElementById('deleted-attachments');
+            if (!hiddenInput) {
+                console.error('❌ CRITICAL: Hidden input disappeared! Cannot track deletions.');
+                alert('Critical error: Unable to track deleted attachments. Please refresh the page and try again.');
                 return;
             }
 
@@ -1402,15 +1622,18 @@
 
             // Add to deleted list
             deletedAttachments.push(attachmentId);
-            
-            // Update hidden input
-            const hiddenInput = document.getElementById('deleted-attachments');
-            if (hiddenInput) {
-                hiddenInput.value = deletedAttachments.join(',');
-                console.log('After - deletedAttachments array:', deletedAttachments);
-                console.log('Hidden input value:', hiddenInput.value);
+
+            // Update hidden input with comma-separated IDs
+            hiddenInput.value = deletedAttachments.join(',');
+
+            // Verify update succeeded
+            if (hiddenInput.value === deletedAttachments.join(',')) {
+                console.log('✅ After - deletedAttachments array:', deletedAttachments);
+                console.log('✅ Hidden input value:', hiddenInput.value);
             } else {
-                console.error('❌ Hidden input NOT FOUND!');
+                console.error('❌ Hidden input value mismatch!');
+                console.error('Expected:', deletedAttachments.join(','));
+                console.error('Actual:', hiddenInput.value);
             }
             console.log('============================');
 

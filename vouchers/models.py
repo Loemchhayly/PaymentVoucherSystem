@@ -4,14 +4,13 @@ from django.utils import timezone
 from decimal import Decimal
 import os
 
-
 # Cambodian Banks Choices
 CAMBODIAN_BANKS = [
     ('ABA Bank', 'ABA Bank'),
     ('ACLEDA Bank', 'ACLEDA Bank'),
     ('MAYBANK (CAMBODIA)PLC', 'MAYBANK (CAMBODIA)PLC'),
     ('HONG LEONG BANK', 'HONG LEONG BANK'),
-    ('BANK_EMIRATES NBD', 'BANK_EMIRATES NBD'),
+    ('EMIRATES NBD', 'EMIRATES NBD'),
 ]
 
 
@@ -68,10 +67,32 @@ class PaymentVoucher(models.Model):
     submitted_at = models.DateTimeField(null=True, blank=True)
 
     # Header information
-    payee_name = models.CharField(max_length=200)
-    payment_date = models.DateField()
-    bank_name = models.CharField(max_length=100, choices=CAMBODIAN_BANKS)
-    bank_account = models.CharField(max_length=50)
+    payee_name = models.CharField(max_length=200, verbose_name="Payee Name")
+    payment_date = models.DateField(verbose_name="Payment Date")
+
+    # Bank details (corrected field names with defaults for migration)
+    bank_address = models.CharField(
+        max_length=100,
+        choices=CAMBODIAN_BANKS,
+        verbose_name="Bank Address",
+        help_text="The name of the bank (ABA, ACLEDA, etc.)",
+        blank=True,
+        default=''
+    )
+    bank_name = models.CharField(
+        max_length=200,
+        verbose_name="Bank Name",
+        help_text="The name on the bank account (account holder's name)",
+        blank=True,
+        default=''
+    )
+    bank_account_number = models.CharField(
+        max_length=50,
+        verbose_name="Bank Account Number",
+        help_text="The account number",
+        blank=True,
+        default=''
+    )
 
     # GM decision
     requires_md_approval = models.BooleanField(
@@ -179,17 +200,10 @@ def voucher_attachment_path(instance, filename):
     Path format: voucher_attachments/{PV_NUMBER}/filename.ext
     Example: voucher_attachments/2601-0001/invoice.pdf
     """
-    # Get PV number from the voucher
     pv_number = instance.voucher.pv_number
-
-    # If PV number doesn't exist yet, use voucher ID as fallback
     if not pv_number:
         pv_number = f"DRAFT-{instance.voucher.id}"
-
-    # Sanitize filename to prevent directory traversal
     filename = os.path.basename(filename)
-
-    # Return path: voucher_attachments/{PV_NUMBER}/filename.ext
     return os.path.join('voucher_attachments', pv_number, filename)
 
 
@@ -272,10 +286,32 @@ class PaymentForm(models.Model):
     submitted_at = models.DateTimeField(null=True, blank=True)
 
     # Header information
-    payee_name = models.CharField(max_length=200)
-    payment_date = models.DateField()
-    bank_name = models.CharField(max_length=100, choices=CAMBODIAN_BANKS)
-    bank_account = models.CharField(max_length=50)
+    payee_name = models.CharField(max_length=200, verbose_name="Payee Name")
+    payment_date = models.DateField(verbose_name="Payment Date")
+
+    # Bank details (corrected field names with defaults for migration)
+    bank_address = models.CharField(
+        max_length=100,
+        choices=CAMBODIAN_BANKS,
+        verbose_name="Bank Address",
+        help_text="The name of the bank (ABA, ACLEDA, etc.)",
+        blank=True,
+        default=''
+    )
+    bank_name = models.CharField(
+        max_length=200,
+        verbose_name="Bank Name",
+        help_text="The name on the bank account (account holder's name)",
+        blank=True,
+        default=''
+    )
+    bank_account_number = models.CharField(
+        max_length=50,
+        verbose_name="Bank Account Number",
+        help_text="The account number",
+        blank=True,
+        default=''
+    )
 
     # GM decision
     requires_md_approval = models.BooleanField(
@@ -383,17 +419,10 @@ def form_attachment_path(instance, filename):
     Path format: form_attachments/{PF_NUMBER}/filename.ext
     Example: form_attachments/2601-PF-0001/invoice.pdf
     """
-    # Get PF number from the form
     pf_number = instance.payment_form.pf_number
-
-    # If PF number doesn't exist yet, use form ID as fallback
     if not pf_number:
         pf_number = f"DRAFT-{instance.payment_form.id}"
-
-    # Sanitize filename to prevent directory traversal
     filename = os.path.basename(filename)
-
-    # Return path: form_attachments/{PF_NUMBER}/filename.ext
     return os.path.join('form_attachments', pf_number, filename)
 
 

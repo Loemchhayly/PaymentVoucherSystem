@@ -162,20 +162,32 @@ class VoucherEditView(LoginRequiredMixin, UpdateView):
         # Save the voucher header
         self.object = form.save()
 
+        # ✅ FIX UNIQUE CONSTRAINT: Move ALL existing line items to temporary numbers FIRST
+        # This prevents conflicts when we renumber
+        existing_items = self.object.line_items.all()
+        for i, item in enumerate(existing_items, start=10000):
+            item.line_number = i
+            item.save(update_fields=['line_number'])
+
         # Set the formset instance
         formset.instance = self.object
 
-        # ✅ Save the formset to get access to deleted_objects
+        # Save the formset to get access to deleted_objects
         saved_items = formset.save(commit=False)
 
         # Delete items marked for deletion in the formset
         for obj in formset.deleted_objects:
             obj.delete()
 
-        # Save new/updated line items with sequential numbering
-        for i, item in enumerate(saved_items, start=1):
-            item.line_number = i
+        # Save new/updated line items (they now have safe temporary numbers)
+        for item in saved_items:
             item.save()
+
+        # Now renumber ALL remaining items sequentially from 1
+        all_remaining_items = self.object.line_items.all().order_by('id')
+        for i, item in enumerate(all_remaining_items, start=1):
+            item.line_number = i
+            item.save(update_fields=['line_number'])
 
         # Save many-to-many relationships if any
         formset.save_m2m()
@@ -680,20 +692,32 @@ class FormEditView(LoginRequiredMixin, UpdateView):
         # Save the payment form header
         self.object = form.save()
 
+        # ✅ FIX UNIQUE CONSTRAINT: Move ALL existing line items to temporary numbers FIRST
+        # This prevents conflicts when we renumber
+        existing_items = self.object.line_items.all()
+        for i, item in enumerate(existing_items, start=10000):
+            item.line_number = i
+            item.save(update_fields=['line_number'])
+
         # Set the formset instance
         formset.instance = self.object
 
-        # ✅ Save the formset to get access to deleted_objects
+        # Save the formset to get access to deleted_objects
         saved_items = formset.save(commit=False)
 
         # Delete items marked for deletion in the formset
         for obj in formset.deleted_objects:
             obj.delete()
 
-        # Save new/updated line items with sequential numbering
-        for i, item in enumerate(saved_items, start=1):
-            item.line_number = i
+        # Save new/updated line items (they now have safe temporary numbers)
+        for item in saved_items:
             item.save()
+
+        # Now renumber ALL remaining items sequentially from 1
+        all_remaining_items = self.object.line_items.all().order_by('id')
+        for i, item in enumerate(all_remaining_items, start=1):
+            item.line_number = i
+            item.save(update_fields=['line_number'])
 
         # Save many-to-many relationships if any
         formset.save_m2m()

@@ -346,17 +346,17 @@
                 </div>
                 <div class="info-row">
                     <div class="info-label">Bank Acc/Cheque Name:</div>
-                    <div class="info-value">{{ voucher.payee_name }}</div>
+                    <div class="info-value">{{ voucher.bank_name|default:"-" }}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Bank's Address:</div>
-                    <div class="info-value">{{ voucher.bank_name }}</div>
+                    <div class="info-value">{{ voucher.bank_address|default:"-" }}</div>
                 </div>
             </div>
             <div class="info-col">
                 <div class="info-row">
                     <div class="info-label">A/C No.:</div>
-                    <div class="info-value">{{ voucher.bank_account }}</div>
+                    <div class="info-value">{{ voucher.bank_account_number|default:"-" }}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Prepared By:</div>
@@ -388,7 +388,7 @@
             <tbody>
                 {% for item in line_items %}
                 <tr>
-                    <td class="text-center">{{ forloop.counter }}</td>
+                    <td class="text-center">{{ item.line_number }}</td>
                     <td>{{ item.department.name }}</td>
                     <td>{{ item.program|default:"-" }}</td>
                     <td>{{ item.description }}</td>
@@ -400,11 +400,11 @@
 
                 <!-- Fill empty rows up to 14 total -->
                 {% with total_items=line_items|length %}
-                {% if total_items < 14 %}
+                {% if total_items < 15 %}
                     {% for i in "12345678901234" %}
                         {% if forloop.counter > total_items %}
                         <tr>
-                            <td class="text-center">{{ total_items|add:forloop.counter }}</td>
+                            <td class="text-center">&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>-</td>

@@ -35,7 +35,7 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
     """Admin interface for PaymentVoucher model"""
     list_display = ['pv_number', 'payee_name', 'payment_date', 'status', 'created_by', 'created_at']
     list_filter = ['status', 'created_at', 'payment_date']
-    search_fields = ['pv_number', 'payee_name', 'bank_name', 'bank_account']
+    search_fields = ['pv_number', 'payee_name', 'bank_name', 'bank_account_name', 'bank_account_number']  # ✅ FIXED
     readonly_fields = ['pv_number', 'created_by', 'created_at', 'updated_at', 'submitted_at']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
@@ -45,7 +45,7 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
             'fields': ('pv_number', 'status', 'created_by', 'current_approver')
         }),
         ('Payee Details', {
-            'fields': ('payee_name', 'payment_date', 'bank_name', 'bank_account')
+            'fields': ('payee_name', 'payment_date', 'bank_name', 'bank_account_name', 'bank_account_number')  # ✅ FIXED
         }),
         ('Approval Settings', {
             'fields': ('requires_md_approval',)
@@ -88,7 +88,7 @@ class PaymentFormAdmin(admin.ModelAdmin):
     """Admin interface for PaymentForm model"""
     list_display = ['pf_number', 'payee_name', 'payment_date', 'status', 'created_by', 'created_at']
     list_filter = ['status', 'created_at', 'payment_date']
-    search_fields = ['pf_number', 'payee_name', 'bank_name', 'bank_account']
+    search_fields = ['pf_number', 'payee_name', 'bank_name', 'bank_account_name', 'bank_account_number']  # ✅ FIXED
     readonly_fields = ['pf_number', 'created_by', 'created_at', 'updated_at', 'submitted_at']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
@@ -98,7 +98,7 @@ class PaymentFormAdmin(admin.ModelAdmin):
             'fields': ('pf_number', 'status', 'created_by', 'current_approver')
         }),
         ('Payee Details', {
-            'fields': ('payee_name', 'payment_date', 'bank_name', 'bank_account')
+            'fields': ('payee_name', 'payment_date', 'bank_name', 'bank_account_name', 'bank_account_number')  # ✅ FIXED
         }),
         ('Approval Settings', {
             'fields': ('requires_md_approval',)
