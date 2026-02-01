@@ -339,6 +339,25 @@
         border-radius: var(--radius-sm);
         display: inline-block;
         white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    /* ✅ Clickable PV/PF Numbers */
+    .clickable-number {
+        display: inline-block;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .clickable-number:hover .pv-number {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        filter: brightness(1.05);
+    }
+
+    .clickable-number:active .pv-number {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     /* Status Badges */
@@ -740,15 +759,19 @@
                         <tr>
                             <td>
                                 {% if voucher.pf_number %}
-                                    <span class="pv-number" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">PF {{ voucher.pf_number|default:"DRAFT" }}</span>
+                                    <a href="{% url 'vouchers:pf_detail' voucher.pk %}" class="clickable-number" style="text-decoration: none;">
+                                        <span class="pv-number" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">PF {{ voucher.pf_number|default:"DRAFT" }}</span>
+                                    </a>
                                 {% else %}
-                                    <span class="pv-number">PV {{ voucher.pv_number|default:"DRAFT" }}</span>
+                                    <a href="{% url 'vouchers:detail' voucher.pk %}" class="clickable-number" style="text-decoration: none;">
+                                        <span class="pv-number">PV {{ voucher.pv_number|default:"DRAFT" }}</span>
+                                    </a>
                                 {% endif %}
                             </td>
                             <td><strong>{{ voucher.payee_name }}</strong></td>
                             <td>{{ voucher.payment_date|date:"M d, Y" }}</td>
                             <td>
-                                <span class="amount-display">${{ voucher.calculate_grand_total|floatformat:2 }}</span>
+                                <span class="amount-display">{{ voucher.get_grand_total_display }}</span>
                             </td>
                             <td>
                                 {% if voucher.status == 'DRAFT' %}

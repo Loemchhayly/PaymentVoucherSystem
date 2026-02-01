@@ -1024,12 +1024,13 @@
                             <thead>
                             <tr>
                                 <th style="width: 5%;">#</th>
-                                <th style="width: 27%;">Description</th>
-                                <th style="width: 13%;">Department</th>
-                                <th style="width: 13%;">Program</th>
-                                <th style="width: 12%;">Amount ($)</th>
+                                <th style="width: 24%;">Description</th>
+                                <th style="width: 12%;">Department</th>
+                                <th style="width: 12%;">Program</th>
+                                <th style="width: 10%;">Amount</th>
+                                <th style="width: 8%;">Currency</th>
                                 <th style="width: 9%;">VAT (10%)</th>
-                                <th style="width: 11%;">Total ($)</th>
+                                <th style="width: 11%;">Total</th>
                                 <th style="width: 5%;">Action</th>
                             </tr>
                             </thead>
@@ -1068,6 +1069,12 @@
                                         {% endif %}
                                     </td>
                                     <td>
+                                        {{ form.currency }}
+                                        {% if form.currency.errors %}
+                                            <small style="color: #dc3545;">{{ form.currency.errors|first }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
                                         <div class="vat-checkbox-container">
                                             {{ form.vat_applicable }}
                                         </div>
@@ -1084,7 +1091,7 @@
                             </tbody>
                             <tfoot>
                             <tr>
-                                <th colspan="6" style="text-align: right;">GRAND TOTAL:</th>
+                                <th colspan="7" style="text-align: right;">GRAND TOTAL:</th>
                                 <th>
                                     <div class="grand-total-value" id="grand-total">$0.00</div>
                                 </th>
@@ -1274,31 +1281,64 @@
         }
 
         function calculateLineTotals() {
-            let grandTotal = 0;
+            const currencySymbols = {
+                'USD': '$',
+                'KHR': '៛',
+                'THB': '฿'
+            };
+
+            // Track totals by currency
+            const grandTotals = {};
+
             document.querySelectorAll('.line-item-row').forEach(row => {
                 const amountInput = row.querySelector('[name$="-amount"]');
+                const currencySelect = row.querySelector('[name$="-currency"]');
                 const vatCheckbox = row.querySelector('[name$="-vat_applicable"]');
                 const totalCell = row.querySelector('.line-total');
 
-                if (amountInput && amountInput.value) {
+                if (amountInput && amountInput.value && currencySelect) {
                     let amount = parseFloat(amountInput.value) || 0;
                     let total = vatCheckbox && vatCheckbox.checked ? amount * 1.1 : amount;
-                    totalCell.textContent = '$' + total.toFixed(2);
-                    grandTotal += total;
+                    let currency = currencySelect.value || 'USD';
+                    let symbol = currencySymbols[currency] || '$';
+
+                    totalCell.textContent = symbol + total.toFixed(2);
+
+                    // Add to grand total for this currency
+                    if (!grandTotals[currency]) {
+                        grandTotals[currency] = 0;
+                    }
+                    grandTotals[currency] += total;
                 } else {
                     totalCell.textContent = '$0.00';
                 }
             });
 
-            document.getElementById('grand-total').textContent = '$' + grandTotal.toFixed(2);
+            // Display multi-currency grand total
+            const grandTotalElement = document.getElementById('grand-total');
+            const parts = [];
+
+            // Sort currencies for consistent display
+            const currencies = Object.keys(grandTotals).sort();
+
+            if (currencies.length === 0) {
+                grandTotalElement.textContent = '$0.00';
+            } else {
+                currencies.forEach(currency => {
+                    const symbol = currencySymbols[currency] || currency;
+                    const amount = grandTotals[currency];
+                    parts.push(`${symbol}${amount.toFixed(2)}`);
+                });
+                grandTotalElement.textContent = parts.join(' + ');
+            }
         }
 
         // Calculate on page load and on change
         document.addEventListener('DOMContentLoaded', function () {
             calculateLineTotals();
 
-            // Add event listeners to all amount inputs and VAT checkboxes
-            document.querySelectorAll('[name$="-amount"], [name$="-vat_applicable"]').forEach(el => {
+            // Add event listeners to all amount inputs, currency selects, and VAT checkboxes
+            document.querySelectorAll('[name$="-amount"], [name$="-currency"], [name$="-vat_applicable"]').forEach(el => {
                 el.addEventListener('change', calculateLineTotals);
                 el.addEventListener('input', calculateLineTotals);
             });
@@ -1410,10 +1450,14 @@
 
             // Add event listeners to the new row
             const newAmountInput = newRow.querySelector('[name$="-amount"]');
+            const newCurrencySelect = newRow.querySelector('[name$="-currency"]');
             const newVatCheckbox = newRow.querySelector('[name$="-vat_applicable"]');
             if (newAmountInput) {
                 newAmountInput.addEventListener('change', calculateLineTotals);
                 newAmountInput.addEventListener('input', calculateLineTotals);
+            }
+            if (newCurrencySelect) {
+                newCurrencySelect.addEventListener('change', calculateLineTotals);
             }
             if (newVatCheckbox) {
                 newVatCheckbox.addEventListener('change', calculateLineTotals);

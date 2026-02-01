@@ -370,17 +370,39 @@
         </div>
 
         <!-- Currency Label -->
-        <div class="currency-label">រូបិយប័ណ្ណ Currency: USD</div>
+        <div class="currency-label">
+            ូបិយប័ណ្ណ Currency:
+            {% with totals=voucher.calculate_grand_total %}
+                {% if 'USD' in totals and 'KHR' in totals and 'THB' in totals %}
+                    USD, Riel, and Thai
+                {% elif 'USD' in totals and 'KHR' in totals %}
+                    USD and Riel
+                {% elif 'USD' in totals and 'THB' in totals %}
+                    USD and Thai
+                {% elif 'KHR' in totals and 'THB' in totals %}
+                    Riel and Thai
+                {% elif 'USD' in totals %}
+                    USD
+                {% elif 'KHR' in totals %}
+                    Riel
+                {% elif 'THB' in totals %}
+                    Thai
+                {% else %}
+                    USD
+                {% endif %}
+            {% endwith %}
+        </div>
 
         <!-- Line Items -->
         <table class="line-items-table">
             <thead>
                 <tr>
                     <th style="width: 3%;" class="text-center">លរ<br>No</th>
-                    <th style="width: 12%;">អង្កភាព<br>Department</th>
-                    <th style="width: 12%;">កម្មវិធី<br>Program</th>
-                    <th style="width: 45%;">បរិយាយ<br>DESCRIPTION</th>
-                    <th style="width: 10%;" class="text-right"><br>AMOUNT</th>
+                    <th style="width: 11%;">អង្កភាព<br>Department</th>
+                    <th style="width: 11%;">កម្មវិធី<br>Program</th>
+                    <th style="width: 42%;">បរិយាយ<br>DESCRIPTION</th>
+                    <th style="width: 9%;" class="text-right"><br>AMOUNT</th>
+                    <th style="width: 6%;" class="text-center">រូបិយប័ណ្ណ<br>CCY</th>
                     <th style="width: 8%;" class="text-center">អគប<br>VAT</th>
                     <th style="width: 10%;" class="text-right">សរុប<br>TOTAL</th>
                 </tr>
@@ -392,9 +414,10 @@
                     <td>{{ item.department.name }}</td>
                     <td>{{ item.program|default:"-" }}</td>
                     <td>{{ item.description }}</td>
-                    <td class="text-right">${{ item.amount|floatformat:2 }}</td>
+                    <td class="text-right">{{ item.amount|floatformat:2 }}</td>
+                    <td class="text-center"><strong>{{ item.currency }}</strong></td>
                     <td class="text-center">{% if item.vat_applicable %}10%{% else %}-{% endif %}</td>
-                    <td class="text-right"><strong>${{ item.get_total|floatformat:2 }}</strong></td>
+                    <td class="text-right"><strong>{{ item.get_total_with_currency }}</strong></td>
                 </tr>
                 {% endfor %}
 
@@ -410,6 +433,7 @@
                             <td>-</td>
                             <td class="text-right">&nbsp;</td>
                             <td class="text-center">&nbsp;</td>
+                            <td class="text-center">&nbsp;</td>
                             <td class="text-right">&nbsp;</td>
                         </tr>
                         {% endif %}
@@ -419,10 +443,9 @@
             </tbody>
             <tfoot>
                 <tr class="total-row">
-                    <td colspan="4" class="text-right"><strong>សរុបរួម(បន្ថែម) (This payment):</strong></td>
-                    <td class="text-right"><strong>${{ grand_total|floatformat:2 }}</strong></td>
+                    <td colspan="6" class="text-right"><strong>សរុបរួម(បន្ថែម) (This payment):</strong></td>
                     <td class="text-center"><strong>-</strong></td>
-                    <td class="text-right"><strong>=&nbsp;&nbsp;${{ grand_total|floatformat:2 }}</strong></td>
+                    <td class="text-right"><strong>{{ voucher.get_grand_total_display }}</strong></td>
                 </tr>
             </tfoot>
         </table>

@@ -7,10 +7,10 @@
 
     {% block extra_head %}{% endblock %}
 
-    <!-- Google Fonts - Professional pairing -->
+    <!-- Google Fonts - Khmer Support with Battambong -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@100;300;400;700;900&family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -66,9 +66,9 @@
             --info: #3b82f6;
             --info-light: #dbeafe;
 
-            /* Typography */
-            --font-heading: 'Outfit', sans-serif;
-            --font-body: 'Space Grotesk', sans-serif;
+            /* Typography - English fonts with Khmer fallback */
+            --font-heading: 'Outfit', 'Battambang', 'Khmer OS Battambang', 'Khmer OS', sans-serif;
+            --font-body: 'Space Grotesk', 'Battambang', 'Khmer OS Battambang', 'Khmer OS', sans-serif;
 
             /* Spacing */
             --spacing-xs: 0.25rem;
@@ -116,6 +116,10 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            /* Better text rendering for all fonts including Khmer */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
         }
 
         h1, h2, h3, h4, h5, h6 {

@@ -102,7 +102,7 @@ class VoucherLineItemForm(forms.ModelForm):
 
     class Meta:
         model = VoucherLineItem
-        fields = ['line_number', 'description', 'department', 'program', 'amount', 'vat_applicable']
+        fields = ['line_number', 'description', 'department', 'program', 'amount', 'currency', 'vat_applicable']
         widgets = {
             'line_number': forms.HiddenInput(),
             'description': forms.Textarea(
@@ -112,6 +112,7 @@ class VoucherLineItemForm(forms.ModelForm):
                 attrs={'class': 'form-control form-control-sm', 'placeholder': 'Program (optional)'}),
             'amount': forms.NumberInput(
                 attrs={'class': 'form-control form-control-sm', 'step': '0.01', 'min': '0', 'placeholder': '0.00'}),
+            'currency': forms.Select(attrs={'class': 'form-control form-control-sm'}),
             'vat_applicable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
@@ -319,7 +320,7 @@ class FormLineItemForm(forms.ModelForm):
 
     class Meta:
         model = FormLineItem
-        fields = ['line_number', 'description', 'department', 'program', 'amount', 'vat_applicable']
+        fields = ['line_number', 'description', 'department', 'program', 'amount', 'currency', 'vat_applicable']
         widgets = {
             'line_number': forms.HiddenInput(),
             'description': forms.Textarea(
@@ -329,6 +330,7 @@ class FormLineItemForm(forms.ModelForm):
                 attrs={'class': 'form-control form-control-sm', 'placeholder': 'Program (optional)'}),
             'amount': forms.NumberInput(
                 attrs={'class': 'form-control form-control-sm', 'step': '0.01', 'min': '0', 'placeholder': '0.00'}),
+            'currency': forms.Select(attrs={'class': 'form-control form-control-sm'}),
             'vat_applicable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 

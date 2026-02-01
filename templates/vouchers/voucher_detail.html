@@ -893,19 +893,19 @@
                                     <td>{{ item.description }}</td>
                                     <td>{{ item.department.name }}</td>
                                     <td>{{ item.program|default:"-" }}</td>
-                                    <td style="text-align: right;">${{ item.amount|floatformat:2 }}</td>
+                                    <td style="text-align: right;">{{ item.get_currency_symbol }}{{ item.amount|floatformat:2 }}</td>
                                     <td class="text-center">
                                         {% if item.vat_applicable %}
                                             <span class="status-badge approved" style="font-size: 0.75rem;">Yes</span>
                                             <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 2px;">
-                                                +${{ item.get_vat_amount|floatformat:2 }}
+                                                +{{ item.get_currency_symbol }}{{ item.get_vat_amount|floatformat:2 }}
                                             </div>
                                         {% else %}
                                             <span class="status-badge draft" style="font-size: 0.75rem;">No</span>
                                         {% endif %}
                                     </td>
                                     <td style="text-align: right; font-weight: 700; color: var(--gray-900); font-size: 1rem;">
-                                        ${{ item.get_total|floatformat:2 }}
+                                        {{ item.get_total_with_currency }}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -914,7 +914,7 @@
                                 <tr>
                                     <th colspan="6" style="text-align: right;">GRAND TOTAL:</th>
                                     <th>
-                                        <div class="grand-total-value">${{ grand_total|floatformat:2 }}</div>
+                                        <div class="grand-total-value">{{ voucher.get_grand_total_display }}</div>
                                     </th>
                                 </tr>
                             </tfoot>
@@ -1415,6 +1415,12 @@ document.addEventListener('keydown', function(e) {
 
 // ⚡ Add instant loading feedback to approval form
 document.addEventListener('DOMContentLoaded', function() {
+    // Hide loading overlay on page load (in case it was showing before redirect)
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('active');
+    }
+
     const approvalForm = document.querySelector('form[action*="approve"]');
     if (approvalForm) {
         approvalForm.addEventListener('submit', function() {

@@ -28,7 +28,7 @@
             <div class="voucher-info">
                 <strong>PV Number:</strong> {{ voucher.pv_number }}<br>
                 <strong>Payee:</strong> {{ voucher.payee_name }}<br>
-                <strong>Amount:</strong> ${{ voucher.calculate_grand_total|floatformat:2 }}<br>
+                <strong>Amount:</strong> {{ voucher.get_grand_total_display }}<br>
                 <strong>Payment Date:</strong> {{ voucher.payment_date|date:"F d, Y" }}<br>
                 <strong>Returned By:</strong> {{ returner.get_full_name|default:returner.username }} ({{ returner.get_role_level_display }})<br>
                 <strong>Returned At:</strong> {{ voucher.updated_at|date:"F d, Y g:i A" }}

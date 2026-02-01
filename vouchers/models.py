@@ -13,6 +13,13 @@ CAMBODIAN_BANKS = [
     ('EMIRATES NBD', 'EMIRATES NBD'),
 ]
 
+# Currency Choices
+CURRENCY_CHOICES = [
+    ('USD', 'US Dollar ($)'),
+    ('KHR', 'Cambodian Riel (៛)'),
+    ('THB', 'Thai Baht (฿)'),
+]
+
 
 class Department(models.Model):
     """Department master data for line items"""
@@ -121,8 +128,31 @@ class PaymentVoucher(models.Model):
         return f"{self.pv_number or 'DRAFT'} - {self.payee_name}"
 
     def calculate_grand_total(self):
-        """Calculate total from all line items"""
-        return sum(item.get_total() for item in self.line_items.all())
+        """Calculate totals grouped by currency"""
+        from collections import defaultdict
+
+        totals = defaultdict(Decimal)
+        for item in self.line_items.all():
+            totals[item.currency] += item.get_total()
+
+        return dict(totals)
+
+    def get_grand_total_display(self):
+        """Return formatted grand total string for display"""
+        totals = self.calculate_grand_total()
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+
+        if not totals:
+            return "$0.00"
+
+        # Sort by currency code for consistent display
+        parts = []
+        for currency in sorted(totals.keys()):
+            symbol = symbols.get(currency, currency)
+            amount = totals[currency]
+            parts.append(f"{symbol}{amount:.2f}")
+
+        return " + ".join(parts)
 
     def is_editable(self):
         """Check if voucher can be edited"""
@@ -169,6 +199,12 @@ class VoucherLineItem(models.Model):
     )
     program = models.CharField(max_length=200, blank=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default='USD',
+        help_text="Currency for this line item"
+    )
     vat_applicable = models.BooleanField(
         default=False,
         help_text="If checked, 10% VAT will be added"
@@ -192,6 +228,15 @@ class VoucherLineItem(models.Model):
         if self.vat_applicable:
             return self.amount * Decimal('0.1')
         return Decimal('0')
+
+    def get_currency_symbol(self):
+        """Return currency symbol"""
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+        return symbols.get(self.currency, '$')
+
+    def get_total_with_currency(self):
+        """Return formatted total with currency symbol"""
+        return f"{self.get_currency_symbol()}{self.get_total():.2f}"
 
 
 def voucher_attachment_path(instance, filename):
@@ -340,8 +385,31 @@ class PaymentForm(models.Model):
         return f"{self.pf_number or 'DRAFT'} - {self.payee_name}"
 
     def calculate_grand_total(self):
-        """Calculate total from all line items"""
-        return sum(item.get_total() for item in self.line_items.all())
+        """Calculate totals grouped by currency"""
+        from collections import defaultdict
+
+        totals = defaultdict(Decimal)
+        for item in self.line_items.all():
+            totals[item.currency] += item.get_total()
+
+        return dict(totals)
+
+    def get_grand_total_display(self):
+        """Return formatted grand total string for display"""
+        totals = self.calculate_grand_total()
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+
+        if not totals:
+            return "$0.00"
+
+        # Sort by currency code for consistent display
+        parts = []
+        for currency in sorted(totals.keys()):
+            symbol = symbols.get(currency, currency)
+            amount = totals[currency]
+            parts.append(f"{symbol}{amount:.2f}")
+
+        return " + ".join(parts)
 
     def is_editable(self):
         """Check if form can be edited"""
@@ -388,6 +456,12 @@ class FormLineItem(models.Model):
     )
     program = models.CharField(max_length=200, blank=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default='USD',
+        help_text="Currency for this line item"
+    )
     vat_applicable = models.BooleanField(
         default=False,
         help_text="If checked, 10% VAT will be added"
@@ -411,6 +485,15 @@ class FormLineItem(models.Model):
         if self.vat_applicable:
             return self.amount * Decimal('0.1')
         return Decimal('0')
+
+    def get_currency_symbol(self):
+        """Return currency symbol"""
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+        return symbols.get(self.currency, '$')
+
+    def get_total_with_currency(self):
+        """Return formatted total with currency symbol"""
+        return f"{self.get_currency_symbol()}{self.get_total():.2f}"
 
 
 def form_attachment_path(instance, filename):
