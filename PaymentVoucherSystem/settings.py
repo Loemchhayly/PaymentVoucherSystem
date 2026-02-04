@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     # Third-party apps
     'crispy_forms',
     'crispy_bootstrap5',
-    'django_apscheduler',
 
     # Local apps
     'accounts',
@@ -196,7 +195,3 @@ SESSION_SAVE_EVERY_REQUEST = True  # Update session on every request
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Database Backup Configuration
-BACKUP_DIR = BASE_DIR / 'backups'
-BACKUP_RETENTION_DAYS = 30  # Keep backups for 30 days
