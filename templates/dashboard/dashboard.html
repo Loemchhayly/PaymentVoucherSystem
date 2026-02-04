@@ -641,19 +641,19 @@
             </div>
         </div>
 
-        <!-- My Vouchers -->
+        <!-- My Created Vouchers -->
         <div class="stat-card primary">
             <div class="stat-card-header">
                 <div>
-                    <div class="stat-card-title">My Vouchers</div>
-                    <div class="stat-card-value">{{ my_vouchers }}</div>
+                    <div class="stat-card-title">My Created</div>
+                    <div class="stat-card-value">{{ my_created_count }}</div>
                 </div>
                 <div class="stat-card-icon">
                     <i class="bi bi-file-earmark-text"></i>
                 </div>
             </div>
             <div class="stat-card-footer">
-                <a href="{% url 'dashboard:my_vouchers' %}" class="stat-card-link">
+                <a href="?tab=my_vouchers" class="stat-card-link">
                     <span>View Details</span>
                     <i class="bi bi-arrow-right"></i>
                 </a>

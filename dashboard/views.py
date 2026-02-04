@@ -8,28 +8,26 @@ from operator import attrgetter
 
 
 class DashboardView(LoginRequiredMixin, ListView):
-    """Main dashboard view"""
+    """Main dashboard - MD/Admins see ALL vouchers, regular users see their own"""
     template_name = 'dashboard/dashboard.html'
     context_object_name = 'vouchers'
     paginate_by = 20
 
     def get_queryset(self):
         user = self.request.user
-
-        # Check document type filter
         doc_type = self.request.GET.get('doc_type', 'all')
 
-        if user.is_staff:
+        # MD and Admins see ALL vouchers (including history)
+        if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.all()
             pf_queryset = PaymentForm.objects.all()
         else:
-            # User can see vouchers/forms they created, are assigned to, or have approved
+            # Regular users see only their vouchers (created or involved with)
             pv_queryset = PaymentVoucher.objects.filter(
                 Q(created_by=user) |
                 Q(current_approver=user) |
                 Q(approval_history__actor=user)
             ).distinct()
-
             pf_queryset = PaymentForm.objects.filter(
                 Q(created_by=user) |
                 Q(current_approver=user) |
@@ -38,13 +36,10 @@ class DashboardView(LoginRequiredMixin, ListView):
 
         # Filter by document type
         if doc_type == 'pv':
-            # Only Payment Vouchers
             combined = sorted(pv_queryset, key=attrgetter('created_at'), reverse=True)
         elif doc_type == 'pf':
-            # Only Payment Forms
             combined = sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
         else:
-            # All documents (default)
             combined = sorted(
                 chain(pv_queryset, pf_queryset),
                 key=attrgetter('created_at'),
@@ -57,8 +52,8 @@ class DashboardView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Base queryset for user's accessible vouchers
-        if user.is_staff:
+        # Base queryset for stats (same as displayed vouchers)
+        if user.is_staff or user.role_level == 5:
             pv_base = PaymentVoucher.objects.all()
             pf_base = PaymentForm.objects.all()
         else:
@@ -73,13 +68,13 @@ class DashboardView(LoginRequiredMixin, ListView):
                 Q(approval_history__actor=user)
             ).distinct()
 
-        # Summary counts (including both PV and PF)
+        # Summary counts
         context['pending_my_action'] = (
             pv_base.filter(current_approver=user).count() +
             pf_base.filter(current_approver=user).count()
         )
 
-        context['my_vouchers'] = (
+        context['my_created_count'] = (
             pv_base.filter(created_by=user).count() +
             pf_base.filter(created_by=user).count()
         )
