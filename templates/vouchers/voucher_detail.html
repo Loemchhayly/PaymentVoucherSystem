@@ -1101,6 +1101,8 @@
                 <div class="approval-form-body">
                     <form method="post" action="{% url 'vouchers:approve' voucher.pk %}">
                         {% csrf_token %}
+                        <!-- Hidden field to redirect back to previous page after approval -->
+                        <input type="hidden" name="next" value="{{ request.META.HTTP_REFERER|default:'' }}">
                         {{ approval_form|crispy }}
                         <button type="submit" class="action-btn primary" style="margin-bottom: 0;">
                             <i class="bi bi-check-circle"></i>

@@ -319,6 +319,17 @@
     .modern-table tbody tr:nth-child(10) { animation-delay: 0.85s; }
     .modern-table tbody tr:nth-child(n+11) { animation-delay: 0.9s; }
 
+    /* Clickable Row Styles */
+    .modern-table tbody tr.clickable-row {
+        cursor: pointer;
+    }
+
+    .modern-table tbody tr.clickable-row:hover {
+        background: linear-gradient(90deg, var(--primary-50) 0%, rgba(102, 126, 234, 0.08) 100%);
+        transform: scale(1.01) translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
     .modern-table tbody tr:hover {
         background: var(--primary-50);
         transform: scale(1.002);
@@ -756,16 +767,12 @@
                     </thead>
                     <tbody>
                         {% for voucher in vouchers %}
-                        <tr>
+                        <tr class="clickable-row" data-href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}">
                             <td>
                                 {% if voucher.pf_number %}
-                                    <a href="{% url 'vouchers:pf_detail' voucher.pk %}" class="clickable-number" style="text-decoration: none;">
-                                        <span class="pv-number" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">PF {{ voucher.pf_number|default:"DRAFT" }}</span>
-                                    </a>
+                                    <span class="pv-number" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">PF {{ voucher.pf_number|default:"DRAFT" }}</span>
                                 {% else %}
-                                    <a href="{% url 'vouchers:detail' voucher.pk %}" class="clickable-number" style="text-decoration: none;">
-                                        <span class="pv-number">PV {{ voucher.pv_number|default:"DRAFT" }}</span>
-                                    </a>
+                                    <span class="pv-number">PV {{ voucher.pv_number|default:"DRAFT" }}</span>
                                 {% endif %}
                             </td>
                             <td><strong>{{ voucher.payee_name }}</strong></td>
@@ -951,6 +958,26 @@
         if (e.key === 'Escape' && deleteVoucherId) {
             hideDeleteModal();
         }
+    });
+
+    // Make table rows clickable
+    document.querySelectorAll('.clickable-row').forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Don't navigate if clicking on a link or button
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' ||
+                e.target.closest('a') || e.target.closest('button') ||
+                e.target.closest('form')) {
+                return;
+            }
+
+            const href = this.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+
+        // Add visual feedback
+        row.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
     });
 </script>
 

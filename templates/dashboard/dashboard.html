@@ -369,6 +369,15 @@
         background: var(--primary-50);
     }
 
+    .modern-table tbody tr.clickable-row {
+        cursor: pointer;
+    }
+
+    .modern-table tbody tr.clickable-row:hover {
+        background: var(--primary-100);
+        transform: scale(1.01);
+    }
+
     .modern-table tbody tr:last-child td {
         border-bottom: none;
     }
@@ -744,20 +753,16 @@
                     </thead>
                     <tbody>
                         {% for voucher in vouchers %}
-                        <tr>
+                        <tr class="clickable-row" data-href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}">
                             <td>
                                 {% if voucher.pf_number %}
-                                    <a href="{% url 'vouchers:pf_detail' voucher.pk %}" class="clickable-number" style="text-decoration: none;">
-                                        <span class="pv-number" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46;">
-                                            PF {{ voucher.pf_number|default:"DRAFT" }}
-                                        </span>
-                                    </a>
+                                    <span class="pv-number" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46;">
+                                        PF {{ voucher.pf_number|default:"DRAFT" }}
+                                    </span>
                                 {% else %}
-                                    <a href="{% url 'vouchers:detail' voucher.pk %}" class="clickable-number" style="text-decoration: none;">
-                                        <span class="pv-number">
-                                            PV {{ voucher.pv_number|default:"DRAFT" }}
-                                        </span>
-                                    </a>
+                                    <span class="pv-number">
+                                        PV {{ voucher.pv_number|default:"DRAFT" }}
+                                    </span>
                                 {% endif %}
                             </td>
                             <td>
@@ -791,17 +796,16 @@
                             </td>
                             <td>{{ voucher.created_at|date:"M d, Y" }}</td>
                             <td>
-                                {% if voucher.pf_number %}
-                                    <a href="{% url 'vouchers:pf_detail' voucher.pk %}" class="view-btn">
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}" class="view-btn" style="text-decoration: none;">
                                         <i class="bi bi-eye"></i>
                                         <span>View</span>
                                     </a>
-                                {% else %}
-                                    <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn">
-                                        <i class="bi bi-eye"></i>
-                                        <span>View</span>
+                                    <a href="{% if voucher.pf_number %}{% url 'vouchers:pf_repeat' voucher.pk %}{% else %}{% url 'vouchers:repeat' voucher.pk %}{% endif %}" class="view-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); text-decoration: none;">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        <span>Repeat</span>
                                     </a>
-                                {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -817,4 +821,23 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Make table rows clickable
+    document.querySelectorAll('.clickable-row').forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Don't navigate if clicking on a link or button
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
+                return;
+            }
+
+            const href = this.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+    });
+</script>
 {% endblock %}

@@ -35,6 +35,7 @@ class PaymentVoucherForm(forms.ModelForm):
             'pv_number',
             'payee_name',
             'payment_date',
+            'company_bank_account',
             'bank_address',
             'bank_name',
             'bank_account_number',
@@ -53,6 +54,9 @@ class PaymentVoucherForm(forms.ModelForm):
             'payment_date': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date'
+            }),
+            'company_bank_account': forms.Select(attrs={
+                'class': 'form-control'
             }),
             'bank_address': forms.Select(attrs={
                 'class': 'form-control'
@@ -73,9 +77,10 @@ class PaymentVoucherForm(forms.ModelForm):
             'pv_number': 'PV Number',
             'payee_name': 'Payee Name',
             'payment_date': 'Payment Date',
-            'bank_address': 'Bank',
-            'bank_name': 'Account Holder Name',
-            'bank_account_number': 'Account Number',
+            'company_bank_account': 'Transfer by Account (Select Company Account)',
+            'bank_address': 'Bank (Manual Entry)',
+            'bank_name': 'Account Holder Name (Manual Entry)',
+            'bank_account_number': 'Account Number (Manual Entry)',
             'status': 'Status',
         }
 
@@ -85,6 +90,11 @@ class PaymentVoucherForm(forms.ModelForm):
 
         # Make pv_number not required (it's auto-generated)
         self.fields['pv_number'].required = False
+
+        # Filter company bank accounts to show only active ones
+        from .models import CompanyBankAccount
+        self.fields['company_bank_account'].queryset = CompanyBankAccount.objects.filter(is_active=True)
+        self.fields['company_bank_account'].required = False
 
         # For new vouchers, make status hidden and set to DRAFT
         if not self.instance.pk:
@@ -253,6 +263,7 @@ class PaymentFormForm(forms.ModelForm):
             'pf_number',
             'payee_name',
             'payment_date',
+            'company_bank_account',
             'bank_address',
             'bank_name',
             'bank_account_number',
@@ -271,6 +282,9 @@ class PaymentFormForm(forms.ModelForm):
             'payment_date': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date'
+            }),
+            'company_bank_account': forms.Select(attrs={
+                'class': 'form-control'
             }),
             'bank_address': forms.Select(attrs={
                 'class': 'form-control'
@@ -291,9 +305,10 @@ class PaymentFormForm(forms.ModelForm):
             'pf_number': 'PF Number',
             'payee_name': 'Payee Name',
             'payment_date': 'Payment Date',
-            'bank_address': 'Bank',
-            'bank_name': 'Account Holder Name',
-            'bank_account_number': 'Account Number',
+            'company_bank_account': 'Transfer by Account (Select Company Account)',
+            'bank_address': 'Bank (Manual Entry)',
+            'bank_name': 'Account Holder Name (Manual Entry)',
+            'bank_account_number': 'Account Number (Manual Entry)',
             'status': 'Status',
         }
 
@@ -303,6 +318,11 @@ class PaymentFormForm(forms.ModelForm):
 
         # Make pf_number not required (it's auto-generated)
         self.fields['pf_number'].required = False
+
+        # Filter company bank accounts to show only active ones
+        from .models import CompanyBankAccount
+        self.fields['company_bank_account'].queryset = CompanyBankAccount.objects.filter(is_active=True)
+        self.fields['company_bank_account'].required = False
 
         # For new forms, make status hidden and set to DRAFT
         if not self.instance.pk:

@@ -1,9 +1,28 @@
 from django.contrib import admin
 from .models import (
+    CompanyBankAccount,
     Department,
     PaymentVoucher, VoucherLineItem, VoucherAttachment,
     PaymentForm, FormLineItem, FormAttachment
 )
+
+
+@admin.register(CompanyBankAccount)
+class CompanyBankAccountAdmin(admin.ModelAdmin):
+    """Admin interface for Company Bank Account model"""
+    list_display = ['company_name', 'account_number', 'currency', 'bank', 'is_active', 'created_at']
+    list_filter = ['is_active', 'bank', 'currency']
+    search_fields = ['company_name', 'account_number', 'bank']
+    ordering = ['company_name', 'bank']
+
+    fieldsets = (
+        ('Account Information', {
+            'fields': ('company_name', 'account_number', 'currency', 'bank')
+        }),
+        ('Status', {
+            'fields': ('is_active',)
+        }),
+    )
 
 
 @admin.register(Department)
@@ -35,7 +54,7 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
     """Admin interface for PaymentVoucher model"""
     list_display = ['pv_number', 'payee_name', 'payment_date', 'status', 'created_by', 'created_at']
     list_filter = ['status', 'created_at', 'payment_date']
-    search_fields = ['pv_number', 'payee_name', 'bank_name', 'bank_account_name', 'bank_account_number']  # ✅ FIXED
+    search_fields = ['pv_number', 'payee_name', 'bank_name', 'bank_account_number']
     readonly_fields = ['pv_number', 'created_by', 'created_at', 'updated_at', 'submitted_at']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
@@ -45,7 +64,16 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
             'fields': ('pv_number', 'status', 'created_by', 'current_approver')
         }),
         ('Payee Details', {
-            'fields': ('payee_name', 'payment_date', 'bank_name', 'bank_account_name', 'bank_account_number')  # ✅ FIXED
+            'fields': ('payee_name', 'payment_date')
+        }),
+        ('Transfer Account', {
+            'fields': ('company_bank_account',),
+            'description': 'Select a company bank account for the transfer (Recommended)'
+        }),
+        ('Manual Bank Details (Optional)', {
+            'fields': ('bank_address', 'bank_name', 'bank_account_number'),
+            'classes': ('collapse',),
+            'description': 'Manual entry for backward compatibility. Use "Transfer Account" above instead.'
         }),
         ('Approval Settings', {
             'fields': ('requires_md_approval',)
@@ -88,7 +116,7 @@ class PaymentFormAdmin(admin.ModelAdmin):
     """Admin interface for PaymentForm model"""
     list_display = ['pf_number', 'payee_name', 'payment_date', 'status', 'created_by', 'created_at']
     list_filter = ['status', 'created_at', 'payment_date']
-    search_fields = ['pf_number', 'payee_name', 'bank_name', 'bank_account_name', 'bank_account_number']  # ✅ FIXED
+    search_fields = ['pf_number', 'payee_name', 'bank_name', 'bank_account_number']
     readonly_fields = ['pf_number', 'created_by', 'created_at', 'updated_at', 'submitted_at']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
@@ -98,7 +126,16 @@ class PaymentFormAdmin(admin.ModelAdmin):
             'fields': ('pf_number', 'status', 'created_by', 'current_approver')
         }),
         ('Payee Details', {
-            'fields': ('payee_name', 'payment_date', 'bank_name', 'bank_account_name', 'bank_account_number')  # ✅ FIXED
+            'fields': ('payee_name', 'payment_date')
+        }),
+        ('Transfer Account', {
+            'fields': ('company_bank_account',),
+            'description': 'Select a company bank account for the transfer (Recommended)'
+        }),
+        ('Manual Bank Details (Optional)', {
+            'fields': ('bank_address', 'bank_name', 'bank_account_number'),
+            'classes': ('collapse',),
+            'description': 'Manual entry for backward compatibility. Use "Transfer Account" above instead.'
         }),
         ('Approval Settings', {
             'fields': ('requires_md_approval',)

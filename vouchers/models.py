@@ -21,6 +21,48 @@ CURRENCY_CHOICES = [
 ]
 
 
+class CompanyBankAccount(models.Model):
+    """Company bank accounts for transfer"""
+    company_name = models.CharField(
+        max_length=200,
+        verbose_name="Company Name",
+        help_text="e.g., Phat Phnom Penh Co.,Ltd"
+    )
+    account_number = models.CharField(
+        max_length=50,
+        verbose_name="Account Number",
+        help_text="e.g., 002 232 482"
+    )
+    currency = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default='USD',
+        verbose_name="Currency"
+    )
+    bank = models.CharField(
+        max_length=100,
+        choices=CAMBODIAN_BANKS,
+        verbose_name="Bank",
+        help_text="The bank where this account is held"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Inactive accounts won't be shown in selection"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['company_name', 'bank']
+        unique_together = [['account_number', 'bank']]
+
+    def __str__(self):
+        return f"{self.company_name}, Account Number '{self.account_number} ({self.currency}) {self.bank}"
+
+    def get_display_name(self):
+        """Full display name for forms"""
+        return f"{self.company_name}, Account Number '{self.account_number} ({self.currency}) {self.bank}"
+
+
 class Department(models.Model):
     """Department master data for line items"""
     name = models.CharField(max_length=100, unique=True)
@@ -77,7 +119,18 @@ class PaymentVoucher(models.Model):
     payee_name = models.CharField(max_length=200, verbose_name="Payee Name")
     payment_date = models.DateField(verbose_name="Payment Date")
 
+    # NEW: Company bank account for transfer (preferred method)
+    company_bank_account = models.ForeignKey(
+        'CompanyBankAccount',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Transfer by Account",
+        help_text="Select the company bank account for this transfer"
+    )
+
     # Bank details (corrected field names with defaults for migration)
+    # NOTE: These are kept for backward compatibility and manual entry
     bank_address = models.CharField(
         max_length=100,
         choices=CAMBODIAN_BANKS,
@@ -334,7 +387,18 @@ class PaymentForm(models.Model):
     payee_name = models.CharField(max_length=200, verbose_name="Payee Name")
     payment_date = models.DateField(verbose_name="Payment Date")
 
+    # NEW: Company bank account for transfer (preferred method)
+    company_bank_account = models.ForeignKey(
+        'CompanyBankAccount',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Transfer by Account",
+        help_text="Select the company bank account for this transfer"
+    )
+
     # Bank details (corrected field names with defaults for migration)
+    # NOTE: These are kept for backward compatibility and manual entry
     bank_address = models.CharField(
         max_length=100,
         choices=CAMBODIAN_BANKS,

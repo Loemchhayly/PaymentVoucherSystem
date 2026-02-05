@@ -1051,6 +1051,12 @@
                             <span>Pending Approval</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'vouchers:reports' %}">
+                            <i class="bi bi-file-earmark-bar-graph"></i>
+                            <span>Reports</span>
+                        </a>
+                    </li>
                     {% if user.role_level == 1 %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="createDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

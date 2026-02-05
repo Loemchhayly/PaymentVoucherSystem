@@ -94,6 +94,86 @@ class VoucherCreateView(LoginRequiredMixin, CreateView):
                 item.save()
 
 
+@login_required
+def voucher_repeat(request, pk):
+    """Create a new voucher pre-filled with data from an existing voucher"""
+    # Get the source voucher
+    source_voucher = get_object_or_404(PaymentVoucher, pk=pk)
+
+    # Check if user has access to this voucher
+    if not (request.user.is_staff or
+            source_voucher.created_by == request.user or
+            source_voucher.current_approver == request.user or
+            source_voucher.approval_history.filter(actor=request.user).exists()):
+        messages.error(request, 'You do not have permission to repeat this voucher.')
+        return redirect('dashboard:home')
+
+    if request.method == 'POST':
+        form = PaymentVoucherForm(request.POST, user=request.user)
+        formset = VoucherLineItemFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            with transaction.atomic():
+                # Create new voucher
+                new_voucher = form.save(commit=False)
+                new_voucher.created_by = request.user
+                new_voucher.pv_number = VoucherStateMachine.generate_pv_number(new_voucher)
+                new_voucher.save()
+
+                # Save line items
+                formset.instance = new_voucher
+                line_items = formset.save(commit=False)
+                for i, item in enumerate(line_items, start=1):
+                    item.line_number = i
+                    item.save()
+
+                # Handle attachments
+                files = request.FILES.getlist('attachments')
+                if files:
+                    for file in files:
+                        VoucherAttachment.objects.create(
+                            voucher=new_voucher,
+                            file=file,
+                            filename=file.name,
+                            file_size=file.size,
+                            uploaded_by=request.user
+                        )
+
+                messages.success(request, f'New voucher created from PV {source_voucher.pv_number}!')
+                return redirect('vouchers:detail', pk=new_voucher.pk)
+    else:
+        # Pre-fill form with source voucher data
+        initial_data = {
+            'payee_name': source_voucher.payee_name,
+            'payment_date': source_voucher.payment_date,
+            'bank_address': source_voucher.bank_address,
+            'bank_name': source_voucher.bank_name,
+            'bank_account_number': source_voucher.bank_account_number,
+        }
+        form = PaymentVoucherForm(initial=initial_data, user=request.user)
+
+        # Pre-fill formset with source line items
+        formset = VoucherLineItemFormSet(
+            queryset=source_voucher.line_items.none(),
+            initial=[{
+                'description': item.description,
+                'department': item.department_id,
+                'program': item.program,
+                'amount': item.amount,
+                'currency': item.currency,
+                'vat_applicable': item.vat_applicable,
+            } for item in source_voucher.line_items.all()]
+        )
+
+    context = {
+        'form': form,
+        'formset': formset,
+        'title': f'Repeat Voucher from PV {source_voucher.pv_number}',
+        'source_voucher': source_voucher,
+    }
+    return render(request, 'vouchers/voucher_form.html', context)
+
+
 class VoucherEditView(LoginRequiredMixin, UpdateView):
     """View for editing existing vouchers"""
     model = PaymentVoucher
@@ -322,6 +402,12 @@ def voucher_approve(request, pk):
             try:
                 VoucherStateMachine.transition(voucher, action, request.user, comments)
                 messages.success(request, f'Voucher {action}d successfully!')
+
+                # Redirect back to the page they came from (e.g., Pending My Action)
+                next_url = request.POST.get('next') or request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+
             except ValueError as e:
                 messages.error(request, str(e))
         else:
@@ -387,6 +473,12 @@ def form_approve(request, pk):
             try:
                 FormStateMachine.transition(payment_form, action, request.user, comments)
                 messages.success(request, f'Payment Form {action}d successfully!')
+
+                # Redirect back to the page they came from (e.g., Pending My Action)
+                next_url = request.POST.get('next') or request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+
             except ValueError as e:
                 messages.error(request, str(e))
         else:
@@ -624,6 +716,86 @@ class FormCreateView(LoginRequiredMixin, CreateView):
                 item.save()
 
 
+@login_required
+def form_repeat(request, pk):
+    """Create a new payment form pre-filled with data from an existing form"""
+    # Get the source form
+    source_form = get_object_or_404(PaymentForm, pk=pk)
+
+    # Check if user has access to this form
+    if not (request.user.is_staff or
+            source_form.created_by == request.user or
+            source_form.current_approver == request.user or
+            source_form.approval_history.filter(actor=request.user).exists()):
+        messages.error(request, 'You do not have permission to repeat this form.')
+        return redirect('dashboard:home')
+
+    if request.method == 'POST':
+        form = PaymentFormForm(request.POST, user=request.user)
+        formset = FormLineItemFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            with transaction.atomic():
+                # Create new form
+                new_form = form.save(commit=False)
+                new_form.created_by = request.user
+                new_form.pf_number = VoucherStateMachine.generate_pf_number(new_form)
+                new_form.save()
+
+                # Save line items
+                formset.instance = new_form
+                line_items = formset.save(commit=False)
+                for i, item in enumerate(line_items, start=1):
+                    item.line_number = i
+                    item.save()
+
+                # Handle attachments
+                files = request.FILES.getlist('attachments')
+                if files:
+                    for file in files:
+                        FormAttachment.objects.create(
+                            payment_form=new_form,
+                            file=file,
+                            filename=file.name,
+                            file_size=file.size,
+                            uploaded_by=request.user
+                        )
+
+                messages.success(request, f'New payment form created from PF {source_form.pf_number}!')
+                return redirect('vouchers:pf_detail', pk=new_form.pk)
+    else:
+        # Pre-fill form with source data
+        initial_data = {
+            'payee_name': source_form.payee_name,
+            'payment_date': source_form.payment_date,
+            'bank_address': source_form.bank_address,
+            'bank_name': source_form.bank_name,
+            'bank_account_number': source_form.bank_account_number,
+        }
+        form = PaymentFormForm(initial=initial_data, user=request.user)
+
+        # Pre-fill formset with source line items
+        formset = FormLineItemFormSet(
+            queryset=source_form.line_items.none(),
+            initial=[{
+                'description': item.description,
+                'department': item.department_id,
+                'program': item.program,
+                'amount': item.amount,
+                'currency': item.currency,
+                'vat_applicable': item.vat_applicable,
+            } for item in source_form.line_items.all()]
+        )
+
+    context = {
+        'form': form,
+        'formset': formset,
+        'title': f'Repeat Form from PF {source_form.pf_number}',
+        'source_form': source_form,
+    }
+    return render(request, 'vouchers/pf/form_form.html', context)
+
+
 class FormEditView(LoginRequiredMixin, UpdateView):
     """View for editing existing payment forms"""
     model = PaymentForm
@@ -852,3 +1024,132 @@ def form_pdf(request, pk):
     # Generate PDF using the Form PDF generator
     from .pdf_generator import FormPDFGenerator
     return FormPDFGenerator.generate_pdf(payment_form)
+
+
+# ============================================================================
+# REPORTS VIEWS
+# ============================================================================
+
+@login_required
+def reports_view(request):
+    """Display reports page with advanced filters and analytics"""
+    from accounts.models import User
+    from .models import Department
+    from django.db.models import Sum, Count
+    from collections import defaultdict
+    from datetime import datetime, timedelta
+
+    # Get approved documents only
+    approved_vouchers = PaymentVoucher.objects.filter(status='APPROVED')
+    approved_forms = PaymentForm.objects.filter(status='APPROVED')
+
+    # Calculate totals by currency
+    currency_totals = {'USD': 0, 'KHR': 0, 'THB': 0}
+    for voucher in approved_vouchers:
+        totals = voucher.calculate_grand_total()
+        for currency, amount in totals.items():
+            currency_totals[currency] += float(amount)
+
+    for form in approved_forms:
+        totals = form.calculate_grand_total()
+        for currency, amount in totals.items():
+            currency_totals[currency] += float(amount)
+
+    # Monthly data for last 6 months
+    monthly_data = defaultdict(lambda: {'PV': 0, 'PF': 0, 'amount': 0})
+    six_months_ago = datetime.now() - timedelta(days=180)
+
+    for voucher in approved_vouchers.filter(payment_date__gte=six_months_ago):
+        month_key = voucher.payment_date.strftime('%Y-%m')
+        monthly_data[month_key]['PV'] += 1
+        totals = voucher.calculate_grand_total()
+        monthly_data[month_key]['amount'] += float(totals.get('USD', 0))
+
+    for form in approved_forms.filter(payment_date__gte=six_months_ago):
+        month_key = form.payment_date.strftime('%Y-%m')
+        monthly_data[month_key]['PF'] += 1
+        totals = form.calculate_grand_total()
+        monthly_data[month_key]['amount'] += float(totals.get('USD', 0))
+
+    # Sort monthly data
+    sorted_months = sorted(monthly_data.keys())
+
+    context = {
+        'users': User.objects.all().order_by('first_name', 'last_name'),
+        'departments': Department.objects.filter(is_active=True).order_by('name'),
+        'statuses': ['DRAFT', 'PENDING', 'APPROVED', 'REJECTED'],
+        'doc_types': ['PV', 'PF'],
+
+        # Analytics data
+        'total_approved': approved_vouchers.count() + approved_forms.count(),
+        'total_pv': approved_vouchers.count(),
+        'total_pf': approved_forms.count(),
+        'total_usd': currency_totals['USD'],
+        'total_khr': currency_totals['KHR'],
+        'total_thb': currency_totals['THB'],
+        'monthly_labels': sorted_months,
+        'monthly_pv': [monthly_data[m]['PV'] for m in sorted_months],
+        'monthly_pf': [monthly_data[m]['PF'] for m in sorted_months],
+        'monthly_amounts': [monthly_data[m]['amount'] for m in sorted_months],
+    }
+
+    return render(request, 'vouchers/reports.html', context)
+
+
+@login_required
+def export_excel(request):
+    """Export filtered vouchers/forms to Excel"""
+    from .reports import ReportGenerator
+    from django.http import HttpResponse
+
+    # Get filter parameters
+    filters = {
+        'date_from': request.GET.get('date_from'),
+        'date_to': request.GET.get('date_to'),
+        'status': request.GET.get('status'),
+        'creator': request.GET.get('creator'),
+        'department': request.GET.get('department'),
+        'payee_name': request.GET.get('payee_name'),
+        'doc_type': request.GET.get('doc_type'),
+    }
+
+    # Generate report
+    generator = ReportGenerator(filters)
+    excel_file = generator.export_to_excel()
+
+    # Return as download
+    response = HttpResponse(
+        excel_file,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="vouchers_report.xlsx"'
+
+    return response
+
+
+@login_required
+def export_pdf(request):
+    """Export filtered vouchers/forms to PDF"""
+    from .reports import ReportGenerator
+    from django.http import HttpResponse
+
+    # Get filter parameters
+    filters = {
+        'date_from': request.GET.get('date_from'),
+        'date_to': request.GET.get('date_to'),
+        'status': request.GET.get('status'),
+        'creator': request.GET.get('creator'),
+        'department': request.GET.get('department'),
+        'payee_name': request.GET.get('payee_name'),
+        'doc_type': request.GET.get('doc_type'),
+    }
+
+    # Generate report
+    generator = ReportGenerator(filters)
+    pdf_file = generator.export_to_pdf()
+
+    # Return as download
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="vouchers_report.pdf"'
+
+    return response
