@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Signature Batches{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1400px; margin-top: -2rem;">
+    <!-- Page Header -->
+    <div class="page-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;">
+                <i class="bi bi-folder2-open" style="color: #667eea; font-size: 1.75rem;"></i>
+                My Signature Batches
+            </h1>
+            <p style="color: #6b7280; margin-top: 0.25rem; font-size: 0.9rem;">Track status of batches you sent to MD</p>
+        </div>
+        <div>
+            <a href="{% url 'vouchers:batch_select' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Create New Batch
+            </a>
+            <a href="{% url 'dashboard:home' %}" class="btn btn-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="card" style="border-left: 4px solid #f59e0b;">
+                <div class="card-body" style="padding: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <small style="color: #6b7280; text-transform: uppercase; font-weight: 600;">Pending</small>
+                            <h3 style="margin: 0.25rem 0 0 0; color: #f59e0b;">{{ pending_count }}</h3>
+                        </div>
+                        <i class="bi bi-hourglass-split" style="font-size: 2rem; color: #f59e0b; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card" style="border-left: 4px solid #10b981;">
+                <div class="card-body" style="padding: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <small style="color: #6b7280; text-transform: uppercase; font-weight: 600;">Signed</small>
+                            <h3 style="margin: 0.25rem 0 0 0; color: #10b981;">{{ signed_count }}</h3>
+                        </div>
+                        <i class="bi bi-check-circle" style="font-size: 2rem; color: #10b981; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card" style="border-left: 4px solid #ef4444;">
+                <div class="card-body" style="padding: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <small style="color: #6b7280; text-transform: uppercase; font-weight: 600;">Rejected</small>
+                            <h3 style="margin: 0.25rem 0 0 0; color: #ef4444;">{{ rejected_count }}</h3>
+                        </div>
+                        <i class="bi bi-x-circle" style="font-size: 2rem; color: #ef4444; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Batches -->
+    {% if pending_batches %}
+    <div class="card mb-3">
+        <div class="card-header" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; border: none;">
+            <h5 style="margin: 0;">
+                <i class="bi bi-hourglass-split"></i>
+                Pending MD Signature ({{ pending_count }})
+            </h5>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background: #f9fafb;">
+                        <tr>
+                            <th>Batch Number</th>
+                            <th>Created</th>
+                            <th>Documents</th>
+                            <th>Total Amount</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for batch in pending_batches %}
+                        <tr class="clickable-row" data-href="{% url 'vouchers:batch_detail' batch.id %}">
+                            <td>
+                                <strong style="color: #667eea;">{{ batch.batch_number }}</strong>
+                            </td>
+                            <td>{{ batch.created_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <span class="badge bg-primary">{{ batch.get_document_count }}</span>
+                            </td>
+                            <td>
+                                <strong style="color: #10b981;">{{ batch.get_total_amount_display }}</strong>
+                            </td>
+                            <td>
+                                {% if batch.fm_notes %}
+                                <small>{{ batch.fm_notes|truncatewords:8 }}</small>
+                                {% else %}
+                                <small class="text-muted">No notes</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Signed Batches -->
+    {% if signed_batches %}
+    <div class="card mb-3">
+        <div class="card-header" style="background: #f9fafb; border-bottom: 2px solid #10b981;">
+            <h5 style="margin: 0; color: #10b981;">
+                <i class="bi bi-check-circle"></i>
+                Signed by MD ({{ signed_count }})
+            </h5>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background: #f9fafb;">
+                        <tr>
+                            <th>Batch Number</th>
+                            <th>Created</th>
+                            <th>Signed</th>
+                            <th>Documents</th>
+                            <th>Total Amount</th>
+                            <th>Signed By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for batch in signed_batches %}
+                        <tr class="clickable-row" data-href="{% url 'vouchers:batch_detail' batch.id %}">
+                            <td>
+                                <strong style="color: #667eea;">{{ batch.batch_number }}</strong>
+                            </td>
+                            <td>
+                                <small>{{ batch.created_at|date:"M d, Y" }}</small>
+                            </td>
+                            <td>
+                                <small style="color: #10b981; font-weight: 600;">
+                                    {{ batch.signed_at|date:"M d, Y H:i" }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ batch.get_document_count }}</span>
+                            </td>
+                            <td>
+                                <strong style="color: #10b981;">{{ batch.get_total_amount_display }}</strong>
+                            </td>
+                            <td>
+                                {% if batch.signed_by.get_full_name %}
+                                    {{ batch.signed_by.get_full_name }}
+                                {% else %}
+                                    {{ batch.signed_by.username }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Rejected Batches -->
+    {% if rejected_batches %}
+    <div class="card mb-3">
+        <div class="card-header" style="background: #f9fafb; border-bottom: 2px solid #ef4444;">
+            <h5 style="margin: 0; color: #ef4444;">
+                <i class="bi bi-x-circle"></i>
+                Rejected by MD ({{ rejected_count }})
+            </h5>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background: #f9fafb;">
+                        <tr>
+                            <th>Batch Number</th>
+                            <th>Created</th>
+                            <th>Rejected</th>
+                            <th>Documents</th>
+                            <th>Total Amount</th>
+                            <th>MD Comments</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for batch in rejected_batches %}
+                        <tr class="clickable-row" data-href="{% url 'vouchers:batch_detail' batch.id %}">
+                            <td>
+                                <strong style="color: #667eea;">{{ batch.batch_number }}</strong>
+                            </td>
+                            <td>
+                                <small>{{ batch.created_at|date:"M d, Y" }}</small>
+                            </td>
+                            <td>
+                                <small style="color: #ef4444; font-weight: 600;">
+                                    {{ batch.signed_at|date:"M d, Y H:i" }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ batch.get_document_count }}</span>
+                            </td>
+                            <td>
+                                <strong style="color: #6b7280;">{{ batch.get_total_amount_display }}</strong>
+                            </td>
+                            <td>
+                                {% if batch.md_comments %}
+                                <small style="color: #ef4444;">{{ batch.md_comments|truncatewords:10 }}</small>
+                                {% else %}
+                                <small class="text-muted">No reason given</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Empty State -->
+    {% if not pending_batches and not signed_batches and not rejected_batches %}
+    <div class="card">
+        <div class="card-body text-center" style="padding: 3rem;">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #d1d5db;"></i>
+            <h5 style="color: #6b7280; margin-top: 1rem;">No batches created yet</h5>
+            <p style="color: #9ca3af;">Create your first signature batch to get started</p>
+            <a href="{% url 'vouchers:batch_select' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create Signature Batch
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Make table rows clickable
+document.addEventListener('DOMContentLoaded', function() {
+    const clickableRows = document.querySelectorAll('.clickable-row');
+
+    clickableRows.forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Don't navigate if clicking on a link or button
+            if (e.target.closest('a, button')) {
+                return;
+            }
+
+            // Get the href from data attribute
+            const href = this.dataset.href;
+            if (href) {
+                window.location.href = href;
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.clickable-row {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clickable-row:hover {
+    background: #f3f4f6 !important;
+    transform: scale(1.005);
+}
+
+.clickable-row:active {
+    background: #e5e7eb !important;
+}
+
+.badge {
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.75rem;
+    }
+
+    .page-header > div:last-child {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .page-header .btn {
+        flex: 1;
+    }
+
+    .table {
+        font-size: 0.875rem;
+    }
+}
+</style>
+{% endblock %}

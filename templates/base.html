@@ -1077,6 +1077,34 @@
                         </ul>
                     </li>
                     {% endif %}
+                    {% if user.role_level == 3 %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="batchDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-folder2"></i>
+                            <span>Batches</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="batchDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'vouchers:batch_select' %}">
+                                    <i class="bi bi-plus-circle text-primary"></i> Create New Batch
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'vouchers:fm_batch_list' %}">
+                                    <i class="bi bi-folder2-open text-success"></i> My Batches
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if user.role_level == 5 %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'vouchers:md_dashboard' %}">
+                            <i class="bi bi-pen"></i>
+                            <span>Sign Batches</span>
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
                 <ul class="navbar-nav">
                     <!-- Notification Bell -->
@@ -1104,6 +1132,19 @@
                                     </div>
                                 </a>
                             </li>
+                            {% if user.role_level == 5 and pending_batches > 0 %}
+                            <li>
+                                <a class="dropdown-item notification-item" href="{% url 'vouchers:md_dashboard' %}">
+                                    <div class="notification-icon pending" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                                        <i class="bi bi-pen"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <strong>{{ pending_batches }} signature batch{{ pending_batches|pluralize:"es" }} pending</strong>
+                                        <small>Ready for your signature</small>
+                                    </div>
+                                </a>
+                            </li>
+                            {% endif %}
                             {% else %}
                             <li>
                                 <span class="dropdown-item text-muted text-center" style="cursor: default;">

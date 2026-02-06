@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Signature Batch{% endblock %}
+
+{% block extra_css %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1400px; margin-top: -2.5rem;">
+    <!-- Page Header -->
+    <div class="page-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;">
+                <i class="bi bi-file-earmark-check" style="color: #667eea; font-size: 1.75rem;"></i>
+                Create Signature Batch
+            </h1>
+            <p style="color: #6b7280; margin-top: 0.25rem; font-size: 0.9rem;">Select approved documents to send to MD for signature</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'vouchers:fm_batch_list' %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-folder2-open"></i> My Batches
+            </a>
+            <a href="{% url 'dashboard:home' %}" class="btn btn-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Selected Summary Card -->
+    <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+        <div class="card-body" style="padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem;">
+                        <i class="bi bi-check-circle"></i>
+                        Selected: <span id="selected-count">0</span> documents
+                    </h3>
+                    <p style="margin: 0.25rem 0 0 0; opacity: 0.9; font-size: 0.95rem;">Total Amount: <span id="selected-total">$0.00</span></p>
+                </div>
+                <button type="button" class="btn btn-light" onclick="createBatch()" id="create-batch-btn" disabled>
+                    <i class="bi bi-send"></i> Send to MD
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents List -->
+    <div class="card">
+        <div class="card-header" style="background: white; border-bottom: 2px solid #e5e7eb;">
+            <h5 style="margin: 0; color: #1f2937;">
+                <i class="bi bi-file-earmark-text"></i>
+                Approved Documents Awaiting MD Signature
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if vouchers or forms %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="batch-documents-table">
+                    <thead style="background: #f9fafb;">
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)">
+                            </th>
+                            <th>Document</th>
+                            <th>Payee</th>
+                            <th>Payment Date</th>
+                            <th>Amount</th>
+                            <th>Created By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for voucher in vouchers %}
+                        <tr class="selectable-row">
+                            <td>
+                                <input type="checkbox" class="doc-checkbox"
+                                       data-type="voucher"
+                                       data-id="{{ voucher.id }}"
+                                       data-amount="{{ voucher.calculate_grand_total.USD|default:0 }}"
+                                       onchange="updateSelection()">
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">PV</span>
+                                <strong>{{ voucher.pv_number }}</strong>
+                            </td>
+                            <td>{{ voucher.payee_name }}</td>
+                            <td>{{ voucher.payment_date|date:"M d, Y" }}</td>
+                            <td><strong>{{ voucher.get_grand_total_display }}</strong></td>
+                            <td>
+                                {% if voucher.created_by.get_full_name %}
+                                    {{ voucher.created_by.get_full_name }}
+                                {% else %}
+                                    {{ voucher.created_by.username }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for form in forms %}
+                        <tr class="selectable-row">
+                            <td>
+                                <input type="checkbox" class="doc-checkbox"
+                                       data-type="form"
+                                       data-id="{{ form.id }}"
+                                       data-amount="{{ form.calculate_grand_total.USD|default:0 }}"
+                                       onchange="updateSelection()">
+                            </td>
+                            <td>
+                                <span class="badge bg-success">PF</span>
+                                <strong>{{ form.pf_number }}</strong>
+                            </td>
+                            <td>{{ form.payee_name }}</td>
+                            <td>{{ form.payment_date|date:"M d, Y" }}</td>
+                            <td><strong>{{ form.get_grand_total_display }}</strong></td>
+                            <td>
+                                {% if form.created_by.get_full_name %}
+                                    {{ form.created_by.get_full_name }}
+                                {% else %}
+                                    {{ form.created_by.username }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 3rem; color: #6b7280;">
+                <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.3;"></i>
+                <p style="margin-top: 1rem; font-size: 1.1rem;">No approved documents awaiting MD signature</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Notes Modal -->
+<div class="modal fade" id="notesModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Notes (Optional)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" id="fm-notes" rows="4"
+                          placeholder="Add any notes or instructions for MD..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitBatch()">
+                    <i class="bi bi-send"></i> Create Batch
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery (required for DataTables) -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<!-- Batch Operations JS -->
+<script src="{% static 'js/batch_operations.js' %}"></script>
+
+<script>
+// Initialize DataTable on page load
+$(document).ready(function() {
+    const table = $('#batch-documents-table').DataTable({
+        pageLength: 25,
+        order: [[1, 'asc']], // Sort by document number
+        columnDefs: [
+            { orderable: false, targets: 0 }, // Checkbox column
+        ],
+        language: {
+            search: "Search documents:",
+            lengthMenu: "Show _MENU_ documents per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ documents",
+            infoEmpty: "No documents available",
+            infoFiltered: "(filtered from _TOTAL_ total documents)",
+            zeroRecords: "No matching documents found"
+        },
+        drawCallback: function() {
+            // Update selection after DataTable redraws
+            updateSelection();
+        }
+    });
+
+    // Handle select-all for current page only
+    $('#select-all').on('change', function() {
+        const isChecked = this.checked;
+        table.$('input.doc-checkbox', {"page": "current"}).each(function() {
+            this.checked = isChecked;
+        });
+        updateSelection();
+    });
+
+    // Make entire row clickable to toggle checkbox
+    $('#batch-documents-table').on('click', '.selectable-row', function(e) {
+        // Don't toggle if clicking on the checkbox itself or a link/button
+        if ($(e.target).is('input[type="checkbox"]') || $(e.target).closest('a, button').length) {
+            return;
+        }
+
+        // Find the checkbox in this row and toggle it
+        const checkbox = $(this).find('.doc-checkbox');
+        checkbox.prop('checked', !checkbox.prop('checked'));
+        updateSelection();
+    });
+
+    // Add visual feedback when hovering over checkbox area
+    $('#batch-documents-table').on('mouseenter', '.selectable-row', function() {
+        $(this).css('cursor', 'pointer');
+    });
+});
+</script>
+
+<style>
+.selectable-row {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.selectable-row:hover {
+    background: #f3f4f6 !important;
+    transform: scale(1.01);
+}
+
+.selectable-row:active {
+    background: #e5e7eb !important;
+}
+
+/* Highlight selected rows */
+.selectable-row:has(.doc-checkbox:checked) {
+    background: #dbeafe !important;
+    border-left: 4px solid #667eea;
+}
+
+.selectable-row:has(.doc-checkbox:checked):hover {
+    background: #bfdbfe !important;
+}
+
+.badge {
+    padding: 0.35em 0.65em;
+    font-weight: 600;
+    pointer-events: none; /* Don't interfere with row clicks */
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.75rem;
+    }
+
+    .page-header > div:last-child {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .page-header .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

@@ -607,3 +607,181 @@ class FormAttachment(models.Model):
     def get_file_extension(self):
         """Return file extension"""
         return self.filename.split('.')[-1].lower() if '.' in self.filename else ''
+
+# ============================================================================
+# BATCH SIGNATURE SYSTEM
+# ============================================================================
+
+class SignatureBatch(models.Model):
+    """Batch of vouchers for MD signature"""
+
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending MD Signature'),
+        ('SIGNED', 'Signed by MD'),
+        ('REJECTED', 'Rejected by MD'),
+    ]
+
+    # Batch identification
+    batch_number = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Auto-generated batch number (BATCH-YYYYMMDD-NNN)"
+    )
+
+    # Created by Finance Manager
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='signature_batches_created'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # Status
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING'
+    )
+
+    # MD signature details
+    signed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='signature_batches_signed',
+        null=True,
+        blank=True
+    )
+    signed_at = models.DateTimeField(null=True, blank=True)
+    signature_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address when MD signed"
+    )
+
+    # Comments/notes
+    fm_notes = models.TextField(
+        blank=True,
+        verbose_name="Finance Manager Notes"
+    )
+    md_comments = models.TextField(
+        blank=True,
+        verbose_name="MD Comments"
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Signature Batch"
+        verbose_name_plural = "Signature Batches"
+
+    def __str__(self):
+        return f"{self.batch_number} - {self.get_status_display()}"
+
+    def generate_batch_number(self):
+        """Generate unique batch number: BATCH-YYYYMMDD-NNN"""
+        from datetime import date
+        today = date.today()
+        date_str = today.strftime('%Y%m%d')
+
+        # Count batches created today
+        today_count = SignatureBatch.objects.filter(
+            batch_number__startswith=f'BATCH-{date_str}'
+        ).count()
+
+        # Generate new number
+        new_number = f'BATCH-{date_str}-{(today_count + 1):03d}'
+        return new_number
+
+    def get_vouchers(self):
+        """Get all vouchers in this batch"""
+        return self.voucher_items.select_related('voucher').all()
+
+    def get_forms(self):
+        """Get all payment forms in this batch"""
+        return self.form_items.select_related('payment_form').all()
+
+    def get_total_amount(self):
+        """Calculate total amount of all documents in batch"""
+        total = {'USD': Decimal('0'), 'KHR': Decimal('0'), 'THB': Decimal('0')}
+
+        # Add voucher totals
+        for item in self.voucher_items.all():
+            voucher_totals = item.voucher.calculate_grand_total()
+            for currency in total.keys():
+                total[currency] += voucher_totals.get(currency, Decimal('0'))
+
+        # Add form totals
+        for item in self.form_items.all():
+            form_totals = item.payment_form.calculate_grand_total()
+            for currency in total.keys():
+                total[currency] += form_totals.get(currency, Decimal('0'))
+
+        return total
+
+    def get_total_amount_display(self):
+        """Return formatted total amount string for display"""
+        totals = self.get_total_amount()
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+
+        # Filter out zero amounts
+        parts = []
+        for currency in sorted(totals.keys()):
+            amount = totals[currency]
+            if amount > 0:
+                symbol = symbols.get(currency, currency)
+                parts.append(f"{symbol}{amount:,.2f}")
+
+        return " + ".join(parts) if parts else "$0.00"
+
+    def get_document_count(self):
+        """Get total number of documents in batch"""
+        return self.voucher_items.count() + self.form_items.count()
+
+    def save(self, *args, **kwargs):
+        # Generate batch number if not set
+        if not self.batch_number:
+            self.batch_number = self.generate_batch_number()
+        super().save(*args, **kwargs)
+
+
+class BatchVoucherItem(models.Model):
+    """Payment Voucher in a signature batch"""
+    batch = models.ForeignKey(
+        SignatureBatch,
+        on_delete=models.CASCADE,
+        related_name='voucher_items'
+    )
+    voucher = models.ForeignKey(
+        'PaymentVoucher',
+        on_delete=models.CASCADE,
+        related_name='batch_items'
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [['batch', 'voucher']]
+        ordering = ['added_at']
+
+    def __str__(self):
+        return f"{self.batch.batch_number} - {self.voucher.pv_number}"
+
+
+class BatchFormItem(models.Model):
+    """Payment Form in a signature batch"""
+    batch = models.ForeignKey(
+        SignatureBatch,
+        on_delete=models.CASCADE,
+        related_name='form_items'
+    )
+    payment_form = models.ForeignKey(
+        'PaymentForm',
+        on_delete=models.CASCADE,
+        related_name='batch_items'
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [['batch', 'payment_form']]
+        ordering = ['added_at']
+
+    def __str__(self):
+        return f"{self.batch.batch_number} - {self.payment_form.pf_number}"

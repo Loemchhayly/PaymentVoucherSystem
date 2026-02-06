@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 from django.db.models import Q
-from vouchers.models import PaymentVoucher, PaymentForm
+from vouchers.models import PaymentVoucher, PaymentForm, SignatureBatch
 from itertools import chain
 from operator import attrgetter
 
@@ -69,10 +69,16 @@ class DashboardView(LoginRequiredMixin, ListView):
             ).distinct()
 
         # Summary counts
-        context['pending_my_action'] = (
-            pv_base.filter(current_approver=user).count() +
-            pf_base.filter(current_approver=user).count()
-        )
+        pending_vouchers = pv_base.filter(current_approver=user).count()
+        pending_forms = pf_base.filter(current_approver=user).count()
+
+        # Add pending signature batches for MD
+        pending_batches = 0
+        if user.role_level == 5:  # MD
+            pending_batches = SignatureBatch.objects.filter(status='PENDING').count()
+
+        context['pending_my_action'] = pending_vouchers + pending_forms + pending_batches
+        context['pending_batches'] = pending_batches
 
         context['my_created_count'] = (
             pv_base.filter(created_by=user).count() +

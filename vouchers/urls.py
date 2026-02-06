@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import batch_views
 
 app_name = 'vouchers'
 
@@ -35,9 +36,24 @@ urlpatterns = [
 
     # PF PDF Generation
     path('pf/<int:pk>/pdf/', views.form_pdf, name='pf_pdf'),
+    path('pf/<int:pk>/upload/', views.upload_form_attachment, name='upload_form_attachment'),
+    path('pf/<int:pk>/attachments/<int:attachment_id>/', views.download_form_attachment,
+         name='download_form_attachment'),
+    path('pf/<int:pk>/attachments/<int:attachment_id>/delete/', views.delete_form_attachment,
+         name='delete_form_attachment'),
 
     # Reports
     path('reports/', views.reports_view, name='reports'),
     path('reports/export/excel/', views.export_excel, name='export_excel'),
     path('reports/export/pdf/', views.export_pdf, name='export_pdf'),
+
+    # Batch Signature System
+    path('batch/select/', batch_views.batch_select_documents, name='batch_select'),
+    path('batch/create/', batch_views.batch_create, name='batch_create'),
+    path('batch/list/', batch_views.fm_batch_list, name='fm_batch_list'),
+    path('batch/<int:batch_id>/detail/', batch_views.batch_detail, name='batch_detail'),
+    path('batch/<int:batch_id>/sign/', batch_views.batch_sign, name='batch_sign'),
+    path('batch/<int:batch_id>/reject/', batch_views.batch_reject, name='batch_reject'),
+    path('batch/<int:batch_id>/remove-document/', batch_views.batch_remove_document, name='batch_remove_document'),
+    path('md-dashboard/', batch_views.md_dashboard, name='md_dashboard'),
 ]

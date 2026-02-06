@@ -637,6 +637,11 @@
                 <div>
                     <div class="stat-card-title">Pending My Action</div>
                     <div class="stat-card-value">{{ pending_my_action }}</div>
+                    {% if user.role_level == 5 and pending_batches > 0 %}
+                    <small style="color: #667eea; font-weight: 600; margin-top: 0.25rem; display: block;">
+                        <i class="bi bi-pen"></i> {{ pending_batches }} batch{{ pending_batches|pluralize:"es" }} to sign
+                    </small>
+                    {% endif %}
                 </div>
                 <div class="stat-card-icon">
                     <i class="bi bi-clock-history"></i>
@@ -724,6 +729,52 @@
             <a href="{% url 'dashboard:my_vouchers' %}" class="action-btn">
                 <i class="bi bi-folder"></i>
                 <span>My Vouchers</span>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.role_level == 3 %}
+    <!-- Finance Manager Quick Actions -->
+    <div class="quick-actions-card">
+        <div class="quick-actions-header">
+            <h3 class="quick-actions-title">
+                <i class="bi bi-lightning-charge"></i> Finance Manager Actions
+            </h3>
+        </div>
+        <div class="quick-actions-buttons">
+            <a href="{% url 'vouchers:batch_select' %}" class="action-btn">
+                <i class="bi bi-file-earmark-check"></i>
+                <span>Create Signature Batch</span>
+            </a>
+            <a href="{% url 'vouchers:fm_batch_list' %}" class="action-btn">
+                <i class="bi bi-folder2-open"></i>
+                <span>My Batches</span>
+            </a>
+            <a href="{% url 'vouchers:reports' %}" class="action-btn">
+                <i class="bi bi-graph-up"></i>
+                <span>View Reports</span>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.role_level == 5 %}
+    <!-- Managing Director Quick Actions -->
+    <div class="quick-actions-card">
+        <div class="quick-actions-header">
+            <h3 class="quick-actions-title">
+                <i class="bi bi-lightning-charge"></i> Managing Director Actions
+            </h3>
+        </div>
+        <div class="quick-actions-buttons">
+            <a href="{% url 'vouchers:md_dashboard' %}" class="action-btn">
+                <i class="bi bi-pen"></i>
+                <span>Batch Signature Dashboard</span>
+            </a>
+            <a href="{% url 'vouchers:reports' %}" class="action-btn">
+                <i class="bi bi-graph-up"></i>
+                <span>View Reports</span>
             </a>
         </div>
     </div>

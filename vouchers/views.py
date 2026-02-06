@@ -579,6 +579,148 @@ def download_attachment(request, pk, attachment_id):
 
 
 @login_required
+def upload_form_attachment(request, pk):
+    """Upload multiple attachments to payment form"""
+    payment_form = get_object_or_404(PaymentForm, pk=pk, created_by=request.user)
+
+    if not payment_form.is_editable():
+        messages.error(request, 'Cannot add attachments to locked forms')
+        return redirect('vouchers:pf_detail', pk=pk)
+
+    if request.method == 'POST':
+        form = FormAttachmentForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            files = form.cleaned_data['files']
+
+            # Ensure files is a list
+            if not isinstance(files, list):
+                files = [files]
+
+            success_count = 0
+
+            for file in files:
+                try:
+                    attachment = FormAttachment(
+                        payment_form=payment_form,
+                        file=file,
+                        filename=file.name,
+                        file_size=file.size,
+                        uploaded_by=request.user
+                    )
+                    attachment.save()
+                    success_count += 1
+                except Exception as e:
+                    messages.warning(request, f'Failed to upload {file.name}: {str(e)}')
+
+            if success_count > 0:
+                if success_count == 1:
+                    messages.success(request, 'File uploaded successfully!')
+                else:
+                    messages.success(request, f'{success_count} files uploaded successfully!')
+        else:
+            for error in form.errors.get('files', []):
+                messages.error(request, error)
+
+    return redirect('vouchers:pf_detail', pk=pk)
+
+
+@login_required
+def delete_form_attachment(request, pk, attachment_id):
+    """Delete a form attachment with proper error handling"""
+    try:
+        payment_form = get_object_or_404(PaymentForm, pk=pk, created_by=request.user)
+        attachment = get_object_or_404(FormAttachment, pk=attachment_id, payment_form=payment_form)
+    except PaymentForm.DoesNotExist:
+        messages.error(request, f'Payment Form #{pk} not found.')
+        return redirect('dashboard:home')
+    except FormAttachment.DoesNotExist:
+        messages.error(request, f'Attachment not found.')
+        return redirect('vouchers:pf_detail', pk=pk)
+
+    if not payment_form.is_editable():
+        messages.error(request, 'Cannot delete attachments from locked forms')
+        return redirect('vouchers:pf_detail', pk=pk)
+
+    if request.method == 'POST':
+        filename = attachment.filename
+        try:
+            attachment.file.delete()  # Delete the actual file
+            attachment.delete()  # Delete the database record
+            messages.success(request, f'Attachment "{filename}" deleted successfully!')
+        except Exception as e:
+            messages.error(request, f'Error deleting attachment: {str(e)}')
+
+    return redirect('vouchers:pf_detail', pk=pk)
+
+
+@login_required
+def download_form_attachment(request, pk, attachment_id):
+    """Secure attachment download for Payment Forms with proper error handling"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        # Try to get the payment form - this will raise 404 if not found
+        payment_form = get_object_or_404(PaymentForm, pk=pk)
+
+        # Try to get the attachment
+        attachment = get_object_or_404(FormAttachment, pk=attachment_id, payment_form=payment_form)
+
+        # Check access permissions
+        user = request.user
+        has_access = (
+                payment_form.created_by == user or
+                payment_form.current_approver == user or
+                payment_form.approval_history.filter(actor=user).exists() or
+                user.is_staff
+        )
+
+        if not has_access:
+            logger.warning(
+                f"Unauthorized form attachment access attempt: User {user.username} "
+                f"tried to access attachment {attachment_id} for form {pk}"
+            )
+            raise Http404("You don't have permission to access this file")
+
+        # Log successful download
+        logger.info(
+            f"Form attachment downloaded: {attachment.filename} by {user.username} "
+            f"from form {payment_form.pf_number or pk}"
+        )
+
+        return FileResponse(
+            attachment.file.open('rb'),
+            as_attachment=True,
+            filename=attachment.filename
+        )
+
+    except PaymentForm.DoesNotExist:
+        # Log the missing form attempt
+        logger.warning(
+            f"404 - Payment Form not found: User {request.user.username} tried to access "
+            f"form ID {pk} (attachment {attachment_id}). IP: {get_client_ip(request)}"
+        )
+        messages.error(
+            request,
+            f'Payment Form #{pk} not found. It may have been deleted or you may have '
+            f'an outdated link. Please check the form list for the correct document.'
+        )
+        return redirect('dashboard:home')
+
+    except FormAttachment.DoesNotExist:
+        logger.warning(
+            f"404 - Form attachment not found: User {request.user.username} tried to access "
+            f"attachment {attachment_id} for form {pk}. IP: {get_client_ip(request)}"
+        )
+        messages.error(
+            request,
+            f'Attachment not found for payment form #{pk}. The file may have been deleted.'
+        )
+        return redirect('dashboard:home')
+
+
+@login_required
 def voucher_pdf(request, pk):
     """Generate and download PDF for approved voucher"""
     voucher = get_object_or_404(PaymentVoucher, pk=pk)

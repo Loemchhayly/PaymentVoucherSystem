@@ -823,15 +823,37 @@
                             <dd>{{ payment_form.payment_date|date:"F d, Y" }}</dd>
                         </dl>
 
+                        {% if payment_form.company_bank_account %}
                         <dl class="info-item">
-                            <dt>Bank Name</dt>
-                            <dd>{{ payment_form.bank_name }}</dd>
+                            <dt>Bank Address</dt>
+                            <dd><strong style="color: #667eea;">{{ payment_form.company_bank_account.bank }}</strong></dd>
+                        </dl>
+
+                        <dl class="info-item">
+                            <dt>Company Name</dt>
+                            <dd>{{ payment_form.company_bank_account.company_name }}</dd>
                         </dl>
 
                         <dl class="info-item">
                             <dt>Account Number</dt>
-                            <dd>{{ payment_form.bank_account }}</dd>
+                            <dd>{{ payment_form.company_bank_account.account_number }} ({{ payment_form.company_bank_account.currency }})</dd>
                         </dl>
+                        {% else %}
+                        <dl class="info-item">
+                            <dt>Bank Address</dt>
+                            <dd>{{ payment_form.bank_address|default:"Not specified" }}</dd>
+                        </dl>
+
+                        <dl class="info-item">
+                            <dt>Bank Name</dt>
+                            <dd>{{ payment_form.bank_name|default:"Not specified" }}</dd>
+                        </dl>
+
+                        <dl class="info-item">
+                            <dt>Account Number</dt>
+                            <dd>{{ payment_form.bank_account_number|default:"Not specified" }}</dd>
+                        </dl>
+                        {% endif %}
 
                         <dl class="info-item">
                             <dt>Created By</dt>
@@ -953,7 +975,7 @@
                                         <div class="attachment-size">{{ attachment.get_file_size_display }} • Uploaded {{ attachment.uploaded_at|date:"M d, Y" }}</div>
                                     </div>
                                 </div>
-                                <a href="{% url 'vouchers:download_attachment' payment_form.pk attachment.pk %}" class="download-btn">
+                                <a href="{% url 'vouchers:download_form_attachment' pk=payment_form.pk attachment_id=attachment.id %}" class="download-btn">
                                     <i class="bi bi-download"></i>
                                     <span>Download</span>
                                 </a>
@@ -969,7 +991,7 @@
 
                     {% if can_edit %}
                     <div class="upload-form">
-                        <form method="post" action="{% url 'vouchers:upload_attachment' payment_form.pk %}" enctype="multipart/form-data">
+                        <form method="post" action="{% url 'vouchers:upload_form_attachment' pk=payment_form.pk %}" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div style="margin-bottom: var(--spacing-sm);">
                                 <label style="font-weight: 600; font-size: 0.875rem; color: var(--gray-700); margin-bottom: 4px; display: block;">

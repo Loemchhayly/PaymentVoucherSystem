@@ -3,7 +3,8 @@ from .models import (
     CompanyBankAccount,
     Department,
     PaymentVoucher, VoucherLineItem, VoucherAttachment,
-    PaymentForm, FormLineItem, FormAttachment
+    PaymentForm, FormLineItem, FormAttachment,
+    SignatureBatch, BatchVoucherItem, BatchFormItem
 )
 
 
@@ -152,3 +153,61 @@ class PaymentFormAdmin(admin.ModelAdmin):
         if not change:  # New object
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
+
+
+# ============================================================================
+# SIGNATURE BATCH ADMIN
+# ============================================================================
+
+class BatchVoucherItemInline(admin.TabularInline):
+    """Inline for vouchers in batch admin"""
+    model = BatchVoucherItem
+    extra = 0
+    readonly_fields = ['voucher', 'added_at']
+    fields = ['voucher', 'added_at']
+    can_delete = False
+
+
+class BatchFormItemInline(admin.TabularInline):
+    """Inline for payment forms in batch admin"""
+    model = BatchFormItem
+    extra = 0
+    readonly_fields = ['payment_form', 'added_at']
+    fields = ['payment_form', 'added_at']
+    can_delete = False
+
+
+@admin.register(SignatureBatch)
+class SignatureBatchAdmin(admin.ModelAdmin):
+    """Admin interface for Signature Batch model"""
+    list_display = ['batch_number', 'status', 'get_document_count', 'created_by', 'created_at', 'signed_by', 'signed_at']
+    list_filter = ['status', 'created_at', 'signed_at']
+    search_fields = ['batch_number', 'created_by__username', 'signed_by__username']
+    readonly_fields = ['batch_number', 'created_by', 'created_at', 'signed_by', 'signed_at', 'signature_ip']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+
+    fieldsets = (
+        ('Batch Information', {
+            'fields': ('batch_number', 'status', 'created_by', 'created_at')
+        }),
+        ('Finance Manager Notes', {
+            'fields': ('fm_notes',)
+        }),
+        ('Signature Information', {
+            'fields': ('signed_by', 'signed_at', 'signature_ip', 'md_comments'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    inlines = [BatchVoucherItemInline, BatchFormItemInline]
+
+    def has_add_permission(self, request):
+        """Disable adding batches from admin - must be created through the app"""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Only allow deleting pending batches"""
+        if obj and obj.status == 'PENDING':
+            return True
+        return False

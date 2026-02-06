@@ -824,15 +824,37 @@
                             <dd>{{ voucher.payment_date|date:"F d, Y" }}</dd>
                         </dl>
 
+                        {% if voucher.company_bank_account %}
                         <dl class="info-item">
-                            <dt>Bank Name</dt>
-                            <dd>{{ voucher.bank_name }}</dd>
+                            <dt>Bank Address</dt>
+                            <dd><strong style="color: #667eea;">{{ voucher.company_bank_account.bank }}</strong></dd>
+                        </dl>
+
+                        <dl class="info-item">
+                            <dt>Company Name</dt>
+                            <dd>{{ voucher.company_bank_account.company_name }}</dd>
                         </dl>
 
                         <dl class="info-item">
                             <dt>Account Number</dt>
-                            <dd>{{ voucher.bank_account_number }}</dd>
+                            <dd>{{ voucher.company_bank_account.account_number }} ({{ voucher.company_bank_account.currency }})</dd>
                         </dl>
+                        {% else %}
+                        <dl class="info-item">
+                            <dt>Bank Address</dt>
+                            <dd>{{ voucher.bank_address|default:"Not specified" }}</dd>
+                        </dl>
+
+                        <dl class="info-item">
+                            <dt>Bank Name</dt>
+                            <dd>{{ voucher.bank_name|default:"Not specified" }}</dd>
+                        </dl>
+
+                        <dl class="info-item">
+                            <dt>Account Number</dt>
+                            <dd>{{ voucher.bank_account_number|default:"Not specified" }}</dd>
+                        </dl>
+                        {% endif %}
 
                         <dl class="info-item">
                             <dt>Created By</dt>
