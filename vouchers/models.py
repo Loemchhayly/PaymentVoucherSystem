@@ -365,7 +365,7 @@ class PaymentForm(models.Model):
         unique=True,
         null=True,
         blank=True,
-        help_text="Auto-generated PF number in format YYMM-PF-NNNN"
+        help_text="Auto-generated PF number in format YYMM-NNNN"
     )
     status = models.CharField(
         max_length=20,
@@ -564,7 +564,7 @@ def form_attachment_path(instance, filename):
     """
     Generate upload path for form attachments using PF number.
     Path format: form_attachments/{PF_NUMBER}/filename.ext
-    Example: form_attachments/2601-PF-0001/invoice.pdf
+    Example: form_attachments/2601-0001/invoice.pdf
     """
     pf_number = instance.payment_form.pf_number
     if not pf_number:

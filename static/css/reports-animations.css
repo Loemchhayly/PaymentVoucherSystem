@@ -16,8 +16,8 @@
 }
 
 .container-fluid {
-    opacity: 0;
-    animation: fadeInPage 0.5s ease-in 0.1s forwards;
+    opacity: 1;
+    /* Removed animation to prevent blank screen flicker */
 }
 
 .fade-in {

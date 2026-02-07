@@ -198,7 +198,7 @@ class VoucherStateMachine:
     @staticmethod
     def generate_pf_number(payment_form):
         """
-        Generate unique PF number in format YYMM-PF-NNNN.
+        Generate unique PF number in format YYMM-NNNN.
         Counter resets every month based on payment date.
 
         Args:
@@ -207,20 +207,26 @@ class VoucherStateMachine:
         # Use payment date instead of current date for numbering
         prefix = payment_form.payment_date.strftime('%y%m')
 
-        # Get last number for this payment month (PF numbers include '-PF-' in format)
+        # Get last number for this payment month (check both old and new formats)
         last_pf = PaymentForm.objects.filter(
-            pf_number__startswith=f"{prefix}-PF"
+            pf_number__startswith=prefix
         ).aggregate(Max('pf_number'))['pf_number__max']
 
         if last_pf:
-            # Extract number part and increment (format: YYMM-PF-NNNN)
-            last_num = int(last_pf.split('-')[2])
+            # Handle both old format (YYMM-PF-NNNN) and new format (YYMM-NNNN)
+            parts = last_pf.split('-')
+            if len(parts) == 3:
+                # Old format: YYMM-PF-NNNN
+                last_num = int(parts[2])
+            else:
+                # New format: YYMM-NNNN
+                last_num = int(parts[1])
             next_num = last_num + 1
         else:
             # First form of the month
             next_num = 1
 
-        return f"{prefix}-PF-{next_num:04d}"
+        return f"{prefix}-{next_num:04d}"
 
     @staticmethod
     def get_next_approver(status):
