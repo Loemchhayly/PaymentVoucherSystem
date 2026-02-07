@@ -4,961 +4,983 @@
 {% block title %}Payment Form {{ payment_form.pf_number|default:"DRAFT" }} - Payment Payment Form System{% endblock %}
 
 {% block extra_css %}
-<style>
-    /* ==================== Payment Form Detail Specifici Styles - COMPACT ==================== */
-    .voucher-detail-container {
-        max-width: 1600px;
-        margin: 0 auto;
-        padding: 0 var(--spacing-md);
-        opacity: 0;
-        animation: fadeInPage 0.5s ease-in 0.1s forwards;
-    }
-
-    @keyframes fadeInPage {
-        to { opacity: 1; }
-    }
-
-    /* Extra Large Screens */
-    @media (min-width: 1800px) {
+    <style>
+        /* ==================== Payment Form Detail Specifici Styles - COMPACT ==================== */
         .voucher-detail-container {
-            max-width: 1800px;
-        }
-    }
-
-    /* COMPACT Page Header */
-    .page-header {
-        margin-bottom: var(--spacing-lg);  /* Reduced from 2xl */
-        padding: var(--spacing-sm) 0;
-        margin-top: -45px;
-    }
-
-    .page-title-section {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: var(--spacing-sm);
-        margin-bottom: 20px;
-    }
-
-    .page-title {
-        font-family: var(--font-heading);
-        font-size: 1.5rem;  /* Reduced from 2rem */
-        font-weight: 700;
-        color: var(--gray-900);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        margin-bottom: 0;
-    }
-
-    .page-title i {
-        font-size: 1.75rem;  /* Reduced from 2.5rem */
-        color: var(--primary-600);
-  
-    }
-
-    /* COMPACT PF Number Display */
-    .pv-number-display {
-        font-family: var(--font-heading);
-        font-size: 1.25rem;  /* Reduced from 2rem */
-        font-weight: 700;
-        color: var(--primary-700);
-        background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
-        padding: var(--spacing-xs) var(--spacing-md);  /* Reduced padding */
-        border-radius: var(--radius-md);
-        border: 2px solid var(--primary-200);
-    }
-
-    /* COMPACT Status Badge */
-    .status-badge-large {
-        padding: 4px var(--spacing-md);  /* Compact padding */
-        border-radius: var(--radius-full);
-        font-size: 0.8125rem;  /* Reduced from 1rem */
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .status-badge-large i {
-        font-size: 0.875rem;  /* Reduced from 1.25rem */
-    }
-
-    .status-badge-large.draft {
-        background: var(--gray-200);
-        color: var(--gray-700);
-    }
-
-    .status-badge-large.pending {
-        background: var(--warning-light);
-        color: #92400e;
-    }
-
-    .status-badge-large.approved {
-        background: var(--success-light);
-        color: #065f46;
-    }
-
-    .status-badge-large.rejected {
-        background: var(--danger-light);
-        color: #991b1b;
-    }
-
-    .status-badge-large.revision {
-        background: var(--info-light);
-        color: #1e40af;
-    }
-
-    /* Two Column Layout - COMPACT */
-    .detail-grid {
-        display: grid;
-        grid-template-columns: 1fr 350px;  /* Narrower sidebar */
-        gap: var(--spacing-md);  /* Reduced gap */
-    }
-
-    /* COMPACT Detail Cards with Fade Animation */
-    .detail-card {
-        background: white;
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-sm);
-        overflow: hidden;
-        margin-bottom: var(--spacing-md);  /* Reduced */
-        transition: all var(--transition-base);
-        opacity: 0;
-        transform: translateY(15px);
-        animation: fadeInUp 0.5s ease-out forwards;
-    }
-
-    /* Stagger animation for multiple cards */
-    .detail-card:nth-child(1) { animation-delay: 0.1s; }
-    .detail-card:nth-child(2) { animation-delay: 0.2s; }
-    .detail-card:nth-child(3) { animation-delay: 0.3s; }
-    .detail-card:nth-child(4) { animation-delay: 0.4s; }
-
-    @keyframes fadeInUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .detail-card:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-2px);
-    }
-
-    /* COMPACT Card Headers */
-    .detail-card-header {
-        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-        padding: var(--spacing-sm) var(--spacing-md);  /* Reduced from lg/xl */
-        border-bottom: 2px solid var(--primary-500);
-    }
-
-    .detail-card-header.info {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        border-bottom-color: #60a5fa;
-    }
-
-    .detail-card-header.success {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        border-bottom-color: #34d399;
-    }
-
-    .detail-card-header.warning {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        border-bottom-color: #fbbf24;
-    }
-
-    /* COMPACT Card Title */
-    .detail-card-title {
-        font-family: var(--font-heading);
-        font-size: 0.9375rem;  /* Reduced from 1.25rem */
-        font-weight: 600;
-        color: white;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .detail-card-title i {
-        font-size: 1.125rem;  /* Reduced from 1.5rem */
-    }
-
-    /* COMPACT Card Body */
-    .detail-card-body {
-        padding: var(--spacing-md);  /* Reduced from xl */
-    }
-
-    /* Extra compact for info card */
-    .detail-card.info-card {
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .detail-card.info-card .detail-card-body {
-        padding: var(--spacing-sm) var(--spacing-md);
-    }
-
-    /* COMPACT Info Grid - 3 Columns */
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px 12px;
-        width: 100%;
-    }
-
-    .info-item {
-        display: flex;
-        flex-direction: column;
-        padding: 4px 8px;
-        background: var(--gray-50);
-        border-radius: var(--radius-sm);
-        border-left: 2px solid var(--primary-400);
-    }
-
-    .info-item dt {
-        font-family: var(--font-body);
-        font-size: 0.6875rem;
-        font-weight: 600;
-        color: var(--gray-600);
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        margin-bottom: 2px;
-    }
-
-    .info-item dd {
-        font-family: var(--font-body);
-        font-size: 0.875rem;
-        color: var(--gray-900);
-        font-weight: 500;
-        margin: 0;
-    }
-
-    /* COMPACT Line Items Table */
-    .line-items-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .line-items-table thead {
-        background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
-    }
-
-    .line-items-table th {
-        font-family: var(--font-body);
-        font-size: 0.75rem;  /* Reduced */
-        font-weight: 600;
-        color: var(--gray-700);
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        padding: var(--spacing-sm) var(--spacing-md);  /* Compact */
-        text-align: left;
-        border-bottom: 2px solid var(--primary-200);
-    }
-
-    .line-items-table tbody tr {
-        transition: all var(--transition-fast);
-    }
-
-    .line-items-table tbody tr:hover {
-        background: var(--primary-50);
-    }
-
-    .line-items-table td {
-        padding: var(--spacing-sm) var(--spacing-md);  /* Compact */
-        border-bottom: 1px solid var(--gray-200);
-        vertical-align: middle;
-        font-size: 0.875rem;  /* Smaller text */
-    }
-
-    .line-items-table tfoot {
-        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-    }
-
-    .line-items-table tfoot th {
-        color: white;
-        font-size: 0.9375rem;  /* Reduced */
-        padding: var(--spacing-sm) var(--spacing-md);  /* Compact */
-        border: none;
-    }
-
-    .grand-total-value {
-        font-family: var(--font-heading);
-        font-size: 1.25rem;  /* Reduced from 1.5rem */
-        font-weight: 700;
-        text-align: right;
-    }
-
-    /* COMPACT Attachments List */
-    .attachments-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;  /* Minimal gap */
-    }
-
-    .attachment-item {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);  /* Thinner border */
-        border-radius: var(--radius-md);
-        padding: var(--spacing-sm);  /* Compact padding */
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: all var(--transition-fast);
-    }
-
-    .attachment-item:hover {
-        background: var(--primary-50);
-        border-color: var(--primary-300);
-    }
-
-    .attachment-info {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
-
-    .attachment-icon {
-        width: 36px;  /* Smaller icon */
-        height: 36px;
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        border-radius: var(--radius-sm);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.125rem;
-    }
-
-    .attachment-details {
-        flex: 1;
-    }
-
-    .attachment-name {
-        font-weight: 600;
-        font-size: 0.875rem;  /* Smaller */
-        color: var(--gray-900);
-        margin-bottom: 2px;
-    }
-
-    .attachment-size {
-        font-size: 0.75rem;
-        color: var(--gray-600);
-    }
-
-    .download-btn {
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        color: white;
-        border: none;
-        border-radius: var(--radius-sm);
-        padding: 6px var(--spacing-sm);  /* Compact */
-        font-weight: 600;
-        font-size: 0.8125rem;  /* Smaller */
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-xs);
-        transition: all var(--transition-base);
-    }
-
-    .download-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        color: white;
-    }
-
-    /* COMPACT Upload Form */
-    .upload-form {
-        margin-top: var(--spacing-sm);  /* Reduced from md */
-        padding: var(--spacing-sm);  /* Reduced from md */
-        background: var(--primary-50);
-        border-radius: var(--radius-md);
-        border: 2px dashed var(--primary-300);
-    }
-
-    .upload-form label {
-        font-size: 0.875rem;  /* Smaller */
-    }
-
-    .upload-form small {
-        font-size: 0.75rem;  /* Smaller */
-    }
-
-    /* COMPACT Timeline for Approval History */
-    .timeline {
-        position: relative;
-        padding-left: var(--spacing-lg);  /* Reduced */
-    }
-
-    .timeline::before {
-        content: '';
-        position: absolute;
-        left: 6px;  /* Adjusted */
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: var(--gray-300);
-    }
-
-    .timeline-item {
-        position: relative;
-        padding-bottom: var(--spacing-sm);  /* Reduced */
-        margin-bottom: var(--spacing-sm);  /* Reduced */
-    }
-
-    .timeline-item::before {
-        content: '';
-        position: absolute;
-        left: -22px;  /* Adjusted */
-        top: 2px;
-        width: 12px;  /* Smaller dot */
-        height: 12px;
-        border-radius: 50%;
-        background: var(--primary-500);
-        border: 2px solid white;
-        box-shadow: 0 0 0 2px var(--primary-500);
-    }
-
-    .timeline-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-        margin-bottom: 4px;  /* Minimal */
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-
-    .timeline-actor {
-        font-weight: 600;
-        font-size: 0.875rem;  /* Smaller */
-        color: var(--gray-900);
-    }
-
-    .timeline-role {
-        font-size: 0.75rem;  /* Smaller */
-        color: var(--gray-600);
-    }
-
-    .timeline-time {
-        font-size: 0.75rem;  /* Smaller */
-        color: var(--gray-500);
-    }
-
-    .timeline-comment {
-        background: var(--gray-50);
-        border-left: 2px solid var(--primary-500);  /* Thinner */
-        padding: 6px var(--spacing-sm);  /* Compact */
-        border-radius: var(--radius-sm);
-        font-style: italic;
-        font-size: 0.875rem;  /* Smaller */
-        color: var(--gray-700);
-        margin-top: 4px;
-    }
-
-    /* COMPACT Sidebar Actions with Animation */
-    .actions-sidebar {
-        position: sticky;
-        top: 100px;
-        opacity: 0;
-        transform: translateY(15px);
-        animation: fadeInUp 0.5s ease-out 0.3s forwards;  /* Stagger after main content */
-    }
-
-    .actions-card {
-        background: white;
-        border-radius: var(--radius-lg);  /* Reduced from xl */
-        box-shadow: var(--shadow-md);  /* Reduced from lg */
-        overflow: hidden;
-        margin-bottom: var(--spacing-md);  /* Reduced from xl */
-    }
-
-    .actions-card-header {
-        background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-900) 100%);
-        padding: var(--spacing-sm) var(--spacing-md);  /* Reduced from lg/xl */
-        border-bottom: 2px solid var(--gray-700);  /* Thinner */
-    }
-
-    .actions-card-title {
-        font-family: var(--font-heading);
-        font-size: 0.9375rem;  /* Reduced from 1.25rem */
-        font-weight: 600;
-        color: white;
-        margin: 0;
-    }
-
-    .actions-card-body {
-        padding: var(--spacing-md);  /* Reduced from xl */
-    }
-
-    .action-btn {
-        width: 100%;
-        margin-bottom: var(--spacing-sm);  /* Reduced from md */
-        padding: var(--spacing-sm) var(--spacing-md);  /* Reduced from md/lg */
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 0.875rem;  /* Reduced from 1rem */
-        border-radius: var(--radius-md);  /* Reduced from lg */
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;  /* Reduced from sm */
-        transition: all var(--transition-base);
-        text-decoration: none;
-        border: none;
-        cursor: pointer;
-    }
-
-    .action-btn i {
-        font-size: 1.125rem;  /* Reduced from 1.25rem */
-    }
-
-    .action-btn.primary {
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        color: white;
-        box-shadow: var(--shadow-md);
-    }
-
-    .action-btn.primary:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-        color: white;
-    }
-
-    .action-btn.success {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        color: white;
-        box-shadow: var(--shadow-md);
-    }
-
-    .action-btn.success:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-        color: white;
-    }
-
-    .action-btn.danger {
-        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-        color: white;
-        box-shadow: var(--shadow-md);
-    }
-
-    .action-btn.danger:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-        color: white;
-    }
-
-    .action-btn.secondary {
-        background: white;
-        color: var(--gray-700);
-        border: 2px solid var(--gray-300);
-    }
-
-    .action-btn.secondary:hover {
-        background: var(--gray-50);
-        border-color: var(--gray-400);
-        color: var(--gray-900);
-    }
-
-    /* COMPACT Approval Form */
-    .approval-form-card {
-        background: white;
-        border-radius: var(--radius-lg);  /* Reduced from xl */
-        box-shadow: var(--shadow-md);  /* Reduced from lg */
-        overflow: hidden;
-    }
-
-    .approval-form-header {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        padding: var(--spacing-sm) var(--spacing-md);  /* Reduced from lg/xl */
-        border-bottom: 2px solid #fbbf24;  /* Thinner */
-    }
-
-    .approval-form-title {
-        font-family: var(--font-heading);
-        font-size: 0.9375rem;  /* Reduced from 1.25rem */
-        font-weight: 600;
-        color: white;
-        margin: 0;
-    }
-
-    .approval-form-body {
-        padding: var(--spacing-md);  /* Reduced from xl */
-    }
-
-    /* COMPACT Empty State */
-    .empty-state {
-        text-align: center;
-        padding: var(--spacing-md);  /* Reduced from 2xl */
-        color: var(--gray-500);
-    }
-
-    .empty-state i {
-        font-size: 2rem;  /* Reduced from 3rem */
-        color: var(--gray-300);
-        margin-bottom: var(--spacing-sm);  /* Reduced from md */
-    }
-
-    .empty-state p {
-        font-size: 0.875rem;  /* Smaller text */
-        margin: 0;
-    }
-
-    /* ==================== RESPONSIVE DESIGN ==================== */
-
-    /* Large Tablets and Small Desktops (992-1199px) */
-    @media (max-width: 1199px) {
-        .info-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px 10px;
-        }
-    }
-
-    /* Tablet (768-991px) */
-    @media (max-width: 991px) {
-        .voucher-detail-container {
+            max-width: 1600px;
+            margin: 0 auto;
             padding: 0 var(--spacing-md);
+            opacity: 0;
+            animation: fadeInPage 0.5s ease-in 0.1s forwards;
         }
 
-        .detail-grid {
-            grid-template-columns: 1fr;
+        @keyframes fadeInPage {
+            to {
+                opacity: 1;
+            }
         }
 
-        .actions-sidebar {
-            position: static;
+        /* Extra Large Screens */
+        @media (min-width: 1800px) {
+            .voucher-detail-container {
+                max-width: 1800px;
+            }
         }
 
-        .page-title {
-            font-size: 1.375rem;  /* Slightly smaller than desktop compact */
-        }
-
-        .pv-number-display {
-            font-size: 1.125rem;  /* Slightly smaller than desktop compact */
-        }
-
-        .info-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 6px 10px;
-        }
-    }
-
-    /* Mobile (<768px) */
-    @media (max-width: 768px) {
-        .voucher-detail-container {
-            padding: 0 12px;
+        /* COMPACT Page Header */
+        .page-header {
+            margin-bottom: var(--spacing-lg); /* Reduced from 2xl */
+            padding: var(--spacing-sm) 0;
+            margin-top: -45px;
         }
 
         .page-title-section {
-            flex-direction: column;
-            align-items: flex-start;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            margin-bottom: 20px;
         }
 
         .page-title {
-            font-size: 1.25rem;  /* Compact for mobile */
+            font-family: var(--font-heading);
+            font-size: 1.5rem; /* Reduced from 2rem */
+            font-weight: 700;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: 0;
         }
 
         .page-title i {
-            font-size: 1.5rem;  /* Compact for mobile */
+            font-size: 1.75rem; /* Reduced from 2.5rem */
+            color: var(--primary-600);
+
         }
 
+        /* COMPACT PF Number Display */
         .pv-number-display {
-            font-size: 1.125rem;  /* Compact for mobile */
+            font-family: var(--font-heading);
+            font-size: 1.25rem; /* Reduced from 2rem */
+            font-weight: 700;
+            color: var(--primary-700);
+            background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+            padding: var(--spacing-xs) var(--spacing-md); /* Reduced padding */
+            border-radius: var(--radius-md);
+            border: 2px solid var(--primary-200);
         }
 
-        .page-actions {
-            width: 100%;
-            flex-direction: column;
+        /* COMPACT Status Badge */
+        .status-badge-large {
+            padding: 4px var(--spacing-md); /* Compact padding */
+            border-radius: var(--radius-full);
+            font-size: 0.8125rem; /* Reduced from 1rem */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-sm);
         }
 
-        .back-btn,
-        .action-btn {
-            width: 100%;
-            justify-content: center;
-            min-height: 44px;
+        .status-badge-large i {
+            font-size: 0.875rem; /* Reduced from 1.25rem */
         }
 
-        .detail-card-header,
-        .detail-card-body {
-            padding: var(--spacing-md);
+        .status-badge-large.draft {
+            background: var(--gray-200);
+            color: var(--gray-700);
         }
 
-        .info-grid {
-            grid-template-columns: 1fr;
+        .status-badge-large.pending {
+            background: var(--warning-light);
+            color: #92400e;
+        }
+
+        .status-badge-large.approved {
+            background: var(--success-light);
+            color: #065f46;
+        }
+
+        .status-badge-large.rejected {
+            background: var(--danger-light);
+            color: #991b1b;
+        }
+
+        .status-badge-large.revision {
+            background: var(--info-light);
+            color: #1e40af;
+        }
+
+        /* Two Column Layout - COMPACT */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px; /* Narrower sidebar */
+            gap: var(--spacing-md); /* Reduced gap */
+        }
+
+        /* COMPACT Detail Cards with Fade Animation */
+        .detail-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: var(--spacing-md); /* Reduced */
+            transition: all var(--transition-base);
+            opacity: 0;
+            transform: translateY(15px);
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        /* Stagger animation for multiple cards */
+        .detail-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .detail-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .detail-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .detail-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .detail-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        /* COMPACT Card Headers */
+        .detail-card-header {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+            padding: var(--spacing-sm) var(--spacing-md); /* Reduced from lg/xl */
+            border-bottom: 2px solid var(--primary-500);
+        }
+
+        .detail-card-header.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-bottom-color: #60a5fa;
+        }
+
+        .detail-card-header.success {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            border-bottom-color: #34d399;
+        }
+
+        .detail-card-header.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-bottom-color: #fbbf24;
+        }
+
+        /* COMPACT Card Title */
+        .detail-card-title {
+            font-family: var(--font-heading);
+            font-size: 0.9375rem; /* Reduced from 1.25rem */
+            font-weight: 600;
+            color: white;
+            margin: 0;
+            display: flex;
+            align-items: center;
             gap: 6px;
         }
 
-        /* Tables: horizontal scroll */
-        .line-items-table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 0 -12px;
-            padding: 0 12px;
+        .detail-card-title i {
+            font-size: 1.125rem; /* Reduced from 1.5rem */
         }
 
-        .line-items-table {
-            min-width: 700px;
-            font-size: 0.875rem;
+        /* COMPACT Card Body */
+        .detail-card-body {
+            padding: var(--spacing-md); /* Reduced from xl */
         }
 
-        .line-items-table th,
-        .line-items-table td {
-            padding: var(--spacing-sm);
+        /* Extra compact for info card */
+        .detail-card.info-card {
+            margin-bottom: var(--spacing-sm);
         }
 
-        /* Attachments */
-        .attachment-item {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: var(--spacing-sm);
+        .detail-card.info-card .detail-card-body {
+            padding: var(--spacing-sm) var(--spacing-md);
         }
 
-        .download-btn {
+        /* COMPACT Info Grid - 3 Columns */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px 12px;
             width: 100%;
-            justify-content: center;
-            min-height: 44px;
         }
 
-        /* History timeline */
-        .timeline-item {
-            padding-left: var(--spacing-lg);
-        }
-    }
-
-    /* Small Mobile (<576px) */
-    @media (max-width: 576px) {
-        .voucher-detail-container {
-            padding: 0 8px;
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            padding: 4px 8px;
+            background: var(--gray-50);
+            border-radius: var(--radius-sm);
+            border-left: 2px solid var(--primary-400);
         }
 
-        .page-title {
-            font-size: 1.125rem;  /* Even smaller for tiny screens */
+        .info-item dt {
+            font-family: var(--font-body);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
         }
 
-        .page-title i {
-            font-size: 1.25rem;
+        .info-item dd {
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            color: var(--gray-900);
+            font-weight: 500;
+            margin: 0;
         }
 
-        .pv-number-display {
-            font-size: 1rem;  /* Smaller */
-            padding: var(--spacing-xs) var(--spacing-sm);
-        }
-
-        .detail-card-header h3,
-        .detail-card-title {
-            font-size: 0.875rem;  /* Compact card titles */
-        }
-
+        /* COMPACT Line Items Table */
         .line-items-table {
-            font-size: 0.8125rem;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .line-items-table thead {
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
+        }
+
+        .line-items-table th {
+            font-family: var(--font-body);
+            font-size: 0.75rem; /* Reduced */
+            font-weight: 600;
+            color: var(--gray-700);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: var(--spacing-sm) var(--spacing-md); /* Compact */
+            text-align: left;
+            border-bottom: 2px solid var(--primary-200);
+        }
+
+        .line-items-table tbody tr {
+            transition: all var(--transition-fast);
+        }
+
+        .line-items-table tbody tr:hover {
+            background: var(--primary-50);
+        }
+
+        .line-items-table td {
+            padding: var(--spacing-sm) var(--spacing-md); /* Compact */
+            border-bottom: 1px solid var(--gray-200);
+            vertical-align: middle;
+            font-size: 0.875rem; /* Smaller text */
+        }
+
+        .line-items-table tfoot {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+        }
+
+        .line-items-table tfoot th {
+            color: white;
+            font-size: 0.9375rem; /* Reduced */
+            padding: var(--spacing-sm) var(--spacing-md); /* Compact */
+            border: none;
         }
 
         .grand-total-value {
-            font-size: 1.125rem;  /* Compact grand total */
+            font-family: var(--font-heading);
+            font-size: 1.25rem; /* Reduced from 1.5rem */
+            font-weight: 700;
+            text-align: right;
         }
-    }
-</style>
+
+        /* COMPACT Attachments List */
+        .attachments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px; /* Minimal gap */
+        }
+
+        .attachment-item {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200); /* Thinner border */
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm); /* Compact padding */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all var(--transition-fast);
+        }
+
+        .attachment-item:hover {
+            background: var(--primary-50);
+            border-color: var(--primary-300);
+        }
+
+        .attachment-info {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .attachment-icon {
+            width: 36px; /* Smaller icon */
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.125rem;
+        }
+
+        .attachment-details {
+            flex: 1;
+        }
+
+        .attachment-name {
+            font-weight: 600;
+            font-size: 0.875rem; /* Smaller */
+            color: var(--gray-900);
+            margin-bottom: 2px;
+        }
+
+        .attachment-size {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 6px var(--spacing-sm); /* Compact */
+            font-weight: 600;
+            font-size: 0.8125rem; /* Smaller */
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            transition: all var(--transition-base);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            color: white;
+        }
+
+        /* COMPACT Upload Form */
+        .upload-form {
+            margin-top: var(--spacing-sm); /* Reduced from md */
+            padding: var(--spacing-sm); /* Reduced from md */
+            background: var(--primary-50);
+            border-radius: var(--radius-md);
+            border: 2px dashed var(--primary-300);
+        }
+
+        .upload-form label {
+            font-size: 0.875rem; /* Smaller */
+        }
+
+        .upload-form small {
+            font-size: 0.75rem; /* Smaller */
+        }
+
+        /* COMPACT Timeline for Approval History */
+        .timeline {
+            position: relative;
+            padding-left: var(--spacing-lg); /* Reduced */
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px; /* Adjusted */
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gray-300);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: var(--spacing-sm); /* Reduced */
+            margin-bottom: var(--spacing-sm); /* Reduced */
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px; /* Adjusted */
+            top: 2px;
+            width: 12px; /* Smaller dot */
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary-500);
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px var(--primary-500);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 4px; /* Minimal */
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .timeline-actor {
+            font-weight: 600;
+            font-size: 0.875rem; /* Smaller */
+            color: var(--gray-900);
+        }
+
+        .timeline-role {
+            font-size: 0.75rem; /* Smaller */
+            color: var(--gray-600);
+        }
+
+        .timeline-time {
+            font-size: 0.75rem; /* Smaller */
+            color: var(--gray-500);
+        }
+
+        .timeline-comment {
+            background: var(--gray-50);
+            border-left: 2px solid var(--primary-500); /* Thinner */
+            padding: 6px var(--spacing-sm); /* Compact */
+            border-radius: var(--radius-sm);
+            font-style: italic;
+            font-size: 0.875rem; /* Smaller */
+            color: var(--gray-700);
+            margin-top: 4px;
+        }
+
+        /* COMPACT Sidebar Actions with Animation */
+        .actions-sidebar {
+            position: sticky;
+            top: 100px;
+            opacity: 0;
+            transform: translateY(15px);
+            animation: fadeInUp 0.5s ease-out 0.3s forwards; /* Stagger after main content */
+        }
+
+        .actions-card {
+            background: white;
+            border-radius: var(--radius-lg); /* Reduced from xl */
+            box-shadow: var(--shadow-md); /* Reduced from lg */
+            overflow: hidden;
+            margin-bottom: var(--spacing-md); /* Reduced from xl */
+        }
+
+        .actions-card-header {
+            background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-900) 100%);
+            padding: var(--spacing-sm) var(--spacing-md); /* Reduced from lg/xl */
+            border-bottom: 2px solid var(--gray-700); /* Thinner */
+        }
+
+        .actions-card-title {
+            font-family: var(--font-heading);
+            font-size: 0.9375rem; /* Reduced from 1.25rem */
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .actions-card-body {
+            padding: var(--spacing-md); /* Reduced from xl */
+        }
+
+        .action-btn {
+            width: 100%;
+            margin-bottom: var(--spacing-sm); /* Reduced from md */
+            padding: var(--spacing-sm) var(--spacing-md); /* Reduced from md/lg */
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 0.875rem; /* Reduced from 1rem */
+            border-radius: var(--radius-md); /* Reduced from lg */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px; /* Reduced from sm */
+            transition: all var(--transition-base);
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .action-btn i {
+            font-size: 1.125rem; /* Reduced from 1.25rem */
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .action-btn.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .action-btn.success {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .action-btn.success:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .action-btn.danger {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .action-btn.danger:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 2px solid var(--gray-300);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+            color: var(--gray-900);
+        }
+
+        /* COMPACT Approval Form */
+        .approval-form-card {
+            background: white;
+            border-radius: var(--radius-lg); /* Reduced from xl */
+            box-shadow: var(--shadow-md); /* Reduced from lg */
+            overflow: hidden;
+        }
+
+        .approval-form-header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            padding: var(--spacing-sm) var(--spacing-md); /* Reduced from lg/xl */
+            border-bottom: 2px solid #fbbf24; /* Thinner */
+        }
+
+        .approval-form-title {
+            font-family: var(--font-heading);
+            font-size: 0.9375rem; /* Reduced from 1.25rem */
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .approval-form-body {
+            padding: var(--spacing-md); /* Reduced from xl */
+        }
+
+        /* COMPACT Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-md); /* Reduced from 2xl */
+            color: var(--gray-500);
+        }
+
+        .empty-state i {
+            font-size: 2rem; /* Reduced from 3rem */
+            color: var(--gray-300);
+            margin-bottom: var(--spacing-sm); /* Reduced from md */
+        }
+
+        .empty-state p {
+            font-size: 0.875rem; /* Smaller text */
+            margin: 0;
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+
+        /* Large Tablets and Small Desktops (992-1199px) */
+        @media (max-width: 1199px) {
+            .info-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px 10px;
+            }
+        }
+
+        /* Tablet (768-991px) */
+        @media (max-width: 991px) {
+            .voucher-detail-container {
+                padding: 0 var(--spacing-md);
+            }
+
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions-sidebar {
+                position: static;
+            }
+
+            .page-title {
+                font-size: 1.375rem; /* Slightly smaller than desktop compact */
+            }
+
+            .pv-number-display {
+                font-size: 1.125rem; /* Slightly smaller than desktop compact */
+            }
+
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px 10px;
+            }
+        }
+
+        /* Mobile (<768px) */
+        @media (max-width: 768px) {
+            .voucher-detail-container {
+                padding: 0 12px;
+            }
+
+            .page-title-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .page-title {
+                font-size: 1.25rem; /* Compact for mobile */
+            }
+
+            .page-title i {
+                font-size: 1.5rem; /* Compact for mobile */
+            }
+
+            .pv-number-display {
+                font-size: 1.125rem; /* Compact for mobile */
+            }
+
+            .page-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .back-btn,
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+                min-height: 44px;
+            }
+
+            .detail-card-header,
+            .detail-card-body {
+                padding: var(--spacing-md);
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            /* Tables: horizontal scroll */
+            .line-items-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 0 -12px;
+                padding: 0 12px;
+            }
+
+            .line-items-table {
+                min-width: 700px;
+                font-size: 0.875rem;
+            }
+
+            .line-items-table th,
+            .line-items-table td {
+                padding: var(--spacing-sm);
+            }
+
+            /* Attachments */
+            .attachment-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-sm);
+            }
+
+            .download-btn {
+                width: 100%;
+                justify-content: center;
+                min-height: 44px;
+            }
+
+            /* History timeline */
+            .timeline-item {
+                padding-left: var(--spacing-lg);
+            }
+        }
+
+        /* Small Mobile (<576px) */
+        @media (max-width: 576px) {
+            .voucher-detail-container {
+                padding: 0 8px;
+            }
+
+            .page-title {
+                font-size: 1.125rem; /* Even smaller for tiny screens */
+            }
+
+            .page-title i {
+                font-size: 1.25rem;
+            }
+
+            .pv-number-display {
+                font-size: 1rem; /* Smaller */
+                padding: var(--spacing-xs) var(--spacing-sm);
+            }
+
+            .detail-card-header h3,
+            .detail-card-title {
+                font-size: 0.875rem; /* Compact card titles */
+            }
+
+            .line-items-table {
+                font-size: 0.8125rem;
+            }
+
+            .grand-total-value {
+                font-size: 1.125rem; /* Compact grand total */
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-<div class="voucher-detail-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="page-title-section">
-            <h1 class="page-title">
-                <i class="bi bi-receipt-cutoff"></i>
-                <span>Payment Payment Form</span>
-            </h1>
-            {% if payment_form.status == 'DRAFT' %}
-                <span class="status-badge-large draft">
+    <div class="voucher-detail-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title-section">
+                <h1 class="page-title">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    <span>Payment Payment Form</span>
+                </h1>
+                {% if payment_form.status == 'DRAFT' %}
+                    <span class="status-badge-large draft">
                     <i class="bi bi-pencil"></i> {{ payment_form.get_status_display }}
                 </span>
-            {% elif payment_form.status == 'APPROVED' %}
-                <span class="status-badge-large approved">
+                {% elif payment_form.status == 'APPROVED' %}
+                    <span class="status-badge-large approved">
                     <i class="bi bi-check-circle"></i> {{ payment_form.get_status_display }}
                 </span>
-            {% elif payment_form.status == 'REJECTED' %}
-                <span class="status-badge-large rejected">
+                {% elif payment_form.status == 'REJECTED' %}
+                    <span class="status-badge-large rejected">
                     <i class="bi bi-x-circle"></i> {{ payment_form.get_status_display }}
                 </span>
-            {% elif payment_form.status == 'ON_REVISION' %}
-                <span class="status-badge-large revision">
+                {% elif payment_form.status == 'ON_REVISION' %}
+                    <span class="status-badge-large revision">
                     <i class="bi bi-arrow-counterclockwise"></i> {{ payment_form.get_status_display }}
                 </span>
-            {% else %}
-                <span class="status-badge-large pending">
+                {% else %}
+                    <span class="status-badge-large pending">
                     <i class="bi bi-clock"></i> {{ payment_form.get_status_display }}
                 </span>
-            {% endif %}
+                {% endif %}
+            </div>
+            <div class="pv-number-display">
+                PF {{ payment_form.pf_number|default:"Not Yet Assigned" }}
+            </div>
         </div>
-        <div class="pv-number-display">
-            PF {{ payment_form.pf_number|default:"Not Yet Assigned" }}
-        </div>
-    </div>
 
-    <div class="detail-grid">
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Payment Form Information -->
-            <div class="detail-card info-card">
-                <div class="detail-card-header">
-                    <h2 class="detail-card-title">
-                        <i class="bi bi-info-circle"></i>
-                        <span>Payment Form Information</span>
-                    </h2>
-                </div>
-                <div class="detail-card-body">
-                    <div class="info-grid">
+        <!-- Payment Form Information Card - CORRECT VERSION -->
+        <div class="detail-card info-card">
+            <div class="detail-card-header">
+                <h2 class="detail-card-title">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Payment Form Information</span>
+                </h2>
+            </div>
+            <div class="detail-card-body">
+                <div class="info-grid">
+                    <!-- Row 1: Basic Info -->
+                    <dl class="info-item">
+                        <dt>Payee Name</dt>
+                        <dd>{{ payment_form.payee_name }}</dd>
+                    </dl>
+
+                    <dl class="info-item">
+                        <dt>Payment Date</dt>
+                        <dd>{{ payment_form.payment_date|date:"F d, Y" }}</dd>
+                    </dl>
+
+                    <dl class="info-item">
+                        <dt>Created By</dt>
+                        <dd>{{ payment_form.created_by.get_full_name|default:payment_form.created_by.username }}</dd>
+                    </dl>
+
+                    <!-- Row 2: Company Account (Transfer FROM) -->
+                    {% if payment_form.company_bank_account %}
                         <dl class="info-item">
-                            <dt>Payee Name</dt>
-                            <dd>{{ payment_form.payee_name }}</dd>
+                            <dt>Transfer From (Company)</dt>
+                            <dd><strong
+                                    style="color: #667eea;">{{ payment_form.company_bank_account.company_name }}</strong>
+                            </dd>
                         </dl>
 
                         <dl class="info-item">
-                            <dt>Payment Date</dt>
-                            <dd>{{ payment_form.payment_date|date:"F d, Y" }}</dd>
-                        </dl>
-
-                        {% if payment_form.company_bank_account %}
-                        <dl class="info-item">
-                            <dt>Bank Address</dt>
-                            <dd><strong style="color: #667eea;">{{ payment_form.company_bank_account.bank }}</strong></dd>
+                            <dt>Company Bank</dt>
+                            <dd>{{ payment_form.company_bank_account.bank }}</dd>
                         </dl>
 
                         <dl class="info-item">
-                            <dt>Company Name</dt>
-                            <dd>{{ payment_form.company_bank_account.company_name }}</dd>
+                            <dt>Company Account</dt>
+                            <dd>{{ payment_form.company_bank_account.account_number }}
+                                ({{ payment_form.company_bank_account.currency }})
+                            </dd>
                         </dl>
+                    {% endif %}
 
-                        <dl class="info-item">
-                            <dt>Account Number</dt>
-                            <dd>{{ payment_form.company_bank_account.account_number }} ({{ payment_form.company_bank_account.currency }})</dd>
-                        </dl>
-                        {% else %}
-                        <dl class="info-item">
-                            <dt>Bank Address</dt>
-                            <dd>{{ payment_form.bank_address|default:"Not specified" }}</dd>
-                        </dl>
+                    <!-- Row 3: Supplier Account (Transfer TO) - Manual Entry -->
+                    <dl class="info-item">
+                        <dt>Transfer To (Supplier Bank)</dt>
+                        <dd><strong
+                                style="color: #10b981;">{{ payment_form.bank_address|default:"Not specified" }}</strong>
+                        </dd>
+                    </dl>
 
-                        <dl class="info-item">
-                            <dt>Bank Name</dt>
-                            <dd>{{ payment_form.bank_name|default:"Not specified" }}</dd>
-                        </dl>
+                    <dl class="info-item">
+                        <dt>Supplier Account Holder</dt>
+                        <dd>{{ payment_form.bank_name|default:"Not specified" }}</dd>
+                    </dl>
 
-                        <dl class="info-item">
-                            <dt>Account Number</dt>
-                            <dd>{{ payment_form.bank_account_number|default:"Not specified" }}</dd>
-                        </dl>
-                        {% endif %}
+                    <dl class="info-item">
+                        <dt>Supplier Account Number</dt>
+                        <dd>{{ payment_form.bank_account_number|default:"Not specified" }}</dd>
+                    </dl>
 
-                        <dl class="info-item">
-                            <dt>Created By</dt>
-                            <dd>{{ payment_form.created_by.get_full_name|default:payment_form.created_by.username }}</dd>
-                        </dl>
+                    <!-- Row 4: System Info -->
+                    <dl class="info-item">
+                        <dt>Created At</dt>
+                        <dd>{{ payment_form.created_at|date:"F d, Y g:i A" }}</dd>
+                    </dl>
 
-                        <dl class="info-item">
-                            <dt>Created At</dt>
-                            <dd>{{ payment_form.created_at|date:"F d, Y g:i A" }}</dd>
-                        </dl>
-
-                        {% if payment_form.submitted_at %}
+                    {% if payment_form.submitted_at %}
                         <dl class="info-item">
                             <dt>Submitted At</dt>
                             <dd>{{ payment_form.submitted_at|date:"F d, Y g:i A" }}</dd>
                         </dl>
-                        {% endif %}
+                    {% endif %}
 
-                        {% if payment_form.current_approver %}
-                        <dl class="info-item" style="grid-column: 1 / -1;">
+                    {% if payment_form.current_approver %}
+                        <dl class="info-item">
                             <dt>Current Approver</dt>
                             <dd>
                                 {{ payment_form.current_approver.get_full_name|default:payment_form.current_approver.username }}
                                 <span style="color: var(--primary-600); font-weight: 600; font-size: 0.75rem;">({{ payment_form.current_approver.get_role_level_display }})</span>
                             </dd>
                         </dl>
-                        {% endif %}
-                    </div>
+                    {% endif %}
                 </div>
             </div>
+        </div>
 
-            <!-- Line Items -->
-            <div class="detail-card">
-                <div class="detail-card-header info">
-                    <h2 class="detail-card-title">
-                        <i class="bi bi-list-check"></i>
-                        <span>Line Items</span>
-                    </h2>
-                </div>
-                <div class="detail-card-body">
-                    <div class="line-items-table-container">
-                        <table class="line-items-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%;">#</th>
-                                    <th style="width: 30%;">Description</th>
-                                    <th style="width: 15%;">Department</th>
-                                    <th style="width: 15%;">Program</th>
-                                    <th style="width: 12%;">Amount</th>
-                                    <th style="width: 11%;">VAT</th>
-                                    <th style="width: 12%;">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in payment_form.line_items.all %}
-                                <tr>
-                                    <td class="text-center"><strong>{{ item.line_number }}</strong></td>
-                                    <td>{{ item.description }}</td>
-                                    <td>{{ item.department.name }}</td>
-                                    <td>{{ item.program|default:"-" }}</td>
-                                    <td style="text-align: right;">{{ item.get_currency_symbol }}{{ item.amount|floatformat:2 }}</td>
-                                    <td class="text-center">
-                                        {% if item.vat_applicable %}
-                                            <span class="status-badge approved" style="font-size: 0.75rem;">Yes</span>
-                                            <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 2px;">
-                                                +{{ item.get_currency_symbol }}{{ item.get_vat_amount|floatformat:2 }}
-                                            </div>
-                                        {% else %}
-                                            <span class="status-badge draft" style="font-size: 0.75rem;">No</span>
-                                        {% endif %}
-                                    </td>
-                                    <td style="text-align: right; font-weight: 700; color: var(--gray-900); font-size: 1rem;">
-                                        {{ item.get_total_with_currency }}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="6" style="text-align: right;">GRAND TOTAL:</th>
-                                    <th>
-                                        <div class="grand-total-value">{{ payment_form.get_grand_total_display }}</div>
-                                    </th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+        <!-- Line Items -->
+        <div class="detail-card">
+            <div class="detail-card-header info">
+                <h2 class="detail-card-title">
+                    <i class="bi bi-list-check"></i>
+                    <span>Line Items</span>
+                </h2>
+            </div>
+            <div class="detail-card-body">
+                <div class="line-items-table-container">
+                    <table class="line-items-table">
+                        <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 30%;">Description</th>
+                            <th style="width: 15%;">Department</th>
+                            <th style="width: 15%;">Program</th>
+                            <th style="width: 12%;">Amount</th>
+                            <th style="width: 11%;">VAT</th>
+                            <th style="width: 12%;">Total</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in payment_form.line_items.all %}
+                            <tr>
+                                <td class="text-center"><strong>{{ item.line_number }}</strong></td>
+                                <td>{{ item.description }}</td>
+                                <td>{{ item.department.name }}</td>
+                                <td>{{ item.program|default:"-" }}</td>
+                                <td style="text-align: right;">
+                                    {{ item.get_currency_symbol }}{{ item.amount|floatformat:2 }}</td>
+                                <td class="text-center">
+                                    {% if item.vat_applicable %}
+                                        <span class="status-badge approved" style="font-size: 0.75rem;">Yes</span>
+                                        <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 2px;">
+                                            +{{ item.get_currency_symbol }}{{ item.get_vat_amount|floatformat:2 }}
+                                        </div>
+                                    {% else %}
+                                        <span class="status-badge draft" style="font-size: 0.75rem;">No</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: right; font-weight: 700; color: var(--gray-900); font-size: 1rem;">
+                                    {{ item.get_total_with_currency }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="6" style="text-align: right;">GRAND TOTAL:</th>
+                            <th>
+                                <div class="grand-total-value">{{ payment_form.get_grand_total_display }}</div>
+                            </th>
+                        </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
+        </div>
 
-            <!-- Attachments -->
-            <div class="detail-card">
-                <div class="detail-card-header success">
-                    <h2 class="detail-card-title">
-                        <i class="bi bi-paperclip"></i>
-                        <span>Attachments</span>
-                    </h2>
-                </div>
-                <div class="detail-card-body">
-                    {% if payment_form.attachments.exists %}
-                        <div style="background: var(--primary-50); border-left: 3px solid var(--primary-500); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); margin-bottom: var(--spacing-sm); font-size: 0.75rem; color: var(--gray-700);">
-                            <i class="bi bi-folder2-open"></i> <strong>Storage:</strong> {{ payment_form.get_attachment_folder }}
-                        </div>
-                        <div class="attachments-list">
-                            {% for attachment in payment_form.attachments.all %}
+        <!-- Attachments -->
+        <div class="detail-card">
+            <div class="detail-card-header success">
+                <h2 class="detail-card-title">
+                    <i class="bi bi-paperclip"></i>
+                    <span>Attachments</span>
+                </h2>
+            </div>
+            <div class="detail-card-body">
+                {% if payment_form.attachments.exists %}
+                    <div style="background: var(--primary-50); border-left: 3px solid var(--primary-500); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); margin-bottom: var(--spacing-sm); font-size: 0.75rem; color: var(--gray-700);">
+                        <i class="bi bi-folder2-open"></i>
+                        <strong>Storage:</strong> {{ payment_form.get_attachment_folder }}
+                    </div>
+                    <div class="attachments-list">
+                        {% for attachment in payment_form.attachments.all %}
                             <div class="attachment-item">
                                 <div class="attachment-info">
                                     <div class="attachment-icon">
@@ -972,34 +994,39 @@
                                     </div>
                                     <div class="attachment-details">
                                         <div class="attachment-name">{{ attachment.filename }}</div>
-                                        <div class="attachment-size">{{ attachment.get_file_size_display }} • Uploaded {{ attachment.uploaded_at|date:"M d, Y" }}</div>
+                                        <div class="attachment-size">{{ attachment.get_file_size_display }} •
+                                            Uploaded {{ attachment.uploaded_at|date:"M d, Y" }}</div>
                                     </div>
                                 </div>
-                                <a href="{% url 'vouchers:download_form_attachment' pk=payment_form.pk attachment_id=attachment.id %}" class="download-btn">
+                                <a href="{% url 'vouchers:download_form_attachment' pk=payment_form.pk attachment_id=attachment.id %}"
+                                   class="download-btn">
                                     <i class="bi bi-download"></i>
                                     <span>Download</span>
                                 </a>
                             </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="bi bi-file-earmark-x"></i>
-                            <p>No attachments uploaded yet.</p>
-                        </div>
-                    {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-file-earmark-x"></i>
+                        <p>No attachments uploaded yet.</p>
+                    </div>
+                {% endif %}
 
-                    {% if can_edit %}
+                {% if can_edit %}
                     <div class="upload-form">
-                        <form method="post" action="{% url 'vouchers:upload_form_attachment' pk=payment_form.pk %}" enctype="multipart/form-data">
+                        <form method="post" action="{% url 'vouchers:upload_form_attachment' pk=payment_form.pk %}"
+                              enctype="multipart/form-data">
                             {% csrf_token %}
                             <div style="margin-bottom: var(--spacing-sm);">
                                 <label style="font-weight: 600; font-size: 0.875rem; color: var(--gray-700); margin-bottom: 4px; display: block;">
                                     <i class="bi bi-cloud-upload"></i> Upload New Attachment
                                 </label>
-                                <input type="file" name="files" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" multiple required>
+                                <input type="file" name="files" class="form-control"
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" multiple required>
                                 <small style="color: var(--gray-600); font-size: 0.75rem; margin-top: 4px; display: block;">
-                                    Allowed: PNG, JPG, PDF (Max 10MB) • Files will be stored in: <strong>{{ payment_form.get_attachment_folder }}</strong>
+                                    Allowed: PNG, JPG, PDF (Max 10MB) • Files will be stored in:
+                                    <strong>{{ payment_form.get_attachment_folder }}</strong>
                                 </small>
                             </div>
                             <button type="submit" class="action-btn success" style="margin-bottom: 0;">
@@ -1008,12 +1035,12 @@
                             </button>
                         </form>
                     </div>
-                    {% endif %}
-                </div>
+                {% endif %}
             </div>
+        </div>
 
-            <!-- Approval History -->
-            {% if approval_history %}
+        <!-- Approval History -->
+        {% if approval_history %}
             <div class="detail-card">
                 <div class="detail-card-header warning">
                     <h2 class="detail-card-title">
@@ -1024,60 +1051,60 @@
                 <div class="detail-card-body">
                     <div class="timeline">
                         {% for history in approval_history %}
-                        <div class="timeline-item">
-                            <div class="timeline-header">
-                                <div>
-                                    {% if history.action == 'APPROVE' %}
-                                        <span class="status-badge approved">
+                            <div class="timeline-item">
+                                <div class="timeline-header">
+                                    <div>
+                                        {% if history.action == 'APPROVE' %}
+                                            <span class="status-badge approved">
                                             <i class="bi bi-check-circle"></i> {{ history.get_action_display }}
                                         </span>
-                                    {% elif history.action == 'REJECT' %}
-                                        <span class="status-badge rejected">
+                                        {% elif history.action == 'REJECT' %}
+                                            <span class="status-badge rejected">
                                             <i class="bi bi-x-circle"></i> {{ history.get_action_display }}
                                         </span>
-                                    {% elif history.action == 'RETURN' %}
-                                        <span class="status-badge revision">
+                                        {% elif history.action == 'RETURN' %}
+                                            <span class="status-badge revision">
                                             <i class="bi bi-arrow-counterclockwise"></i> {{ history.get_action_display }}
                                         </span>
-                                    {% else %}
-                                        <span class="status-badge pending">
+                                        {% else %}
+                                            <span class="status-badge pending">
                                             <i class="bi bi-send"></i> {{ history.get_action_display }}
                                         </span>
-                                    {% endif %}
-                                    <div class="timeline-actor">{{ history.actor.get_full_name|default:history.actor.username }}</div>
-                                    <div class="timeline-role">{{ history.get_actor_role_level_display }}</div>
+                                        {% endif %}
+                                        <div class="timeline-actor">{{ history.actor.get_full_name|default:history.actor.username }}</div>
+                                        <div class="timeline-role">{{ history.get_actor_role_level_display }}</div>
+                                    </div>
+                                    <div class="timeline-time">{{ history.timestamp|date:"M d, Y g:i A" }}</div>
                                 </div>
-                                <div class="timeline-time">{{ history.timestamp|date:"M d, Y g:i A" }}</div>
+                                {% if history.comments %}
+                                    <div class="timeline-comment">
+                                        "{{ history.comments }}"
+                                    </div>
+                                {% endif %}
                             </div>
-                            {% if history.comments %}
-                            <div class="timeline-comment">
-                                "{{ history.comments }}"
-                            </div>
-                            {% endif %}
-                        </div>
                         {% endfor %}
                     </div>
                 </div>
             </div>
-            {% endif %}
-        </div>
+        {% endif %}
+    </div>
 
-        <!-- Actions Sidebar -->
-        <div class="actions-sidebar">
-            <!-- Action Buttons -->
-            <div class="actions-card">
-                <div class="actions-card-header">
-                    <h3 class="actions-card-title">Actions</h3>
-                </div>
-                <div class="actions-card-body">
-                    {% if can_edit %}
+    <!-- Actions Sidebar -->
+    <div class="actions-sidebar">
+        <!-- Action Buttons -->
+        <div class="actions-card">
+            <div class="actions-card-header">
+                <h3 class="actions-card-title">Actions</h3>
+            </div>
+            <div class="actions-card-body">
+                {% if can_edit %}
                     <a href="{% url 'vouchers:pf_edit' payment_form.pk %}" class="action-btn primary">
                         <i class="bi bi-pencil-square"></i>
                         <span>Edit Payment Form</span>
                     </a>
-                    {% endif %}
+                {% endif %}
 
-                    {% if payment_form.status == 'DRAFT' and payment_form.created_by == user %}
+                {% if payment_form.status == 'DRAFT' and payment_form.created_by == user %}
                     <form method="post" action="{% url 'vouchers:pf_delete' payment_form.pk %}" id="delete-form">
                         {% csrf_token %}
                         <button type="button" class="action-btn danger" onclick="showDeleteConfirmation()">
@@ -1085,9 +1112,9 @@
                             <span>Delete Payment Form</span>
                         </button>
                     </form>
-                    {% endif %}
+                {% endif %}
 
-                    {% if can_submit %}
+                {% if can_submit %}
                     <form method="post" action="{% url 'vouchers:pf_submit' payment_form.pk %}" id="submit-form">
                         {% csrf_token %}
                         <button type="button" class="action-btn success" onclick="showSubmitConfirmation()">
@@ -1095,24 +1122,24 @@
                             <span>Submit for Approval</span>
                         </button>
                     </form>
-                    {% endif %}
+                {% endif %}
 
-                    {% if payment_form.status == 'APPROVED' %}
+                {% if payment_form.status == 'APPROVED' %}
                     <a href="{% url 'vouchers:pf_pdf' payment_form.pk %}" class="action-btn primary">
                         <i class="bi bi-file-pdf"></i>
                         <span>Download PDF</span>
                     </a>
-                    {% endif %}
+                {% endif %}
 
-                    <a href="{% url 'dashboard:home' %}" class="action-btn secondary">
-                        <i class="bi bi-arrow-left"></i>
-                        <span>Back to Dashboard</span>
-                    </a>
-                </div>
+                <a href="{% url 'dashboard:home' %}" class="action-btn secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Back to Dashboard</span>
+                </a>
             </div>
+        </div>
 
-            <!-- Approval Form -->
-            {% if can_approve %}
+        <!-- Approval Form -->
+        {% if can_approve %}
             <div class="approval-form-card">
                 <div class="approval-form-header">
                     <h3 class="approval-form-title">
@@ -1132,329 +1159,341 @@
                     </form>
                 </div>
             </div>
-            {% endif %}
+        {% endif %}
+    </div>
+    </div>
+    </div>
+
+    <!-- Submit Confirmation Modal -->
+    <div id="submit-confirmation-modal" class="confirmation-modal" style="display: none;">
+        <div class="confirmation-overlay" onclick="hideSubmitConfirmation()"></div>
+        <div class="confirmation-dialog">
+            <div class="confirmation-header">
+                <i class="bi bi-send-check"></i>
+                <h3>Submit for Approval?</h3>
+            </div>
+            <div class="confirmation-body">
+                <p>Are you sure you want to submit this payment form for approval?</p>
+                <p> class="confirmation-hint">Once submitted, the payment form will be sent to the next approver and you
+                    won't be able to edit it until it's returned for revision.</p>
+            </div>
+            <div class="confirmation-actions">
+                <button type="button" class="confirm-btn cancel" onclick="hideSubmitConfirmation()">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="confirm-btn submit" onclick="confirmSubmit()">
+                    <i class="bi bi-check-circle"></i> Yes, Submit
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Submit Confirmation Modal -->
-<div id="submit-confirmation-modal" class="confirmation-modal" style="display: none;">
-    <div class="confirmation-overlay" onclick="hideSubmitConfirmation()"></div>
-    <div class="confirmation-dialog">
-        <div class="confirmation-header">
-            <i class="bi bi-send-check"></i>
-            <h3>Submit for Approval?</h3>
-        </div>
-        <div class="confirmation-body">
-            <p>Are you sure you want to submit this payment form for approval?</p>
-            <p> class="confirmation-hint">Once submitted, the payment form will be sent to the next approver and you won't be able to edit it until it's returned for revision.</p>
-        </div>
-        <div class="confirmation-actions">
-            <button type="button" class="confirm-btn cancel" onclick="hideSubmitConfirmation()">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
-            <button type="button" class="confirm-btn submit" onclick="confirmSubmit()">
-                <i class="bi bi-check-circle"></i> Yes, Submit
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div id="delete-confirmation-modal" class="confirmation-modal" style="display: none;">
-    <div class="confirmation-overlay" onclick="hideDeleteConfirmation()"></div>
-    <div class="confirmation-dialog">
-        <div class="confirmation-header" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
-            <i class="bi bi-trash"></i>
-            <h3>Delete Payment Form?</h3>
-        </div>
-        <div class="confirmation-body">
-            <p>Are you sure you want to delete this payment form?</p>
-            <p class="confirmation-hint" style="border-left-color: var(--danger);">This action cannot be undone. All line items and attachments will be permanently deleted.</p>
-        </div>
-        <div class="confirmation-actions">
-            <button type="button" class="confirm-btn cancel" onclick="hideDeleteConfirmation()">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
-            <button type="button" class="confirm-btn submit" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);" onclick="confirmDelete()">
-                <i class="bi bi-trash"></i> Yes, Delete
-            </button>
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirmation-modal" class="confirmation-modal" style="display: none;">
+        <div class="confirmation-overlay" onclick="hideDeleteConfirmation()"></div>
+        <div class="confirmation-dialog">
+            <div class="confirmation-header" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
+                <i class="bi bi-trash"></i>
+                <h3>Delete Payment Form?</h3>
+            </div>
+            <div class="confirmation-body">
+                <p>Are you sure you want to delete this payment form?</p>
+                <p class="confirmation-hint" style="border-left-color: var(--danger);">This action cannot be undone. All
+                    line items and attachments will be permanently deleted.</p>
+            </div>
+            <div class="confirmation-actions">
+                <button type="button" class="confirm-btn cancel" onclick="hideDeleteConfirmation()">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="confirm-btn submit"
+                        style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);"
+                        onclick="confirmDelete()">
+                    <i class="bi bi-trash"></i> Yes, Delete
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- ⚡ Loading Overlay for instant feedback on approvals/submits/deletes -->
-<div class="loading-overlay" id="loading-overlay">
-    <div class="loading-spinner">
-        <i class="bi bi-arrow-repeat"></i>
-        <p>Processing...</p>
+    <!-- ⚡ Loading Overlay for instant feedback on approvals/submits/deletes -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">
+            <i class="bi bi-arrow-repeat"></i>
+            <p>Processing...</p>
+        </div>
     </div>
-</div>
 
-<style>
-.confirmation-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s ease-in;
-}
+    <style>
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease-in;
+        }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
 
-.confirmation-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-}
+        .confirmation-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
 
-.confirmation-dialog {
-    position: relative;
-    background: white;
-    border-radius: var(--radius-xl);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 480px;
-    width: 90%;
-    animation: slideUp 0.3s ease-out;
-    overflow: hidden;
-}
+        .confirmation-dialog {
+            position: relative;
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 480px;
+            width: 90%;
+            animation: slideUp 0.3s ease-out;
+            overflow: hidden;
+        }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-/* ⚡ INSTANT FEEDBACK: Loading overlay for approval actions */
-.loading-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 99999;
-    align-items: center;
-    justify-content: center;
-}
+        /* ⚡ INSTANT FEEDBACK: Loading overlay for approval actions */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+        }
 
-.loading-overlay.active {
-    display: flex;
-}
+        .loading-overlay.active {
+            display: flex;
+        }
 
-.loading-spinner {
-    background: white;
-    padding: var(--spacing-2xl);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-2xl);
-    text-align: center;
-    min-width: 200px;
-}
+        .loading-spinner {
+            background: white;
+            padding: var(--spacing-2xl);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-2xl);
+            text-align: center;
+            min-width: 200px;
+        }
 
-.loading-spinner i {
-    font-size: 3rem;
-    color: #10b981; /* Green for PF */
-    animation: spin 0.8s linear infinite;
-    display: block;
-    margin-bottom: var(--spacing-md);
-}
+        .loading-spinner i {
+            font-size: 3rem;
+            color: #10b981; /* Green for PF */
+            animation: spin 0.8s linear infinite;
+            display: block;
+            margin-bottom: var(--spacing-md);
+        }
 
-.loading-spinner p {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--gray-700);
-}
+        .loading-spinner p {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
 
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
-.confirmation-header {
-    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-    padding: var(--spacing-lg);
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
+        .confirmation-header {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            padding: var(--spacing-lg);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
 
-.confirmation-header i {
-    font-size: 2rem;
-}
+        .confirmation-header i {
+            font-size: 2rem;
+        }
 
-.confirmation-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
+        .confirmation-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
 
-.confirmation-body {
-    padding: var(--spacing-xl);
-}
+        .confirmation-body {
+            padding: var(--spacing-xl);
+        }
 
-.confirmation-body p {
-    margin: 0 0 var(--spacing-md) 0;
-    font-size: 1rem;
-    color: var(--gray-900);
-    line-height: 1.6;
-}
+        .confirmation-body p {
+            margin: 0 0 var(--spacing-md) 0;
+            font-size: 1rem;
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
 
-.confirmation-hint {
-    font-size: 0.875rem;
-    color: var(--gray-600);
-    background: var(--gray-50);
-    padding: var(--spacing-sm);
-    border-radius: var(--radius-md);
-    border-left: 3px solid var(--primary-500);
-}
+        .confirmation-hint {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            background: var(--gray-50);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--primary-500);
+        }
 
-.confirmation-actions {
-    padding: var(--spacing-md) var(--spacing-xl);
-    background: var(--gray-50);
-    display: flex;
-    gap: var(--spacing-md);
-    justify-content: flex-end;
-}
+        .confirmation-actions {
+            padding: var(--spacing-md) var(--spacing-xl);
+            background: var(--gray-50);
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+        }
 
-.confirm-btn {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border: none;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: 0.9375rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    transition: all var(--transition-base);
-}
+        .confirm-btn {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            transition: all var(--transition-base);
+        }
 
-.confirm-btn.cancel {
-    background: white;
-    color: var(--gray-700);
-    border: 1px solid var(--gray-300);
-}
+        .confirm-btn.cancel {
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
 
-.confirm-btn.cancel:hover {
-    background: var(--gray-100);
-    border-color: var(--gray-400);
-}
+        .confirm-btn.cancel:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-400);
+        }
 
-.confirm-btn.submit {
-    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-    color: white;
-    box-shadow: var(--shadow-md);
-}
+        .confirm-btn.submit {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
 
-.confirm-btn.submit:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
+        .confirm-btn.submit:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
 
-/* Mobile responsive */
-@media (max-width: 576px) {
-    .confirmation-dialog {
-        width: 95%;
-        margin: 0 10px;
-    }
+        /* Mobile responsive */
+        @media (max-width: 576px) {
+            .confirmation-dialog {
+                width: 95%;
+                margin: 0 10px;
+            }
 
-    .confirmation-actions {
-        flex-direction: column;
-    }
+            .confirmation-actions {
+                flex-direction: column;
+            }
 
-    .confirm-btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
-</style>
+            .confirm-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 
-<script>
-// ⚡ Show loading overlay instantly
-function showLoading() {
-    const overlay = document.getElementById('loading-overlay');
-    if (overlay) {
-        overlay.classList.add('active');
-    }
-}
+    <script>
+        // ⚡ Show loading overlay instantly
+        function showLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.classList.add('active');
+            }
+        }
 
-function showSubmitConfirmation() {
-    document.getElementById('submit-confirmation-modal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
+        function showSubmitConfirmation() {
+            document.getElementById('submit-confirmation-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
 
-function hideSubmitConfirmation() {
-    document.getElementById('submit-confirmation-modal').style.display = 'none';
-    document.body.style.overflow = '';
-}
+        function hideSubmitConfirmation() {
+            document.getElementById('submit-confirmation-modal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
 
-function confirmSubmit() {
-    showLoading(); // ⚡ Instant feedback
-    document.getElementById('submit-form').submit();
-}
+        function confirmSubmit() {
+            showLoading(); // ⚡ Instant feedback
+            document.getElementById('submit-form').submit();
+        }
 
-function showDeleteConfirmation() {
-    document.getElementById('delete-confirmation-modal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
+        function showDeleteConfirmation() {
+            document.getElementById('delete-confirmation-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
 
-function hideDeleteConfirmation() {
-    document.getElementById('delete-confirmation-modal').style.display = 'none';
-    document.body.style.overflow = '';
-}
+        function hideDeleteConfirmation() {
+            document.getElementById('delete-confirmation-modal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
 
-function confirmDelete() {
-    showLoading(); // ⚡ Instant feedback
-    document.getElementById('delete-form').submit();
-}
+        function confirmDelete() {
+            showLoading(); // ⚡ Instant feedback
+            document.getElementById('delete-form').submit();
+        }
 
-// Close modals on Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        hideSubmitConfirmation();
-        hideDeleteConfirmation();
-    }
-});
-
-// ⚡ Add instant loading feedback to approval form
-document.addEventListener('DOMContentLoaded', function() {
-    // Hide loading overlay on page load (in case it was showing before redirect)
-    const loadingOverlay = document.getElementById('loading-overlay');
-    if (loadingOverlay) {
-        loadingOverlay.classList.remove('active');
-    }
-
-    const approvalForm = document.querySelector('form[action*="approve"]');
-    if (approvalForm) {
-        approvalForm.addEventListener('submit', function() {
-            showLoading();
-            // Disable submit button to prevent double submission
-            const submitBtn = approvalForm.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
+        // Close modals on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                hideSubmitConfirmation();
+                hideDeleteConfirmation();
             }
         });
-    }
-});
-</script>
+
+        // ⚡ Add instant loading feedback to approval form
+        document.addEventListener('DOMContentLoaded', function () {
+            // Hide loading overlay on page load (in case it was showing before redirect)
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.classList.remove('active');
+            }
+
+            const approvalForm = document.querySelector('form[action*="approve"]');
+            if (approvalForm) {
+                approvalForm.addEventListener('submit', function () {
+                    showLoading();
+                    // Disable submit button to prevent double submission
+                    const submitBtn = approvalForm.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                    }
+                });
+            }
+        });
+    </script>
 {% endblock %}

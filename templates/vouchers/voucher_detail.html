@@ -801,90 +801,93 @@
         </div>
     </div>
 
-    <div class="detail-grid">
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Voucher Information -->
-            <div class="detail-card info-card">
-                <div class="detail-card-header">
-                    <h2 class="detail-card-title">
-                        <i class="bi bi-info-circle"></i>
-                        <span>Voucher Information</span>
-                    </h2>
-                </div>
-                <div class="detail-card-body">
-                    <div class="info-grid">
-                        <dl class="info-item">
-                            <dt>Payee Name</dt>
-                            <dd>{{ voucher.payee_name }}</dd>
-                        </dl>
 
-                        <dl class="info-item">
-                            <dt>Payment Date</dt>
-                            <dd>{{ voucher.payment_date|date:"F d, Y" }}</dd>
-                        </dl>
+<div class="detail-card info-card">
+    <div class="detail-card-header">
+        <h2 class="detail-card-title">
+            <i class="bi bi-info-circle"></i>
+            <span>Voucher Information</span>
+        </h2>
+    </div>
+    <div class="detail-card-body">
+        <div class="info-grid">
+            <!-- Row 1: Basic Info -->
+            <dl class="info-item">
+                <dt>Payee Name</dt>
+                <dd>{{ voucher.payee_name }}</dd>
+            </dl>
 
-                        {% if voucher.company_bank_account %}
-                        <dl class="info-item">
-                            <dt>Bank Address</dt>
-                            <dd><strong style="color: #667eea;">{{ voucher.company_bank_account.bank }}</strong></dd>
-                        </dl>
 
-                        <dl class="info-item">
-                            <dt>Company Name</dt>
-                            <dd>{{ voucher.company_bank_account.company_name }}</dd>
-                        </dl>
 
-                        <dl class="info-item">
-                            <dt>Account Number</dt>
-                            <dd>{{ voucher.company_bank_account.account_number }} ({{ voucher.company_bank_account.currency }})</dd>
-                        </dl>
-                        {% else %}
-                        <dl class="info-item">
-                            <dt>Bank Address</dt>
-                            <dd>{{ voucher.bank_address|default:"Not specified" }}</dd>
-                        </dl>
+            <dl class="info-item">
+                <dt>Payment Date</dt>
+                <dd>{{ voucher.payment_date|date:"F d, Y" }}</dd>
+            </dl>
 
-                        <dl class="info-item">
-                            <dt>Bank Name</dt>
-                            <dd>{{ voucher.bank_name|default:"Not specified" }}</dd>
-                        </dl>
+            <!-- Row 2: Company Account (Transfer FROM) -->
+            {% if voucher.company_bank_account %}
+                <dl class="info-item">
+                    <dt>Transfer From (Company)</dt>
+                    <dd><strong style="color: #667eea;">{{ voucher.company_bank_account.company_name }}</strong></dd>
+                </dl>
 
-                        <dl class="info-item">
-                            <dt>Account Number</dt>
-                            <dd>{{ voucher.bank_account_number|default:"Not specified" }}</dd>
-                        </dl>
-                        {% endif %}
+                <dl class="info-item">
+                    <dt>Company Bank</dt>
+                    <dd>{{ voucher.company_bank_account.bank }}</dd>
+                </dl>
 
-                        <dl class="info-item">
-                            <dt>Created By</dt>
-                            <dd>{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</dd>
-                        </dl>
+                <dl class="info-item">
+                    <dt>Company Account</dt>
+                    <dd>{{ voucher.company_bank_account.account_number }} ({{ voucher.company_bank_account.currency }})</dd>
+                </dl>
+            {% endif %}
 
-                        <dl class="info-item">
-                            <dt>Created At</dt>
-                            <dd>{{ voucher.created_at|date:"F d, Y g:i A" }}</dd>
-                        </dl>
+            <!-- Row 3: Supplier Account (Transfer TO) - Manual Entry -->
+            <dl class="info-item">
+                <dt>Transfer To (Supplier Bank)</dt>
+                <dd><strong style="color: #10b981;">{{ voucher.bank_address|default:"Not specified" }}</strong></dd>
+            </dl>
 
-                        {% if voucher.submitted_at %}
-                        <dl class="info-item">
-                            <dt>Submitted At</dt>
-                            <dd>{{ voucher.submitted_at|date:"F d, Y g:i A" }}</dd>
-                        </dl>
-                        {% endif %}
+            <dl class="info-item">
+                <dt>Supplier Account Holder</dt>
+                <dd>{{ voucher.bank_name|default:"Not specified" }}</dd>
+            </dl>
 
-                        {% if voucher.current_approver %}
-                        <dl class="info-item">
-                            <dt>Current Approver</dt>
-                            <dd>
-                                {{ voucher.current_approver.get_full_name|default:voucher.current_approver.username }}
-                                <span style="color: var(--primary-600); font-weight: 600; font-size: 0.75rem;">({{ voucher.current_approver.get_role_level_display }})</span>
-                            </dd>
-                        </dl>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+            <dl class="info-item">
+                <dt>Supplier Bank Account</dt>
+                <dd>{{ voucher.bank_account_number|default:"Not specified" }}</dd>
+            </dl>
+
+            <!-- Row 4: System Info -->
+            <dl class="info-item">
+                <dt>Created By</dt>
+                <dd>{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</dd>
+            </dl>
+
+            <dl class="info-item">
+                <dt>Created At</dt>
+                <dd>{{ voucher.created_at|date:"F d, Y g:i A" }}</dd>
+            </dl>
+
+            {% if voucher.submitted_at %}
+                <dl class="info-item">
+                    <dt>Submitted At</dt>
+                    <dd>{{ voucher.submitted_at|date:"F d, Y g:i A" }}</dd>
+                </dl>
+            {% endif %}
+
+            {% if voucher.current_approver %}
+                <dl class="info-item">
+                    <dt>Current Approver</dt>
+                    <dd>
+                        {{ voucher.current_approver.get_full_name|default:voucher.current_approver.username }}
+                        <span style="color: var(--primary-600); font-weight: 600; font-size: 0.75rem;">({{ voucher.current_approver.get_role_level_display }})</span>
+                    </dd>
+                </dl>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
             <!-- Line Items -->
             <div class="detail-card">
