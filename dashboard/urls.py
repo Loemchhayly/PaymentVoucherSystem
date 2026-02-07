@@ -10,4 +10,5 @@ urlpatterns = [
     path('approved/', views.ApprovedView.as_view(), name='approved'),
     path('cancelled/', views.CancelledView.as_view(), name='cancelled'),
     path('my-vouchers/', views.MyVouchersView.as_view(), name='my_vouchers'),
+    path('my-drafts/', views.MyDraftsView.as_view(), name='my_drafts'),
 ]

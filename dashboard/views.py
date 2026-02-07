@@ -95,6 +95,12 @@ class DashboardView(LoginRequiredMixin, ListView):
             pf_base.filter(status='APPROVED').count()
         )
 
+        # Add draft counts (DRAFT and ON_REVISION)
+        context['draft_count'] = (
+            pv_base.filter(created_by=user, status__in=['DRAFT', 'ON_REVISION']).count() +
+            pf_base.filter(created_by=user, status__in=['DRAFT', 'ON_REVISION']).count()
+        )
+
         return context
 
 
@@ -457,4 +463,75 @@ class MyVouchersView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'My Vouchers & Forms'
+        return context
+
+
+class MyDraftsView(LoginRequiredMixin, ListView):
+    """User's draft vouchers and payment forms that haven't been submitted"""
+    template_name = 'dashboard/voucher_list.html'
+    context_object_name = 'vouchers'
+    paginate_by = 20
+
+    def get_queryset(self):
+        # Check document type filter
+        doc_type = self.request.GET.get('doc_type', 'all')
+
+        # Get Draft and On Revision Payment Vouchers
+        pv_queryset = PaymentVoucher.objects.filter(
+            created_by=self.request.user,
+            status__in=['DRAFT', 'ON_REVISION']
+        )
+
+        # Get Draft and On Revision Payment Forms
+        pf_queryset = PaymentForm.objects.filter(
+            created_by=self.request.user,
+            status__in=['DRAFT', 'ON_REVISION']
+        )
+
+        # Apply search filters to both
+        pv_number = self.request.GET.get('pv_number', '').strip()
+        if pv_number:
+            pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
+            pf_queryset = pf_queryset.filter(pf_number__icontains=pv_number)
+
+        payee_name = self.request.GET.get('payee_name', '').strip()
+        if payee_name:
+            pv_queryset = pv_queryset.filter(payee_name__icontains=payee_name)
+            pf_queryset = pf_queryset.filter(payee_name__icontains=payee_name)
+
+        date_from = self.request.GET.get('date_from')
+        if date_from:
+            pv_queryset = pv_queryset.filter(payment_date__gte=date_from)
+            pf_queryset = pf_queryset.filter(payment_date__gte=date_from)
+
+        date_to = self.request.GET.get('date_to')
+        if date_to:
+            pv_queryset = pv_queryset.filter(payment_date__lte=date_to)
+            pf_queryset = pf_queryset.filter(payment_date__lte=date_to)
+
+        status = self.request.GET.get('status')
+        if status:
+            pv_queryset = pv_queryset.filter(status=status)
+            pf_queryset = pf_queryset.filter(status=status)
+
+        # Filter by document type
+        if doc_type == 'pv':
+            # Only Payment Vouchers
+            combined = sorted(pv_queryset, key=attrgetter('updated_at'), reverse=True)
+        elif doc_type == 'pf':
+            # Only Payment Forms
+            combined = sorted(pf_queryset, key=attrgetter('updated_at'), reverse=True)
+        else:
+            # All documents (default)
+            combined = sorted(
+                chain(pv_queryset, pf_queryset),
+                key=attrgetter('updated_at'),
+                reverse=True
+            )
+
+        return combined
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'My Drafts'
         return context

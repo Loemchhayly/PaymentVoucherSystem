@@ -454,6 +454,83 @@
         color: #1e40af;
     }
 
+    /* Document Type Badges */
+    .doc-type-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .doc-type-badge.pv-badge {
+        background: linear-gradient(135deg, #698ab8 0%, #698ab8 100%);
+        color: white;
+    }
+
+    .doc-type-badge.pf-badge {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .doc-type-badge i {
+        font-size: 0.875rem;
+    }
+
+    /* Filter Buttons */
+    .doc-filter-btn {
+        background: white;
+        border: 2px solid var(--gray-300);
+        color: var(--gray-700);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .doc-filter-btn:hover {
+        border-color: var(--primary-500);
+        color: var(--primary-600);
+        background: var(--primary-50);
+    }
+
+    .doc-filter-btn.active {
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+        border-color: var(--primary-600);
+        color: white;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    /* Pagination Buttons */
+    .pagination-btn {
+        background: white;
+        border: 2px solid var(--gray-300);
+        color: var(--gray-700);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .pagination-btn:hover {
+        border-color: var(--primary-500);
+        color: var(--primary-600);
+        background: var(--primary-50);
+        transform: translateY(-1px);
+    }
+
     /* Action Button */
     .view-btn {
         background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
@@ -667,8 +744,27 @@
                 </div>
             </div>
             <div class="stat-card-footer">
-                <a href="?tab=my_vouchers" class="stat-card-link">
+                <a href="{% url 'dashboard:my_vouchers' %}" class="stat-card-link">
                     <span>View Details</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- My Drafts -->
+        <div class="stat-card secondary">
+            <div class="stat-card-header">
+                <div>
+                    <div class="stat-card-title">My Drafts</div>
+                    <div class="stat-card-value">{{ draft_count|default:0 }}</div>
+                </div>
+                <div class="stat-card-icon">
+                    <i class="bi bi-file-earmark-minus"></i>
+                </div>
+            </div>
+            <div class="stat-card-footer">
+                <a href="{% url 'dashboard:my_drafts' %}" class="stat-card-link">
+                    <span>View Drafts</span>
                     <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
@@ -726,6 +822,10 @@
                 <i class="bi bi-plus-circle"></i>
                 <span>Create New Voucher</span>
             </a>
+            <a href="{% url 'dashboard:my_drafts' %}" class="action-btn">
+                <i class="bi bi-file-earmark-minus"></i>
+                <span>My Drafts</span>
+            </a>
             <a href="{% url 'dashboard:my_vouchers' %}" class="action-btn">
                 <i class="bi bi-folder"></i>
                 <span>My Vouchers</span>
@@ -780,13 +880,32 @@
     </div>
     {% endif %}
 
-    <!-- Recent Vouchers -->
+    <!-- Recent Documents (PV & PF) -->
     <div class="vouchers-card">
         <div class="vouchers-card-header">
-            <h2 class="vouchers-card-title">
-                <i class="bi bi-clock-history"></i>
-                <span>Recent Vouchers</span>
-            </h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 class="vouchers-card-title">
+                        <i class="bi bi-clock-history"></i>
+                        <span>Recent Documents</span>
+                    </h2>
+                    <p style="margin: 0.5rem 0 0 2.5rem; font-size: 0.875rem; color: var(--gray-600);">
+                        Payment Vouchers & Payment Forms
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <!-- Filter Buttons -->
+                    <button class="doc-filter-btn active" data-filter="all" onclick="filterDocuments('all')">
+                        All
+                    </button>
+                    <button class="doc-filter-btn" data-filter="pv" onclick="filterDocuments('pv')">
+                        PV Only
+                    </button>
+                    <button class="doc-filter-btn" data-filter="pf" onclick="filterDocuments('pf')">
+                        PF Only
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="vouchers-card-body">
             {% if vouchers %}
@@ -794,25 +913,39 @@
                 <table class="modern-table">
                     <thead>
                         <tr>
+                            <th>Type</th>
                             <th>Number</th>
                             <th>Payee</th>
                             <th>Amount</th>
                             <th>Status</th>
-                            <th>Created</th>
+                            <th>Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for voucher in vouchers %}
-                        <tr class="clickable-row" data-href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}">
+                        <tr class="clickable-row {% if voucher.pf_number %}doc-pf{% else %}doc-pv{% endif %}"
+                            data-href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}"
+                            data-type="{% if voucher.pf_number %}pf{% else %}pv{% endif %}">
+                            <td>
+                                {% if voucher.pf_number %}
+                                    <span class="doc-type-badge pf-badge">
+                                        <i class="bi bi-file-earmark-check"></i> PF
+                                    </span>
+                                {% else %}
+                                    <span class="doc-type-badge pv-badge">
+                                        <i class="bi bi-receipt"></i> PV
+                                    </span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if voucher.pf_number %}
                                     <span class="pv-number" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46;">
-                                        PF {{ voucher.pf_number|default:"DRAFT" }}
+                                        {{ voucher.pf_number|default:"DRAFT" }}
                                     </span>
                                 {% else %}
                                     <span class="pv-number">
-                                        PV {{ voucher.pv_number|default:"DRAFT" }}
+                                        {{ voucher.pv_number|default:"DRAFT" }}
                                     </span>
                                 {% endif %}
                             </td>
@@ -863,10 +996,43 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination info -->
+            {% if is_paginated %}
+            <div style="padding: 1rem 1.5rem; background: var(--gray-50); border-top: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.875rem; color: var(--gray-600);">
+                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} documents
+                </span>
+                <div style="display: flex; gap: 0.5rem;">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn">
+                            <i class="bi bi-chevron-left"></i> Previous
+                        </a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="pagination-btn">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
             {% else %}
             <div class="empty-state">
                 <i class="bi bi-inbox"></i>
-                <p>No vouchers found. {% if user.role_level == 1 %}Create your first voucher to get started!{% endif %}</p>
+                <p>No documents found. {% if user.role_level == 1 %}Create your first voucher or payment form to get started!{% endif %}</p>
+                {% if user.role_level == 1 %}
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+                    <a href="{% url 'vouchers:create' %}" class="action-btn">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Create PV</span>
+                    </a>
+                    <a href="{% url 'vouchers:pf_create' %}" class="action-btn">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Create PF</span>
+                    </a>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
         </div>
@@ -890,5 +1056,27 @@
             }
         });
     });
+
+    // Filter documents by type (PV/PF/All)
+    function filterDocuments(type) {
+        // Update button states
+        document.querySelectorAll('.doc-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-filter') === type) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Show/hide rows based on filter
+        const rows = document.querySelectorAll('.modern-table tbody tr');
+        rows.forEach(row => {
+            const docType = row.getAttribute('data-type');
+            if (type === 'all' || docType === type) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
 </script>
 {% endblock %}
