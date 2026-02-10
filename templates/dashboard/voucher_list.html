@@ -692,7 +692,7 @@
                     </select>
                 </div>
                 <div class="filter-field">
-                    <label for="pv_number">PV/PF Number</label>
+                    <label for="pv_number">Doc Number</label>
                     <input type="text" id="pv_number" name="pv_number" placeholder="2601-0001" value="{{ request.GET.pv_number }}">
                 </div>
                 <div class="filter-field">
@@ -738,8 +738,8 @@
     <!-- Vouchers Card -->
     <div class="vouchers-card">
         <div class="vouchers-card-header">
-            <h2 style="margin: 0; font-size: 0.9375rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                <i class="bi bi-file-earmark-text" style="color: var(--primary-600); font-size: 1rem;"></i>
+            <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <i class="bi bi-file-earmark-text" style="color: var(--primary-600); font-size: 1.5rem;"></i>
                 <span style="color: var(--gray-900);">All Vouchers</span>
             </h2>
             {% if vouchers %}
@@ -755,7 +755,7 @@
                 <table class="modern-table">
                     <thead>
                         <tr>
-                            <th>PV Number</th>
+                            <th>Doc Number</th>
                             <th>Payee</th>
                             <th>Payment Date</th>
                             <th>Amount</th>

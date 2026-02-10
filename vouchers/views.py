@@ -1216,6 +1216,110 @@ def reports_view(request):
     # Sort monthly data
     sorted_months = sorted(monthly_data.keys())
 
+    # Department Breakdown
+    dept_breakdown = []
+    dept_totals = defaultdict(lambda: {'count': 0, 'total_usd': 0})
+    grand_total_usd = 0
+
+    for voucher in approved_vouchers:
+        for item in voucher.line_items.all():
+            dept_name = item.department.name
+            dept_totals[dept_name]['count'] += 1
+            if item.currency == 'USD':
+                dept_totals[dept_name]['total_usd'] += float(item.get_total())
+            grand_total_usd += float(item.get_total()) if item.currency == 'USD' else 0
+
+    for form in approved_forms:
+        for item in form.line_items.all():
+            dept_name = item.department.name
+            dept_totals[dept_name]['count'] += 1
+            if item.currency == 'USD':
+                dept_totals[dept_name]['total_usd'] += float(item.get_total())
+            grand_total_usd += float(item.get_total()) if item.currency == 'USD' else 0
+
+    for dept_name, data in dept_totals.items():
+        percentage = (data['total_usd'] / grand_total_usd * 100) if grand_total_usd > 0 else 0
+        dept_breakdown.append({
+            'name': dept_name,
+            'count': data['count'],
+            'total_usd': data['total_usd'],
+            'percentage': percentage
+        })
+
+    dept_breakdown.sort(key=lambda x: x['total_usd'], reverse=True)
+
+    # Creator Breakdown (Top Creators)
+    creator_breakdown = []
+    creator_totals = defaultdict(lambda: {'pv_count': 0, 'pf_count': 0, 'total_usd': 0})
+
+    for voucher in approved_vouchers:
+        creator_name = voucher.created_by.get_full_name() or voucher.created_by.username
+        creator_totals[creator_name]['pv_count'] += 1
+        totals = voucher.calculate_grand_total()
+        creator_totals[creator_name]['total_usd'] += float(totals.get('USD', 0))
+
+    for form in approved_forms:
+        creator_name = form.created_by.get_full_name() or form.created_by.username
+        creator_totals[creator_name]['pf_count'] += 1
+        totals = form.calculate_grand_total()
+        creator_totals[creator_name]['total_usd'] += float(totals.get('USD', 0))
+
+    for creator_name, data in creator_totals.items():
+        creator_breakdown.append({
+            'name': creator_name,
+            'pv_count': data['pv_count'],
+            'pf_count': data['pf_count'],
+            'total_usd': data['total_usd']
+        })
+
+    creator_breakdown.sort(key=lambda x: x['total_usd'], reverse=True)
+
+    # All Documents Records Table
+    records = []
+
+    for voucher in approved_vouchers:
+        totals = voucher.calculate_grand_total()
+        # Get primary department from first line item
+        dept = voucher.line_items.first().department.name if voucher.line_items.exists() else '-'
+
+        records.append({
+            'pk': voucher.pk,
+            'doc_type': 'PV',
+            'doc_number': voucher.pv_number or 'DRAFT',
+            'payee_name': voucher.payee_name,
+            'department': dept,
+            'payment_date': voucher.payment_date,
+            'created_by': voucher.created_by.get_full_name() or voucher.created_by.username,
+            'status': voucher.status,
+            'get_status_display': voucher.get_status_display(),
+            'total_usd': totals.get('USD', 0),
+            'total_khr': totals.get('KHR', 0),
+            'total_thb': totals.get('THB', 0),
+        })
+
+    for form in approved_forms:
+        totals = form.calculate_grand_total()
+        # Get primary department from first line item
+        dept = form.line_items.first().department.name if form.line_items.exists() else '-'
+
+        records.append({
+            'pk': form.pk,
+            'doc_type': 'PF',
+            'doc_number': form.pf_number or 'DRAFT',
+            'payee_name': form.payee_name,
+            'department': dept,
+            'payment_date': form.payment_date,
+            'created_by': form.created_by.get_full_name() or form.created_by.username,
+            'status': form.status,
+            'get_status_display': form.get_status_display(),
+            'total_usd': totals.get('USD', 0),
+            'total_khr': totals.get('KHR', 0),
+            'total_thb': totals.get('THB', 0),
+        })
+
+    # Sort records by payment date descending
+    records.sort(key=lambda x: x['payment_date'], reverse=True)
+
     context = {
         'users': User.objects.all().order_by('first_name', 'last_name'),
         'departments': Department.objects.filter(is_active=True).order_by('name'),
@@ -1233,6 +1337,11 @@ def reports_view(request):
         'monthly_pv': [monthly_data[m]['PV'] for m in sorted_months],
         'monthly_pf': [monthly_data[m]['PF'] for m in sorted_months],
         'monthly_amounts': [monthly_data[m]['amount'] for m in sorted_months],
+
+        # New data for tables
+        'dept_breakdown': dept_breakdown,
+        'creator_breakdown': creator_breakdown,
+        'records': records,
     }
 
     return render(request, 'vouchers/reports.html', context)
