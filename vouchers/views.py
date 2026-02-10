@@ -329,9 +329,12 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
             user == voucher.created_by
         )
 
+        # Allow approval if:
+        # - User is the assigned approver, OR
+        # - User is MD (role_level 5) and document is at PENDING_L5
         context['can_approve'] = (
-            voucher.current_approver == user and
-            voucher.status.startswith('PENDING')
+            (voucher.current_approver == user and voucher.status.startswith('PENDING')) or
+            (user.role_level == 5 and voucher.status == 'PENDING_L5')
         )
 
         context['can_edit'] = (
@@ -393,11 +396,6 @@ def voucher_approve(request, pk):
         if form.is_valid():
             action = form.cleaned_data['action']
             comments = form.cleaned_data.get('comments', '')
-
-            # For GM, set requires_md_approval
-            if request.user.role_level == 4 and action == 'approve':
-                voucher.requires_md_approval = form.cleaned_data.get('requires_md_approval', False)
-                voucher.save()
 
             try:
                 VoucherStateMachine.transition(voucher, action, request.user, comments)
@@ -464,11 +462,6 @@ def form_approve(request, pk):
         if form.is_valid():
             action = form.cleaned_data['action']
             comments = form.cleaned_data.get('comments', '')
-
-            # For GM, set requires_md_approval
-            if request.user.role_level == 4 and action == 'approve':
-                payment_form.requires_md_approval = form.cleaned_data.get('requires_md_approval', False)
-                payment_form.save()
 
             try:
                 FormStateMachine.transition(payment_form, action, request.user, comments)
@@ -555,7 +548,7 @@ def delete_attachment(request, pk, attachment_id):
 
 @login_required
 def download_attachment(request, pk, attachment_id):
-    """Secure attachment download"""
+    """Secure attachment download or inline view"""
     voucher = get_object_or_404(PaymentVoucher, pk=pk)
     attachment = get_object_or_404(VoucherAttachment, pk=attachment_id, voucher=voucher)
 
@@ -571,9 +564,12 @@ def download_attachment(request, pk, attachment_id):
     if not has_access:
         raise Http404("You don't have permission to access this file")
 
+    # Check if user wants to view inline (in browser) or download
+    view_inline = request.GET.get('view') == 'inline'
+
     return FileResponse(
         attachment.file.open('rb'),
-        as_attachment=True,
+        as_attachment=not view_inline,  # False for inline viewing, True for download
         filename=attachment.filename
     )
 
@@ -656,7 +652,7 @@ def delete_form_attachment(request, pk, attachment_id):
 
 @login_required
 def download_form_attachment(request, pk, attachment_id):
-    """Secure attachment download for Payment Forms with proper error handling"""
+    """Secure attachment download or inline view for Payment Forms with proper error handling"""
     import logging
     logger = logging.getLogger(__name__)
 
@@ -683,15 +679,19 @@ def download_form_attachment(request, pk, attachment_id):
             )
             raise Http404("You don't have permission to access this file")
 
-        # Log successful download
+        # Check if user wants to view inline (in browser) or download
+        view_inline = request.GET.get('view') == 'inline'
+
+        # Log successful access
+        action = "viewed" if view_inline else "downloaded"
         logger.info(
-            f"Form attachment downloaded: {attachment.filename} by {user.username} "
+            f"Form attachment {action}: {attachment.filename} by {user.username} "
             f"from form {payment_form.pf_number or pk}"
         )
 
         return FileResponse(
             attachment.file.open('rb'),
-            as_attachment=True,
+            as_attachment=not view_inline,  # False for inline viewing, True for download
             filename=attachment.filename
         )
 
@@ -1094,9 +1094,12 @@ class FormDetailView(LoginRequiredMixin, DetailView):
             user == payment_form.created_by
         )
 
+        # Allow approval if:
+        # - User is the assigned approver, OR
+        # - User is MD (role_level 5) and document is at PENDING_L5
         context['can_approve'] = (
-            payment_form.current_approver == user and
-            payment_form.status.startswith('PENDING')
+            (payment_form.current_approver == user and payment_form.status.startswith('PENDING')) or
+            (user.role_level == 5 and payment_form.status == 'PENDING_L5')
         )
 
         context['can_edit'] = (

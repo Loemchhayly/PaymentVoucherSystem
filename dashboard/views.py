@@ -69,13 +69,15 @@ class DashboardView(LoginRequiredMixin, ListView):
             ).distinct()
 
         # Summary counts
-        pending_vouchers = pv_base.filter(current_approver=user).count()
-        pending_forms = pf_base.filter(current_approver=user).count()
-
-        # Add pending signature batches for MD
-        pending_batches = 0
+        # MD users see ALL documents at PENDING_L5, others see only assigned to them
         if user.role_level == 5:  # MD
+            pending_vouchers = pv_base.filter(status='PENDING_L5').count()
+            pending_forms = pf_base.filter(status='PENDING_L5').count()
             pending_batches = SignatureBatch.objects.filter(status='PENDING').count()
+        else:
+            pending_vouchers = pv_base.filter(current_approver=user).count()
+            pending_forms = pf_base.filter(current_approver=user).count()
+            pending_batches = 0
 
         context['pending_my_action'] = pending_vouchers + pending_forms + pending_batches
         context['pending_batches'] = pending_batches
@@ -111,18 +113,19 @@ class PendingActionView(LoginRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
+        user = self.request.user
         # Check document type filter
         doc_type = self.request.GET.get('doc_type', 'all')
 
-        # Get Payment Vouchers pending user's action
-        pv_queryset = PaymentVoucher.objects.filter(
-            current_approver=self.request.user
-        )
-
-        # Get Payment Forms pending user's action
-        pf_queryset = PaymentForm.objects.filter(
-            current_approver=self.request.user
-        )
+        # Special handling for MD users - show ALL documents at PENDING_L5
+        # This allows any MD user to approve documents at MD level
+        if user.role_level == 5:
+            pv_queryset = PaymentVoucher.objects.filter(status='PENDING_L5')
+            pf_queryset = PaymentForm.objects.filter(status='PENDING_L5')
+        else:
+            # For other users: show only documents assigned to them
+            pv_queryset = PaymentVoucher.objects.filter(current_approver=user)
+            pf_queryset = PaymentForm.objects.filter(current_approver=user)
 
         # Apply search filters to both
         pv_number = self.request.GET.get('pv_number', '').strip()
@@ -185,8 +188,8 @@ class InProgressView(LoginRequiredMixin, ListView):
         # Check document type filter
         doc_type = self.request.GET.get('doc_type', 'all')
 
-        # Base queryset - only vouchers/forms user has access to
-        if user.is_staff:
+        # Base queryset - MD and Admins see ALL, others see only their vouchers
+        if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.filter(status__startswith='PENDING')
             pf_queryset = PaymentForm.objects.filter(status__startswith='PENDING')
         else:
@@ -263,8 +266,8 @@ class ApprovedView(LoginRequiredMixin, ListView):
         # Check document type filter
         doc_type = self.request.GET.get('doc_type', 'all')
 
-        # Base queryset - only vouchers/forms user has access to
-        if user.is_staff:
+        # Base queryset - MD and Admins see ALL, others see only their vouchers
+        if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.filter(status='APPROVED')
             pf_queryset = PaymentForm.objects.filter(status='APPROVED')
         else:
@@ -336,8 +339,8 @@ class CancelledView(LoginRequiredMixin, ListView):
         # Check document type filter
         doc_type = self.request.GET.get('doc_type', 'all')
 
-        # Base queryset - only vouchers/forms user has access to
-        if user.is_staff:
+        # Base queryset - MD and Admins see ALL, others see only their vouchers
+        if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.filter(status='REJECTED')
             pf_queryset = PaymentForm.objects.filter(status='REJECTED')
         else:

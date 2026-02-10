@@ -222,21 +222,10 @@ class ApprovalActionForm(forms.Form):
         label="Comments"
     )
 
-    requires_md_approval = forms.BooleanField(
-        required=False,
-        label="Requires MD Approval",
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        help_text="Check if this voucher requires Managing Director approval"
-    )
-
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         self.voucher = kwargs.pop('voucher', None)
         super().__init__(*args, **kwargs)
-
-        # Only show MD checkbox for GM (level 4)
-        if not self.user or self.user.role_level != 4:
-            del self.fields['requires_md_approval']
 
     def clean(self):
         cleaned_data = super().clean()

@@ -669,6 +669,11 @@
                 gap: var(--spacing-sm);
             }
 
+            .attachment-item > div:last-child {
+                width: 100%;
+                flex-direction: column;
+            }
+
             .download-btn {
                 width: 100%;
                 justify-content: center;
@@ -984,10 +989,19 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="{% url 'vouchers:download_attachment' voucher.pk attachment.pk %}" class="download-btn">
-                            <i class="bi bi-download"></i>
-                            <span>Download</span>
-                        </a>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{% url 'vouchers:download_attachment' voucher.pk attachment.pk %}?view=inline"
+                               class="download-btn"
+                               style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"
+                               target="_blank">
+                                <i class="bi bi-eye"></i>
+                                <span>View</span>
+                            </a>
+                            <a href="{% url 'vouchers:download_attachment' voucher.pk attachment.pk %}" class="download-btn">
+                                <i class="bi bi-download"></i>
+                                <span>Download</span>
+                            </a>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>

@@ -14,8 +14,9 @@ class VoucherStateMachine:
 
     State Flow:
     DRAFT → [submit] → PENDING_L2 → [approve] → PENDING_L3 → [approve] → PENDING_L4
-    → [approve with requires_md=False] → APPROVED
-    → [approve with requires_md=True] → PENDING_L5 → [approve] → APPROVED
+    → [approve] → PENDING_L5 → [approve] → APPROVED
+
+    All documents require full approval chain including MD (Level 5).
 
     At any PENDING_L* stage: [reject] → REJECTED or [return] → ON_REVISION
     ON_REVISION → [submit] → PENDING_L2 (starts new approval chain)
@@ -36,7 +37,7 @@ class VoucherStateMachine:
             'return': 'ON_REVISION',
         },
         'PENDING_L4': {
-            'approve': None,  # Dynamic: PENDING_L5 if requires_md_approval, else APPROVED
+            'approve': 'PENDING_L5',  # Always requires MD approval
             'reject': 'REJECTED',
             'return': 'ON_REVISION',
         },
@@ -122,9 +123,6 @@ class VoucherStateMachine:
         # Get next state
         next_state = cls.STATE_TRANSITIONS[voucher.status][action]
 
-        # Handle dynamic state for GM approval
-        if voucher.status == 'PENDING_L4' and action == 'approve':
-            next_state = 'PENDING_L5' if voucher.requires_md_approval else 'APPROVED'
 
         # Handle special cases
         if action == 'return':
@@ -142,7 +140,7 @@ class VoucherStateMachine:
                 voucher.submitted_at = timezone.now()
 
         # Update voucher state
-        old_status = voucher.status
+
         voucher.status = next_state
         voucher.current_approver = cls.get_next_approver(next_state)
         voucher.save()
@@ -272,8 +270,9 @@ class FormStateMachine:
 
     State Flow:
     DRAFT → [submit] → PENDING_L2 → [approve] → PENDING_L3 → [approve] → PENDING_L4
-    → [approve with requires_md=False] → APPROVED
-    → [approve with requires_md=True] → PENDING_L5 → [approve] → APPROVED
+    → [approve] → PENDING_L5 → [approve] → APPROVED
+
+    All documents require full approval chain including MD (Level 5).
 
     At any PENDING_L* stage: [reject] → REJECTED or [return] → ON_REVISION
     ON_REVISION → [submit] → PENDING_L2 (starts new approval chain)
@@ -294,7 +293,7 @@ class FormStateMachine:
             'return': 'ON_REVISION',
         },
         'PENDING_L4': {
-            'approve': None,  # Dynamic: PENDING_L5 if requires_md_approval, else APPROVED
+            'approve': 'PENDING_L5',  # Always requires MD approval
             'reject': 'REJECTED',
             'return': 'ON_REVISION',
         },
@@ -380,9 +379,7 @@ class FormStateMachine:
         # Get next state
         next_state = cls.STATE_TRANSITIONS[payment_form.status][action]
 
-        # Handle dynamic state for GM approval
-        if payment_form.status == 'PENDING_L4' and action == 'approve':
-            next_state = 'PENDING_L5' if payment_form.requires_md_approval else 'APPROVED'
+
 
         # Handle special cases
         if action == 'return':

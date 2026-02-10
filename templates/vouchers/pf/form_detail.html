@@ -507,6 +507,7 @@
             .line-items-table { min-width: 700px; font-size: 0.875rem; }
             .line-items-table th, .line-items-table td { padding: var(--spacing-sm); }
             .attachment-item { flex-direction: column; align-items: flex-start; gap: var(--spacing-sm); }
+            .attachment-item > div:last-child { width: 100%; flex-direction: column; }
             .download-btn { width: 100%; justify-content: center; min-height: 44px; }
             .timeline-item { padding-left: var(--spacing-lg); }
         }
@@ -794,11 +795,20 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="{% url 'vouchers:download_form_attachment' pk=payment_form.pk attachment_id=attachment.id %}"
-                           class="download-btn">
-                            <i class="bi bi-download"></i>
-                            <span>Download</span>
-                        </a>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{% url 'vouchers:download_form_attachment' pk=payment_form.pk attachment_id=attachment.id %}?view=inline"
+                               class="download-btn"
+                               style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"
+                               target="_blank">
+                                <i class="bi bi-eye"></i>
+                                <span>View</span>
+                            </a>
+                            <a href="{% url 'vouchers:download_form_attachment' pk=payment_form.pk attachment_id=attachment.id %}"
+                               class="download-btn">
+                                <i class="bi bi-download"></i>
+                                <span>Download</span>
+                            </a>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>

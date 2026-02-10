@@ -10,23 +10,24 @@ def pending_approvals(request):
     Available as {{ pending_count }} in all templates.
 
     Counts both Payment Vouchers (PV) and Payment Forms (PF) pending user's approval.
-    For MD (role_level 5), also includes pending signature batches.
+    For MD (role_level 5), shows ALL documents at PENDING_L5 (shared approval).
+    For other levels, shows only documents assigned to them.
     """
     if request.user.is_authenticated:
-        # Count Payment Vouchers pending user's approval
-        pv_count = PaymentVoucher.objects.filter(
-            current_approver=request.user
-        ).count()
-
-        # Count Payment Forms pending user's approval
-        pf_count = PaymentForm.objects.filter(
-            current_approver=request.user
-        ).count()
-
-        # Count pending signature batches for MD
-        batch_count = 0
-        if request.user.role_level == 5:  # Managing Director
+        # Special handling for MD users - show ALL documents at PENDING_L5
+        if request.user.role_level == 5:
+            pv_count = PaymentVoucher.objects.filter(status='PENDING_L5').count()
+            pf_count = PaymentForm.objects.filter(status='PENDING_L5').count()
             batch_count = SignatureBatch.objects.filter(status='PENDING').count()
+        else:
+            # For other role levels, show only documents assigned to them
+            pv_count = PaymentVoucher.objects.filter(
+                current_approver=request.user
+            ).count()
+            pf_count = PaymentForm.objects.filter(
+                current_approver=request.user
+            ).count()
+            batch_count = 0
 
         # Total pending count (PV + PF + Batches for MD)
         pending_count = pv_count + pf_count + batch_count
