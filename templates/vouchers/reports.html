@@ -3,735 +3,1095 @@
 
 {% block title %}Reports{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ==================== REPORT PAGE STYLES ==================== */
+    .report-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    /* ── Page Header ── */
+    .report-page-header {
+        margin-top: -45px;
+        margin-bottom: 1.5rem;
+        padding: 1rem 0 0.75rem;
+    }
+
+    .report-page-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0;
+    }
+
+    .report-page-title i { color: #667eea; font-size: 1.75rem; }
+
+    /* ── Filter Card ── */
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+        border: 1px solid rgba(0,0,0,0.04);
+        opacity: 0;
+        transform: translateY(15px);
+        animation: fadeInUp 0.5s ease-out 0.1s forwards;
+    }
+
+    .filter-card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 0.75rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .filter-card-header h5 {
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .filter-card-body { padding: 1rem 1.25rem; }
+
+    .filter-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    .btn-filter {
+        padding: 0.4rem 1rem;
+        border-radius: 8px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-filter.apply {
+        background: white;
+        color: #667eea;
+    }
+    .btn-filter.apply:hover { background: #f0f0ff; transform: translateY(-1px); }
+
+    .btn-filter.excel {
+        background: rgba(16,185,129,0.9);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+    .btn-filter.excel:hover { background: #10b981; transform: translateY(-1px); }
+
+    .btn-filter.print {
+        background: rgba(245,158,11,0.9);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+    .btn-filter.print:hover { background: #f59e0b; transform: translateY(-1px); }
+
+    .btn-filter.reset {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+    .btn-filter.reset:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+
+    /* ── Summary Stat Cards ── */
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.04);
+        opacity: 0;
+        transform: translateY(15px);
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+
+    .stat-icon {
+        width: 50px; height: 50px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; color: white; flex-shrink: 0;
+    }
+
+    .stat-number { font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0; line-height: 1; }
+    .stat-label { font-size: 0.75rem; color: #6b7280; margin: 0.25rem 0 0; font-weight: 500; }
+
+    /* ── Chart Cards ── */
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        border: 1px solid rgba(0,0,0,0.04);
+        height: 100%;
+        opacity: 0;
+        transform: translateY(15px);
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+    .chart-card:hover { box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+
+    .chart-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f3f4f6;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .chart-card canvas { max-height: 220px; }
+
+    /* ── Data Table Card ── */
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.04);
+        margin-bottom: 1.25rem;
+        opacity: 0;
+        transform: translateY(15px);
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+
+    .table-card-header {
+        background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+        padding: 0.75rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .table-card-header h5 {
+        color: white;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .table-card-header .record-count {
+        background: rgba(255,255,255,0.15);
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Search box inside table header */
+    .table-search {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 6px;
+        padding: 0.3rem 0.75rem;
+        color: white;
+        font-size: 0.8125rem;
+        width: 200px;
+        transition: all 0.2s;
+    }
+    .table-search::placeholder { color: rgba(255,255,255,0.6); }
+    .table-search:focus { outline: none; background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.6); }
+
+    /* Data Table */
+    .data-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.875rem;
+    }
+
+    .data-table thead tr {
+        background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+    }
+
+    .data-table th {
+        padding: 0.625rem 1rem;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        border-bottom: 2px solid #e5e7eb;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s;
+    }
+
+    .data-table th:hover { background: #e8ecff; }
+
+    .data-table th .sort-icon { opacity: 0.4; font-size: 0.625rem; margin-left: 4px; }
+    .data-table th.sort-asc .sort-icon,
+    .data-table th.sort-desc .sort-icon { opacity: 1; color: #667eea; }
+
+    .data-table tbody tr {
+        transition: all 0.15s ease;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .data-table tbody tr:hover { background: #f8f9ff; }
+    .data-table tbody tr:last-child { border-bottom: none; }
+
+    .data-table td {
+        padding: 0.625rem 1rem;
+        color: #374151;
+        vertical-align: middle;
+    }
+
+    /* Tfoot totals row */
+    .data-table tfoot tr {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .data-table tfoot td {
+        padding: 0.625rem 1rem;
+        color: white;
+        font-weight: 700;
+        font-size: 0.875rem;
+    }
+
+    /* Doc type badge */
+    .doc-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .doc-badge.pv { background: #fef3c7; color: #92400e; }
+    .doc-badge.pf { background: #dbeafe; color: #1e40af; }
+
+    /* Status badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .status-badge.approved { background: #d1fae5; color: #065f46; }
+    .status-badge.pending  { background: #fef3c7; color: #92400e; }
+    .status-badge.draft    { background: #f3f4f6; color: #4b5563; }
+    .status-badge.rejected { background: #fee2e2; color: #991b1b; }
+    .status-badge.revision { background: #dbeafe; color: #1e40af; }
+
+    /* Amount cell */
+    .amount-cell { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .amount-cell.usd { color: #065f46; }
+    .amount-cell.khr { color: #1e40af; }
+    .amount-cell.thb { color: #92400e; }
+
+    /* Pagination */
+    .table-footer {
+        padding: 0.75rem 1.25rem;
+        background: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .table-info { font-size: 0.8125rem; color: #6b7280; }
+
+    .pagination-controls { display: flex; gap: 0.25rem; align-items: center; }
+
+    .page-btn {
+        width: 32px; height: 32px;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        color: #374151;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.15s;
+    }
+    .page-btn:hover { background: #f0f4ff; border-color: #667eea; color: #667eea; }
+    .page-btn.active { background: #667eea; border-color: #667eea; color: white; }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .per-page-select {
+        padding: 0.3rem 0.5rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+        color: #374151;
+        background: white;
+    }
+
+    /* ── Department Breakdown Table ── */
+    .breakdown-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.8125rem;
+    }
+    .breakdown-table th {
+        background: #f8f9ff;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        color: #4b5563;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    .breakdown-table td {
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+    }
+    .breakdown-table tr:last-child td { border-bottom: none; }
+    .breakdown-table tr:hover td { background: #f8f9ff; }
+
+    /* Progress bar in breakdown */
+    .progress-mini {
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        overflow: hidden;
+        width: 80px;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 0.5rem;
+    }
+    .progress-mini-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 3px;
+        transition: width 1s ease;
+    }
+
+    /* View detail link */
+    .view-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.8125rem;
+        transition: color 0.2s;
+    }
+    .view-link:hover { color: #764ba2; text-decoration: underline; }
+
+    /* ── Animations ── */
+    @keyframes fadeInUp {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Print Styles ── */
+    @media print {
+        .filter-card, .filter-actions, .table-search,
+        .pagination-controls, .per-page-select,
+        nav, footer, .no-print { display: none !important; }
+
+        .report-container { max-width: 100%; padding: 0; }
+        .data-table { font-size: 0.75rem; }
+        .data-table th, .data-table td { padding: 0.375rem 0.5rem; }
+        .stat-card, .chart-card, .table-card { box-shadow: none; border: 1px solid #ddd; }
+        .table-card { break-inside: avoid; }
+
+        .print-header { display: block !important; }
+    }
+
+    .print-header {
+        display: none;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #667eea;
+    }
+
+    .print-header h2 { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
+    .print-header p { color: #6b7280; font-size: 0.875rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+        .stat-number { font-size: 1.25rem; }
+        .table-search { width: 140px; }
+        .data-table { font-size: 0.8125rem; }
+        .data-table th, .data-table td { padding: 0.5rem 0.625rem; }
+    }
+
+    @media (max-width: 576px) {
+        .filter-actions { width: 100%; }
+        .btn-filter { flex: 1; justify-content: center; }
+        .table-card-header { flex-direction: column; align-items: flex-start; }
+        .table-search { width: 100%; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div class="container-fluid mt-3">
-        <!-- Filters Section -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="card shadow-sm fade-in" style="animation-delay: 0.1s;">
-                    <div class="card-header"
-                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="bi bi-file-earmark-bar-graph me-2"></i>
-                                Advanced Reports & Export
-                            </h5>
-                            <!-- Export to Excel Button -->
-                            <button type="button" class="btn btn-success px-3" onclick="exportToExcel()">
-                                <i class="bi bi-file-earmark-excel me-2"></i>
-                                Export to Excel
-                            </button>
-                        </div>
+<div class="report-container">
+
+    <!-- Print Header (hidden on screen, visible on print) -->
+    <div class="print-header">
+        <h2>Payment Voucher System — Financial Report</h2>
+        <p>Generated on: <span id="print-date"></span> | Garden City Water Park</p>
+    </div>
+
+    <!-- ==================== PAGE HEADER ==================== -->
+    <div class="report-page-header no-print">
+        <h1 class="report-page-title">
+            <i class="bi bi-file-earmark-bar-graph"></i>
+            Advanced Reports
+        </h1>
+    </div>
+
+    <!-- ==================== FILTER CARD ==================== -->
+    <div class="filter-card no-print">
+        <div class="filter-card-header">
+            <h5><i class="bi bi-funnel me-2"></i>Filters</h5>
+            <div class="filter-actions">
+                <button type="button" class="btn-filter apply" onclick="applyFilters()">
+                    <i class="bi bi-search"></i> Apply
+                </button>
+                <button type="button" class="btn-filter reset" onclick="resetFilters()">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                </button>
+                <button type="button" class="btn-filter print" onclick="printReport()">
+                    <i class="bi bi-printer"></i> Print
+                </button>
+                <button type="button" class="btn-filter excel" onclick="exportToExcel()">
+                    <i class="bi bi-file-earmark-excel"></i> Excel
+                </button>
+            </div>
+        </div>
+        <div class="filter-card-body">
+            <form id="reportForm" method="GET">
+                <div class="row g-2">
+                    <div class="col-md-6 col-lg-2">
+                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
+                            <i class="bi bi-calendar-date text-primary"></i> From Date
+                        </label>
+                        <input type="date" class="form-control form-control-sm" name="date_from"
+                               value="{{ request.GET.date_from }}">
                     </div>
-                    <div class="card-body">
-                        <form id="reportForm" method="GET">
-                            <div class="row g-2">
-                                <!-- Date Range -->
-                                <div class="col-md-6 col-lg-3">
-                                    <label for="date_from" class="form-label">
-                                        <i class="bi bi-calendar-date text-primary"></i> From Date
-                                    </label>
-                                    <input type="date" class="form-control form-control-sm" id="date_from"
-                                           name="date_from">
-                                </div>
-
-                                <div class="col-md-6 col-lg-3">
-                                    <label for="date_to" class="form-label">
-                                        <i class="bi bi-calendar-date text-primary"></i> Date To
-                                    </label>
-                                    <input type="date" class="form-control form-control-sm" id="date_to" name="date_to">
-                                </div>
-
-                                <!-- Status Filter -->
-                                <div class="col-md-6 col-lg-3">
-                                    <label for="status" class="form-label">
-                                        <i class="bi bi-check-circle text-success"></i> Status
-                                    </label>
-                                    <select class="form-select form-select-sm" id="status" name="status">
-                                        <option value="">All Statuses</option>
-                                        {% for status in statuses %}
-                                            <option value="{{ status }}">{{ status }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-
-                                <!-- Document Type -->
-                                <div class="col-md-6 col-lg-3">
-                                    <label for="doc_type" class="form-label">
-                                        <i class="bi bi-file-earmark-text text-info"></i> Document Type
-                                    </label>
-                                    <select class="form-select form-select-sm" id="doc_type" name="doc_type">
-                                        <option value="">Both (PV & PF)</option>
-                                        <option value="PV">Payment Voucher (PV)</option>
-                                        <option value="PF">Payment Form (PF)</option>
-                                    </select>
-                                </div>
-
-                                <!-- Creator Filter -->
-                                <div class="col-md-6 col-lg-4">
-                                    <label for="creator" class="form-label">
-                                        <i class="bi bi-person text-warning"></i> Creator
-                                    </label>
-                                    <select class="form-select form-select-sm" id="creator" name="creator">
-                                        <option value="">All Creators</option>
-                                        {% for user in users %}
-                                            <option value="{{ user.id }}">{{ user.get_full_name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-
-                                <!-- Department Filter -->
-                                <div class="col-md-6 col-lg-4">
-                                    <label for="department" class="form-label">
-                                        <i class="bi bi-building text-danger"></i> Department
-                                    </label>
-                                    <select class="form-select form-select-sm" id="department" name="department">
-                                        <option value="">All Departments</option>
-                                        {% for dept in departments %}
-                                            <option value="{{ dept.name }}">{{ dept.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-
-                                <!-- Payee Name Filter -->
-                                <div class="col-md-6 col-lg-4">
-                                    <label for="payee_name" class="form-label">
-                                        <i class="bi bi-person-badge text-secondary"></i> Payee Name
-                                    </label>
-                                    <input type="text" class="form-control form-control-sm" id="payee_name"
-                                           name="payee_name" placeholder="Search by payee...">
-                                </div>
-                            </div>
-                        </form>
+                    <div class="col-md-6 col-lg-2">
+                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
+                            <i class="bi bi-calendar-date text-primary"></i> To Date
+                        </label>
+                        <input type="date" class="form-control form-control-sm" name="date_to"
+                               value="{{ request.GET.date_to }}">
                     </div>
+                    <div class="col-md-6 col-lg-2">
+                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
+                            <i class="bi bi-check-circle text-success"></i> Status
+                        </label>
+                        <select class="form-select form-select-sm" name="status">
+                            <option value="">All Statuses</option>
+                            {% for status in statuses %}
+                                <option value="{{ status }}" {% if request.GET.status == status %}selected{% endif %}>{{ status }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-lg-2">
+                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
+                            <i class="bi bi-file-earmark-text text-info"></i> Doc Type
+                        </label>
+                        <select class="form-select form-select-sm" name="doc_type">
+                            <option value="">Both (PV & PF)</option>
+                            <option value="PV" {% if request.GET.doc_type == 'PV' %}selected{% endif %}>Payment Voucher (PV)</option>
+                            <option value="PF" {% if request.GET.doc_type == 'PF' %}selected{% endif %}>Payment Form (PF)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-lg-2">
+                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
+                            <i class="bi bi-person text-warning"></i> Creator
+                        </label>
+                        <select class="form-select form-select-sm" name="creator">
+                            <option value="">All Creators</option>
+                            {% for u in users %}
+                                <option value="{{ u.id }}" {% if request.GET.creator == u.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ u.get_full_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-lg-2">
+                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
+                            <i class="bi bi-building text-danger"></i> Department
+                        </label>
+                        <select class="form-select form-select-sm" name="department">
+                            <option value="">All Departments</option>
+                            {% for dept in departments %}
+                                <option value="{{ dept.name }}" {% if request.GET.department == dept.name %}selected{% endif %}>
+                                    {{ dept.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
+                            <i class="bi bi-person-badge text-secondary"></i> Payee Name
+                        </label>
+                        <input type="text" class="form-control form-control-sm" name="payee_name"
+                               placeholder="Search by payee..." value="{{ request.GET.payee_name }}">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== SUMMARY STAT CARDS ==================== -->
+    <div class="row g-2 mb-2">
+        <div class="col-6 col-lg-3">
+            <div class="stat-card" style="animation-delay:0.2s;">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div class="stat-content">
+                    <h4 class="stat-number">{{ total_approved|default:0 }}</h4>
+                    <p class="stat-label">Total Approved</p>
                 </div>
             </div>
         </div>
-
-        <!-- Analytics Dashboard -->
-        <div class="row mb-2 mt-3">
-            <div class="col-12">
-                <div class="analytics-header fade-in" style="animation-delay: 0.2s;">
-                    <h5><i class="bi bi-bar-chart-fill me-2"></i>Analytics Dashboard</h5>
-                    <p class="text-muted mb-0">Approved Documents Statistics & Trends</p>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card" style="animation-delay:0.3s;">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <div class="stat-content">
+                    <h4 class="stat-number">{{ total_pv|default:0 }}</h4>
+                    <p class="stat-label">Payment Vouchers</p>
                 </div>
             </div>
         </div>
-
-        <!-- Summary Cards -->
-        <div class="row g-2 mb-2">
-            <div class="col-md-6 col-lg-3">
-                <div class="stat-card fade-in" style="animation-delay: 0.3s;">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="bi bi-file-earmark-text"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h4 class="stat-number">{{ total_approved|default:0 }}</h4>
-                        <p class="stat-label">Total Approved</p>
-                    </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card" style="animation-delay:0.4s;">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);">
+                    <i class="bi bi-file-earmark-check"></i>
                 </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-                <div class="stat-card fade-in" style="animation-delay: 0.4s;">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                        <i class="bi bi-receipt"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h4 class="stat-number">{{ total_pv|default:0 }}</h4>
-                        <p class="stat-label">Payment Vouchers</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-                <div class="stat-card fade-in" style="animation-delay: 0.5s;">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                        <i class="bi bi-file-earmark-check"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h4 class="stat-number">{{ total_pf|default:0 }}</h4>
-                        <p class="stat-label">Payment Forms</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-                <div class="stat-card fade-in" style="animation-delay: 0.6s;">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                        <i class="bi bi-cash-stack"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h4 class="stat-number">${{ total_usd|floatformat:0|default:0 }}</h4>
-                        <p class="stat-label">Total (USD)</p>
-                    </div>
+                <div class="stat-content">
+                    <h4 class="stat-number">{{ total_pf|default:0 }}</h4>
+                    <p class="stat-label">Payment Forms</p>
                 </div>
             </div>
         </div>
-
-        <!-- Charts Row -->
-        <div class="row g-2 mb-2">
-            <div class="col-lg-8">
-                <div class="chart-card fade-in" style="animation-delay: 0.7s;">
-                    <h6 class="chart-title"><i class="bi bi-graph-up me-2"></i>Monthly Trends</h6>
-                    <canvas id="monthlyChart"></canvas>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card" style="animation-delay:0.5s;">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#43e97b,#38f9d7);">
+                    <i class="bi bi-cash-stack"></i>
                 </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="chart-card fade-in" style="animation-delay: 0.8s;">
-                    <h6 class="chart-title"><i class="bi bi-pie-chart me-2"></i>Document Types</h6>
-                    <canvas id="pieChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-2 mb-3">
-            <div class="col-lg-6">
-                <div class="chart-card fade-in" style="animation-delay: 0.9s;">
-                    <h6 class="chart-title"><i class="bi bi-currency-dollar me-2"></i>Currency Distribution</h6>
-                    <canvas id="currencyChart"></canvas>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="chart-card fade-in" style="animation-delay: 1s;">
-                    <h6 class="chart-title"><i class="bi bi-activity me-2"></i>Approval Activity</h6>
-                    <canvas id="activityChart"></canvas>
+                <div class="stat-content">
+                    <h4 class="stat-number">${{ total_usd|floatformat:0|default:0 }}</h4>
+                    <p class="stat-label">Total (USD)</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- ==================== CHARTS ROW ==================== -->
+    <div class="row g-2 mb-2">
+        <div class="col-lg-8">
+            <div class="chart-card" style="animation-delay:0.6s;">
+                <div class="chart-title"><i class="bi bi-graph-up"></i>Monthly Trends</div>
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="chart-card" style="animation-delay:0.65s;">
+                <div class="chart-title"><i class="bi bi-pie-chart"></i>Document Types</div>
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-    <script>
-        function exportToExcel() {
-            const form = document.getElementById('reportForm');
-            const params = new URLSearchParams(new FormData(form));
-            window.location.href = "{% url 'vouchers:export_excel' %}?" + params.toString();
-        }
+    <div class="row g-2 mb-3">
+        <div class="col-lg-6">
+            <div class="chart-card" style="animation-delay:0.7s;">
+                <div class="chart-title"><i class="bi bi-currency-dollar"></i>Currency Distribution</div>
+                <canvas id="currencyChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="chart-card" style="animation-delay:0.75s;">
+                <div class="chart-title"><i class="bi bi-activity"></i>Approval Activity</div>
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-        // Chart.js Configuration
-        const chartColors = {
-            primary: 'rgba(102, 126, 234, 0.8)',
-            secondary: 'rgba(245, 135, 124, 0.8)',
-            success: 'rgba(16, 185, 129, 0.8)',
-            warning: 'rgba(245, 158, 11, 0.8)',
-            info: 'rgba(59, 130, 246, 0.8)',
-            gradient1: 'rgba(102, 126, 234, 1)',
-            gradient2: 'rgba(118, 75, 162, 1)',
-        };
+    <!-- ==================== DEPARTMENT BREAKDOWN ==================== -->
+    <div class="row g-2 mb-3">
+        <div class="col-lg-6">
+            <div class="table-card" style="animation-delay:0.8s;">
+                <div class="table-card-header">
+                    <h5><i class="bi bi-building"></i> Department Breakdown</h5>
+                    <span class="record-count">{{ dept_breakdown|length }} depts</span>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="breakdown-table">
+                        <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th>Docs</th>
+                                <th>Total (USD)</th>
+                                <th>Share</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dept in dept_breakdown %}
+                            <tr>
+                                <td><strong>{{ dept.name }}</strong></td>
+                                <td>{{ dept.count }}</td>
+                                <td class="amount-cell usd">${{ dept.total_usd|floatformat:2 }}</td>
+                                <td>
+                                    {{ dept.percentage|floatformat:1 }}%
+                                    <span class="progress-mini">
+                                        <span class="progress-mini-fill" style="width:{{ dept.percentage }}%"></span>
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:1.5rem;">No data</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="table-card" style="animation-delay:0.85s;">
+                <div class="table-card-header">
+                    <h5><i class="bi bi-person-lines-fill"></i> Top Creators</h5>
+                    <span class="record-count">{{ creator_breakdown|length }} users</span>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="breakdown-table">
+                        <thead>
+                            <tr>
+                                <th>Creator</th>
+                                <th>PV</th>
+                                <th>PF</th>
+                                <th>Total (USD)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for creator in creator_breakdown %}
+                            <tr>
+                                <td><strong>{{ creator.name }}</strong></td>
+                                <td>{{ creator.pv_count }}</td>
+                                <td>{{ creator.pf_count }}</td>
+                                <td class="amount-cell usd">${{ creator.total_usd|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:1.5rem;">No data</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Monthly Trends Chart (Bar + Line)
-        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-        const monthlyChart = new Chart(monthlyCtx, {
-            type: 'bar',
-            data: {
-                labels: {{ monthly_labels|safe }},
-                datasets: [{
-                    label: 'Payment Vouchers',
-                    data: {{ monthly_pv|safe }},
-                    backgroundColor: 'rgba(245, 135, 124, 0.7)',
-                    borderColor: 'rgba(245, 135, 124, 1)',
-                    borderWidth: 2,
-                    borderRadius: 6,
-                }, {
-                    label: 'Payment Forms',
-                    data: {{ monthly_pf|safe }},
-                    backgroundColor: 'rgba(79, 172, 254, 0.7)',
-                    borderColor: 'rgba(79, 172, 254, 1)',
-                    borderWidth: 2,
-                    borderRadius: 6,
-                }, {
-                    label: 'Total Amount (USD)',
-                    data: {{ monthly_amounts|safe }},
-                    type: 'line',
-                    borderColor: 'rgba(67, 233, 123, 1)',
-                    backgroundColor: 'rgba(67, 233, 123, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    yAxisID: 'y1',
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            padding: 10,
-                            font: {size: 11, weight: '600'},
-                            usePointStyle: true,
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 10,
-                        cornerRadius: 6,
-                        titleFont: {size: 12, weight: 'bold'},
-                        bodyFont: {size: 11},
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {color: 'rgba(0, 0, 0, 0.05)'},
-                        ticks: {font: {size: 10}}
-                    },
-                    y1: {
-                        beginAtZero: true,
-                        position: 'right',
-                        grid: {drawOnChartArea: false},
-                        ticks: {
-                            font: {size: 10},
-                            callback: function (value) {
-                                return '$' + value.toLocaleString();
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {display: false},
-                        ticks: {font: {size: 10}}
-                    }
-                },
-                animation: {
-                    duration: 1200,
-                    easing: 'easeInOutQuart'
-                }
-            }
+    <!-- ==================== MAIN DATA TABLE ==================== -->
+    <div class="table-card" style="animation-delay:0.9s;">
+        <div class="table-card-header">
+            <h5>
+                <i class="bi bi-table"></i>
+                All Documents
+                <span class="record-count" id="visibleCount">{{ records|length }} records</span>
+            </h5>
+            <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                <input type="text" class="table-search" id="tableSearch"
+                       placeholder="&#xF52A; Quick search..." onkeyup="filterTable()">
+                <select class="per-page-select" id="perPageSelect" onchange="changePerPage()">
+                    <option value="25">25 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="100">100 / page</option>
+                    <option value="9999">All</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table class="data-table" id="mainDataTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)" title="Sort">#  <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(1)">Doc No <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(2)">Type <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(3)">Payee <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(4)">Department <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(5)">Payment Date <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(6)">Created By <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(7)">Status <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(8)" style="text-align:right;">Amount (USD) <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(9)" style="text-align:right;">Amount (KHR) <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(10)" style="text-align:right;">Amount (THB) <span class="sort-icon">▲▼</span></th>
+                        <th class="no-print">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ record.doc_number }}</strong></td>
+                        <td>
+                            {% if record.doc_type == 'PV' %}
+                                <span class="doc-badge pv"><i class="bi bi-receipt"></i> PV</span>
+                            {% else %}
+                                <span class="doc-badge pf"><i class="bi bi-file-earmark-check"></i> PF</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.payee_name }}</td>
+                        <td>{{ record.department|default:"-" }}</td>
+                        <td>{{ record.payment_date|date:"d M Y" }}</td>
+                        <td>{{ record.created_by }}</td>
+                        <td>
+                            {% if record.status == 'APPROVED' %}
+                                <span class="status-badge approved"><i class="bi bi-check-circle"></i> Approved</span>
+                            {% elif record.status == 'PENDING' %}
+                                <span class="status-badge pending"><i class="bi bi-clock"></i> Pending</span>
+                            {% elif record.status == 'DRAFT' %}
+                                <span class="status-badge draft"><i class="bi bi-pencil"></i> Draft</span>
+                            {% elif record.status == 'REJECTED' %}
+                                <span class="status-badge rejected"><i class="bi bi-x-circle"></i> Rejected</span>
+                            {% elif record.status == 'ON_REVISION' %}
+                                <span class="status-badge revision"><i class="bi bi-arrow-counterclockwise"></i> Revision</span>
+                            {% else %}
+                                <span class="status-badge pending">{{ record.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="amount-cell usd">
+                            {% if record.total_usd %}${{ record.total_usd|floatformat:2 }}{% else %}-{% endif %}
+                        </td>
+                        <td class="amount-cell khr">
+                            {% if record.total_khr %}៛{{ record.total_khr|floatformat:0 }}{% else %}-{% endif %}
+                        </td>
+                        <td class="amount-cell thb">
+                            {% if record.total_thb %}฿{{ record.total_thb|floatformat:2 }}{% else %}-{% endif %}
+                        </td>
+                        <td class="no-print">
+                            {% if record.doc_type == 'PV' %}
+                                <a href="{% url 'vouchers:detail' record.pk %}" class="view-link">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            {% else %}
+                                <a href="{% url 'vouchers:pf_detail' record.pk %}" class="view-link">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="12" style="text-align:center;padding:3rem;color:#9ca3af;">
+                            <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+                            No records found matching the current filters.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="8"><strong>TOTALS (filtered results)</strong></td>
+                        <td class="amount-cell" style="color:white;">${{ total_usd|floatformat:2|default:"0.00" }}</td>
+                        <td class="amount-cell" style="color:white;">៛{{ total_khr|floatformat:0|default:"0" }}</td>
+                        <td class="amount-cell" style="color:white;">฿{{ total_thb|floatformat:2|default:"0.00" }}</td>
+                        <td class="no-print"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Table Footer: info + pagination -->
+        <div class="table-footer">
+            <div class="table-info" id="tableInfo">
+                Showing <strong id="showFrom">1</strong>–<strong id="showTo">25</strong>
+                of <strong id="totalRows">{{ records|length }}</strong> records
+            </div>
+            <div class="pagination-controls" id="paginationControls"></div>
+        </div>
+    </div>
+
+</div><!-- end report-container -->
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    // ── Set print date ──
+    document.getElementById('print-date').textContent = new Date().toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+
+    // ── Filter form ──
+    function applyFilters() { document.getElementById('reportForm').submit(); }
+
+    function resetFilters() {
+        window.location.href = window.location.pathname;
+    }
+
+    function exportToExcel() {
+        const form = document.getElementById('reportForm');
+        const params = new URLSearchParams(new FormData(form));
+        window.location.href = "{% url 'vouchers:export_excel' %}?" + params.toString();
+    }
+
+    function printReport() {
+        window.print();
+    }
+
+    // ── Table Client-Side Search ──
+    function filterTable() {
+        const query = document.getElementById('tableSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('#tableBody tr');
+        let visible = 0;
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const match = text.includes(query);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        document.getElementById('visibleCount').textContent = visible + ' records';
+        currentPage = 1;
+        renderPagination();
+    }
+
+    // ── Pagination ──
+    let currentPage = 1;
+    let perPage = 25;
+
+    function getVisibleRows() {
+        return Array.from(document.querySelectorAll('#tableBody tr')).filter(r => r.style.display !== 'none');
+    }
+
+    function renderPagination() {
+        const rows = getVisibleRows();
+        const total = rows.length;
+        const totalPages = Math.ceil(total / perPage);
+
+        // Hide/show rows
+        rows.forEach((row, i) => {
+            const inPage = i >= (currentPage - 1) * perPage && i < currentPage * perPage;
+            row.style.display = inPage ? '' : 'none';
         });
 
-        // Document Types Pie Chart
-        const pieCtx = document.getElementById('pieChart').getContext('2d');
-        const pieChart = new Chart(pieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Payment Vouchers', 'Payment Forms'],
-                datasets: [{
-                    data: [{{ total_pv|default:0 }}, {{ total_pf|default:0 }}],
-                    backgroundColor: [
-                        'rgba(245, 135, 124, 0.8)',
-                        'rgba(79, 172, 254, 0.8)',
-                    ],
-                    borderColor: ['#fff', '#fff'],
-                    borderWidth: 2,
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 10,
-                            font: {size: 11, weight: '600'},
-                            usePointStyle: true,
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 10,
-                        cornerRadius: 6,
-                    }
-                },
-                animation: {
-                    animateRotate: true,
-                    animateScale: true,
-                    duration: 1200,
-                    easing: 'easeInOutQuart'
-                }
-            }
+        // Update info
+        const from = total === 0 ? 0 : (currentPage - 1) * perPage + 1;
+        const to = Math.min(currentPage * perPage, total);
+        document.getElementById('showFrom').textContent = from;
+        document.getElementById('showTo').textContent = to;
+        document.getElementById('totalRows').textContent = total;
+
+        // Build page buttons
+        const ctrl = document.getElementById('paginationControls');
+        ctrl.innerHTML = '';
+
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => { currentPage--; renderPagination(); };
+        ctrl.appendChild(prevBtn);
+
+        // Page numbers (show max 5)
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage   = Math.min(totalPages, startPage + 4);
+        startPage = Math.max(1, endPage - 4);
+
+        for (let p = startPage; p <= endPage; p++) {
+            const btn = document.createElement('button');
+            btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
+            btn.textContent = p;
+            btn.onclick = ((pg) => () => { currentPage = pg; renderPagination(); })(p);
+            ctrl.appendChild(btn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+        nextBtn.onclick = () => { currentPage++; renderPagination(); };
+        ctrl.appendChild(nextBtn);
+    }
+
+    function changePerPage() {
+        perPage = parseInt(document.getElementById('perPageSelect').value);
+        currentPage = 1;
+        renderPagination();
+    }
+
+    // ── Table Sorting ──
+    let sortDir = {};
+    function sortTable(colIndex) {
+        const tbody = document.getElementById('tableBody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const asc = !sortDir[colIndex];
+        sortDir = {};
+        sortDir[colIndex] = asc;
+
+        // Update sort icons
+        document.querySelectorAll('.data-table th').forEach((th, i) => {
+            th.classList.remove('sort-asc', 'sort-desc');
+            if (i === colIndex) th.classList.add(asc ? 'sort-asc' : 'sort-desc');
         });
 
-        // Currency Distribution Chart
-        const currencyCtx = document.getElementById('currencyChart').getContext('2d');
-        const currencyChart = new Chart(currencyCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['USD ($)', 'KHR (៛)', 'THB (฿)'],
-                datasets: [{
-                    data: [
-                        {{ total_usd|default:0 }},
-                        {{ total_khr|default:0 }},
-                        {{ total_thb|default:0 }}
-                    ],
-                    backgroundColor: [
-                        'rgba(67, 233, 123, 0.8)',
-                        'rgba(102, 126, 234, 0.8)',
-                        'rgba(245, 158, 11, 0.8)',
-                    ],
-                    borderColor: ['#fff', '#fff', '#fff'],
-                    borderWidth: 2,
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 10,
-                            font: {size: 11, weight: '600'},
-                            usePointStyle: true,
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 10,
-                        cornerRadius: 6,
-                        callbacks: {
-                            label: function (context) {
-                                let label = context.label || '';
-                                let value = context.parsed || 0;
-                                return label + ': ' + value.toLocaleString('en-US', {minimumFractionDigits: 2});
-                            }
-                        }
-                    }
-                },
-                animation: {
-                    animateRotate: true,
-                    animateScale: true,
-                    duration: 1200,
-                    easing: 'easeInOutQuart'
-                }
-            }
+        rows.sort((a, b) => {
+            const aText = a.cells[colIndex]?.textContent.trim() || '';
+            const bText = b.cells[colIndex]?.textContent.trim() || '';
+            const aNum = parseFloat(aText.replace(/[^0-9.-]/g, ''));
+            const bNum = parseFloat(bText.replace(/[^0-9.-]/g, ''));
+            if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum - bNum : bNum - aNum;
+            return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
         });
 
-        // Activity Line Chart
-        const activityCtx = document.getElementById('activityChart').getContext('2d');
-        const activityChart = new Chart(activityCtx, {
-            type: 'line',
-            data: {
-                labels: {{ monthly_labels|safe }},
-                datasets: [{
-                    label: 'Total Documents',
-                    data: {{ monthly_pv|safe }}.map((pv, idx) => pv + {{ monthly_pf|safe }}[idx]),
-                    borderColor: 'rgba(102, 126, 234, 1)',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: 'rgba(102, 126, 234, 1)',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                }]
+        rows.forEach(r => tbody.appendChild(r));
+        currentPage = 1;
+        renderPagination();
+    }
+
+    // Init pagination on load
+    document.addEventListener('DOMContentLoaded', () => renderPagination());
+
+    // ── Chart.js ──
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: [{
+                label: 'Payment Vouchers',
+                data: {{ monthly_pv|safe }},
+                backgroundColor: 'rgba(245,135,124,0.7)',
+                borderColor: 'rgba(245,135,124,1)',
+                borderWidth: 2,
+                borderRadius: 6,
+            }, {
+                label: 'Payment Forms',
+                data: {{ monthly_pf|safe }},
+                backgroundColor: 'rgba(79,172,254,0.7)',
+                borderColor: 'rgba(79,172,254,1)',
+                borderWidth: 2,
+                borderRadius: 6,
+            }, {
+                label: 'Total Amount (USD)',
+                data: {{ monthly_amounts|safe }},
+                type: 'line',
+                borderColor: 'rgba(67,233,123,1)',
+                backgroundColor: 'rgba(67,233,123,0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                yAxisID: 'y1',
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { padding: 10, font: { size: 11, weight: '600' }, usePointStyle: true }},
+                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, cornerRadius: 6 }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 10,
-                        cornerRadius: 6,
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {color: 'rgba(0, 0, 0, 0.05)'},
-                        ticks: {font: {size: 10}}
-                    },
-                    x: {
-                        grid: {display: false},
-                        ticks: {font: {size: 10}}
-                    }
-                },
-                animation: {
-                    duration: 1200,
-                    easing: 'easeInOutQuart'
-                }
-            }
-        });
-    </script>
-
-    <style>
-        /* ==================== SMOOTH PAGE ANIMATIONS (Dashboard Style) ==================== */
-
-        /* Page fade-in */
-        @keyframes fadeInPage {
-            to {
-                opacity: 1;
-            }
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 }}},
+                y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false },
+                      ticks: { font: { size: 10 }, callback: v => '$' + v.toLocaleString() }},
+                x: { grid: { display: false }, ticks: { font: { size: 10 }}}
+            },
+            animation: { duration: 1200, easing: 'easeInOutQuart' }
         }
+    });
 
-        /* Card fade-in with up movement */
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+    new Chart(document.getElementById('pieChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Payment Vouchers', 'Payment Forms'],
+            datasets: [{ data: [{{ total_pv|default:0 }}, {{ total_pf|default:0 }}],
+                backgroundColor: ['rgba(245,135,124,0.8)', 'rgba(79,172,254,0.8)'],
+                borderColor: ['#fff', '#fff'], borderWidth: 2, hoverOffset: 8 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 10, font: { size: 11, weight: '600' }, usePointStyle: true }},
+                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, cornerRadius: 6 }
+            },
+            animation: { animateRotate: true, animateScale: true, duration: 1200 }
         }
+    });
 
-        .container-fluid {
-            opacity: 1;
-            /* Removed animation to prevent blank screen flicker */
+    new Chart(document.getElementById('currencyChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['USD ($)', 'KHR (៛)', 'THB (฿)'],
+            datasets: [{ data: [{{ total_usd|default:0 }}, {{ total_khr|default:0 }}, {{ total_thb|default:0 }}],
+                backgroundColor: ['rgba(67,233,123,0.8)', 'rgba(102,126,234,0.8)', 'rgba(245,158,11,0.8)'],
+                borderColor: ['#fff','#fff','#fff'], borderWidth: 2, hoverOffset: 8 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 10, font: { size: 11, weight: '600' }, usePointStyle: true }},
+                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, cornerRadius: 6,
+                    callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+            },
+            animation: { animateRotate: true, animateScale: true, duration: 1200 }
         }
+    });
 
-        .fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.5s ease-out forwards;
+    new Chart(document.getElementById('activityChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: [{
+                label: 'Total Documents',
+                data: {{ monthly_pv|safe }}.map((pv, i) => pv + {{ monthly_pf|safe }}[i]),
+                borderColor: 'rgba(102,126,234,1)',
+                backgroundColor: 'rgba(102,126,234,0.1)',
+                borderWidth: 2, fill: true, tension: 0.4,
+                pointBackgroundColor: 'rgba(102,126,234,1)',
+                pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, cornerRadius: 6 }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 }}},
+                x: { grid: { display: false }, ticks: { font: { size: 10 }}}
+            },
+            animation: { duration: 1200, easing: 'easeInOutQuart' }
         }
-
-        /* Analytics Header */
-        .analytics-header {
-            margin-bottom: 1rem;
-        }
-
-        .analytics-header h5 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.25rem;
-        }
-
-        .analytics-header p {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-
-        /* Stat Cards */
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.04);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .stat-content {
-            flex: 1;
-        }
-
-        .stat-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin: 0;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: #6b7280;
-            margin: 0.25rem 0 0 0;
-            font-weight: 500;
-        }
-
-        /* Chart Cards */
-        .chart-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.04);
-            height: 100%;
-        }
-
-        .chart-card:hover {
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .chart-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #f3f4f6;
-        }
-
-        .chart-card canvas {
-            max-height: 220px;
-        }
-
-        /* Filter Card */
-        .card {
-            border: none;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-        }
-
-        .card-header {
-            padding: 1rem;
-            border-bottom: none;
-        }
-
-        .card-header h5 {
-            font-size: 1.125rem;
-            font-weight: 600;
-        }
-
-        .card-header .btn {
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border-radius: 8px;
-            font-size: 0.875rem;
-        }
-
-        .card-header .btn:hover {
-            border-color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .card-header .btn-success {
-            background: rgba(16, 185, 129, 0.9);
-        }
-
-        .card-header .btn-success:hover {
-            background: rgba(16, 185, 129, 1);
-        }
-
-        .card-body {
-            padding: 1rem;
-        }
-
-        .form-label {
-            margin-bottom: 0.25rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .form-control, .form-select {
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .form-control-sm, .form-select-sm {
-            padding: 0.4rem 0.6rem;
-            font-size: 0.875rem;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.15rem rgba(102, 126, 234, 0.2);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .analytics-header h5 {
-                font-size: 1.125rem;
-            }
-
-            .stat-card {
-                padding: 0.875rem;
-            }
-
-            .stat-icon {
-                width: 45px;
-                height: 45px;
-                font-size: 1.25rem;
-            }
-
-            .stat-number {
-                font-size: 1.25rem;
-            }
-
-            .chart-card {
-                margin-bottom: 0.75rem;
-            }
-
-            .chart-card canvas {
-                max-height: 200px;
-            }
-
-            .card-header {
-                flex-direction: column;
-                gap: 0.75rem;
-            }
-
-            .card-header .d-flex:last-child {
-                width: 100%;
-                flex-wrap: wrap;
-            }
-
-            .card-header .btn {
-                flex: 1;
-                min-width: 120px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .stat-number {
-                font-size: 1.125rem;
-            }
-
-            .stat-label {
-                font-size: 0.7rem;
-            }
-
-            .chart-card canvas {
-                max-height: 180px;
-            }
-        }
-
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        }
-    </style>
+    });
+</script>
 {% endblock %}
-
