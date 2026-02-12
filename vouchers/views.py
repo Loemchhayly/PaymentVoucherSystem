@@ -385,6 +385,12 @@ def voucher_approve(request, pk):
     """Handle approval actions (approve, reject, return)"""
     voucher = get_object_or_404(PaymentVoucher, pk=pk)
 
+    # MD users cannot approve PENDING_L5 documents individually
+    # They must use signature batches (FM controls which documents to send)
+    if request.user.role_level == 5 and voucher.status == 'PENDING_L5':
+        messages.error(request, 'MD users cannot approve individual documents. Please ask Finance Manager to create a signature batch.')
+        return redirect('vouchers:detail', pk=pk)
+
     # Check permission
     if voucher.current_approver != request.user:
         messages.error(request, 'You are not authorized to approve this voucher')
@@ -450,6 +456,12 @@ def form_submit(request, pk):
 def form_approve(request, pk):
     """Handle approval actions for payment forms (approve, reject, return)"""
     payment_form = get_object_or_404(PaymentForm, pk=pk)
+
+    # MD users cannot approve PENDING_L5 documents individually
+    # They must use signature batches (FM controls which documents to send)
+    if request.user.role_level == 5 and payment_form.status == 'PENDING_L5':
+        messages.error(request, 'MD users cannot approve individual documents. Please ask Finance Manager to create a signature batch.')
+        return redirect('vouchers:pf_detail', pk=pk)
 
     # Check permission
     if payment_form.current_approver != request.user:
@@ -1184,9 +1196,11 @@ def reports_view(request):
     from collections import defaultdict
     from datetime import datetime, timedelta
 
-    # Get approved documents only
-    approved_vouchers = PaymentVoucher.objects.filter(status='APPROVED')
-    approved_forms = PaymentForm.objects.filter(status='APPROVED')
+    # Get documents after L2 (Account Supervisor) approval
+    # This includes: PENDING_L3, PENDING_L4, PENDING_L5, and APPROVED
+    allowed_statuses = ['PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED']
+    approved_vouchers = PaymentVoucher.objects.filter(status__in=allowed_statuses)
+    approved_forms = PaymentForm.objects.filter(status__in=allowed_statuses)
 
     # Calculate totals by currency
     currency_totals = {'USD': 0, 'KHR': 0, 'THB': 0}
@@ -1429,6 +1443,13 @@ def bulk_approval_action(request):
         return redirect('vouchers:bulk_approval')
 
     user = request.user
+
+    # MD users cannot bulk approve individual documents
+    # They must use signature batches (FM controls which documents to send)
+    if user.role_level == 5:
+        messages.error(request, "MD users cannot approve individual documents. Please use signature batches.")
+        return redirect('dashboard:pending')
+
     action = request.POST.get('action')  # 'approve' or 'reject'
     comments = request.POST.get('comments', '').strip()
 

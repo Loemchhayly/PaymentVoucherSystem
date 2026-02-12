@@ -23,8 +23,9 @@ from .models import (
 @login_required
 def batch_select_documents(request):
     """
-    Finance Manager selects APPROVED vouchers/forms for batch signature
+    Finance Manager selects PENDING_L5 vouchers/forms for batch signature
     Only accessible by Finance Manager (role_level 3)
+    Documents at PENDING_L5 status means GM has approved and waiting for MD
     """
     # Check permission
     if request.user.role_level != 3:
@@ -40,15 +41,16 @@ def batch_select_documents(request):
         batch__status='PENDING'
     ).values_list('payment_form_id', flat=True)
 
-    # Get ALL APPROVED documents (not already in a pending batch)
+    # Get ALL PENDING_L5 documents (after GM approval, waiting for MD)
+    # Exclude documents already in a pending batch
     vouchers = PaymentVoucher.objects.filter(
-        status='APPROVED'
+        status='PENDING_L5'
     ).exclude(
         id__in=pending_voucher_ids
     ).select_related('created_by').prefetch_related('line_items').order_by('-created_at')
 
     forms = PaymentForm.objects.filter(
-        status='APPROVED'
+        status='PENDING_L5'
     ).exclude(
         id__in=pending_form_ids
     ).select_related('created_by').prefetch_related('line_items').order_by('-created_at')
@@ -86,23 +88,23 @@ def batch_create(request):
             fm_notes=fm_notes
         )
 
-        # Add vouchers to batch
+        # Add vouchers to batch (must be PENDING_L5 - after GM approval)
         for voucher_id in voucher_ids:
             try:
                 voucher = PaymentVoucher.objects.get(
                     id=voucher_id,
-                    status='APPROVED'
+                    status='PENDING_L5'
                 )
                 BatchVoucherItem.objects.create(batch=batch, voucher=voucher)
             except PaymentVoucher.DoesNotExist:
                 pass
 
-        # Add forms to batch
+        # Add forms to batch (must be PENDING_L5 - after GM approval)
         for form_id in form_ids:
             try:
                 form = PaymentForm.objects.get(
                     id=form_id,
-                    status='APPROVED'
+                    status='PENDING_L5'
                 )
                 BatchFormItem.objects.create(batch=batch, payment_form=form)
             except PaymentForm.DoesNotExist:
@@ -243,7 +245,48 @@ def batch_sign(request, batch_id):
         else:
             ip_address = request.META.get('REMOTE_ADDR')
 
-        # Update batch
+        # Approve all documents in batch using state machine
+        from workflow.state_machine import VoucherStateMachine, FormStateMachine
+
+        comment_text = f'✓ Approved via Batch {batch.batch_number}'
+        if md_comments:
+            comment_text += f' - {md_comments}'
+
+        success_count = 0
+        error_count = 0
+        errors = []
+
+        # Approve all vouchers in batch
+        for item in batch.voucher_items.all():
+            try:
+                voucher = item.voucher
+                # Validate the voucher is at PENDING_L5
+                if voucher.status == 'PENDING_L5':
+                    VoucherStateMachine.transition(voucher, 'approve', request.user, comment_text, via_batch=True)
+                    success_count += 1
+                else:
+                    errors.append(f"PV {voucher.pv_number}: Invalid status ({voucher.get_status_display()})")
+                    error_count += 1
+            except Exception as e:
+                errors.append(f"PV {voucher.pv_number}: {str(e)}")
+                error_count += 1
+
+        # Approve all forms in batch
+        for item in batch.form_items.all():
+            try:
+                form = item.payment_form
+                # Validate the form is at PENDING_L5
+                if form.status == 'PENDING_L5':
+                    FormStateMachine.transition(form, 'approve', request.user, comment_text, via_batch=True)
+                    success_count += 1
+                else:
+                    errors.append(f"PF {form.pf_number}: Invalid status ({form.get_status_display()})")
+                    error_count += 1
+            except Exception as e:
+                errors.append(f"PF {form.pf_number}: {str(e)}")
+                error_count += 1
+
+        # Update batch status
         batch.status = 'SIGNED'
         batch.signed_by = request.user
         batch.signed_at = timezone.now()
@@ -251,34 +294,19 @@ def batch_sign(request, batch_id):
         batch.md_comments = md_comments
         batch.save()
 
-        # Add comments to all vouchers in batch
-        from workflow.models import VoucherComment, FormComment
-
-        comment_text = f'✓ Signed via Batch {batch.batch_number}'
-        if md_comments:
-            comment_text += f'\n\nMD Comments: {md_comments}'
-
-        for item in batch.voucher_items.all():
-            VoucherComment.objects.create(
-                voucher=item.voucher,
-                user=request.user,
-                comment=comment_text
-            )
-
-        # Add comments to all forms in batch
-        for item in batch.form_items.all():
-            FormComment.objects.create(
-                payment_form=item.payment_form,
-                user=request.user,
-                comment=comment_text
-            )
-
-        # Add success message
-        messages.success(request, f'Batch {batch.batch_number} signed successfully!')
+        # Add success/error messages
+        if error_count > 0:
+            messages.warning(request, f'Batch {batch.batch_number} processed with {error_count} error(s). {success_count} document(s) approved successfully.')
+            for error in errors[:5]:  # Show first 5 errors
+                messages.error(request, error)
+        else:
+            messages.success(request, f'Batch {batch.batch_number} signed successfully! All {success_count} document(s) approved.')
 
         return JsonResponse({
             'success': True,
-            'message': f'Successfully signed {batch.get_document_count()} documents in batch {batch.batch_number}',
+            'message': f'Successfully approved {success_count} document(s) in batch {batch.batch_number}',
+            'errors': errors if error_count > 0 else [],
+            'error_count': error_count,
             'redirect_url': '/vouchers/md-dashboard/'
         })
 

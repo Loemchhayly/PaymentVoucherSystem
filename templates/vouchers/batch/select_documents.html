@@ -17,7 +17,7 @@
                 <i class="bi bi-file-earmark-check" style="color: #667eea; font-size: 1.75rem;"></i>
                 Create Signature Batch
             </h1>
-            <p style="color: #6b7280; margin-top: 0.25rem; font-size: 0.9rem;">Select approved documents to send to MD for signature</p>
+            <p style="color: #6b7280; margin-top: 0.25rem; font-size: 0.9rem;">Select documents ready for MD approval (after GM approval)</p>
         </div>
         <div style="display: flex; gap: 0.5rem;">
             <a href="{% url 'vouchers:fm_batch_list' %}" class="btn btn-outline-primary btn-sm">
@@ -52,7 +52,7 @@
         <div class="card-header" style="background: white; border-bottom: 2px solid #e5e7eb;">
             <h5 style="margin: 0; color: #1f2937;">
                 <i class="bi bi-file-earmark-text"></i>
-                Approved Documents Awaiting MD Signature
+                Documents Ready for MD Approval (PENDING_L5)
             </h5>
         </div>
         <div class="card-body">
@@ -129,7 +129,8 @@
             {% else %}
             <div style="text-align: center; padding: 3rem; color: #6b7280;">
                 <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.3;"></i>
-                <p style="margin-top: 1rem; font-size: 1.1rem;">No approved documents awaiting MD signature</p>
+                <p style="margin-top: 1rem; font-size: 1.1rem;">No documents ready for MD approval</p>
+                <p style="font-size: 0.9rem; opacity: 0.8;">Documents appear here after GM (General Manager) approves them</p>
             </div>
             {% endif %}
         </div>

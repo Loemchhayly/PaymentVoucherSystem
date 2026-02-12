@@ -514,7 +514,7 @@
                             <i class="bi bi-check-circle text-success"></i> Status
                         </label>
                         <select class="form-select form-select-sm" name="status">
-                            <option value="">All Statuses</option>
+                            <option value="">After L2 Approval (Default)</option>
                             {% for status in statuses %}
                                 <option value="{{ status }}" {% if request.GET.status == status %}selected{% endif %}>{{ status }}</option>
                             {% endfor %}

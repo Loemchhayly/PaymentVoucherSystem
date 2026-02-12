@@ -53,15 +53,18 @@ class ReportGenerator:
             vouchers_qs = vouchers_qs.filter(payment_date__lte=date_to)
             forms_qs = forms_qs.filter(payment_date__lte=date_to)
 
-        # Status filter - default to APPROVED only
+        # Status filter - default to show documents after L2 (Account Supervisor) approval
+        # This includes: PENDING_L3, PENDING_L4, PENDING_L5, and APPROVED
         status = self.filters.get('status')
         if status and status != 'ALL':
             vouchers_qs = vouchers_qs.filter(status=status)
             forms_qs = forms_qs.filter(status=status)
         else:
-            # If no status filter specified, show only APPROVED
-            vouchers_qs = vouchers_qs.filter(status='APPROVED')
-            forms_qs = forms_qs.filter(status='APPROVED')
+            # If no status filter specified, show documents after L2 approval
+            # (PENDING_L3 onwards means L2 has already approved)
+            allowed_statuses = ['PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED']
+            vouchers_qs = vouchers_qs.filter(status__in=allowed_statuses)
+            forms_qs = forms_qs.filter(status__in=allowed_statuses)
 
         # Creator filter
         creator_id = self.filters.get('creator')

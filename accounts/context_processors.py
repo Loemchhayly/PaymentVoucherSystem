@@ -14,10 +14,10 @@ def pending_approvals(request):
     For other levels, shows only documents assigned to them.
     """
     if request.user.is_authenticated:
-        # Special handling for MD users - show ALL documents at PENDING_L5
+        # MD users only work through batches - they don't see individual documents
         if request.user.role_level == 5:
-            pv_count = PaymentVoucher.objects.filter(status='PENDING_L5').count()
-            pf_count = PaymentForm.objects.filter(status='PENDING_L5').count()
+            pv_count = 0
+            pf_count = 0
             batch_count = SignatureBatch.objects.filter(status='PENDING').count()
         else:
             # For other role levels, show only documents assigned to them
@@ -29,7 +29,7 @@ def pending_approvals(request):
             ).count()
             batch_count = 0
 
-        # Total pending count (PV + PF + Batches for MD)
+        # Total pending count (only batches for MD, documents for others)
         pending_count = pv_count + pf_count + batch_count
 
         return {

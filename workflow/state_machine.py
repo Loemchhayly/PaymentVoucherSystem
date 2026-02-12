@@ -61,9 +61,12 @@ class VoucherStateMachine:
     }
 
     @classmethod
-    def can_transition(cls, voucher, action, user):
+    def can_transition(cls, voucher, action, user, via_batch=False):
         """
         Check if user can perform action on voucher.
+
+        Args:
+            via_batch: If True, allows MD to approve PENDING_L5 via batch signature
 
         Returns: (bool, str) - (can_perform, error_message)
         """
@@ -78,10 +81,15 @@ class VoucherStateMachine:
                 return False, "Only the creator can submit this voucher"
         else:
             # For approve/reject/return actions
-            # Special case: MD level has shared approval - any MD can approve PENDING_L5
-            if voucher.status == 'PENDING_L5' and user.role_level == 5:
-                # Any MD user can approve documents at L5
-                pass
+            # MD users cannot approve PENDING_L5 documents individually (unless via batch)
+            # They must use signature batches (FM controls which documents to send)
+            if voucher.status == 'PENDING_L5' and user.role_level == 5 and action == 'approve' and not via_batch:
+                return False, "MD users cannot approve individual documents. Please ask Finance Manager to create a signature batch."
+
+            # For batch operations, allow any MD user to approve PENDING_L5
+            if via_batch and voucher.status == 'PENDING_L5' and user.role_level == 5:
+                pass  # Allow batch approval
+            # Otherwise check if user is the assigned approver
             elif voucher.current_approver != user:
                 return False, "You are not the assigned approver for this voucher"
 
@@ -94,7 +102,7 @@ class VoucherStateMachine:
 
     @classmethod
     @transaction.atomic
-    def transition(cls, voucher, action, user, comments=''):
+    def transition(cls, voucher, action, user, comments='', via_batch=False):
         """
         Execute state transition.
 
@@ -103,6 +111,7 @@ class VoucherStateMachine:
             action: str - 'submit', 'approve', 'reject', 'return'
             user: User instance
             comments: str - optional comments
+            via_batch: bool - If True, indicates approval via batch signature
 
         Returns:
             PaymentVoucher instance (updated)
@@ -111,7 +120,7 @@ class VoucherStateMachine:
             ValueError: if transition is not allowed
         """
         # Validate transition
-        can_do, error = cls.can_transition(voucher, action, user)
+        can_do, error = cls.can_transition(voucher, action, user, via_batch)
         if not can_do:
             raise ValueError(error)
 
@@ -321,9 +330,12 @@ class FormStateMachine:
     }
 
     @classmethod
-    def can_transition(cls, payment_form, action, user):
+    def can_transition(cls, payment_form, action, user, via_batch=False):
         """
         Check if user can perform action on payment form.
+
+        Args:
+            via_batch: If True, allows MD to approve PENDING_L5 via batch signature
 
         Returns: (bool, str) - (can_perform, error_message)
         """
@@ -338,10 +350,15 @@ class FormStateMachine:
                 return False, "Only the creator can submit this form"
         else:
             # For approve/reject/return actions
-            # Special case: MD level has shared approval - any MD can approve PENDING_L5
-            if payment_form.status == 'PENDING_L5' and user.role_level == 5:
-                # Any MD user can approve documents at L5
-                pass
+            # MD users cannot approve PENDING_L5 documents individually (unless via batch)
+            # They must use signature batches (FM controls which documents to send)
+            if payment_form.status == 'PENDING_L5' and user.role_level == 5 and action == 'approve' and not via_batch:
+                return False, "MD users cannot approve individual documents. Please ask Finance Manager to create a signature batch."
+
+            # For batch operations, allow any MD user to approve PENDING_L5
+            if via_batch and payment_form.status == 'PENDING_L5' and user.role_level == 5:
+                pass  # Allow batch approval
+            # Otherwise check if user is the assigned approver
             elif payment_form.current_approver != user:
                 return False, "You are not the assigned approver for this form"
 
@@ -354,7 +371,7 @@ class FormStateMachine:
 
     @classmethod
     @transaction.atomic
-    def transition(cls, payment_form, action, user, comments=''):
+    def transition(cls, payment_form, action, user, comments='', via_batch=False):
         """
         Execute state transition.
 
@@ -363,6 +380,7 @@ class FormStateMachine:
             action: str - 'submit', 'approve', 'reject', 'return'
             user: User instance
             comments: str - optional comments
+            via_batch: bool - If True, indicates approval via batch signature
 
         Returns:
             PaymentForm instance (updated)
@@ -371,7 +389,7 @@ class FormStateMachine:
             ValueError: if transition is not allowed
         """
         # Validate transition
-        can_do, error = cls.can_transition(payment_form, action, user)
+        can_do, error = cls.can_transition(payment_form, action, user, via_batch)
         if not can_do:
             raise ValueError(error)
 

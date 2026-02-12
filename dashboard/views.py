@@ -69,10 +69,10 @@ class DashboardView(LoginRequiredMixin, ListView):
             ).distinct()
 
         # Summary counts
-        # MD users see ALL documents at PENDING_L5, others see only assigned to them
+        # MD users only work through batches - no individual document counts
         if user.role_level == 5:  # MD
-            pending_vouchers = pv_base.filter(status='PENDING_L5').count()
-            pending_forms = pf_base.filter(status='PENDING_L5').count()
+            pending_vouchers = 0
+            pending_forms = 0
             pending_batches = SignatureBatch.objects.filter(status='PENDING').count()
         else:
             pending_vouchers = pv_base.filter(current_approver=user).count()
@@ -125,11 +125,12 @@ class PendingActionView(LoginRequiredMixin, ListView):
         # Check document type filter
         doc_type = self.request.GET.get('doc_type', 'all')
 
-        # Special handling for MD users - show ALL documents at PENDING_L5
-        # This allows any MD user to approve documents at MD level
+        # MD users do NOT see individual PENDING_L5 documents here
+        # They only approve through signature batches (FM controls which documents to send)
         if user.role_level == 5:
-            pv_queryset = PaymentVoucher.objects.filter(status='PENDING_L5')
-            pf_queryset = PaymentForm.objects.filter(status='PENDING_L5')
+            # MD users have no individual pending documents - they work through batches only
+            pv_queryset = PaymentVoucher.objects.none()
+            pf_queryset = PaymentForm.objects.none()
         else:
             # For other users: show only PENDING documents assigned to them
             pv_queryset = PaymentVoucher.objects.filter(
