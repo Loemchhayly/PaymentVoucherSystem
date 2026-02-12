@@ -53,16 +53,18 @@ class VoucherAttachmentInline(admin.TabularInline):
 @admin.register(PaymentVoucher)
 class PaymentVoucherAdmin(admin.ModelAdmin):
     """Admin interface for PaymentVoucher model"""
-    list_display = ['pv_number', 'payee_name', 'payment_date', 'status', 'created_by', 'created_at']
+    list_display = ['pv_number', 'payee_name', 'payment_date', 'status', 'current_approver', 'created_by', 'created_at']
     list_filter = ['status', 'created_at', 'payment_date']
     search_fields = ['pv_number', 'payee_name', 'bank_name', 'bank_account_number']
     readonly_fields = ['pv_number', 'created_by', 'created_at', 'updated_at', 'submitted_at']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
+    actions = ['reset_to_l2', 'reset_to_l3', 'reset_to_l4', 'reset_to_l5', 'reset_to_draft', 'mark_approved']
 
     fieldsets = (
         ('Voucher Information', {
-            'fields': ('pv_number', 'status', 'created_by', 'current_approver')
+            'fields': ('pv_number', 'status', 'created_by', 'current_approver'),
+            'description': 'You can manually change status and current_approver here, or use bulk actions below for common operations.'
         }),
         ('Payee Details', {
             'fields': ('payee_name', 'payment_date')
@@ -92,6 +94,78 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
+    @admin.action(description='Reset to L2 (Department Manager)')
+    def reset_to_l2(self, request, queryset):
+        """Reset documents to PENDING_L2 status"""
+        from accounts.models import User
+        updated = 0
+        for voucher in queryset:
+            # Find L2 approver (Department Manager)
+            l2_user = User.objects.filter(role_level=2).first()
+            if l2_user:
+                voucher.status = 'PENDING_L2'
+                voucher.current_approver = l2_user
+                voucher.save()
+                updated += 1
+        self.message_user(request, f'{updated} voucher(s) reset to L2 (Department Manager)')
+
+    @admin.action(description='Reset to L3 (Project Manager)')
+    def reset_to_l3(self, request, queryset):
+        """Reset documents to PENDING_L3 status"""
+        from accounts.models import User
+        updated = 0
+        for voucher in queryset:
+            # Find L3 approver (Project Manager)
+            l3_user = User.objects.filter(role_level=3).first()
+            if l3_user:
+                voucher.status = 'PENDING_L3'
+                voucher.current_approver = l3_user
+                voucher.save()
+                updated += 1
+        self.message_user(request, f'{updated} voucher(s) reset to L3 (Project Manager)')
+
+    @admin.action(description='Reset to L4 (General Manager)')
+    def reset_to_l4(self, request, queryset):
+        """Reset documents to PENDING_L4 status"""
+        from accounts.models import User
+        updated = 0
+        for voucher in queryset:
+            # Find L4 approver (General Manager)
+            l4_user = User.objects.filter(role_level=4).first()
+            if l4_user:
+                voucher.status = 'PENDING_L4'
+                voucher.current_approver = l4_user
+                voucher.save()
+                updated += 1
+        self.message_user(request, f'{updated} voucher(s) reset to L4 (General Manager)')
+
+    @admin.action(description='Reset to L5 (Managing Director)')
+    def reset_to_l5(self, request, queryset):
+        """Reset documents to PENDING_L5 status"""
+        from accounts.models import User
+        updated = 0
+        for voucher in queryset:
+            # Find L5 approver (MD)
+            l5_user = User.objects.filter(role_level=5).first()
+            if l5_user:
+                voucher.status = 'PENDING_L5'
+                voucher.current_approver = l5_user
+                voucher.save()
+                updated += 1
+        self.message_user(request, f'{updated} voucher(s) reset to L5 (MD)')
+
+    @admin.action(description='Reset to Draft')
+    def reset_to_draft(self, request, queryset):
+        """Reset documents to DRAFT status"""
+        updated = queryset.update(status='DRAFT', current_approver=None)
+        self.message_user(request, f'{updated} voucher(s) reset to DRAFT')
+
+    @admin.action(description='Mark as Approved')
+    def mark_approved(self, request, queryset):
+        """Mark documents as APPROVED"""
+        updated = queryset.update(status='APPROVED', current_approver=None)
+        self.message_user(request, f'{updated} voucher(s) marked as APPROVED')
+
 
 # ============================================================================
 # PAYMENT FORM (PF) ADMIN
@@ -115,16 +189,18 @@ class FormAttachmentInline(admin.TabularInline):
 @admin.register(PaymentForm)
 class PaymentFormAdmin(admin.ModelAdmin):
     """Admin interface for PaymentForm model"""
-    list_display = ['pf_number', 'payee_name', 'payment_date', 'status', 'created_by', 'created_at']
+    list_display = ['pf_number', 'payee_name', 'payment_date', 'status', 'current_approver', 'created_by', 'created_at']
     list_filter = ['status', 'created_at', 'payment_date']
     search_fields = ['pf_number', 'payee_name', 'bank_name', 'bank_account_number']
     readonly_fields = ['pf_number', 'created_by', 'created_at', 'updated_at', 'submitted_at']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
+    actions = ['reset_to_l2', 'reset_to_l3', 'reset_to_l4', 'reset_to_l5', 'reset_to_draft', 'mark_approved']
 
     fieldsets = (
         ('Payment Form Information', {
-            'fields': ('pf_number', 'status', 'created_by', 'current_approver')
+            'fields': ('pf_number', 'status', 'created_by', 'current_approver'),
+            'description': 'You can manually change status and current_approver here, or use bulk actions below for common operations.'
         }),
         ('Payee Details', {
             'fields': ('payee_name', 'payment_date')
@@ -153,6 +229,78 @@ class PaymentFormAdmin(admin.ModelAdmin):
         if not change:  # New object
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
+
+    @admin.action(description='Reset to L2 (Department Manager)')
+    def reset_to_l2(self, request, queryset):
+        """Reset documents to PENDING_L2 status"""
+        from accounts.models import User
+        updated = 0
+        for form in queryset:
+            # Find L2 approver (Department Manager)
+            l2_user = User.objects.filter(role_level=2).first()
+            if l2_user:
+                form.status = 'PENDING_L2'
+                form.current_approver = l2_user
+                form.save()
+                updated += 1
+        self.message_user(request, f'{updated} payment form(s) reset to L2 (Department Manager)')
+
+    @admin.action(description='Reset to L3 (Project Manager)')
+    def reset_to_l3(self, request, queryset):
+        """Reset documents to PENDING_L3 status"""
+        from accounts.models import User
+        updated = 0
+        for form in queryset:
+            # Find L3 approver (Project Manager)
+            l3_user = User.objects.filter(role_level=3).first()
+            if l3_user:
+                form.status = 'PENDING_L3'
+                form.current_approver = l3_user
+                form.save()
+                updated += 1
+        self.message_user(request, f'{updated} payment form(s) reset to L3 (Project Manager)')
+
+    @admin.action(description='Reset to L4 (General Manager)')
+    def reset_to_l4(self, request, queryset):
+        """Reset documents to PENDING_L4 status"""
+        from accounts.models import User
+        updated = 0
+        for form in queryset:
+            # Find L4 approver (General Manager)
+            l4_user = User.objects.filter(role_level=4).first()
+            if l4_user:
+                form.status = 'PENDING_L4'
+                form.current_approver = l4_user
+                form.save()
+                updated += 1
+        self.message_user(request, f'{updated} payment form(s) reset to L4 (General Manager)')
+
+    @admin.action(description='Reset to L5 (Managing Director)')
+    def reset_to_l5(self, request, queryset):
+        """Reset documents to PENDING_L5 status"""
+        from accounts.models import User
+        updated = 0
+        for form in queryset:
+            # Find L5 approver (MD)
+            l5_user = User.objects.filter(role_level=5).first()
+            if l5_user:
+                form.status = 'PENDING_L5'
+                form.current_approver = l5_user
+                form.save()
+                updated += 1
+        self.message_user(request, f'{updated} payment form(s) reset to L5 (MD)')
+
+    @admin.action(description='Reset to Draft')
+    def reset_to_draft(self, request, queryset):
+        """Reset documents to DRAFT status"""
+        updated = queryset.update(status='DRAFT', current_approver=None)
+        self.message_user(request, f'{updated} payment form(s) reset to DRAFT')
+
+    @admin.action(description='Mark as Approved')
+    def mark_approved(self, request, queryset):
+        """Mark documents as APPROVED"""
+        updated = queryset.update(status='APPROVED', current_approver=None)
+        self.message_user(request, f'{updated} payment form(s) marked as APPROVED')
 
 
 # ============================================================================

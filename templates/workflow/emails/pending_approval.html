@@ -35,8 +35,14 @@
             <p><strong>Action Required:</strong> Please review and approve or reject this voucher.</p>
 
             <div style="text-align: center;">
-                <a href="{{ site_url }}/vouchers/{{ voucher.id }}/" class="button">Review Voucher</a>
+                <a href="{{ site_url }}/dashboard/pending/" class="button">View Pending Approvals</a>
             </div>
+
+            <p style="text-align: center; margin-top: 10px;">
+                <a href="{{ site_url }}/vouchers/pv/{{ voucher.id }}/" style="color: #0d6efd; text-decoration: none; font-size: 14px;">
+                    Or view this voucher individually
+                </a>
+            </p>
 
             <p style="margin-top: 30px; font-size: 12px; color: #6c757d;">
                 This is an automated notification. Please log in to the system to take action.

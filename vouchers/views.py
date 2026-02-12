@@ -1407,3 +1407,111 @@ def export_pdf(request):
     response['Content-Disposition'] = 'attachment; filename="vouchers_report.pdf"'
 
     return response
+
+
+# ============================================================================
+# BULK APPROVAL VIEWS
+# ============================================================================
+
+@login_required
+def bulk_approval_view(request):
+    """Redirect to Pending My Action page (bulk approval is now integrated there)"""
+    from django.urls import reverse
+    return redirect(reverse('dashboard:pending'))
+
+
+@login_required
+@transaction.atomic
+def bulk_approval_action(request):
+    """Handle bulk approval/rejection actions"""
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method")
+        return redirect('vouchers:bulk_approval')
+
+    user = request.user
+    action = request.POST.get('action')  # 'approve' or 'reject'
+    comments = request.POST.get('comments', '').strip()
+
+    # Get selected document IDs
+    pv_ids = request.POST.getlist('pv_ids[]')
+    pf_ids = request.POST.getlist('pf_ids[]')
+
+    if not pv_ids and not pf_ids:
+        messages.error(request, "No documents selected")
+        return redirect('vouchers:bulk_approval')
+
+    if action not in ['approve', 'reject']:
+        messages.error(request, "Invalid action")
+        return redirect('vouchers:bulk_approval')
+
+    # Validate comments for rejection
+    if action == 'reject' and not comments:
+        messages.error(request, "Comments are required when rejecting documents")
+        return redirect('vouchers:bulk_approval')
+
+    success_count = 0
+    error_count = 0
+    errors = []
+
+    # Process Payment Vouchers
+    for pv_id in pv_ids:
+        try:
+            voucher = PaymentVoucher.objects.get(pk=pv_id)
+
+            # Check permissions
+            can_do, error = VoucherStateMachine.can_transition(voucher, action, user)
+            if not can_do:
+                errors.append(f"PV {voucher.pv_number}: {error}")
+                error_count += 1
+                continue
+
+            # Perform action
+            VoucherStateMachine.transition(voucher, action, user, comments)
+            success_count += 1
+
+        except PaymentVoucher.DoesNotExist:
+            errors.append(f"PV ID {pv_id}: Not found")
+            error_count += 1
+        except Exception as e:
+            errors.append(f"PV ID {pv_id}: {str(e)}")
+            error_count += 1
+
+    # Process Payment Forms
+    for pf_id in pf_ids:
+        try:
+            payment_form = PaymentForm.objects.get(pk=pf_id)
+
+            # Check permissions
+            can_do, error = FormStateMachine.can_transition(payment_form, action, user)
+            if not can_do:
+                errors.append(f"PF {payment_form.pf_number}: {error}")
+                error_count += 1
+                continue
+
+            # Perform action
+            FormStateMachine.transition(payment_form, action, user, comments)
+            success_count += 1
+
+        except PaymentForm.DoesNotExist:
+            errors.append(f"PF ID {pf_id}: Not found")
+            error_count += 1
+        except Exception as e:
+            errors.append(f"PF ID {pf_id}: {str(e)}")
+            error_count += 1
+
+    # Display results
+    if success_count > 0:
+        action_word = "approved" if action == 'approve' else "rejected"
+        messages.success(
+            request,
+            f"Successfully {action_word} {success_count} document(s)"
+        )
+
+    if error_count > 0:
+        for error in errors[:5]:  # Show first 5 errors
+            messages.error(request, error)
+
+        if len(errors) > 5:
+            messages.warning(request, f"...and {len(errors) - 5} more error(s)")
+
+    return redirect('dashboard:pending')

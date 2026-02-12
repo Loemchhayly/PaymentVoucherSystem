@@ -47,6 +47,10 @@ urlpatterns = [
     path('reports/export/excel/', views.export_excel, name='export_excel'),
     path('reports/export/pdf/', views.export_pdf, name='export_pdf'),
 
+    # Bulk Approval
+    path('bulk-approval/', views.bulk_approval_view, name='bulk_approval'),
+    path('bulk-approval/action/', views.bulk_approval_action, name='bulk_approval_action'),
+
     # Batch Signature System
     path('batch/select/', batch_views.batch_select_documents, name='batch_select'),
     path('batch/create/', batch_views.batch_create, name='batch_create'),

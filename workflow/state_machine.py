@@ -78,7 +78,11 @@ class VoucherStateMachine:
                 return False, "Only the creator can submit this voucher"
         else:
             # For approve/reject/return actions
-            if voucher.current_approver != user:
+            # Special case: MD level has shared approval - any MD can approve PENDING_L5
+            if voucher.status == 'PENDING_L5' and user.role_level == 5:
+                # Any MD user can approve documents at L5
+                pass
+            elif voucher.current_approver != user:
                 return False, "You are not the assigned approver for this voucher"
 
             # Verify user has correct role level
@@ -334,7 +338,11 @@ class FormStateMachine:
                 return False, "Only the creator can submit this form"
         else:
             # For approve/reject/return actions
-            if payment_form.current_approver != user:
+            # Special case: MD level has shared approval - any MD can approve PENDING_L5
+            if payment_form.status == 'PENDING_L5' and user.role_level == 5:
+                # Any MD user can approve documents at L5
+                pass
+            elif payment_form.current_approver != user:
                 return False, "You are not the assigned approver for this form"
 
             # Verify user has correct role level
