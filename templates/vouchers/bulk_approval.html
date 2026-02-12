@@ -1,0 +1,749 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Approval - Payment Voucher System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bulk-approval-container {
+        max-width: 1800px;
+        margin: 0 auto;
+        padding: var(--spacing-lg);
+    }
+
+    .page-header {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .page-title {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .page-title i {
+        color: var(--primary-600);
+    }
+
+    .page-subtitle {
+        color: var(--gray-600);
+        font-size: 1rem;
+    }
+
+    .action-bar {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+    }
+
+    .selection-info {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-lg);
+    }
+
+    .select-all-container {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .select-all-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .select-all-label {
+        font-weight: 600;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+
+    .selected-count {
+        font-size: 0.875rem;
+        padding: var(--spacing-xs) var(--spacing-md);
+        background: var(--primary-50);
+        color: var(--primary-700);
+        border-radius: var(--radius-full);
+        font-weight: 600;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+
+    .bulk-btn {
+        padding: var(--spacing-sm) var(--spacing-lg);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.9375rem;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        transition: all var(--transition-base);
+    }
+
+    .bulk-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .bulk-btn.approve {
+        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .bulk-btn.approve:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .bulk-btn.reject {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .bulk-btn.reject:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .documents-table-container {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .documents-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .documents-table thead {
+        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    }
+
+    .documents-table th {
+        padding: var(--spacing-md);
+        text-align: left;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .documents-table th.checkbox-col {
+        width: 50px;
+        text-align: center;
+    }
+
+    .documents-table tbody tr {
+        border-bottom: 1px solid var(--gray-200);
+        transition: all var(--transition-fast);
+    }
+
+    .documents-table tbody tr:hover {
+        background: var(--primary-50);
+    }
+
+    .documents-table tbody tr.selected {
+        background: var(--primary-100);
+    }
+
+    .documents-table td {
+        padding: var(--spacing-md);
+        font-size: 0.875rem;
+        vertical-align: middle;
+    }
+
+    .documents-table td.checkbox-col {
+        text-align: center;
+    }
+
+    .row-checkbox {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .doc-number {
+        font-weight: 700;
+        color: var(--primary-600);
+        white-space: nowrap;
+    }
+
+    .doc-type-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .doc-type-badge.pv {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .doc-type-badge.pf {
+        background: #fce7f3;
+        color: #be185d;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: var(--radius-full);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-badge.pending {
+        background: var(--warning-light);
+        color: #92400e;
+    }
+
+    .amount-cell {
+        text-align: right;
+        font-weight: 600;
+        color: var(--gray-900);
+    }
+
+    .view-link {
+        color: var(--primary-600);
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .view-link:hover {
+        color: var(--primary-700);
+        text-decoration: underline;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: var(--spacing-3xl);
+        color: var(--gray-500);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--gray-300);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        color: var(--gray-700);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .empty-state p {
+        font-size: 1rem;
+    }
+
+    /* Confirmation Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-dialog {
+        background: white;
+        border-radius: var(--radius-xl);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 90%;
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        padding: var(--spacing-lg);
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-900);
+    }
+
+    .modal-body {
+        padding: var(--spacing-xl);
+    }
+
+    .modal-body label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: var(--spacing-sm);
+        color: var(--gray-700);
+    }
+
+    .modal-body textarea {
+        width: 100%;
+        padding: var(--spacing-sm);
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-md);
+        font-family: var(--font-body);
+        font-size: 0.9375rem;
+        resize: vertical;
+    }
+
+    .modal-footer {
+        padding: var(--spacing-md) var(--spacing-xl);
+        background: var(--gray-50);
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-md);
+    }
+
+    .modal-btn {
+        padding: var(--spacing-sm) var(--spacing-lg);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.9375rem;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        transition: all var(--transition-base);
+    }
+
+    .modal-btn.cancel {
+        background: white;
+        color: var(--gray-700);
+        border: 1px solid var(--gray-300);
+    }
+
+    .modal-btn.cancel:hover {
+        background: var(--gray-100);
+    }
+
+    .modal-btn.confirm {
+        background: var(--primary-600);
+        color: white;
+    }
+
+    .modal-btn.confirm:hover {
+        background: var(--primary-700);
+    }
+
+    @media (max-width: 768px) {
+        .bulk-approval-container {
+            padding: var(--spacing-md);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .selection-info {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .action-buttons {
+            width: 100%;
+        }
+
+        .bulk-btn {
+            flex: 1;
+        }
+
+        .documents-table-container {
+            overflow-x: auto;
+        }
+
+        .documents-table {
+            min-width: 800px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bulk-approval-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-check2-all"></i>
+            <span>Bulk Approval</span>
+        </h1>
+        <p class="page-subtitle">Select and approve/reject multiple documents at once</p>
+    </div>
+
+    {% if total_count > 0 %}
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <div class="selection-info">
+                <div class="select-all-container">
+                    <input type="checkbox" id="select-all" class="select-all-checkbox">
+                    <label for="select-all" class="select-all-label">Select All</label>
+                </div>
+                <div class="selected-count" id="selected-count">
+                    <span id="count-value">0</span> selected
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="bulk-btn approve" id="approve-btn" disabled onclick="showApproveModal()">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Approve Selected</span>
+                </button>
+                <button type="button" class="bulk-btn reject" id="reject-btn" disabled onclick="showRejectModal()">
+                    <i class="bi bi-x-circle"></i>
+                    <span>Reject Selected</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Documents Table -->
+        <div class="documents-table-container">
+            <table class="documents-table">
+                <thead>
+                    <tr>
+                        <th class="checkbox-col"></th>
+                        <th>Type</th>
+                        <th>Doc Number</th>
+                        <th>Payee Name</th>
+                        <th>Payment Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Created By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in pending_docs %}
+                    <tr class="doc-row" data-id="{{ doc.id }}" data-type="{% if doc.pv_number %}pv{% else %}pf{% endif %}">
+                        <td class="checkbox-col">
+                            <input type="checkbox" class="row-checkbox"
+                                   data-id="{{ doc.id }}"
+                                   data-type="{% if doc.pv_number %}pv{% else %}pf{% endif %}">
+                        </td>
+                        <td>
+                            {% if doc.pv_number %}
+                                <span class="doc-type-badge pv">PV</span>
+                            {% else %}
+                                <span class="doc-type-badge pf">PF</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="doc-number">
+                                {% if doc.pv_number %}
+                                    {{ doc.pv_number }}
+                                {% else %}
+                                    {{ doc.pf_number }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>{{ doc.payee_name }}</td>
+                        <td>{{ doc.payment_date|date:"M d, Y" }}</td>
+                        <td class="amount-cell">{{ doc.get_grand_total_display }}</td>
+                        <td>
+                            <span class="status-badge pending">{{ doc.get_status_display }}</span>
+                        </td>
+                        <td>{{ doc.created_by.get_full_name|default:doc.created_by.username }}</td>
+                        <td>
+                            {% if doc.pv_number %}
+                                <a href="{% url 'vouchers:detail' doc.pk %}" class="view-link" target="_blank">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            {% else %}
+                                <a href="{% url 'vouchers:pf_detail' doc.pk %}" class="view-link" target="_blank">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="documents-table-container">
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <h3>No Pending Documents</h3>
+                <p>You have no documents waiting for your approval at this time.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Approve Confirmation Modal -->
+<div id="approve-modal" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>Approve Documents</h3>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to approve <strong id="approve-count">0</strong> document(s)?</p>
+            <label for="approve-comments">Comments (Optional)</label>
+            <textarea id="approve-comments" rows="3" placeholder="Enter any comments..."></textarea>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="modal-btn cancel" onclick="hideApproveModal()">
+                <i class="bi bi-x-circle"></i> Cancel
+            </button>
+            <button type="button" class="modal-btn confirm" onclick="confirmApprove()">
+                <i class="bi bi-check-circle"></i> Approve
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Confirmation Modal -->
+<div id="reject-modal" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>Reject Documents</h3>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to reject <strong id="reject-count">0</strong> document(s)?</p>
+            <label for="reject-comments">Comments (Required) <span style="color: red;">*</span></label>
+            <textarea id="reject-comments" rows="3" placeholder="Enter reason for rejection..." required></textarea>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="modal-btn cancel" onclick="hideRejectModal()">
+                <i class="bi bi-x-circle"></i> Cancel
+            </button>
+            <button type="button" class="modal-btn confirm" onclick="confirmReject()">
+                <i class="bi bi-x-circle"></i> Reject
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Form for Submission -->
+<form id="bulk-action-form" method="post" action="{% url 'vouchers:bulk_approval_action' %}" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" id="action-input">
+    <input type="hidden" name="comments" id="comments-input">
+    <div id="hidden-inputs"></div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const approveBtn = document.getElementById('approve-btn');
+    const rejectBtn = document.getElementById('reject-btn');
+    const countValue = document.getElementById('count-value');
+
+    // Exit if elements don't exist (e.g., no pending documents)
+    if (!selectAllCheckbox || !approveBtn || !rejectBtn || !countValue) {
+        return;
+    }
+
+    // Update button states and count
+    function updateSelectionState() {
+        const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+        const count = selectedCheckboxes.length;
+
+        countValue.textContent = count;
+
+        if (count > 0) {
+            approveBtn.disabled = false;
+            rejectBtn.disabled = false;
+        } else {
+            approveBtn.disabled = true;
+            rejectBtn.disabled = true;
+        }
+
+        // Update row highlighting
+        document.querySelectorAll('.doc-row').forEach(row => {
+            const checkbox = row.querySelector('.row-checkbox');
+            if (checkbox && checkbox.checked) {
+                row.classList.add('selected');
+            } else {
+                row.classList.remove('selected');
+            }
+        });
+    }
+
+    // Select all functionality
+    selectAllCheckbox.addEventListener('change', function() {
+        rowCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateSelectionState();
+    });
+
+    // Individual checkbox change
+    rowCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectionState();
+
+            // Update "select all" checkbox state
+            const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+            const someChecked = Array.from(rowCheckboxes).some(cb => cb.checked);
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = someChecked && !allChecked;
+        });
+    });
+
+    // Initial state
+    updateSelectionState();
+});
+
+// Modal functions
+function showApproveModal() {
+    const modal = document.getElementById('approve-modal');
+    if (!modal) return;
+    const count = document.querySelectorAll('.row-checkbox:checked').length;
+    document.getElementById('approve-count').textContent = count;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideApproveModal() {
+    const modal = document.getElementById('approve-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function showRejectModal() {
+    const modal = document.getElementById('reject-modal');
+    if (!modal) return;
+    const count = document.querySelectorAll('.row-checkbox:checked').length;
+    document.getElementById('reject-count').textContent = count;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideRejectModal() {
+    const modal = document.getElementById('reject-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Confirm actions
+function confirmApprove() {
+    const commentsField = document.getElementById('approve-comments');
+    if (!commentsField) return;
+    const comments = commentsField.value;
+    submitBulkAction('approve', comments);
+}
+
+function confirmReject() {
+    const commentsField = document.getElementById('reject-comments');
+    if (!commentsField) return;
+    const comments = commentsField.value.trim();
+
+    if (!comments) {
+        alert('Please enter comments for rejection');
+        return;
+    }
+
+    submitBulkAction('reject', comments);
+}
+
+// Submit bulk action
+function submitBulkAction(action, comments) {
+    const form = document.getElementById('bulk-action-form');
+    const hiddenInputs = document.getElementById('hidden-inputs');
+    const actionInput = document.getElementById('action-input');
+    const commentsInput = document.getElementById('comments-input');
+
+    if (!form || !hiddenInputs || !actionInput || !commentsInput) {
+        alert('Error: Form elements not found. Please refresh the page.');
+        return;
+    }
+
+    // Clear previous inputs
+    hiddenInputs.innerHTML = '';
+
+    // Set action and comments
+    actionInput.value = action;
+    commentsInput.value = comments;
+
+    // Collect selected documents
+    const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+
+    if (selectedCheckboxes.length === 0) {
+        alert('No documents selected');
+        return;
+    }
+
+    selectedCheckboxes.forEach(checkbox => {
+        const docId = checkbox.dataset.id;
+        const docType = checkbox.dataset.type;
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = docType === 'pv' ? 'pv_ids[]' : 'pf_ids[]';
+        input.value = docId;
+        hiddenInputs.appendChild(input);
+    });
+
+    // Submit form
+    form.submit();
+}
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        hideApproveModal();
+        hideRejectModal();
+    }
+});
+</script>
+{% endblock %}
