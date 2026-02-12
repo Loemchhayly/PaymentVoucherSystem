@@ -820,15 +820,27 @@
         <div class="quick-actions-buttons">
             <a href="{% url 'vouchers:create' %}" class="action-btn">
                 <i class="bi bi-plus-circle"></i>
-                <span>Create New Voucher</span>
+                <span>Create Voucher</span>
+            </a>
+            <a href="{% url 'vouchers:batch_select' %}" class="action-btn">
+                <i class="bi bi-file-earmark-check"></i>
+                <span>Create Batch</span>
             </a>
             <a href="{% url 'dashboard:my_drafts' %}" class="action-btn">
                 <i class="bi bi-file-earmark-minus"></i>
                 <span>My Drafts</span>
             </a>
-            <a href="{% url 'dashboard:my_vouchers' %}" class="action-btn">
-                <i class="bi bi-folder"></i>
-                <span>My Vouchers</span>
+            <a href="{% url 'vouchers:fm_batch_list' %}" class="action-btn">
+                <i class="bi bi-folder2-open"></i>
+                <span>My Batches</span>
+            </a>
+            <a href="{% url 'vouchers:all_batches_list' %}" class="action-btn">
+                <i class="bi bi-card-list"></i>
+                <span>All Batches</span>
+            </a>
+            <a href="{% url 'vouchers:reports' %}" class="action-btn">
+                <i class="bi bi-graph-up"></i>
+                <span>Reports</span>
             </a>
         </div>
     </div>
@@ -839,17 +851,46 @@
     <div class="quick-actions-card">
         <div class="quick-actions-header">
             <h3 class="quick-actions-title">
-                <i class="bi bi-lightning-charge"></i> Finance Manager Actions
+                <i class="bi bi-lightning-charge"></i> Quick Actions
             </h3>
         </div>
         <div class="quick-actions-buttons">
             <a href="{% url 'vouchers:batch_select' %}" class="action-btn">
                 <i class="bi bi-file-earmark-check"></i>
-                <span>Create Signature Batch</span>
+                <span>Create Batch</span>
             </a>
             <a href="{% url 'vouchers:fm_batch_list' %}" class="action-btn">
                 <i class="bi bi-folder2-open"></i>
                 <span>My Batches</span>
+            </a>
+            <a href="{% url 'vouchers:all_batches_list' %}" class="action-btn">
+                <i class="bi bi-card-list"></i>
+                <span>All Batches</span>
+            </a>
+            <a href="{% url 'vouchers:reports' %}" class="action-btn">
+                <i class="bi bi-graph-up"></i>
+                <span>Reports</span>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.role_level == 2 or user.role_level == 4 %}
+    <!-- Approver Quick Actions -->
+    <div class="quick-actions-card">
+        <div class="quick-actions-header">
+            <h3 class="quick-actions-title">
+                <i class="bi bi-lightning-charge"></i> Quick Actions
+            </h3>
+        </div>
+        <div class="quick-actions-buttons">
+            <a href="{% url 'dashboard:pending' %}" class="action-btn">
+                <i class="bi bi-clock-history"></i>
+                <span>Pending Approvals</span>
+            </a>
+            <a href="{% url 'vouchers:all_batches_list' %}" class="action-btn">
+                <i class="bi bi-card-list"></i>
+                <span>View All Batches</span>
             </a>
             <a href="{% url 'vouchers:reports' %}" class="action-btn">
                 <i class="bi bi-graph-up"></i>
@@ -871,6 +912,10 @@
             <a href="{% url 'vouchers:md_dashboard' %}" class="action-btn">
                 <i class="bi bi-pen"></i>
                 <span>Batch Signature Dashboard</span>
+            </a>
+            <a href="{% url 'vouchers:all_batches_list' %}" class="action-btn">
+                <i class="bi bi-card-list"></i>
+                <span>View All Batches</span>
             </a>
             <a href="{% url 'vouchers:reports' %}" class="action-btn">
                 <i class="bi bi-graph-up"></i>

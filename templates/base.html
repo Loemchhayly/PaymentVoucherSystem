@@ -1046,10 +1046,17 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard:pending' %}">
-                            <i class="bi bi-clock-history"></i>
-                            <span>Pending Approval</span>
-                        </a>
+                        {% if user.role_level == 5 %}
+                            <a class="nav-link" href="{% url 'vouchers:md_dashboard' %}">
+                                <i class="bi bi-inbox"></i>
+                                <span>Signature Batches</span>
+                            </a>
+                        {% else %}
+                            <a class="nav-link" href="{% url 'dashboard:pending' %}">
+                                <i class="bi bi-clock-history"></i>
+                                <span>Pending Approval</span>
+                            </a>
+                        {% endif %}
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'vouchers:reports' %}">
@@ -1077,13 +1084,13 @@
                         </ul>
                     </li>
                     {% endif %}
-                    {% if user.role_level == 3 %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="batchDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-folder2"></i>
                             <span>Batches</span>
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="batchDropdown">
+                            {% if user.role_level == 1 or user.role_level == 3 %}
                             <li>
                                 <a class="dropdown-item" href="{% url 'vouchers:batch_select' %}">
                                     <i class="bi bi-plus-circle text-primary"></i> Create New Batch
@@ -1094,9 +1101,15 @@
                                     <i class="bi bi-folder2-open text-success"></i> My Batches
                                 </a>
                             </li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'vouchers:all_batches_list' %}">
+                                    <i class="bi bi-card-list text-info"></i> View All Batches
+                                </a>
+                            </li>
                         </ul>
                     </li>
-                    {% endif %}
                     {% if user.role_level == 5 %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'vouchers:md_dashboard' %}">
@@ -1122,18 +1135,32 @@
                             <li><hr class="dropdown-divider"></li>
                             {% if pending_count > 0 %}
                             <li>
-                                <a class="dropdown-item notification-item" href="{% url 'dashboard:pending' %}">
-                                    <div class="notification-icon pending">
-                                        <i class="bi bi-clock-history"></i>
-                                    </div>
-                                    <div class="notification-content">
-                                        <strong>{{ pending_count }} document{{ pending_count|pluralize }} pending</strong>
-                                        <small>Requires your approval</small>
-                                    </div>
-                                </a>
+                                {% if user.role_level == 5 %}
+                                    {# MD users see batches instead of individual documents #}
+                                    <a class="dropdown-item notification-item" href="{% url 'vouchers:md_dashboard' %}">
+                                        <div class="notification-icon pending" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                                            <i class="bi bi-inbox"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <strong>{{ pending_count }} signature batch{{ pending_count|pluralize:"es" }} pending</strong>
+                                            <small>Awaiting your signature</small>
+                                        </div>
+                                    </a>
+                                {% else %}
+                                    <a class="dropdown-item notification-item" href="{% url 'dashboard:pending' %}">
+                                        <div class="notification-icon pending">
+                                            <i class="bi bi-clock-history"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <strong>{{ pending_count }} document{{ pending_count|pluralize }} pending</strong>
+                                            <small>Requires your approval</small>
+                                        </div>
+                                    </a>
+                                {% endif %}
                             </li>
                             {% if user.role_level == 5 and pending_batches > 0 %}
-                            <li>
+                            <li style="display: none;">
+                                {# Hidden - MD batch notification is now above #}
                                 <a class="dropdown-item notification-item" href="{% url 'vouchers:md_dashboard' %}">
                                     <div class="notification-icon pending" style="background: linear-gradient(135deg, #667eea, #764ba2);">
                                         <i class="bi bi-pen"></i>
@@ -1154,9 +1181,15 @@
                             {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <a class="dropdown-item text-center view-all-link" href="{% url 'dashboard:pending' %}">
-                                    View All Notifications
-                                </a>
+                                {% if user.role_level == 5 %}
+                                    <a class="dropdown-item text-center view-all-link" href="{% url 'vouchers:md_dashboard' %}">
+                                        View All Batches
+                                    </a>
+                                {% else %}
+                                    <a class="dropdown-item text-center view-all-link" href="{% url 'dashboard:pending' %}">
+                                        View All Notifications
+                                    </a>
+                                {% endif %}
                             </li>
                         </ul>
                     </li>
@@ -1243,7 +1276,11 @@
                     <h5>Quick Links</h5>
                     {% if user.is_authenticated %}
                     <a href="{% url 'dashboard:home' %}">Dashboard</a>
-                    <a href="{% url 'dashboard:pending' %}">Pending Actions</a>
+                    {% if user.role_level == 5 %}
+                        <a href="{% url 'vouchers:md_dashboard' %}">Signature Batches</a>
+                    {% else %}
+                        <a href="{% url 'dashboard:pending' %}">Pending Actions</a>
+                    {% endif %}
                     {% if user.role_level == 1 %}
                     <a href="{% url 'vouchers:create' %}">Create Payment Voucher</a>
                     <a href="{% url 'vouchers:pf_create' %}">Create Payment Form</a>

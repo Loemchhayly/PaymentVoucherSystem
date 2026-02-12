@@ -113,7 +113,16 @@ class PendingActionView(LoginRequiredMixin, ListView):
     paginate_by = 20
 
     def dispatch(self, request, *args, **kwargs):
-        """Prevent caching to ensure fresh data"""
+        """
+        MD users are redirected to batch dashboard
+        Other users see their pending documents
+        """
+        # Redirect MD users to batch dashboard
+        if request.user.role_level == 5:
+            from django.shortcuts import redirect
+            return redirect('vouchers:md_dashboard')
+
+        # Prevent caching to ensure fresh data
         response = super().dispatch(request, *args, **kwargs)
         response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response['Pragma'] = 'no-cache'
@@ -125,22 +134,16 @@ class PendingActionView(LoginRequiredMixin, ListView):
         # Check document type filter
         doc_type = self.request.GET.get('doc_type', 'all')
 
-        # MD users do NOT see individual PENDING_L5 documents here
-        # They only approve through signature batches (FM controls which documents to send)
-        if user.role_level == 5:
-            # MD users have no individual pending documents - they work through batches only
-            pv_queryset = PaymentVoucher.objects.none()
-            pf_queryset = PaymentForm.objects.none()
-        else:
-            # For other users: show only PENDING documents assigned to them
-            pv_queryset = PaymentVoucher.objects.filter(
-                current_approver=user,
-                status__startswith='PENDING'
-            )
-            pf_queryset = PaymentForm.objects.filter(
-                current_approver=user,
-                status__startswith='PENDING'
-            )
+        # MD users are redirected in dispatch(), so this code won't run for them
+        # For other users: show only PENDING documents assigned to them
+        pv_queryset = PaymentVoucher.objects.filter(
+            current_approver=user,
+            status__startswith='PENDING'
+        )
+        pf_queryset = PaymentForm.objects.filter(
+            current_approver=user,
+            status__startswith='PENDING'
+        )
 
         # Apply search filters to both
         pv_number = self.request.GET.get('pv_number', '').strip()

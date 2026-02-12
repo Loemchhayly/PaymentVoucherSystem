@@ -14,7 +14,10 @@
             </h1>
             <p style="color: #6b7280; margin-top: 0.5rem;">Batch Details</p>
         </div>
-        <div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Export to Excel
+            </a>
             {% if user.role_level == 5 %}
             <a href="{% url 'vouchers:md_dashboard' %}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to MD Dashboard
@@ -156,6 +159,7 @@
                                 <tr>
                                     <th>PV Number</th>
                                     <th>Payee</th>
+                                    <th>Description</th>
                                     <th>Payment Date</th>
                                     <th>Transfer Account</th>
                                     <th>Amount</th>
@@ -169,6 +173,13 @@
                                         <strong>{{ item.voucher.pv_number }}</strong>
                                     </td>
                                     <td>{{ item.voucher.payee_name }}</td>
+                                    <td>
+                                        {% for line_item in item.voucher.line_items.all %}
+                                            {{ line_item.description }}{% if not forloop.last %}<br>{% endif %}
+                                        {% empty %}
+                                            <small class="text-muted">No description</small>
+                                        {% endfor %}
+                                    </td>
                                     <td>{{ item.voucher.payment_date|date:"M d, Y" }}</td>
                                     <td>
                                         {% if item.voucher.company_bank_account %}
@@ -221,6 +232,7 @@
                                 <tr>
                                     <th>PF Number</th>
                                     <th>Payee</th>
+                                    <th>Description</th>
                                     <th>Payment Date</th>
                                     <th>Transfer Account</th>
                                     <th>Amount</th>
@@ -234,6 +246,13 @@
                                         <strong>{{ item.payment_form.pf_number }}</strong>
                                     </td>
                                     <td>{{ item.payment_form.payee_name }}</td>
+                                    <td>
+                                        {% for line_item in item.payment_form.line_items.all %}
+                                            {{ line_item.description }}{% if not forloop.last %}<br>{% endif %}
+                                        {% empty %}
+                                            <small class="text-muted">No description</small>
+                                        {% endfor %}
+                                    </td>
                                     <td>{{ item.payment_form.payment_date|date:"M d, Y" }}</td>
                                     <td>
                                         {% if item.payment_form.company_bank_account %}

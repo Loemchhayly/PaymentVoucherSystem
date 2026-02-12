@@ -329,12 +329,12 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
             user == voucher.created_by
         )
 
-        # Allow approval if:
-        # - User is the assigned approver, OR
-        # - User is MD (role_level 5) and document is at PENDING_L5
+        # Allow approval only if user is the assigned approver
+        # MD users cannot approve PENDING_L5 individually - they must use batches
         context['can_approve'] = (
-            (voucher.current_approver == user and voucher.status.startswith('PENDING')) or
-            (user.role_level == 5 and voucher.status == 'PENDING_L5')
+            voucher.current_approver == user and
+            voucher.status.startswith('PENDING') and
+            not (user.role_level == 5 and voucher.status == 'PENDING_L5')
         )
 
         context['can_edit'] = (
@@ -1106,12 +1106,12 @@ class FormDetailView(LoginRequiredMixin, DetailView):
             user == payment_form.created_by
         )
 
-        # Allow approval if:
-        # - User is the assigned approver, OR
-        # - User is MD (role_level 5) and document is at PENDING_L5
+        # Allow approval only if user is the assigned approver
+        # MD users cannot approve PENDING_L5 individually - they must use batches
         context['can_approve'] = (
-            (payment_form.current_approver == user and payment_form.status.startswith('PENDING')) or
-            (user.role_level == 5 and payment_form.status == 'PENDING_L5')
+            payment_form.current_approver == user and
+            payment_form.status.startswith('PENDING') and
+            not (user.role_level == 5 and payment_form.status == 'PENDING_L5')
         )
 
         context['can_edit'] = (

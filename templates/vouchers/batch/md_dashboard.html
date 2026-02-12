@@ -108,9 +108,14 @@
                         </div>
                         <div class="card-footer" style="background: white; border-top: 2px solid #e5e7eb;">
                             <div class="d-grid gap-2">
-                                <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-outline-primary">
-                                    <i class="bi bi-eye"></i> View Details
-                                </a>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="btn btn-outline-success">
+                                        <i class="bi bi-file-earmark-excel"></i> Excel
+                                    </a>
+                                </div>
                                 <button type="button" class="btn btn-success" onclick="showSignModal({{ batch.id }}, '{{ batch.batch_number }}', {{ batch.get_document_count }})">
                                     <i class="bi bi-check-circle"></i> Sign All
                                 </button>
@@ -187,6 +192,9 @@
                             <td>
                                 <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-eye"></i> View
+                                </a>
+                                <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-file-earmark-excel"></i> Excel
                                 </a>
                             </td>
                         </tr>

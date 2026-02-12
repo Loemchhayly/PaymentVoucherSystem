@@ -55,9 +55,11 @@ urlpatterns = [
     path('batch/select/', batch_views.batch_select_documents, name='batch_select'),
     path('batch/create/', batch_views.batch_create, name='batch_create'),
     path('batch/list/', batch_views.fm_batch_list, name='fm_batch_list'),
+    path('batch/all/', batch_views.all_batches_list, name='all_batches_list'),
     path('batch/<int:batch_id>/detail/', batch_views.batch_detail, name='batch_detail'),
     path('batch/<int:batch_id>/sign/', batch_views.batch_sign, name='batch_sign'),
     path('batch/<int:batch_id>/reject/', batch_views.batch_reject, name='batch_reject'),
     path('batch/<int:batch_id>/remove-document/', batch_views.batch_remove_document, name='batch_remove_document'),
+    path('batch/<int:batch_id>/export-excel/', batch_views.batch_export_excel, name='batch_export_excel'),
     path('md-dashboard/', batch_views.md_dashboard, name='md_dashboard'),
 ]
