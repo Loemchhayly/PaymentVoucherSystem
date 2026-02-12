@@ -81,7 +81,7 @@
                                        data-amount="{{ voucher.calculate_grand_total.USD|default:0 }}"
                                        onchange="updateSelection()">
                             </td>
-                            <td>
+                            <td style="white-space: nowrap;">
                                 <span class="badge bg-primary">PV</span>
                                 <strong>{{ voucher.pv_number }}</strong>
                             </td>
@@ -107,7 +107,7 @@
                                        data-amount="{{ form.calculate_grand_total.USD|default:0 }}"
                                        onchange="updateSelection()">
                             </td>
-                            <td>
+                            <td style="white-space: nowrap;">
                                 <span class="badge bg-success">PF</span>
                                 <strong>{{ form.pf_number }}</strong>
                             </td>

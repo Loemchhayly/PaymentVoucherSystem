@@ -169,7 +169,7 @@
                             <tbody>
                                 {% for item in batch.voucher_items.all %}
                                 <tr>
-                                    <td>
+                                    <td style="white-space: nowrap;">
                                         <strong>{{ item.voucher.pv_number }}</strong>
                                     </td>
                                     <td>{{ item.voucher.payee_name }}</td>
@@ -242,7 +242,7 @@
                             <tbody>
                                 {% for item in batch.form_items.all %}
                                 <tr>
-                                    <td>
+                                    <td style="white-space: nowrap;">
                                         <strong>{{ item.payment_form.pf_number }}</strong>
                                     </td>
                                     <td>{{ item.payment_form.payee_name }}</td>
