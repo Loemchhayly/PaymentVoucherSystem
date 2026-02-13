@@ -360,7 +360,11 @@
                 </div>
                 <div class="info-row">
                     <div class="info-label">Payment Method:</div>
-                    <div class="info-value">☑ {{ payment_form.get_status_display }}</div>
+                    <div class="info-value">{{ payment_form.payment_method|default:"-" }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Created:</div>
+                    <div class="info-value">{{ payment_form.created_at|date:"d/m/Y H:i" }}</div>
                 </div>
             </div>
         </div>
