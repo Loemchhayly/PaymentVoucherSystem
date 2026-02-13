@@ -321,7 +321,6 @@
         <!-- Header -->
         <div class="header">
             <!-- Company Logo (left side) -->
-            <!-- CORRECTED: Use just "Logo.png" since base_url already points to media folder -->
             <img src="Logo.png" alt="Company Logo" class="header-logo">
 
             <div class="company-name-khmer">ហ្គាឌិន ស៊ីធីសួនទឹក</div>
@@ -347,17 +346,17 @@
                 </div>
                 <div class="info-row">
                     <div class="info-label">Bank Acc/Cheque Name:</div>
-                    <div class="info-value">{{ voucher.bank_name|default:"-" }}</div>
+                    <div class="info-value">{{ payment_form.bank_name|default:"-" }}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Bank's Address:</div>
-                    <div class="info-value">{{ voucher.bank_address|default:"-" }}</div>
+                    <div class="info-value">{{ payment_form.bank_address|default:"-" }}</div>
                 </div>
             </div>
             <div class="info-col">
                 <div class="info-row">
                     <div class="info-label">A/C No.:</div>
-                    <div class="info-value">{{ voucher.bank_account_number|default:"-" }}</div>
+                    <div class="info-value">{{ payment_form.bank_account_number|default:"-" }}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Payment Method:</div>

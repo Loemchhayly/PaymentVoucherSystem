@@ -748,13 +748,14 @@
                         <th onclick="sortTable(1)">Doc No <span class="sort-icon">▲▼</span></th>
                         <th onclick="sortTable(2)">Type <span class="sort-icon">▲▼</span></th>
                         <th onclick="sortTable(3)">Payee <span class="sort-icon">▲▼</span></th>
-                        <th onclick="sortTable(4)">Department <span class="sort-icon">▲▼</span></th>
-                        <th onclick="sortTable(5)">Payment Date <span class="sort-icon">▲▼</span></th>
-                        <th onclick="sortTable(6)">Created By <span class="sort-icon">▲▼</span></th>
-                        <th onclick="sortTable(7)">Status <span class="sort-icon">▲▼</span></th>
-                        <th onclick="sortTable(8)" style="text-align:right;">Amount (USD) <span class="sort-icon">▲▼</span></th>
-                        <th onclick="sortTable(9)" style="text-align:right;">Amount (KHR) <span class="sort-icon">▲▼</span></th>
-                        <th onclick="sortTable(10)" style="text-align:right;">Amount (THB) <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(4)">Description <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(5)">Department <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(6)">Payment Date <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(7)">Created By <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(8)">Status <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(9)" style="text-align:right;">Amount (USD) <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(10)" style="text-align:right;">Amount (KHR) <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(11)" style="text-align:right;">Amount (THB) <span class="sort-icon">▲▼</span></th>
                         <th class="no-print">Action</th>
                     </tr>
                 </thead>
@@ -771,6 +772,7 @@
                             {% endif %}
                         </td>
                         <td>{{ record.payee_name }}</td>
+                        <td>{{ record.description|default:"-" }}</td>
                         <td>{{ record.department|default:"-" }}</td>
                         <td>{{ record.payment_date|date:"d M Y" }}</td>
                         <td>{{ record.created_by }}</td>
@@ -812,7 +814,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="12" style="text-align:center;padding:3rem;color:#9ca3af;">
+                        <td colspan="13" style="text-align:center;padding:3rem;color:#9ca3af;">
                             <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
                             No records found matching the current filters.
                         </td>
@@ -821,7 +823,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="8"><strong>TOTALS (filtered results)</strong></td>
+                        <td colspan="9"><strong>TOTALS (filtered results)</strong></td>
                         <td class="amount-cell" style="color:white;">${{ total_usd|floatformat:2|default:"0.00" }}</td>
                         <td class="amount-cell" style="color:white;">៛{{ total_khr|floatformat:0|default:"0" }}</td>
                         <td class="amount-cell" style="color:white;">฿{{ total_thb|floatformat:2|default:"0.00" }}</td>
