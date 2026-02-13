@@ -359,8 +359,8 @@
                     <div class="info-value">{{ payment_form.bank_account_number|default:"-" }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">Payment Method:</div>
-                    <div class="info-value">{{ payment_form.payment_method|default:"-" }}</div>
+                    <div class="info-label">Prepared By:</div>
+                    <div class="info-value">{{ payment_form.created_by.get_full_name|default:payment_form.created_by.username }}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">Created:</div>
