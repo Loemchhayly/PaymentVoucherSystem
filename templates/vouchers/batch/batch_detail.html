@@ -15,9 +15,19 @@
             <p style="color: #6b7280; margin-top: 0.5rem;">Batch Details</p>
         </div>
         <div style="display: flex; gap: 0.5rem;">
+            {% if batch.status == 'PENDING' and batch.created_by == user %}
+            <a href="{% url 'vouchers:batch_edit' batch.id %}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit Batch
+            </a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBatchModal">
+                <i class="bi bi-trash"></i> Delete Batch
+            </button>
+            {% endif %}
+            {% if document_count > 0 %}
             <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="btn btn-success">
                 <i class="bi bi-file-earmark-excel"></i> Export to Excel
             </a>
+            {% endif %}
             {% if user.role_level == 5 %}
             <a href="{% url 'vouchers:md_dashboard' %}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to MD Dashboard
@@ -29,6 +39,14 @@
             {% endif %}
         </div>
     </div>
+
+    {% if document_count == 0 %}
+    <!-- Warning for Empty Batch -->
+    <div class="alert alert-danger" style="margin-bottom: 1.5rem; border-left: 4px solid #dc3545;">
+        <h4 style="margin: 0 0 0.5rem 0;"><i class="bi bi-exclamation-triangle"></i> Empty Batch</h4>
+        <p style="margin: 0;">This batch has no documents. Please add documents using the "Edit Batch" button or delete this batch.</p>
+    </div>
+    {% endif %}
 
     <div class="row">
         <!-- Batch Information Card -->
@@ -419,130 +437,249 @@
 </div>
 
 <script>
+// Check Bootstrap is loaded
+function checkBootstrap() {
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap is not loaded! Modals will not work.');
+        return false;
+    }
+    return true;
+}
+
 function showSignModal() {
-    document.getElementById('sign-comments').value = '';
-    const modal = new bootstrap.Modal(document.getElementById('signModal'));
-    modal.show();
+    try {
+        if (!checkBootstrap()) {
+            alert('System error: Page not fully loaded. Please refresh the page.');
+            return;
+        }
+        const commentsField = document.getElementById('sign-comments');
+        if (commentsField) {
+            commentsField.value = '';
+        }
+        const modalElement = document.getElementById('signModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    } catch (error) {
+        console.error('Error showing sign modal:', error);
+        alert('Error: Could not open sign dialog. Please refresh the page.');
+    }
 }
 
 function showRejectModal() {
-    document.getElementById('reject-comments').value = '';
-    const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
-    modal.show();
+    try {
+        if (!checkBootstrap()) {
+            alert('System error: Page not fully loaded. Please refresh the page.');
+            return;
+        }
+        const commentsField = document.getElementById('reject-comments');
+        if (commentsField) {
+            commentsField.value = '';
+        }
+        const modalElement = document.getElementById('rejectModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    } catch (error) {
+        console.error('Error showing reject modal:', error);
+        alert('Error: Could not open reject dialog. Please refresh the page.');
+    }
 }
 
 function confirmSign() {
-    const btn = document.getElementById('sign-confirm-btn');
-    const comments = document.getElementById('sign-comments').value;
+    try {
+        const btn = document.getElementById('sign-confirm-btn');
+        const comments = document.getElementById('sign-comments').value;
 
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Signing...';
+        if (!btn) {
+            console.error('Sign button not found');
+            return;
+        }
 
-    const formData = new FormData();
-    formData.append('comments', comments);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Signing...';
 
-    fetch('{% url "vouchers:batch_sign" batch.id %}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('signModal')).hide();
-            // Redirect - Django message will show
-            window.location.href = data.redirect_url;
-        } else {
-            showToast('Error', data.error || 'Failed to sign batch', 'error');
+        const formData = new FormData();
+        formData.append('comments', comments);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch('{% url "vouchers:batch_sign" batch.id %}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                if (checkBootstrap()) {
+                    const modalElement = document.getElementById('signModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                }
+                // Redirect - Django message will show
+                window.location.href = data.redirect_url;
+            } else {
+                showToast('Error', data.error || 'Failed to sign batch', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents';
+            }
+        })
+        .catch(error => {
+            console.error('Sign error:', error);
+            showToast('Error', 'Network error: ' + error.message, 'error');
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents';
-        }
-    })
-    .catch(error => {
-        showToast('Error', 'Network error: ' + error, 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents';
-    });
+        });
+    } catch (error) {
+        console.error('Unexpected error in confirmSign:', error);
+        alert('An unexpected error occurred. Please try again.');
+    }
 }
 
 function confirmReject() {
-    const btn = document.getElementById('reject-confirm-btn');
-    const comments = document.getElementById('reject-comments').value.trim();
+    try {
+        const btn = document.getElementById('reject-confirm-btn');
+        const commentsField = document.getElementById('reject-comments');
+        const comments = commentsField ? commentsField.value.trim() : '';
 
-    if (!comments) {
-        document.getElementById('reject-comments').classList.add('is-invalid');
-        return;
-    }
+        if (!comments) {
+            if (commentsField) {
+                commentsField.classList.add('is-invalid');
+            }
+            return;
+        }
 
-    document.getElementById('reject-comments').classList.remove('is-invalid');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Rejecting...';
+        if (commentsField) {
+            commentsField.classList.remove('is-invalid');
+        }
 
-    const formData = new FormData();
-    formData.append('comments', comments);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        if (!btn) {
+            console.error('Reject button not found');
+            return;
+        }
 
-    fetch('{% url "vouchers:batch_reject" batch.id %}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
-            // Redirect - Django message will show
-            window.location.href = data.redirect_url;
-        } else {
-            showToast('Error', data.error || 'Failed to reject batch', 'error');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Rejecting...';
+
+        const formData = new FormData();
+        formData.append('comments', comments);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch('{% url "vouchers:batch_reject" batch.id %}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                if (checkBootstrap()) {
+                    const modalElement = document.getElementById('rejectModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                }
+                // Redirect - Django message will show
+                window.location.href = data.redirect_url;
+            } else {
+                showToast('Error', data.error || 'Failed to reject batch', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch';
+            }
+        })
+        .catch(error => {
+            console.error('Reject error:', error);
+            showToast('Error', 'Network error: ' + error.message, 'error');
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch';
-        }
-    })
-    .catch(error => {
-        showToast('Error', 'Network error: ' + error, 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch';
-    });
+        });
+    } catch (error) {
+        console.error('Unexpected error in confirmReject:', error);
+        alert('An unexpected error occurred. Please try again.');
+    }
 }
 
 function showToast(title, message, type = 'info') {
-    // Check if Bootstrap Toast is available
-    if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
-        // Create toast element
-        const toastHtml = `
-            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'primary'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <strong>${title}</strong>
-                        <br>${message}
+    try {
+        // Check if Bootstrap Toast is available
+        if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+            // Escape HTML to prevent XSS
+            const escapeHtml = (str) => {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            };
+
+            const safeTitle = escapeHtml(title);
+            const safeMessage = escapeHtml(message);
+            const bgClass = type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'primary';
+
+            // Create toast element
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <strong>${safeTitle}</strong>
+                            <br>${safeMessage}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
-            </div>
-        `;
+            `;
 
-        // Get or create toast container
-        let toastContainer = document.querySelector('.toast-container');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-            document.body.appendChild(toastContainer);
+            // Get or create toast container
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+
+            // Add toast to container
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: 5000
+            });
+            toast.show();
+
+            // Remove toast element after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        } else {
+            // Fallback for browsers where Bootstrap is not loaded
+            console.warn('Bootstrap not available, using alert fallback');
+            const icon = type === 'success' ? '✓' : type === 'warning' ? '⚠' : type === 'error' ? '✗' : 'ℹ';
+            alert(`${icon} ${title}\n${message}`);
         }
-
-        // Add toast to container
-        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-        const toastElement = toastContainer.lastElementChild;
-        const toast = new bootstrap.Toast(toastElement);
-        toast.show();
-
-        // Remove toast element after it's hidden
-        toastElement.addEventListener('hidden.bs.toast', () => {
-            toastElement.remove();
-        });
-    } else {
-        // Fallback to alert
-        const icon = type === 'success' ? '✓' : type === 'warning' ? '⚠' : type === 'error' ? '✗' : 'ℹ';
-        alert(`${icon} ${title}\n${message}`);
+    } catch (error) {
+        console.error('Error in showToast:', error);
+        // Final fallback
+        alert(`${title}\n${message}`);
     }
 }
 
@@ -551,72 +688,219 @@ let currentRemoveDocType = null;
 let currentRemoveDocId = null;
 
 function showRemoveModal(docType, docId, docNumber) {
-    currentRemoveDocType = docType;
-    currentRemoveDocId = docId;
-    document.getElementById('remove-doc-number').textContent = docNumber;
-    document.getElementById('remove-reason').value = '';
-    document.getElementById('remove-reason').classList.remove('is-invalid');
-    const modal = new bootstrap.Modal(document.getElementById('removeDocModal'));
-    modal.show();
+    try {
+        if (!checkBootstrap()) {
+            alert('System error: Page not fully loaded. Please refresh the page.');
+            return;
+        }
+
+        currentRemoveDocType = docType;
+        currentRemoveDocId = docId;
+
+        const docNumberElement = document.getElementById('remove-doc-number');
+        if (docNumberElement) {
+            docNumberElement.textContent = docNumber;
+        }
+
+        const reasonField = document.getElementById('remove-reason');
+        if (reasonField) {
+            reasonField.value = '';
+            reasonField.classList.remove('is-invalid');
+        }
+
+        const modalElement = document.getElementById('removeDocModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    } catch (error) {
+        console.error('Error showing remove modal:', error);
+        alert('Error: Could not open remove dialog. Please refresh the page.');
+    }
 }
 
 function confirmRemove() {
-    const reasonField = document.getElementById('remove-reason');
-    const reason = reasonField.value.trim();
-    const btn = document.getElementById('remove-confirm-btn');
+    try {
+        const reasonField = document.getElementById('remove-reason');
+        const reason = reasonField ? reasonField.value.trim() : '';
+        const btn = document.getElementById('remove-confirm-btn');
 
-    if (!reason) {
-        reasonField.classList.add('is-invalid');
-        return;
-    }
-
-    reasonField.classList.remove('is-invalid');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Removing...';
-
-    const formData = new FormData();
-    formData.append('doc_type', currentRemoveDocType);
-    formData.append('doc_id', currentRemoveDocId);
-    formData.append('reason', reason);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-    fetch('{% url "vouchers:batch_remove_document" batch.id %}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('removeDocModal')).hide();
-
-            if (data.batch_empty) {
-                showToast('Batch Empty', data.message, 'warning');
-                setTimeout(() => {
-                    window.location.href = data.redirect_url;
-                }, 2000);
-            } else {
-                showToast('Success', data.message, 'success');
-                // Update the totals
-                document.getElementById('grand-total-display').textContent = data.new_total;
-                document.getElementById('document-count-display').textContent = data.new_count;
-                // Reload page to update document list
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
+        if (!reason) {
+            if (reasonField) {
+                reasonField.classList.add('is-invalid');
             }
-        } else {
-            showToast('Error', data.error || 'Failed to remove document', 'error');
+            return;
+        }
+
+        if (reasonField) {
+            reasonField.classList.remove('is-invalid');
+        }
+
+        if (!btn) {
+            console.error('Remove button not found');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Removing...';
+
+        const formData = new FormData();
+        formData.append('doc_type', currentRemoveDocType);
+        formData.append('doc_id', currentRemoveDocId);
+        formData.append('reason', reason);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch('{% url "vouchers:batch_remove_document" batch.id %}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                if (checkBootstrap()) {
+                    const modalElement = document.getElementById('removeDocModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                }
+
+                if (data.batch_empty) {
+                    showToast('Batch Empty', data.message, 'warning');
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 2000);
+                } else {
+                    showToast('Success', data.message, 'success');
+
+                    // Update the totals (safely check if elements exist)
+                    const totalElement = document.getElementById('grand-total-display');
+                    const countElement = document.getElementById('document-count-display');
+
+                    if (totalElement && data.new_total) {
+                        totalElement.textContent = data.new_total;
+                    }
+                    if (countElement && data.new_count !== undefined) {
+                        countElement.textContent = data.new_count;
+                    }
+
+                    // Reload page to update document list
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                }
+            } else {
+                showToast('Error', data.error || 'Failed to remove document', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-x-circle"></i> Remove Document';
+            }
+        })
+        .catch(error => {
+            console.error('Remove document error:', error);
+            showToast('Error', 'Network error: ' + error.message, 'error');
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-x-circle"></i> Remove Document';
-        }
-    })
-    .catch(error => {
-        showToast('Error', 'Network error: ' + error, 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-x-circle"></i> Remove Document';
-    });
+        });
+    } catch (error) {
+        console.error('Unexpected error in confirmRemove:', error);
+        alert('An unexpected error occurred. Please try again.');
+    }
 }
+
+// Delete Batch
+function deleteBatch() {
+    try {
+        fetch("{% url 'vouchers:batch_delete' batch.id %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                showToast('Error', data.error || 'Failed to delete batch', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Delete batch error:', error);
+            showToast('Error', 'Network error: ' + error.message, 'error');
+        });
+    } catch (error) {
+        console.error('Unexpected error in deleteBatch:', error);
+        alert('An unexpected error occurred. Please try again.');
+    }
+}
+
+// Check page is fully loaded on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Batch detail page loaded');
+    console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
+    console.log('jQuery available:', typeof $ !== 'undefined');
+
+    // Verify critical elements exist
+    const criticalElements = ['signModal', 'rejectModal', 'removeDocModal'];
+    criticalElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (!element) {
+            console.warn(`Critical element missing: ${id}`);
+        }
+    });
+});
 </script>
+
+<!-- Delete Batch Confirmation Modal -->
+{% if batch.status == 'PENDING' and batch.created_by == user %}
+<div class="modal fade" id="deleteBatchModal" tabindex="-1" aria-labelledby="deleteBatchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white;">
+                <h5 class="modal-title" id="deleteBatchModalLabel">
+                    <i class="bi bi-trash"></i> Delete Batch
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 1rem;">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 4rem; color: #dc2626;"></i>
+                    <h4 style="margin-top: 1rem; color: #1f2937;">Are you sure?</h4>
+                    <p style="color: #6b7280; margin-top: 0.5rem;">
+                        This will permanently delete batch <strong>{{ batch.batch_number }}</strong>.
+                        <br>This action cannot be undone.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-danger" onclick="deleteBatch()" data-bs-dismiss="modal">
+                    <i class="bi bi-trash"></i> Yes, Delete Batch
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <style>
 .page-header {

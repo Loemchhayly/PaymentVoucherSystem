@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Batch {{ batch.batch_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1400px; margin-top: -2.5rem;">
+    <!-- Page Header -->
+    <div class="page-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;">
+                <i class="bi bi-pencil-square" style="color: #667eea; font-size: 1.75rem;"></i>
+                Edit Batch {{ batch.batch_number }}
+            </h1>
+            <p style="color: #6b7280; margin-top: 0.25rem; font-size: 0.9rem;">Add or remove documents from this batch</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn btn-primary" id="save-btn" onclick="saveBatch()">
+                <i class="bi bi-check-circle"></i> Save Changes
+            </button>
+            <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+        </div>
+    </div>
+
+    <!-- Selected Documents Summary -->
+    <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+        <div class="card-body" style="padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem;">
+                        <i class="bi bi-check-circle"></i>
+                        Selected: <span id="selected-count">{{ current_doc_ids|length }}</span> documents
+                    </h3>
+                    <p style="margin: 0.25rem 0 0 0; opacity: 0.9; font-size: 0.95rem;">Total Amount: <span id="selected-total">{{ batch.get_total_amount_display }}</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header" style="background: white; border-bottom: 2px solid #e5e7eb;">
+            <h5 style="margin: 0; color: #1f2937;">
+                <i class="bi bi-chat-text"></i>
+                Finance Manager Notes
+            </h5>
+        </div>
+        <div class="card-body">
+            <textarea class="form-control" id="fm-notes" rows="3" placeholder="Add notes for MD (optional)...">{{ batch.fm_notes|default:'' }}</textarea>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Current Documents in Batch -->
+        <div class="col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
+                    <h5 style="margin: 0;">
+                        <i class="bi bi-check-square"></i>
+                        Current Documents ({{ current_doc_ids|length }})
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                    <div id="current-documents">
+                        {% for item in batch.voucher_items.all %}
+                        <div class="doc-item" data-type="pv" data-id="{{ item.voucher.id }}" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: white;">
+                            <div>
+                                <span class="badge bg-primary">PV</span>
+                                <strong style="margin-left: 0.5rem;">{{ item.voucher.pv_number }}</strong>
+                                <div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">
+                                    {{ item.voucher.payee_name }} - {{ item.voucher.get_grand_total_display }}
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDocument('pv', {{ item.voucher.id }})">
+                                <i class="bi bi-x"></i> Remove
+                            </button>
+                        </div>
+                        {% endfor %}
+
+                        {% for item in batch.form_items.all %}
+                        <div class="doc-item" data-type="pf" data-id="{{ item.payment_form.id }}" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: white;">
+                            <div>
+                                <span class="badge bg-success">PF</span>
+                                <strong style="margin-left: 0.5rem;">{{ item.payment_form.pf_number }}</strong>
+                                <div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">
+                                    {{ item.payment_form.payee_name }} - {{ item.payment_form.get_grand_total_display }}
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDocument('pf', {{ item.payment_form.id }})">
+                                <i class="bi bi-x"></i> Remove
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Documents to Add -->
+        <div class="col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none;">
+                    <h5 style="margin: 0;">
+                        <i class="bi bi-plus-square"></i>
+                        Available Documents
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                    <input type="text" class="form-control mb-3" id="search-available" placeholder="🔍 Search..." onkeyup="filterAvailable()">
+
+                    <div id="available-documents">
+                        {% for voucher in available_vouchers %}
+                        <div class="doc-item available-doc" data-type="pv" data-id="{{ voucher.id }}" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                            <div>
+                                <span class="badge bg-primary">PV</span>
+                                <strong style="margin-left: 0.5rem;">{{ voucher.pv_number }}</strong>
+                                <div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">
+                                    {{ voucher.payee_name }} - {{ voucher.get_grand_total_display }}
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="addDocument('pv', {{ voucher.id }}, '{{ voucher.pv_number }}', '{{ voucher.payee_name }}', '{{ voucher.get_grand_total_display }}')">
+                                <i class="bi bi-plus"></i> Add
+                            </button>
+                        </div>
+                        {% endfor %}
+
+                        {% for form in available_forms %}
+                        <div class="doc-item available-doc" data-type="pf" data-id="{{ form.id }}" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                            <div>
+                                <span class="badge bg-success">PF</span>
+                                <strong style="margin-left: 0.5rem;">{{ form.pf_number }}</strong>
+                                <div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">
+                                    {{ form.payee_name }} - {{ form.get_grand_total_display }}
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="addDocument('pf', {{ form.id }}, '{{ form.pf_number }}', '{{ form.payee_name }}', '{{ form.get_grand_total_display }}')">
+                                <i class="bi bi-plus"></i> Add
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if not available_vouchers and not available_forms %}
+                    <div style="text-align: center; padding: 2rem; color: #9ca3af;">
+                        <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p style="margin-top: 1rem;">No additional documents available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Track selected documents
+let selectedDocs = {
+    pv: new Set({{ current_pv_ids|safe }}),
+    pf: new Set({{ current_pf_ids|safe }})
+};
+
+function updateCount() {
+    const total = selectedDocs.pv.size + selectedDocs.pf.size;
+    document.getElementById('selected-count').textContent = total;
+
+    // Disable save button if no documents selected
+    const saveBtn = document.getElementById('save-btn');
+    if (total === 0) {
+        saveBtn.disabled = true;
+        saveBtn.classList.add('disabled');
+        saveBtn.style.opacity = '0.5';
+    } else {
+        saveBtn.disabled = false;
+        saveBtn.classList.remove('disabled');
+        saveBtn.style.opacity = '1';
+    }
+}
+
+function addDocument(type, id, number, payee, amount) {
+    // Add to selected set
+    selectedDocs[type].add(id);
+
+    // Remove from available list
+    const availableItem = document.querySelector(`#available-documents .doc-item[data-type="${type}"][data-id="${id}"]`);
+    if (availableItem) {
+        availableItem.style.display = 'none';
+    }
+
+    // Add to current documents list
+    const badge = type === 'pv' ? 'bg-primary' : 'bg-success';
+    const label = type.toUpperCase();
+    const currentList = document.getElementById('current-documents');
+
+    const docHtml = `
+        <div class="doc-item" data-type="${type}" data-id="${id}" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: white; animation: fadeIn 0.3s;">
+            <div>
+                <span class="badge ${badge}">${label}</span>
+                <strong style="margin-left: 0.5rem;">${number}</strong>
+                <div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">
+                    ${payee} - ${amount}
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDocument('${type}', ${id})">
+                <i class="bi bi-x"></i> Remove
+            </button>
+        </div>
+    `;
+
+    currentList.insertAdjacentHTML('beforeend', docHtml);
+    updateCount();
+}
+
+function removeDocument(type, id) {
+    // Check if this is the last document
+    const totalDocs = selectedDocs.pv.size + selectedDocs.pf.size;
+    if (totalDocs <= 1) {
+        return; // Silently prevent removal of last document
+    }
+
+    // Remove from selected set
+    selectedDocs[type].delete(id);
+
+    // Remove from current list
+    const currentItem = document.querySelector(`#current-documents .doc-item[data-type="${type}"][data-id="${id}"]`);
+    if (currentItem) {
+        currentItem.remove();
+    }
+
+    // Show in available list
+    const availableItem = document.querySelector(`#available-documents .doc-item[data-type="${type}"][data-id="${id}"]`);
+    if (availableItem) {
+        availableItem.style.display = 'flex';
+    }
+
+    updateCount();
+}
+
+function filterAvailable() {
+    const query = document.getElementById('search-available').value.toLowerCase();
+    const items = document.querySelectorAll('#available-documents .available-doc');
+
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (text.includes(query)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function saveBatch() {
+    const notes = document.getElementById('fm-notes').value;
+
+    // Check if at least one document is selected
+    if (selectedDocs.pv.size === 0 && selectedDocs.pf.size === 0) {
+        return; // Prevent saving empty batch
+    }
+
+    // Convert Sets to Arrays
+    const pvArray = Array.from(selectedDocs.pv);
+    const pfArray = Array.from(selectedDocs.pf);
+
+    // Prepare data
+    const formData = new FormData();
+    formData.append('fm_notes', notes);
+    formData.append('pv_ids', JSON.stringify(pvArray));
+    formData.append('pf_ids', JSON.stringify(pfArray));
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    // Save changes
+    fetch("{% url 'vouchers:batch_edit' batch.id %}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = "{% url 'vouchers:batch_detail' batch.id %}";
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateCount();
+});
+</script>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}

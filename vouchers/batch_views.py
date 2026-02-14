@@ -38,13 +38,13 @@ def batch_select_documents(request):
         return redirect('dashboard:home')
 
     # Get IDs of documents already in PENDING batches to exclude them
-    pending_voucher_ids = BatchVoucherItem.objects.filter(
+    pending_voucher_ids = list(BatchVoucherItem.objects.filter(
         batch__status='PENDING'
-    ).values_list('voucher_id', flat=True)
+    ).values_list('voucher_id', flat=True))
 
-    pending_form_ids = BatchFormItem.objects.filter(
+    pending_form_ids = list(BatchFormItem.objects.filter(
         batch__status='PENDING'
-    ).values_list('payment_form_id', flat=True)
+    ).values_list('payment_form_id', flat=True))
 
     # Get ALL PENDING_L5 documents (after GM approval, waiting for MD)
     # Exclude documents already in a pending batch
@@ -258,6 +258,136 @@ def batch_detail(request, batch_id):
     }
 
     return render(request, 'vouchers/batch/batch_detail.html', context)
+
+
+@login_required
+def batch_edit(request, batch_id):
+    """
+    Edit batch: add/remove documents and update notes (only by batch creator and only if status is PENDING)
+    """
+    from django.shortcuts import render
+    import json
+
+    batch = get_object_or_404(SignatureBatch, id=batch_id)
+
+    # Check permissions: Only creator can edit and only if PENDING
+    if batch.created_by != request.user:
+        if request.method == 'POST':
+            return JsonResponse({'error': 'Only the batch creator can edit this batch'}, status=403)
+        return render(request, 'error.html', {'message': 'Only the batch creator can edit this batch'})
+
+    if batch.status != 'PENDING':
+        if request.method == 'POST':
+            return JsonResponse({'error': 'Cannot edit batch after it has been signed or rejected'}, status=400)
+        return render(request, 'error.html', {'message': 'Cannot edit batch after it has been signed or rejected'})
+
+    if request.method == 'POST':
+        fm_notes = request.POST.get('fm_notes', '').strip()
+        pv_ids = json.loads(request.POST.get('pv_ids', '[]'))
+        pf_ids = json.loads(request.POST.get('pf_ids', '[]'))
+
+        # Validate at least one document
+        if not pv_ids and not pf_ids:
+            return JsonResponse({'error': 'Batch must contain at least one document'}, status=400)
+
+        # Update the batch notes
+        batch.fm_notes = fm_notes
+
+        # Remove all existing items
+        batch.voucher_items.all().delete()
+        batch.form_items.all().delete()
+
+        # Add new vouchers
+        for pv_id in pv_ids:
+            try:
+                voucher = PaymentVoucher.objects.get(id=pv_id, status='PENDING_L5')
+                BatchVoucherItem.objects.create(batch=batch, voucher=voucher)
+            except PaymentVoucher.DoesNotExist:
+                pass
+
+        # Add new forms
+        for pf_id in pf_ids:
+            try:
+                form = PaymentForm.objects.get(id=pf_id, status='PENDING_L5')
+                BatchFormItem.objects.create(batch=batch, payment_form=form)
+            except PaymentForm.DoesNotExist:
+                pass
+
+        batch.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Batch updated successfully'
+        })
+
+    # GET request - show edit page
+    # Get current document IDs
+    current_pv_ids = list(batch.voucher_items.values_list('voucher_id', flat=True))
+    current_pf_ids = list(batch.form_items.values_list('payment_form_id', flat=True))
+
+    # Get IDs of documents in OTHER pending batches (not this one)
+    other_batch_pv_ids = list(BatchVoucherItem.objects.filter(
+        batch__status='PENDING'
+    ).exclude(
+        batch=batch
+    ).values_list('voucher_id', flat=True))
+
+    other_batch_pf_ids = list(BatchFormItem.objects.filter(
+        batch__status='PENDING'
+    ).exclude(
+        batch=batch
+    ).values_list('payment_form_id', flat=True))
+
+    # Get available documents: PENDING_L5 that are NOT in other pending batches AND not already in this batch
+    available_vouchers = PaymentVoucher.objects.filter(status='PENDING_L5').exclude(
+        id__in=other_batch_pv_ids
+    ).exclude(
+        id__in=current_pv_ids
+    )
+
+    available_forms = PaymentForm.objects.filter(status='PENDING_L5').exclude(
+        id__in=other_batch_pf_ids
+    ).exclude(
+        id__in=current_pf_ids
+    )
+
+    context = {
+        'batch': batch,
+        'current_pv_ids': current_pv_ids,
+        'current_pf_ids': current_pf_ids,
+        'current_doc_ids': current_pv_ids + current_pf_ids,
+        'available_vouchers': available_vouchers,
+        'available_forms': available_forms,
+    }
+
+    return render(request, 'vouchers/batch/batch_edit.html', context)
+
+
+@login_required
+def batch_delete(request, batch_id):
+    """
+    Delete a batch (only by batch creator and only if status is PENDING)
+    """
+    batch = get_object_or_404(SignatureBatch, id=batch_id)
+
+    # Check permissions: Only creator can delete and only if PENDING
+    if batch.created_by != request.user:
+        return JsonResponse({'error': 'Only the batch creator can delete this batch'}, status=403)
+
+    if batch.status != 'PENDING':
+        return JsonResponse({'error': 'Cannot delete batch after it has been signed or rejected'}, status=400)
+
+    if request.method == 'POST':
+        batch_number = batch.batch_number
+        batch.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Batch {batch_number} deleted successfully',
+            'redirect_url': '/vouchers/batch/list/'
+        })
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 @login_required

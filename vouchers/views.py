@@ -1298,12 +1298,15 @@ def reports_view(request):
         totals = voucher.calculate_grand_total()
         # Get primary department from first line item
         dept = voucher.line_items.first().department.name if voucher.line_items.exists() else '-'
+        # Get description from first line item
+        description = voucher.line_items.first().description if voucher.line_items.exists() else '-'
 
         records.append({
             'pk': voucher.pk,
             'doc_type': 'PV',
             'doc_number': voucher.pv_number or 'DRAFT',
             'payee_name': voucher.payee_name,
+            'description': description,
             'department': dept,
             'payment_date': voucher.payment_date,
             'created_by': voucher.created_by.get_full_name() or voucher.created_by.username,
@@ -1318,12 +1321,15 @@ def reports_view(request):
         totals = form.calculate_grand_total()
         # Get primary department from first line item
         dept = form.line_items.first().department.name if form.line_items.exists() else '-'
+        # Get description from first line item
+        description = form.line_items.first().description if form.line_items.exists() else '-'
 
         records.append({
             'pk': form.pk,
             'doc_type': 'PF',
             'doc_number': form.pf_number or 'DRAFT',
             'payee_name': form.payee_name,
+            'description': description,
             'department': dept,
             'payment_date': form.payment_date,
             'created_by': form.created_by.get_full_name() or form.created_by.username,

@@ -91,3 +91,7 @@ db.sqlite3
 media/
 staticfiles/
 /nul
+
+/vouchers/management/commands/cleanup_batch_items.py
+/vouchers/management/commands/cleanup_old_batches.py
+/vouchers/management/commands/find_batch_documents.py
