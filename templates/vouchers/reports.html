@@ -217,12 +217,71 @@
     .table-search::placeholder { color: rgba(255,255,255,0.6); }
     .table-search:focus { outline: none; background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.6); }
 
+    /* Scrollable Table Container */
+    .table-scroll-container {
+        max-height: 600px;  /* Fixed height for scrolling */
+        overflow-y: auto;   /* Vertical scroll */
+        overflow-x: auto;   /* Horizontal scroll if needed */
+        position: relative;
+        border-radius: 0 0 12px 12px;
+        -webkit-overflow-scrolling: touch;  /* Smooth scrolling on mobile */
+        scroll-behavior: smooth;  /* Smooth scrolling experience */
+    }
+
+    /* Custom scrollbar styling */
+    .table-scroll-container::-webkit-scrollbar {
+        width: 12px;
+        height: 10px;
+    }
+
+    .table-scroll-container::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 6px;
+    }
+
+    .table-scroll-container::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 6px;
+        border: 2px solid #f1f5f9;  /* Add padding around thumb */
+    }
+
+    .table-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+    }
+
+    /* Scroll indicator shadows */
+    .table-scroll-container::before {
+        content: '';
+        position: sticky;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 0;
+        z-index: 9;
+        pointer-events: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .table-scroll-container.is-scrolled::before {
+        opacity: 1;
+    }
+
     /* Data Table */
     .data-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
         font-size: 0.875rem;
+    }
+
+    /* Sticky Table Header */
+    .data-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);  /* Shadow for depth */
     }
 
     .data-table thead tr {
@@ -264,7 +323,14 @@
         vertical-align: middle;
     }
 
-    /* Tfoot totals row */
+    /* Sticky Tfoot totals row */
+    .data-table tfoot {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.08);  /* Shadow for depth */
+    }
+
     .data-table tfoot tr {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
@@ -445,6 +511,11 @@
         .table-search { width: 140px; }
         .data-table { font-size: 0.8125rem; }
         .data-table th, .data-table td { padding: 0.5rem 0.625rem; }
+
+        /* Reduce max height on mobile for better UX */
+        .table-scroll-container {
+            max-height: 450px;
+        }
     }
 
     @media (max-width: 576px) {
@@ -740,7 +811,7 @@
             </div>
         </div>
 
-        <div style="overflow-x:auto;">
+        <div class="table-scroll-container">
             <table class="data-table" id="mainDataTable">
                 <thead>
                     <tr>
@@ -981,7 +1052,21 @@
     }
 
     // Init pagination on load
-    document.addEventListener('DOMContentLoaded', () => renderPagination());
+    document.addEventListener('DOMContentLoaded', () => {
+        renderPagination();
+
+        // Add scroll listener for table container
+        const tableContainer = document.querySelector('.table-scroll-container');
+        if (tableContainer) {
+            tableContainer.addEventListener('scroll', function() {
+                if (this.scrollTop > 10) {
+                    this.classList.add('is-scrolled');
+                } else {
+                    this.classList.remove('is-scrolled');
+                }
+            });
+        }
+    });
 
     // ── Chart.js ──
     const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');

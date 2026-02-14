@@ -171,22 +171,22 @@
                         <i class="bi bi-receipt"></i>
                         Payment Vouchers ({{ batch.voucher_items.count }})
                     </h6>
-                    <div class="table-responsive mb-4">
-                        <table class="table table-hover">
+                    <div class="table-container mb-4">
+                        <table class="table table-hover batch-table">
                             <thead style="background: #f9fafb;">
                                 <tr>
-                                    <th>PV Number</th>
-                                    <th>Payee</th>
-                                    <th>Description</th>
-                                    <th>Payment Date</th>
-                                    <th>Transfer Account</th>
-                                    <th>Amount</th>
-                                    <th>Actions</th>
+                                    <th style="width: 12%;">PV Number</th>
+                                    <th style="width: 15%;">Payee</th>
+                                    <th style="width: 20%;">Description</th>
+                                    <th style="width: 13%;">Payment Date</th>
+                                    <th style="width: 20%;">Transfer Account</th>
+                                    <th style="width: 12%;">Amount</th>
+                                    <th style="width: 8%;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for item in batch.voucher_items.all %}
-                                <tr>
+                                <tr class="clickable-row" onclick="window.open('{% url 'vouchers:detail' item.voucher.id %}', '_blank')">
                                     <td style="white-space: nowrap;">
                                         <strong>{{ item.voucher.pv_number }}</strong>
                                     </td>
@@ -222,12 +222,9 @@
                                         </strong>
                                     </td>
                                     <td>
-                                        <a href="{% url 'vouchers:detail' item.voucher.id %}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                            <i class="bi bi-eye"></i> View
-                                        </a>
                                         {% if user.role_level == 5 and batch.status == 'PENDING' %}
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="showRemoveModal('voucher', {{ item.voucher.id }}, '{{ item.voucher.pv_number }}')">
-                                            <i class="bi bi-x-circle"></i> Remove
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showRemoveModal('voucher', {{ item.voucher.id }}, '{{ item.voucher.pv_number }}')">
+                                            <i class="bi bi-x-circle"></i>
                                         </button>
                                         {% endif %}
                                     </td>
@@ -244,22 +241,22 @@
                         <i class="bi bi-file-text"></i>
                         Payment Forms ({{ batch.form_items.count }})
                     </h6>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+                    <div class="table-container">
+                        <table class="table table-hover batch-table">
                             <thead style="background: #f9fafb;">
                                 <tr>
-                                    <th>PF Number</th>
-                                    <th>Payee</th>
-                                    <th>Description</th>
-                                    <th>Payment Date</th>
-                                    <th>Transfer Account</th>
-                                    <th>Amount</th>
-                                    <th>Actions</th>
+                                    <th style="width: 12%;">PF Number</th>
+                                    <th style="width: 15%;">Payee</th>
+                                    <th style="width: 20%;">Description</th>
+                                    <th style="width: 13%;">Payment Date</th>
+                                    <th style="width: 20%;">Transfer Account</th>
+                                    <th style="width: 12%;">Amount</th>
+                                    <th style="width: 8%;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for item in batch.form_items.all %}
-                                <tr>
+                                <tr class="clickable-row" onclick="window.open('{% url 'vouchers:pf_detail' item.payment_form.id %}', '_blank')">
                                     <td style="white-space: nowrap;">
                                         <strong>{{ item.payment_form.pf_number }}</strong>
                                     </td>
@@ -295,12 +292,9 @@
                                         </strong>
                                     </td>
                                     <td>
-                                        <a href="{% url 'vouchers:pf_detail' item.payment_form.id %}" class="btn btn-sm btn-outline-success" target="_blank">
-                                            <i class="bi bi-eye"></i> View
-                                        </a>
                                         {% if user.role_level == 5 and batch.status == 'PENDING' %}
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="showRemoveModal('form', {{ item.payment_form.id }}, '{{ item.payment_form.pf_number }}')">
-                                            <i class="bi bi-x-circle"></i> Remove
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showRemoveModal('form', {{ item.payment_form.id }}, '{{ item.payment_form.pf_number }}')">
+                                            <i class="bi bi-x-circle"></i>
                                         </button>
                                         {% endif %}
                                     </td>
@@ -909,8 +903,76 @@ document.addEventListener('DOMContentLoaded', function() {
     align-items: center;
 }
 
-.table tbody tr:hover {
-    background: #f9fafb;
+/* Table Container - No scrollbars */
+.table-container {
+    width: 100%;
+    overflow: visible;  /* No scrollbars */
+    padding: 0;
+}
+
+.batch-table {
+    width: 100%;
+    table-layout: fixed;  /* Fixed layout prevents overflow */
+}
+
+/* Clickable Row Styles */
+.batch-table .clickable-row {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.batch-table .clickable-row:hover {
+    background: #f3f4f6 !important;
+    transform: scale(1.001);  /* Reduced scale to prevent scrollbar */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.batch-table .clickable-row:active {
+    transform: scale(0.998);
+}
+
+/* Professional equal column widths */
+.batch-table th,
+.batch-table td {
+    vertical-align: middle;
+    padding: 0.75rem;
+}
+
+/* Remove button styling - compact and clean */
+.batch-table .btn-outline-danger {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.batch-table .btn-outline-danger:hover {
+    transform: scale(1.05);
+}
+
+.batch-table .btn-outline-danger i {
+    font-size: 1rem;
+}
+
+/* Smooth hover transitions for table */
+.batch-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+/* Ensure text doesn't get selected when clicking rows */
+.batch-table .clickable-row {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Make sure buttons are still selectable */
+.batch-table .clickable-row button {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
 }
 
 @media (max-width: 768px) {
@@ -921,6 +983,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     .page-header > div:last-child {
         margin-top: 1rem;
+    }
+
+    /* Mobile table responsiveness with horizontal scroll when needed */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Adjust table for mobile - make columns stack better */
+    .batch-table th,
+    .batch-table td {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .batch-table .clickable-row:hover {
+        transform: none; /* Disable transform on mobile for better touch interaction */
     }
 }
 </style>
