@@ -942,6 +942,49 @@
         window.print();
     }
 
+    // ── Calculate Totals from Visible Rows ──
+    function updateTotals() {
+        // Get all rows that are not hidden by search filter
+        const allRows = document.querySelectorAll('#tableBody tr');
+        const searchQuery = document.getElementById('tableSearch').value.toLowerCase();
+
+        let totalUSD = 0;
+        let totalKHR = 0;
+        let totalTHB = 0;
+
+        allRows.forEach(row => {
+            // Check if row matches search (if no search, all rows count)
+            const text = row.textContent.toLowerCase();
+            const matchesSearch = !searchQuery || text.includes(searchQuery);
+
+            if (matchesSearch) {
+                // USD is column 9 (index 9)
+                const usdText = row.cells[9]?.textContent.trim() || '';
+                const usdValue = parseFloat(usdText.replace(/[$,]/g, ''));
+                if (!isNaN(usdValue)) totalUSD += usdValue;
+
+                // KHR is column 10 (index 10)
+                const khrText = row.cells[10]?.textContent.trim() || '';
+                const khrValue = parseFloat(khrText.replace(/[៛,]/g, ''));
+                if (!isNaN(khrValue)) totalKHR += khrValue;
+
+                // THB is column 11 (index 11)
+                const thbText = row.cells[11]?.textContent.trim() || '';
+                const thbValue = parseFloat(thbText.replace(/[฿,]/g, ''));
+                if (!isNaN(thbValue)) totalTHB += thbValue;
+            }
+        });
+
+        // Update footer totals
+        const tfoot = document.querySelector('.data-table tfoot');
+        if (tfoot) {
+            const cells = tfoot.querySelectorAll('td');
+            cells[1].textContent = '$' + totalUSD.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            cells[2].textContent = '៛' + Math.round(totalKHR).toLocaleString('en-US');
+            cells[3].textContent = '฿' + totalTHB.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+    }
+
     // ── Table Client-Side Search ──
     function filterTable() {
         const query = document.getElementById('tableSearch').value.toLowerCase();
@@ -955,6 +998,7 @@
         });
         document.getElementById('visibleCount').textContent = visible + ' records';
         currentPage = 1;
+        updateTotals();
         renderPagination();
     }
 
@@ -1019,6 +1063,7 @@
     function changePerPage() {
         perPage = parseInt(document.getElementById('perPageSelect').value);
         currentPage = 1;
+        updateTotals();
         renderPagination();
     }
 
@@ -1048,11 +1093,13 @@
 
         rows.forEach(r => tbody.appendChild(r));
         currentPage = 1;
+        updateTotals();
         renderPagination();
     }
 
     // Init pagination on load
     document.addEventListener('DOMContentLoaded', () => {
+        updateTotals();
         renderPagination();
 
         // Add scroll listener for table container
