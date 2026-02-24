@@ -13,6 +13,16 @@ from .forms import (PaymentVoucherForm, VoucherLineItemFormSet, VoucherAttachmen
 from workflow.state_machine import VoucherStateMachine, FormStateMachine
 
 
+def get_client_ip(request):
+    """Get the client's IP address from the request"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
 class VoucherCreateView(LoginRequiredMixin, CreateView):
     """View for creating new payment vouchers"""
     model = PaymentVoucher
@@ -300,6 +310,34 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
     model = PaymentVoucher
     template_name = 'vouchers/voucher_detail.html'
     context_object_name = 'voucher'
+
+    def get_object(self, queryset=None):
+        """Override to provide better error messages"""
+        pk = self.kwargs.get('pk')
+        user = self.request.user
+
+        # First check if voucher exists at all
+        voucher_exists = PaymentVoucher.objects.filter(pk=pk).exists()
+
+        if not voucher_exists:
+            messages.error(
+                self.request,
+                f'Payment Voucher #{pk} not found. It may have been deleted or the ID is incorrect. '
+                f'Please check your voucher list for the correct document.'
+            )
+            raise Http404(f"Payment Voucher with ID {pk} does not exist")
+
+        # Try to get with permission check
+        try:
+            return super().get_object(queryset)
+        except Http404:
+            # Voucher exists but user doesn't have permission
+            messages.error(
+                self.request,
+                f'You do not have permission to view Payment Voucher #{pk}. '
+                f'Only the creator, assigned approvers, and staff can access this voucher.'
+            )
+            raise
 
     def get_queryset(self):
         """Filter to only vouchers user has access to"""
@@ -1077,6 +1115,34 @@ class FormDetailView(LoginRequiredMixin, DetailView):
     model = PaymentForm
     template_name = 'vouchers/pf/form_detail.html'
     context_object_name = 'payment_form'
+
+    def get_object(self, queryset=None):
+        """Override to provide better error messages"""
+        pk = self.kwargs.get('pk')
+        user = self.request.user
+
+        # First check if payment form exists at all
+        form_exists = PaymentForm.objects.filter(pk=pk).exists()
+
+        if not form_exists:
+            messages.error(
+                self.request,
+                f'Payment Form #{pk} not found. It may have been deleted or the ID is incorrect. '
+                f'Please check your form list for the correct document.'
+            )
+            raise Http404(f"Payment Form with ID {pk} does not exist")
+
+        # Try to get with permission check
+        try:
+            return super().get_object(queryset)
+        except Http404:
+            # Form exists but user doesn't have permission
+            messages.error(
+                self.request,
+                f'You do not have permission to view Payment Form #{pk}. '
+                f'Only the creator, assigned approvers, and staff can access this form.'
+            )
+            raise
 
     def get_queryset(self):
         """Filter to only forms user has access to"""
