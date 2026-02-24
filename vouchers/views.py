@@ -269,8 +269,14 @@ class VoucherEditView(LoginRequiredMixin, UpdateView):
         for obj in formset.deleted_objects:
             obj.delete()
 
-        # Save new/updated line items (they now have safe temporary numbers)
+        # Save new/updated line items with temporary line numbers
+        # Start from 20000 to avoid conflicts with existing items at 10000+
+        temp_line_number = 20000
         for item in saved_items:
+            # FIX: Ensure every item has a line_number before saving (prevents NULL constraint violation)
+            if not item.line_number or item.line_number < 10000:
+                item.line_number = temp_line_number
+                temp_line_number += 1
             item.save()
 
         # Now renumber ALL remaining items sequentially from 1
@@ -358,10 +364,15 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
         voucher = self.object
         user = self.request.user
 
-        # Calculate grand total
-        context['grand_total'] = voucher.calculate_grand_total()
+        try:
+            # Calculate grand total
+            context['grand_total'] = voucher.calculate_grand_total()
+        except Exception as e:
+            # If calculation fails, provide empty dict
+            context['grand_total'] = {'USD': 0, 'KHR': 0, 'THB': 0}
+            messages.warning(self.request, f'Could not calculate totals: {str(e)}')
 
-        # Permission checks
+        # Permission checks with safe defaults
         context['can_submit'] = (
             voucher.status in ['DRAFT', 'ON_REVISION'] and
             user == voucher.created_by
@@ -369,10 +380,14 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
 
         # Allow approval only if user is the assigned approver
         # MD users cannot approve PENDING_L5 individually - they must use batches
+        # Safe check: ensure user has role_level attribute and voucher has status
+        user_role = getattr(user, 'role_level', 0)
+        voucher_status = getattr(voucher, 'status', '')
+
         context['can_approve'] = (
             voucher.current_approver == user and
-            voucher.status.startswith('PENDING') and
-            not (user.role_level == 5 and voucher.status == 'PENDING_L5')
+            voucher_status.startswith('PENDING') and
+            not (user_role == 5 and voucher_status == 'PENDING_L5')
         )
 
         context['can_edit'] = (
@@ -382,10 +397,17 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
 
         # Approval form for approvers
         if context['can_approve']:
-            context['approval_form'] = ApprovalActionForm(user=user, voucher=voucher)
+            try:
+                context['approval_form'] = ApprovalActionForm(user=user, voucher=voucher)
+            except Exception as e:
+                messages.warning(self.request, f'Could not load approval form: {str(e)}')
+                context['approval_form'] = None
 
         # Approval history
-        context['approval_history'] = voucher.approval_history.all().order_by('timestamp')
+        try:
+            context['approval_history'] = voucher.approval_history.all().order_by('timestamp')
+        except Exception:
+            context['approval_history'] = []
 
         return context
 
@@ -1073,8 +1095,14 @@ class FormEditView(LoginRequiredMixin, UpdateView):
         for obj in formset.deleted_objects:
             obj.delete()
 
-        # Save new/updated line items (they now have safe temporary numbers)
+        # Save new/updated line items with temporary line numbers
+        # Start from 20000 to avoid conflicts with existing items at 10000+
+        temp_line_number = 20000
         for item in saved_items:
+            # FIX: Ensure every item has a line_number before saving (prevents NULL constraint violation)
+            if not item.line_number or item.line_number < 10000:
+                item.line_number = temp_line_number
+                temp_line_number += 1
             item.save()
 
         # Now renumber ALL remaining items sequentially from 1
@@ -1163,10 +1191,15 @@ class FormDetailView(LoginRequiredMixin, DetailView):
         payment_form = self.object
         user = self.request.user
 
-        # Calculate grand total
-        context['grand_total'] = payment_form.calculate_grand_total()
+        try:
+            # Calculate grand total
+            context['grand_total'] = payment_form.calculate_grand_total()
+        except Exception as e:
+            # If calculation fails, provide empty dict
+            context['grand_total'] = {'USD': 0, 'KHR': 0, 'THB': 0}
+            messages.warning(self.request, f'Could not calculate totals: {str(e)}')
 
-        # Permission checks
+        # Permission checks with safe defaults
         context['can_submit'] = (
             payment_form.status in ['DRAFT', 'ON_REVISION'] and
             user == payment_form.created_by
@@ -1174,10 +1207,14 @@ class FormDetailView(LoginRequiredMixin, DetailView):
 
         # Allow approval only if user is the assigned approver
         # MD users cannot approve PENDING_L5 individually - they must use batches
+        # Safe check: ensure user has role_level attribute and form has status
+        user_role = getattr(user, 'role_level', 0)
+        form_status = getattr(payment_form, 'status', '')
+
         context['can_approve'] = (
             payment_form.current_approver == user and
-            payment_form.status.startswith('PENDING') and
-            not (user.role_level == 5 and payment_form.status == 'PENDING_L5')
+            form_status.startswith('PENDING') and
+            not (user_role == 5 and form_status == 'PENDING_L5')
         )
 
         context['can_edit'] = (
@@ -1187,10 +1224,17 @@ class FormDetailView(LoginRequiredMixin, DetailView):
 
         # Approval form for approvers
         if context['can_approve']:
-            context['approval_form'] = ApprovalActionForm(user=user, voucher=payment_form)
+            try:
+                context['approval_form'] = ApprovalActionForm(user=user, voucher=payment_form)
+            except Exception as e:
+                messages.warning(self.request, f'Could not load approval form: {str(e)}')
+                context['approval_form'] = None
 
         # Approval history
-        context['approval_history'] = payment_form.approval_history.all().order_by('timestamp')
+        try:
+            context['approval_history'] = payment_form.approval_history.all().order_by('timestamp')
+        except Exception:
+            context['approval_history'] = []
 
         return context
 
