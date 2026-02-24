@@ -186,6 +186,7 @@
                             </thead>
                             <tbody>
                                 {% for item in batch.voucher_items.all %}
+                                {% if item.voucher %}
                                 <tr class="clickable-row" onclick="window.open('{% url 'vouchers:detail' item.voucher.id %}', '_blank')">
                                     <td style="white-space: nowrap;">
                                         <strong>{{ item.voucher.pv_number }}</strong>
@@ -229,6 +230,16 @@
                                         {% endif %}
                                     </td>
                                 </tr>
+                                {% else %}
+                                <tr style="background-color: #fee2e2;">
+                                    <td colspan="7" class="text-center">
+                                        <small class="text-danger">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            Document deleted - This batch item will be removed automatically
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -256,6 +267,7 @@
                             </thead>
                             <tbody>
                                 {% for item in batch.form_items.all %}
+                                {% if item.payment_form %}
                                 <tr class="clickable-row" onclick="window.open('{% url 'vouchers:pf_detail' item.payment_form.id %}', '_blank')">
                                     <td style="white-space: nowrap;">
                                         <strong>{{ item.payment_form.pf_number }}</strong>
@@ -299,6 +311,16 @@
                                         {% endif %}
                                     </td>
                                 </tr>
+                                {% else %}
+                                <tr style="background-color: #fee2e2;">
+                                    <td colspan="7" class="text-center">
+                                        <small class="text-danger">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            Document deleted - This batch item will be removed automatically
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>
