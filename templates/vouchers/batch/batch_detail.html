@@ -699,11 +699,11 @@ function showToast(title, message, type = 'info') {
     font-size: 0.875rem;
     table-layout: auto;
 }
-.col-docnum  { width: 10%; }
-.col-payee   { width: 14%; }
-.col-desc    { width: 22%; }
-.col-date    { width: 11%; }
-.col-bank    { width: 23%; }
+.col-docnum  { width: 9%; }
+.col-payee   { width: 13%; }
+.col-desc    { width: 20%; }
+.col-date    { width: 10%; }
+.col-bank    { width: 28%; }
 .col-amount  { width: 13%; }
 .col-action  { width: 7%;  }
 
@@ -788,8 +788,8 @@ function showToast(title, message, type = 'info') {
 /* Bank Cell */
 .bank-cell { display: flex; flex-direction: column; gap: 0.04rem; line-height: 1.35; }
 .bank-name  { font-weight: 700; font-size: 0.81rem; color: #4f46e5; }
-.bank-company { font-size: 0.76rem; color: #64748b; }
-.bank-acct  { font-size: 0.7rem; color: #94a3b8; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.bank-company { font-size: 0.76rem; color: #64748b; white-space: nowrap; }
+.bank-acct  { font-size: 0.7rem; color: #94a3b8; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; white-space: nowrap; }
 
 /* Amount */
 .amount-chip {
