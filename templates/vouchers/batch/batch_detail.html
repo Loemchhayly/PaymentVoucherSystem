@@ -41,7 +41,6 @@
     </div>
 
     {% if document_count == 0 %}
-    <!-- Warning for Empty Batch -->
     <div class="alert alert-danger" style="margin-bottom: 1.5rem; border-left: 4px solid #dc3545;">
         <h4 style="margin: 0 0 0.5rem 0;"><i class="bi bi-exclamation-triangle"></i> Empty Batch</h4>
         <p style="margin: 0;">This batch has no documents. Please add documents using the "Edit Batch" button or delete this batch.</p>
@@ -53,94 +52,53 @@
         <div class="col-lg-4 mb-4">
             <div class="card" style="border: 2px solid #e5e7eb;">
                 <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-                    <h5 style="margin: 0;">
-                        <i class="bi bi-info-circle"></i>
-                        Batch Information
-                    </h5>
+                    <h5 style="margin: 0;"><i class="bi bi-info-circle"></i> Batch Information</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Status -->
                     <div class="mb-3">
                         <small class="text-muted">Status</small>
                         <p style="margin: 0;">
-                            {% if batch.status == 'PENDING' %}
-                            <span class="badge bg-warning text-dark">PENDING</span>
-                            {% elif batch.status == 'SIGNED' %}
-                            <span class="badge bg-success">SIGNED</span>
-                            {% elif batch.status == 'REJECTED' %}
-                            <span class="badge bg-danger">REJECTED</span>
+                            {% if batch.status == 'PENDING' %}<span class="badge bg-warning text-dark">PENDING</span>
+                            {% elif batch.status == 'SIGNED' %}<span class="badge bg-success">SIGNED</span>
+                            {% elif batch.status == 'REJECTED' %}<span class="badge bg-danger">REJECTED</span>
                             {% endif %}
                         </p>
                     </div>
-
-                    <!-- Created By -->
                     <div class="mb-3">
                         <small class="text-muted">Created By</small>
                         <p style="margin: 0; font-weight: 600;">
-                            {% if batch.created_by.get_full_name %}
-                                {{ batch.created_by.get_full_name }}
-                            {% else %}
-                                {{ batch.created_by.username }}
-                            {% endif %}
+                            {% if batch.created_by.get_full_name %}{{ batch.created_by.get_full_name }}{% else %}{{ batch.created_by.username }}{% endif %}
                         </p>
                         <small>{{ batch.created_at|date:"M d, Y H:i" }}</small>
                     </div>
-
-                    <!-- Document Count -->
                     <div class="mb-3">
                         <small class="text-muted">Total Documents</small>
-                        <p style="margin: 0;">
-                            <span class="badge bg-primary" style="font-size: 1.1rem;">{{ document_count }}</span>
-                        </p>
+                        <p style="margin: 0;"><span class="badge bg-primary" style="font-size: 1.1rem;">{{ document_count }}</span></p>
                     </div>
-
-                    <!-- Total Amount -->
                     <div class="mb-3" style="padding: 1rem; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 0.25rem;">
                         <small class="text-muted">Total Amount</small>
-                        <p style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #10b981;">
-                            {{ total_amount_display }}
-                        </p>
+                        <p style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #10b981;">{{ total_amount_display }}</p>
                     </div>
-
-                    <!-- FM Notes -->
                     {% if batch.fm_notes %}
                     <div class="mb-3">
                         <small class="text-muted">Finance Manager Notes</small>
-                        <p style="margin: 0.5rem 0 0 0; padding: 0.75rem; background: #fef3c7; border-left: 3px solid #f59e0b; font-size: 0.9rem; border-radius: 0.25rem;">
-                            {{ batch.fm_notes }}
-                        </p>
+                        <p style="margin: 0.5rem 0 0 0; padding: 0.75rem; background: #fef3c7; border-left: 3px solid #f59e0b; font-size: 0.9rem; border-radius: 0.25rem;">{{ batch.fm_notes }}</p>
                     </div>
                     {% endif %}
-
-                    <!-- Signed Information -->
                     {% if batch.status == 'SIGNED' %}
                     <div class="mt-4 pt-3" style="border-top: 2px solid #e5e7eb;">
                         <small class="text-muted">Signed By</small>
-                        <p style="margin: 0; font-weight: 600;">
-                            {% if batch.signed_by.get_full_name %}
-                                {{ batch.signed_by.get_full_name }}
-                            {% else %}
-                                {{ batch.signed_by.username }}
-                            {% endif %}
-                        </p>
+                        <p style="margin: 0; font-weight: 600;">{% if batch.signed_by.get_full_name %}{{ batch.signed_by.get_full_name }}{% else %}{{ batch.signed_by.username }}{% endif %}</p>
                         <small>{{ batch.signed_at|date:"M d, Y H:i" }}</small>
-                        {% if batch.signature_ip %}
-                        <br><small class="text-muted">IP: {{ batch.signature_ip }}</small>
-                        {% endif %}
+                        {% if batch.signature_ip %}<br><small class="text-muted">IP: {{ batch.signature_ip }}</small>{% endif %}
                     </div>
                     {% endif %}
-
-                    <!-- MD Comments -->
                     {% if batch.md_comments %}
                     <div class="mt-3">
                         <small class="text-muted">MD Comments</small>
-                        <p style="margin: 0.5rem 0 0 0; padding: 0.75rem; background: #e0e7ff; border-left: 3px solid #667eea; font-size: 0.9rem; border-radius: 0.25rem;">
-                            {{ batch.md_comments }}
-                        </p>
+                        <p style="margin: 0.5rem 0 0 0; padding: 0.75rem; background: #e0e7ff; border-left: 3px solid #667eea; font-size: 0.9rem; border-radius: 0.25rem;">{{ batch.md_comments }}</p>
                     </div>
                     {% endif %}
-
-                    <!-- Actions (for MD only if pending) -->
                     {% if user.role_level == 5 and batch.status == 'PENDING' %}
                     <div class="mt-4 d-grid gap-2">
                         <button type="button" class="btn btn-success" onclick="showSignModal()">
@@ -164,194 +122,194 @@
                         Documents in Batch ({{ document_count }})
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
+
                     <!-- Payment Vouchers -->
                     {% if batch.voucher_items.all %}
-                    <h6 style="color: #667eea; margin-bottom: 1rem;">
-                        <i class="bi bi-receipt"></i>
-                        Payment Vouchers ({{ batch.voucher_items.count }})
-                    </h6>
-                    <div class="table-container mb-4">
-                        <table class="table table-hover batch-table">
-                            <thead style="background: #f9fafb;">
-                                <tr>
-                                    <th style="width: 12%;">PV Number</th>
-                                    <th style="width: 15%;">Payee</th>
-                                    <th style="width: 20%;">Description</th>
-                                    <th style="width: 13%;">Payment Date</th>
-                                    <th style="width: 20%;">Transfer Account</th>
-                                    <th style="width: 12%;">Amount</th>
-                                    <th style="width: 8%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in batch.voucher_items.all %}
-                                {% if item.voucher %}
-                                <tr class="clickable-row" onclick="window.open('{% url 'vouchers:detail' item.voucher.id %}', '_blank')">
-                                    <td style="white-space: nowrap;">
-                                        <strong>{{ item.voucher.pv_number }}</strong>
-                                    </td>
-                                    <td>{{ item.voucher.payee_name }}</td>
-                                    <td>
-                                        {% for line_item in item.voucher.line_items.all %}
-                                            {{ line_item.description }}{% if not forloop.last %}<br>{% endif %}
-                                        {% empty %}
-                                            <small class="text-muted">No description</small>
-                                        {% endfor %}
-                                    </td>
-                                    <td>{{ item.voucher.payment_date|date:"M d, Y" }}</td>
-                                    <td>
-                                        {% if item.voucher.company_bank_account %}
-                                            <div style="line-height: 1.4;">
-                                                <strong style="color: #667eea;">{{ item.voucher.company_bank_account.bank }}</strong>
-                                                <br><small style="color: #6b7280;">{{ item.voucher.company_bank_account.company_name }}</small>
-                                                <br><small style="color: #9ca3af;">Acc: {{ item.voucher.company_bank_account.account_number }}</small>
+                    <div class="doc-section">
+                        <div class="doc-section-header pv-header">
+                            <i class="bi bi-receipt"></i>
+                            Payment Vouchers
+                            <span class="doc-count-badge">{{ batch.voucher_items.count }}</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="batch-table">
+                                <colgroup>
+                                    <col class="col-docnum">
+                                    <col class="col-payee">
+                                    <col class="col-desc">
+                                    <col class="col-date">
+                                    <col class="col-bank">
+                                    <col class="col-amount">
+                                    <col class="col-action">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th><i class="bi bi-hash th-icon"></i>PV No.</th>
+                                        <th><i class="bi bi-person th-icon"></i>Payee</th>
+                                        <th><i class="bi bi-card-text th-icon"></i>Description</th>
+                                        <th><i class="bi bi-calendar3 th-icon"></i>Date</th>
+                                        <th><i class="bi bi-bank th-icon"></i>Transfer Account</th>
+                                        <th><i class="bi bi-currency-dollar th-icon"></i>Amount</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in batch.voucher_items.all %}
+                                    {% if item.voucher %}
+                                    <tr class="doc-row" onclick="window.open('{% url 'vouchers:detail' item.voucher.id %}', '_blank')">
+                                        <td><span class="doc-number pv-number">{{ item.voucher.pv_number }}</span></td>
+                                        <td><span class="payee-name">{{ item.voucher.payee_name }}</span></td>
+                                        <td>
+                                            <div class="desc-cell">
+                                                {% for line_item in item.voucher.line_items.all %}
+                                                    <span class="desc-line">{{ line_item.description }}</span>{% if not forloop.last %}<br>{% endif %}
+                                                {% empty %}
+                                                    <span class="text-muted fst-italic" style="font-size:0.8rem;">No description</span>
+                                                {% endfor %}
                                             </div>
-                                        {% else %}
-                                            <small class="text-muted">
-                                                {% if item.voucher.bank_address %}
-                                                    {{ item.voucher.bank_address }}
-                                                {% else %}
-                                                    Not specified
-                                                {% endif %}
-                                            </small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <strong style="color: #10b981;">
-                                            {{ item.voucher.get_grand_total_display }}
-                                        </strong>
-                                    </td>
-                                    <td>
-                                        {% if user.role_level == 5 and batch.status == 'PENDING' %}
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showRemoveModal('voucher', {{ item.voucher.id }}, '{{ item.voucher.pv_number }}')">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr style="background-color: #fee2e2;">
-                                    <td colspan="7" class="text-center">
-                                        <small class="text-danger">
-                                            <i class="bi bi-exclamation-triangle"></i>
-                                            Document deleted - This batch item will be removed automatically
-                                        </small>
-                                    </td>
-                                </tr>
-                                {% endif %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                        </td>
+                                        <td><span class="date-chip">{{ item.voucher.payment_date|date:"d M Y" }}</span></td>
+                                        <td>
+                                            {% if item.voucher.company_bank_account %}
+                                            <div class="bank-cell">
+                                                <span class="bank-name">{{ item.voucher.company_bank_account.bank }}</span>
+                                                <span class="bank-company">{{ item.voucher.company_bank_account.company_name }}</span>
+                                                <span class="bank-acct">Acc: {{ item.voucher.company_bank_account.account_number }}</span>
+                                            </div>
+                                            {% else %}
+                                            <span class="text-muted" style="font-size:0.82rem;">
+                                                {% if item.voucher.bank_address %}{{ item.voucher.bank_address }}{% else %}Not specified{% endif %}
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td><span class="amount-chip">{{ item.voucher.get_grand_total_display }}</span></td>
+                                        <td class="action-cell">
+                                            {% if user.role_level == 5 and batch.status == 'PENDING' %}
+                                            <button type="button" class="btn-remove" title="Remove from batch"
+                                                onclick="event.stopPropagation(); showRemoveModal('voucher', {{ item.voucher.id }}, '{{ item.voucher.pv_number }}')">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr class="deleted-row">
+                                        <td colspan="7"><i class="bi bi-exclamation-triangle-fill"></i> Document deleted — will be removed automatically</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     {% endif %}
 
                     <!-- Payment Forms -->
                     {% if batch.form_items.all %}
-                    <h6 style="color: #10b981; margin-bottom: 1rem;">
-                        <i class="bi bi-file-text"></i>
-                        Payment Forms ({{ batch.form_items.count }})
-                    </h6>
-                    <div class="table-container">
-                        <table class="table table-hover batch-table">
-                            <thead style="background: #f9fafb;">
-                                <tr>
-                                    <th style="width: 12%;">PF Number</th>
-                                    <th style="width: 15%;">Payee</th>
-                                    <th style="width: 20%;">Description</th>
-                                    <th style="width: 13%;">Payment Date</th>
-                                    <th style="width: 20%;">Transfer Account</th>
-                                    <th style="width: 12%;">Amount</th>
-                                    <th style="width: 8%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in batch.form_items.all %}
-                                {% if item.payment_form %}
-                                <tr class="clickable-row" onclick="window.open('{% url 'vouchers:pf_detail' item.payment_form.id %}', '_blank')">
-                                    <td style="white-space: nowrap;">
-                                        <strong>{{ item.payment_form.pf_number }}</strong>
-                                    </td>
-                                    <td>{{ item.payment_form.payee_name }}</td>
-                                    <td>
-                                        {% for line_item in item.payment_form.line_items.all %}
-                                            {{ line_item.description }}{% if not forloop.last %}<br>{% endif %}
-                                        {% empty %}
-                                            <small class="text-muted">No description</small>
-                                        {% endfor %}
-                                    </td>
-                                    <td>{{ item.payment_form.payment_date|date:"M d, Y" }}</td>
-                                    <td>
-                                        {% if item.payment_form.company_bank_account %}
-                                            <div style="line-height: 1.4;">
-                                                <strong style="color: #667eea;">{{ item.payment_form.company_bank_account.bank }}</strong>
-                                                <br><small style="color: #6b7280;">{{ item.payment_form.company_bank_account.company_name }}</small>
-                                                <br><small style="color: #9ca3af;">Acc: {{ item.payment_form.company_bank_account.account_number }}</small>
+                    <div class="doc-section {% if batch.voucher_items.all %}doc-section--bordered{% endif %}">
+                        <div class="doc-section-header pf-header">
+                            <i class="bi bi-file-text"></i>
+                            Payment Forms
+                            <span class="doc-count-badge pf-badge">{{ batch.form_items.count }}</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="batch-table">
+                                <colgroup>
+                                    <col class="col-docnum">
+                                    <col class="col-payee">
+                                    <col class="col-desc">
+                                    <col class="col-date">
+                                    <col class="col-bank">
+                                    <col class="col-amount">
+                                    <col class="col-action">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th><i class="bi bi-hash th-icon"></i>PF No.</th>
+                                        <th><i class="bi bi-person th-icon"></i>Payee</th>
+                                        <th><i class="bi bi-card-text th-icon"></i>Description</th>
+                                        <th><i class="bi bi-calendar3 th-icon"></i>Date</th>
+                                        <th><i class="bi bi-bank th-icon"></i>Transfer Account</th>
+                                        <th><i class="bi bi-currency-dollar th-icon"></i>Amount</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in batch.form_items.all %}
+                                    {% if item.payment_form %}
+                                    <tr class="doc-row" onclick="window.open('{% url 'vouchers:pf_detail' item.payment_form.id %}', '_blank')">
+                                        <td><span class="doc-number pf-number">{{ item.payment_form.pf_number }}</span></td>
+                                        <td><span class="payee-name">{{ item.payment_form.payee_name }}</span></td>
+                                        <td>
+                                            <div class="desc-cell">
+                                                {% for line_item in item.payment_form.line_items.all %}
+                                                    <span class="desc-line">{{ line_item.description }}</span>{% if not forloop.last %}<br>{% endif %}
+                                                {% empty %}
+                                                    <span class="text-muted fst-italic" style="font-size:0.8rem;">No description</span>
+                                                {% endfor %}
                                             </div>
-                                        {% else %}
-                                            <small class="text-muted">
-                                                {% if item.payment_form.bank_address %}
-                                                    {{ item.payment_form.bank_address }}
-                                                {% else %}
-                                                    Not specified
-                                                {% endif %}
-                                            </small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <strong style="color: #10b981;">
-                                            {{ item.payment_form.get_grand_total_display }}
-                                        </strong>
-                                    </td>
-                                    <td>
-                                        {% if user.role_level == 5 and batch.status == 'PENDING' %}
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showRemoveModal('form', {{ item.payment_form.id }}, '{{ item.payment_form.pf_number }}')">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr style="background-color: #fee2e2;">
-                                    <td colspan="7" class="text-center">
-                                        <small class="text-danger">
-                                            <i class="bi bi-exclamation-triangle"></i>
-                                            Document deleted - This batch item will be removed automatically
-                                        </small>
-                                    </td>
-                                </tr>
-                                {% endif %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                        </td>
+                                        <td><span class="date-chip">{{ item.payment_form.payment_date|date:"d M Y" }}</span></td>
+                                        <td>
+                                            {% if item.payment_form.company_bank_account %}
+                                            <div class="bank-cell">
+                                                <span class="bank-name">{{ item.payment_form.company_bank_account.bank }}</span>
+                                                <span class="bank-company">{{ item.payment_form.company_bank_account.company_name }}</span>
+                                                <span class="bank-acct">Acc: {{ item.payment_form.company_bank_account.account_number }}</span>
+                                            </div>
+                                            {% else %}
+                                            <span class="text-muted" style="font-size:0.82rem;">
+                                                {% if item.payment_form.bank_address %}{{ item.payment_form.bank_address }}{% else %}Not specified{% endif %}
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td><span class="amount-chip">{{ item.payment_form.get_grand_total_display }}</span></td>
+                                        <td class="action-cell">
+                                            {% if user.role_level == 5 and batch.status == 'PENDING' %}
+                                            <button type="button" class="btn-remove" title="Remove from batch"
+                                                onclick="event.stopPropagation(); showRemoveModal('form', {{ item.payment_form.id }}, '{{ item.payment_form.pf_number }}')">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr class="deleted-row">
+                                        <td colspan="7"><i class="bi bi-exclamation-triangle-fill"></i> Document deleted — will be removed automatically</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     {% endif %}
 
-                    <!-- Grand Total -->
-                    <div class="mt-4 pt-3" style="border-top: 3px solid #667eea;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h5 style="margin: 0; color: #1f2937;">Grand Total:</h5>
-                            <h4 id="grand-total-display" style="margin: 0; color: #10b981; font-weight: 700;">{{ total_amount_display }}</h4>
+                    <!-- Grand Total Bar -->
+                    <div class="grand-total-bar">
+                        <div class="gt-left">
+                            <span class="gt-label">Grand Total</span>
+                            <span class="gt-count">
+                                <i class="bi bi-files"></i>
+                                <span id="document-count-display">{{ document_count }}</span> document{{ document_count|pluralize }}
+                            </span>
                         </div>
-                        <div style="margin-top: 0.5rem;">
-                            <small class="text-muted">Document Count: <span id="document-count-display">{{ document_count }}</span></small>
-                        </div>
+                        <div class="gt-amount" id="grand-total-display">{{ total_amount_display }}</div>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Sign Confirmation Modal -->
+<!-- Sign Modal -->
 <div class="modal fade" id="signModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
-                <h5 class="modal-title">
-                    <i class="bi bi-check-circle"></i>
-                    Sign Batch
-                </h5>
+                <h5 class="modal-title"><i class="bi bi-check-circle"></i> Sign Batch</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -360,7 +318,7 @@
                     You are about to sign <strong>{{ document_count }} documents</strong> in batch <strong>{{ batch.batch_number }}</strong>.
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" style="font-weight: 600;">Comments (Optional)</label>
+                    <label class="form-label fw-semibold">Comments (Optional)</label>
                     <textarea class="form-control" id="sign-comments" rows="3" placeholder="Add any comments or instructions..."></textarea>
                 </div>
                 <div class="alert alert-warning mb-0">
@@ -383,10 +341,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none;">
-                <h5 class="modal-title">
-                    <i class="bi bi-x-circle"></i>
-                    Reject Batch
-                </h5>
+                <h5 class="modal-title"><i class="bi bi-x-circle"></i> Reject Batch</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -395,11 +350,9 @@
                     You are about to reject batch <strong>{{ batch.batch_number }}</strong>.
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" style="font-weight: 600;">Rejection Reason <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">Rejection Reason <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="reject-comments" rows="4" placeholder="Please provide a reason for rejection..." required></textarea>
-                    <div class="invalid-feedback">
-                        Please provide a rejection reason
-                    </div>
+                    <div class="invalid-feedback">Please provide a rejection reason</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -417,10 +370,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none;">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    Remove Document
-                </h5>
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Remove Document</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -429,17 +379,12 @@
                     You are about to remove document <strong id="remove-doc-number"></strong> from this batch.
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" style="font-weight: 600;">Reason for Removal <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">Reason for Removal <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="remove-reason" rows="3" placeholder="Why are you removing this document?" required></textarea>
-                    <div class="invalid-feedback">
-                        Please provide a reason for removal
-                    </div>
+                    <div class="invalid-feedback">Please provide a reason for removal</div>
                 </div>
                 <div class="alert alert-info mb-0">
-                    <small>
-                        <i class="bi bi-lightbulb"></i>
-                        <strong>Tip:</strong> The document will remain at PENDING_L5 status and can be added to another batch later.
-                    </small>
+                    <small><i class="bi bi-lightbulb"></i> <strong>Tip:</strong> The document will remain at PENDING_L5 status and can be added to another batch later.</small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -452,463 +397,23 @@
     </div>
 </div>
 
-<script>
-// Check Bootstrap is loaded
-function checkBootstrap() {
-    if (typeof bootstrap === 'undefined') {
-        console.error('Bootstrap is not loaded! Modals will not work.');
-        return false;
-    }
-    return true;
-}
-
-function showSignModal() {
-    try {
-        if (!checkBootstrap()) {
-            alert('System error: Page not fully loaded. Please refresh the page.');
-            return;
-        }
-        const commentsField = document.getElementById('sign-comments');
-        if (commentsField) {
-            commentsField.value = '';
-        }
-        const modalElement = document.getElementById('signModal');
-        if (modalElement) {
-            const modal = new bootstrap.Modal(modalElement);
-            modal.show();
-        }
-    } catch (error) {
-        console.error('Error showing sign modal:', error);
-        alert('Error: Could not open sign dialog. Please refresh the page.');
-    }
-}
-
-function showRejectModal() {
-    try {
-        if (!checkBootstrap()) {
-            alert('System error: Page not fully loaded. Please refresh the page.');
-            return;
-        }
-        const commentsField = document.getElementById('reject-comments');
-        if (commentsField) {
-            commentsField.value = '';
-        }
-        const modalElement = document.getElementById('rejectModal');
-        if (modalElement) {
-            const modal = new bootstrap.Modal(modalElement);
-            modal.show();
-        }
-    } catch (error) {
-        console.error('Error showing reject modal:', error);
-        alert('Error: Could not open reject dialog. Please refresh the page.');
-    }
-}
-
-function confirmSign() {
-    try {
-        const btn = document.getElementById('sign-confirm-btn');
-        const comments = document.getElementById('sign-comments').value;
-
-        if (!btn) {
-            console.error('Sign button not found');
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Signing...';
-
-        const formData = new FormData();
-        formData.append('comments', comments);
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-        fetch('{% url "vouchers:batch_sign" batch.id %}', {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: formData,
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                if (checkBootstrap()) {
-                    const modalElement = document.getElementById('signModal');
-                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (modalInstance) {
-                        modalInstance.hide();
-                    }
-                }
-                // Redirect - Django message will show
-                window.location.href = data.redirect_url;
-            } else {
-                showToast('Error', data.error || 'Failed to sign batch', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents';
-            }
-        })
-        .catch(error => {
-            console.error('Sign error:', error);
-            showToast('Error', 'Network error: ' + error.message, 'error');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents';
-        });
-    } catch (error) {
-        console.error('Unexpected error in confirmSign:', error);
-        alert('An unexpected error occurred. Please try again.');
-    }
-}
-
-function confirmReject() {
-    try {
-        const btn = document.getElementById('reject-confirm-btn');
-        const commentsField = document.getElementById('reject-comments');
-        const comments = commentsField ? commentsField.value.trim() : '';
-
-        if (!comments) {
-            if (commentsField) {
-                commentsField.classList.add('is-invalid');
-            }
-            return;
-        }
-
-        if (commentsField) {
-            commentsField.classList.remove('is-invalid');
-        }
-
-        if (!btn) {
-            console.error('Reject button not found');
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Rejecting...';
-
-        const formData = new FormData();
-        formData.append('comments', comments);
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-        fetch('{% url "vouchers:batch_reject" batch.id %}', {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: formData,
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                if (checkBootstrap()) {
-                    const modalElement = document.getElementById('rejectModal');
-                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (modalInstance) {
-                        modalInstance.hide();
-                    }
-                }
-                // Redirect - Django message will show
-                window.location.href = data.redirect_url;
-            } else {
-                showToast('Error', data.error || 'Failed to reject batch', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch';
-            }
-        })
-        .catch(error => {
-            console.error('Reject error:', error);
-            showToast('Error', 'Network error: ' + error.message, 'error');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch';
-        });
-    } catch (error) {
-        console.error('Unexpected error in confirmReject:', error);
-        alert('An unexpected error occurred. Please try again.');
-    }
-}
-
-function showToast(title, message, type = 'info') {
-    try {
-        // Check if Bootstrap Toast is available
-        if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
-            // Escape HTML to prevent XSS
-            const escapeHtml = (str) => {
-                const div = document.createElement('div');
-                div.textContent = str;
-                return div.innerHTML;
-            };
-
-            const safeTitle = escapeHtml(title);
-            const safeMessage = escapeHtml(message);
-            const bgClass = type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'primary';
-
-            // Create toast element
-            const toastHtml = `
-                <div class="toast align-items-center text-white bg-${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <strong>${safeTitle}</strong>
-                            <br>${safeMessage}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                </div>
-            `;
-
-            // Get or create toast container
-            let toastContainer = document.querySelector('.toast-container');
-            if (!toastContainer) {
-                toastContainer = document.createElement('div');
-                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-                toastContainer.style.zIndex = '9999';
-                document.body.appendChild(toastContainer);
-            }
-
-            // Add toast to container
-            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-            const toastElement = toastContainer.lastElementChild;
-            const toast = new bootstrap.Toast(toastElement, {
-                autohide: true,
-                delay: 5000
-            });
-            toast.show();
-
-            // Remove toast element after it's hidden
-            toastElement.addEventListener('hidden.bs.toast', () => {
-                toastElement.remove();
-            });
-        } else {
-            // Fallback for browsers where Bootstrap is not loaded
-            console.warn('Bootstrap not available, using alert fallback');
-            const icon = type === 'success' ? '✓' : type === 'warning' ? '⚠' : type === 'error' ? '✗' : 'ℹ';
-            alert(`${icon} ${title}\n${message}`);
-        }
-    } catch (error) {
-        console.error('Error in showToast:', error);
-        // Final fallback
-        alert(`${title}\n${message}`);
-    }
-}
-
-// Document Removal Functions
-let currentRemoveDocType = null;
-let currentRemoveDocId = null;
-
-function showRemoveModal(docType, docId, docNumber) {
-    try {
-        if (!checkBootstrap()) {
-            alert('System error: Page not fully loaded. Please refresh the page.');
-            return;
-        }
-
-        currentRemoveDocType = docType;
-        currentRemoveDocId = docId;
-
-        const docNumberElement = document.getElementById('remove-doc-number');
-        if (docNumberElement) {
-            docNumberElement.textContent = docNumber;
-        }
-
-        const reasonField = document.getElementById('remove-reason');
-        if (reasonField) {
-            reasonField.value = '';
-            reasonField.classList.remove('is-invalid');
-        }
-
-        const modalElement = document.getElementById('removeDocModal');
-        if (modalElement) {
-            const modal = new bootstrap.Modal(modalElement);
-            modal.show();
-        }
-    } catch (error) {
-        console.error('Error showing remove modal:', error);
-        alert('Error: Could not open remove dialog. Please refresh the page.');
-    }
-}
-
-function confirmRemove() {
-    try {
-        const reasonField = document.getElementById('remove-reason');
-        const reason = reasonField ? reasonField.value.trim() : '';
-        const btn = document.getElementById('remove-confirm-btn');
-
-        if (!reason) {
-            if (reasonField) {
-                reasonField.classList.add('is-invalid');
-            }
-            return;
-        }
-
-        if (reasonField) {
-            reasonField.classList.remove('is-invalid');
-        }
-
-        if (!btn) {
-            console.error('Remove button not found');
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Removing...';
-
-        const formData = new FormData();
-        formData.append('doc_type', currentRemoveDocType);
-        formData.append('doc_id', currentRemoveDocId);
-        formData.append('reason', reason);
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-        fetch('{% url "vouchers:batch_remove_document" batch.id %}', {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: formData,
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                if (checkBootstrap()) {
-                    const modalElement = document.getElementById('removeDocModal');
-                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                    if (modalInstance) {
-                        modalInstance.hide();
-                    }
-                }
-
-                if (data.batch_empty) {
-                    showToast('Batch Empty', data.message, 'warning');
-                    setTimeout(() => {
-                        window.location.href = data.redirect_url;
-                    }, 2000);
-                } else {
-                    showToast('Success', data.message, 'success');
-
-                    // Update the totals (safely check if elements exist)
-                    const totalElement = document.getElementById('grand-total-display');
-                    const countElement = document.getElementById('document-count-display');
-
-                    if (totalElement && data.new_total) {
-                        totalElement.textContent = data.new_total;
-                    }
-                    if (countElement && data.new_count !== undefined) {
-                        countElement.textContent = data.new_count;
-                    }
-
-                    // Reload page to update document list
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                }
-            } else {
-                showToast('Error', data.error || 'Failed to remove document', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-x-circle"></i> Remove Document';
-            }
-        })
-        .catch(error => {
-            console.error('Remove document error:', error);
-            showToast('Error', 'Network error: ' + error.message, 'error');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-x-circle"></i> Remove Document';
-        });
-    } catch (error) {
-        console.error('Unexpected error in confirmRemove:', error);
-        alert('An unexpected error occurred. Please try again.');
-    }
-}
-
-// Delete Batch
-function deleteBatch() {
-    try {
-        fetch("{% url 'vouchers:batch_delete' batch.id %}", {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json'
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                window.location.href = data.redirect_url;
-            } else {
-                showToast('Error', data.error || 'Failed to delete batch', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Delete batch error:', error);
-            showToast('Error', 'Network error: ' + error.message, 'error');
-        });
-    } catch (error) {
-        console.error('Unexpected error in deleteBatch:', error);
-        alert('An unexpected error occurred. Please try again.');
-    }
-}
-
-// Check page is fully loaded on page load
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Batch detail page loaded');
-    console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
-    console.log('jQuery available:', typeof $ !== 'undefined');
-
-    // Verify critical elements exist
-    const criticalElements = ['signModal', 'rejectModal', 'removeDocModal'];
-    criticalElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (!element) {
-            console.warn(`Critical element missing: ${id}`);
-        }
-    });
-});
-</script>
-
-<!-- Delete Batch Confirmation Modal -->
 {% if batch.status == 'PENDING' and batch.created_by == user %}
-<div class="modal fade" id="deleteBatchModal" tabindex="-1" aria-labelledby="deleteBatchModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteBatchModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white;">
-                <h5 class="modal-title" id="deleteBatchModalLabel">
-                    <i class="bi bi-trash"></i> Delete Batch
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title"><i class="bi bi-trash"></i> Delete Batch</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div style="text-align: center; padding: 1rem;">
-                    <i class="bi bi-exclamation-triangle" style="font-size: 4rem; color: #dc2626;"></i>
-                    <h4 style="margin-top: 1rem; color: #1f2937;">Are you sure?</h4>
-                    <p style="color: #6b7280; margin-top: 0.5rem;">
-                        This will permanently delete batch <strong>{{ batch.batch_number }}</strong>.
-                        <br>This action cannot be undone.
-                    </p>
-                </div>
+            <div class="modal-body" style="text-align: center; padding: 2rem;">
+                <i class="bi bi-exclamation-triangle" style="font-size: 4rem; color: #dc2626;"></i>
+                <h4 style="margin-top: 1rem;">Are you sure?</h4>
+                <p style="color: #6b7280; margin-top: 0.5rem;">
+                    This will permanently delete batch <strong>{{ batch.batch_number }}</strong>.<br>This action cannot be undone.
+                </p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x"></i> Cancel
-                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x"></i> Cancel</button>
                 <button type="button" class="btn btn-danger" onclick="deleteBatch()" data-bs-dismiss="modal">
                     <i class="bi bi-trash"></i> Yes, Delete Batch
                 </button>
@@ -918,111 +423,323 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 {% endif %}
 
+<script>
+function showSignModal() {
+    document.getElementById('sign-comments').value = '';
+    new bootstrap.Modal(document.getElementById('signModal')).show();
+}
+function showRejectModal() {
+    document.getElementById('reject-comments').value = '';
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+function confirmSign() {
+    const btn = document.getElementById('sign-confirm-btn');
+    const comments = document.getElementById('sign-comments').value;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Signing...';
+    const fd = new FormData();
+    fd.append('comments', comments);
+    fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    fetch('{% url "vouchers:batch_sign" batch.id %}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: fd, credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) { bootstrap.Modal.getInstance(document.getElementById('signModal')).hide(); window.location.href = data.redirect_url; }
+            else { showToast('Error', data.error || 'Failed to sign', 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents'; }
+        })
+        .catch(e => { showToast('Error', 'Network error: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents'; });
+}
+function confirmReject() {
+    const btn = document.getElementById('reject-confirm-btn');
+    const cf = document.getElementById('reject-comments');
+    const comments = cf.value.trim();
+    if (!comments) { cf.classList.add('is-invalid'); return; }
+    cf.classList.remove('is-invalid');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Rejecting...';
+    const fd = new FormData();
+    fd.append('comments', comments); fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    fetch('{% url "vouchers:batch_reject" batch.id %}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: fd, credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) { bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide(); window.location.href = data.redirect_url; }
+            else { showToast('Error', data.error || 'Failed to reject', 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch'; }
+        })
+        .catch(e => { showToast('Error', 'Network error: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch'; });
+}
+let currentRemoveDocType = null, currentRemoveDocId = null;
+function showRemoveModal(docType, docId, docNumber) {
+    currentRemoveDocType = docType; currentRemoveDocId = docId;
+    document.getElementById('remove-doc-number').textContent = docNumber;
+    const rf = document.getElementById('remove-reason'); rf.value = ''; rf.classList.remove('is-invalid');
+    new bootstrap.Modal(document.getElementById('removeDocModal')).show();
+}
+function confirmRemove() {
+    const rf = document.getElementById('remove-reason'); const reason = rf.value.trim();
+    const btn = document.getElementById('remove-confirm-btn');
+    if (!reason) { rf.classList.add('is-invalid'); return; }
+    rf.classList.remove('is-invalid');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Removing...';
+    const fd = new FormData();
+    fd.append('doc_type', currentRemoveDocType); fd.append('doc_id', currentRemoveDocId);
+    fd.append('reason', reason); fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    fetch('{% url "vouchers:batch_remove_document" batch.id %}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: fd, credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('removeDocModal')).hide();
+                if (data.batch_empty) { showToast('Batch Empty', data.message, 'warning'); setTimeout(() => window.location.href = data.redirect_url, 2000); }
+                else {
+                    showToast('Success', data.message, 'success');
+                    if (data.new_total) document.getElementById('grand-total-display').textContent = data.new_total;
+                    if (data.new_count !== undefined) document.getElementById('document-count-display').textContent = data.new_count;
+                    setTimeout(() => window.location.reload(), 1500);
+                }
+            } else { showToast('Error', data.error || 'Failed to remove', 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-circle"></i> Remove Document'; }
+        })
+        .catch(e => { showToast('Error', 'Network error: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-circle"></i> Remove Document'; });
+}
+function deleteBatch() {
+    fetch("{% url 'vouchers:batch_delete' batch.id %}", { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' }, credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => { if (data.success) window.location.href = data.redirect_url; else showToast('Error', data.error || 'Failed to delete', 'error'); })
+        .catch(e => showToast('Error', 'Network error: ' + e.message, 'error'));
+}
+function showToast(title, message, type = 'info') {
+    const escHtml = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+    const bg = type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'primary';
+    let tc = document.querySelector('.toast-container');
+    if (!tc) { tc = document.createElement('div'); tc.className = 'toast-container position-fixed top-0 end-0 p-3'; tc.style.zIndex = '9999'; document.body.appendChild(tc); }
+    tc.insertAdjacentHTML('beforeend', `<div class="toast align-items-center text-white bg-${bg} border-0" role="alert"><div class="d-flex"><div class="toast-body"><strong>${escHtml(title)}</strong><br>${escHtml(message)}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`);
+    const te = tc.lastElementChild;
+    const t = new bootstrap.Toast(te, { autohide: true, delay: 5000 }); t.show();
+    te.addEventListener('hidden.bs.toast', () => te.remove());
+}
+
+// SAFETY: Add error handling for document row clicks
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.doc-row').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+            try {
+                // If onclick attribute exists and fails, show error
+                if (this.onclick) {
+                    this.onclick.call(this, e);
+                }
+            } catch (error) {
+                console.error('Error opening document:', error);
+                showToast('Error', 'This document no longer exists. Please refresh the page.', 'error');
+            }
+        });
+    });
+});
+</script>
+
 <style>
+/* Page Layout */
 .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-/* Table Container - No scrollbars */
-.table-container {
-    width: 100%;
-    overflow: visible;  /* No scrollbars */
-    padding: 0;
-}
+/* Document Section */
+.doc-section { padding: 1.25rem 1.5rem 0.5rem; }
+.doc-section--bordered { border-top: 1px solid #e5e7eb; padding-top: 1.25rem; }
 
+.doc-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.85rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 6px;
+}
+.pv-header { color: #4f46e5; background: #eef2ff; }
+.pf-header { color: #059669; background: #ecfdf5; }
+.doc-count-badge {
+    margin-left: auto;
+    background: #4f46e5;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 0.12rem 0.5rem;
+    border-radius: 20px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+.pf-badge { background: #059669; }
+
+/* Table Core */
 .batch-table {
     width: 100%;
-    table-layout: fixed;  /* Fixed layout prevents overflow */
-}
-
-/* Clickable Row Styles */
-.batch-table .clickable-row {
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.batch-table .clickable-row:hover {
-    background: #f3f4f6 !important;
-    transform: scale(1.001);  /* Reduced scale to prevent scrollbar */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.batch-table .clickable-row:active {
-    transform: scale(0.998);
-}
-
-/* Professional equal column widths */
-.batch-table th,
-.batch-table td {
-    vertical-align: middle;
-    padding: 0.75rem;
-}
-
-/* Remove button styling - compact and clean */
-.batch-table .btn-outline-danger {
-    padding: 0.25rem 0.5rem;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.875rem;
-    border-radius: 0.25rem;
-    transition: all 0.2s ease;
 }
+.col-docnum  { width: 10%; }
+.col-payee   { width: 14%; }
+.col-desc    { width: 22%; }
+.col-date    { width: 11%; }
+.col-bank    { width: 23%; }
+.col-amount  { width: 13%; }
+.col-action  { width: 7%;  }
 
-.batch-table .btn-outline-danger:hover {
-    transform: scale(1.05);
+/* Table Header */
+.batch-table thead tr { background: #f8fafc; }
+.batch-table thead th {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.71rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    white-space: nowrap;
+    border-bottom: 2px solid #e2e8f0;
+    vertical-align: middle;
 }
+.th-icon { font-size: 0.72rem; margin-right: 0.25rem; opacity: 0.65; }
 
-.batch-table .btn-outline-danger i {
-    font-size: 1rem;
-}
-
-/* Smooth hover transitions for table */
+/* Table Body */
 .batch-table tbody tr {
-    transition: all 0.2s ease;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+.batch-table tbody tr:last-child { border-bottom: none; }
+.batch-table td { padding: 0.8rem 0.85rem; vertical-align: middle; color: #374151; }
+
+/* Clickable rows */
+.doc-row { cursor: pointer; -webkit-user-select: none; user-select: none; }
+.doc-row:hover { background: #f5f7ff !important; box-shadow: inset 3px 0 0 #667eea; }
+.doc-row:active { background: #eef2ff !important; }
+
+/* Doc Number Badge */
+.doc-number {
+    display: inline-block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 5px;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+}
+.pv-number { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
+.pf-number { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+
+/* Payee */
+.payee-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.86rem;
+    display: block;
+    max-width: 14ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-/* Ensure text doesn't get selected when clicking rows */
-.batch-table .clickable-row {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+/* Description */
+.desc-cell { line-height: 1.5; }
+.desc-line {
+    display: block;
+    color: #475569;
+    font-size: 0.81rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 28ch;
 }
 
-/* Make sure buttons are still selectable */
-.batch-table .clickable-row button {
-    -webkit-user-select: auto;
-    -moz-user-select: auto;
-    -ms-user-select: auto;
-    user-select: auto;
+/* Date Chip */
+.date-chip {
+    display: inline-block;
+    font-size: 0.79rem;
+    color: #475569;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 0.18rem 0.45rem;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
+/* Bank Cell */
+.bank-cell { display: flex; flex-direction: column; gap: 0.04rem; line-height: 1.35; }
+.bank-name  { font-weight: 700; font-size: 0.81rem; color: #4f46e5; }
+.bank-company { font-size: 0.76rem; color: #64748b; }
+.bank-acct  { font-size: 0.7rem; color: #94a3b8; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+/* Amount */
+.amount-chip {
+    display: inline-block;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #065f46;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    padding: 0.22rem 0.55rem;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Action Cell */
+.action-cell { text-align: center; }
+.btn-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1.5px solid #fca5a5;
+    background: #fff5f5;
+    color: #ef4444;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+.btn-remove:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+/* Deleted row */
+.deleted-row td {
+    text-align: center;
+    background: #fff1f2;
+    color: #be123c;
+    font-size: 0.81rem;
+    padding: 0.65rem;
+}
+
+/* Grand Total Bar */
+.grand-total-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(to right, #f5f7ff, #f0fdf4);
+    border-top: 2px solid #667eea;
+    margin-top: 0.5rem;
+    border-radius: 0 0 0.375rem 0.375rem;
+}
+.gt-left { display: flex; flex-direction: column; gap: 0.15rem; }
+.gt-label { font-size: 0.82rem; font-weight: 700; color: #1f2937; text-transform: uppercase; letter-spacing: 0.06em; }
+.gt-count  { font-size: 0.76rem; color: #6b7280; display: flex; align-items: center; gap: 0.3rem; }
+.gt-amount { font-size: 1.55rem; font-weight: 800; color: #059669; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
+/* Responsive */
 @media (max-width: 768px) {
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .page-header > div:last-child {
-        margin-top: 1rem;
-    }
-
-    /* Mobile table responsiveness with horizontal scroll when needed */
-    .table-container {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    /* Adjust table for mobile - make columns stack better */
-    .batch-table th,
-    .batch-table td {
-        padding: 0.5rem;
-        font-size: 0.875rem;
-    }
-
-    .batch-table .clickable-row:hover {
-        transform: none; /* Disable transform on mobile for better touch interaction */
-    }
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .page-header > div:last-child { margin-top: 1rem; }
+    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .batch-table th, .batch-table td { padding: 0.55rem 0.5rem; font-size: 0.78rem; }
+    .gt-amount { font-size: 1.2rem; }
 }
 </style>
 {% endblock %}

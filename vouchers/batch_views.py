@@ -239,52 +239,59 @@ def batch_detail(request, batch_id):
     View details of a signature batch
     All authenticated users can view batches for transparency
     """
-    batch = get_object_or_404(
-        SignatureBatch.objects.prefetch_related(
-            'voucher_items__voucher__line_items',
-            'form_items__payment_form__line_items'
-        ),
-        id=batch_id
-    )
+    # CRITICAL FIX: First load batch WITHOUT prefetch to check for orphans
+    batch = get_object_or_404(SignatureBatch, id=batch_id)
 
     # All authenticated users can view batch details (read-only for L2, L4)
     # No permission check - transparency for all users
 
     # DEFENSIVE CODING: Check for and remove orphaned batch items (vouchers/forms that were deleted)
+    # Use fresh queries (not prefetched) to detect orphans
     orphaned_voucher_items = []
-    for item in batch.voucher_items.all():
-        try:
-            # Try to access voucher properties - will fail if voucher is None or deleted
-            if not item.voucher or not PaymentVoucher.objects.filter(id=item.voucher_id).exists():
-                orphaned_voucher_items.append(item)
-        except (AttributeError, PaymentVoucher.DoesNotExist):
-            orphaned_voucher_items.append(item)
+
+    # Get all voucher IDs that actually exist
+    existing_voucher_ids = set(PaymentVoucher.objects.values_list('id', flat=True))
+
+    for item in BatchVoucherItem.objects.filter(batch=batch).only('id', 'voucher_id'):
+        # If voucher_id is set but doesn't exist in database, it's orphaned
+        if item.voucher_id and item.voucher_id not in existing_voucher_ids:
+            orphaned_voucher_items.append(item.id)
 
     orphaned_form_items = []
-    for item in batch.form_items.all():
-        try:
-            # Try to access payment_form properties - will fail if form is None or deleted
-            if not item.payment_form or not PaymentForm.objects.filter(id=item.payment_form_id).exists():
-                orphaned_form_items.append(item)
-        except (AttributeError, PaymentForm.DoesNotExist):
-            orphaned_form_items.append(item)
+
+    # Get all form IDs that actually exist
+    existing_form_ids = set(PaymentForm.objects.values_list('id', flat=True))
+
+    for item in BatchFormItem.objects.filter(batch=batch).only('id', 'payment_form_id'):
+        # If payment_form_id is set but doesn't exist in database, it's orphaned
+        if item.payment_form_id and item.payment_form_id not in existing_form_ids:
+            orphaned_form_items.append(item.id)
 
     # Remove orphaned items and notify user
     if orphaned_voucher_items or orphaned_form_items:
         from django.contrib import messages
         orphan_count = len(orphaned_voucher_items) + len(orphaned_form_items)
 
-        # Delete orphaned items
-        for item in orphaned_voucher_items:
-            item.delete()
-        for item in orphaned_form_items:
-            item.delete()
+        # Delete orphaned items by ID
+        if orphaned_voucher_items:
+            BatchVoucherItem.objects.filter(id__in=orphaned_voucher_items).delete()
+        if orphaned_form_items:
+            BatchFormItem.objects.filter(id__in=orphaned_form_items).delete()
 
         messages.warning(
             request,
             f'Removed {orphan_count} deleted document(s) from this batch. '
             f'The referenced vouchers/forms no longer exist in the system.'
         )
+
+        # IMPORTANT: Reload batch with fresh data after deletion
+        batch.refresh_from_db()
+
+    # Now load with prefetch for efficient template rendering
+    batch = SignatureBatch.objects.prefetch_related(
+        'voucher_items__voucher__line_items',
+        'form_items__payment_form__line_items'
+    ).get(id=batch_id)
 
     context = {
         'batch': batch,

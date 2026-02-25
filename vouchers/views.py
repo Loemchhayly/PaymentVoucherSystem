@@ -834,6 +834,22 @@ def voucher_delete(request, pk):
         messages.error(request, 'Only draft vouchers can be deleted')
         return redirect('vouchers:detail', pk=pk)
 
+    # PREVENT deletion if voucher is in a PENDING batch
+    from .models import BatchVoucherItem, SignatureBatch
+    pending_batches = BatchVoucherItem.objects.filter(
+        voucher=voucher,
+        batch__status='PENDING'
+    ).select_related('batch')
+
+    if pending_batches.exists():
+        batch_numbers = ', '.join([item.batch.batch_number for item in pending_batches])
+        messages.error(
+            request,
+            f'Cannot delete this voucher - it is in pending signature batch(es): {batch_numbers}. '
+            f'Please remove it from the batch first.'
+        )
+        return redirect('vouchers:detail', pk=pk)
+
     if request.method == 'POST':
         voucher_number = voucher.pv_number or 'DRAFT'
         voucher.delete()
@@ -1252,6 +1268,22 @@ def form_delete(request, pk):
     # Only DRAFT forms can be deleted
     if payment_form.status != 'DRAFT':
         messages.error(request, 'Only draft payment forms can be deleted')
+        return redirect('vouchers:pf_detail', pk=pk)
+
+    # PREVENT deletion if form is in a PENDING batch
+    from .models import BatchFormItem, SignatureBatch
+    pending_batches = BatchFormItem.objects.filter(
+        payment_form=payment_form,
+        batch__status='PENDING'
+    ).select_related('batch')
+
+    if pending_batches.exists():
+        batch_numbers = ', '.join([item.batch.batch_number for item in pending_batches])
+        messages.error(
+            request,
+            f'Cannot delete this payment form - it is in pending signature batch(es): {batch_numbers}. '
+            f'Please remove it from the batch first.'
+        )
         return redirect('vouchers:pf_detail', pk=pk)
 
     if request.method == 'POST':

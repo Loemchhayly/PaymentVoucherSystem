@@ -94,6 +94,56 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
+    def delete_model(self, request, obj):
+        """Prevent deletion if voucher is in a pending batch"""
+        from django.contrib import messages
+
+        pending_batches = BatchVoucherItem.objects.filter(
+            voucher=obj,
+            batch__status='PENDING'
+        ).select_related('batch')
+
+        if pending_batches.exists():
+            batch_numbers = ', '.join([item.batch.batch_number for item in pending_batches])
+            messages.error(
+                request,
+                f'Cannot delete Payment Voucher {obj.pv_number} - it is in pending signature batch(es): {batch_numbers}. '
+                f'Please remove it from the batch first or delete the batch.'
+            )
+            return  # Don't delete
+
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        """Prevent bulk deletion of vouchers in pending batches"""
+        from django.contrib import messages
+
+        # Check each voucher
+        protected_vouchers = []
+        for obj in queryset:
+            pending_batches = BatchVoucherItem.objects.filter(
+                voucher=obj,
+                batch__status='PENDING'
+            ).select_related('batch')
+
+            if pending_batches.exists():
+                batch_numbers = ', '.join([item.batch.batch_number for item in pending_batches])
+                protected_vouchers.append(f'{obj.pv_number} (in batch: {batch_numbers})')
+
+        if protected_vouchers:
+            messages.error(
+                request,
+                f'Cannot delete {len(protected_vouchers)} voucher(s) - they are in pending batches: {", ".join(protected_vouchers[:5])}'
+                + ('...' if len(protected_vouchers) > 5 else '')
+            )
+            # Delete only the ones not in pending batches
+            safe_to_delete = queryset.exclude(
+                batch_items__batch__status='PENDING'
+            )
+            super().delete_queryset(request, safe_to_delete)
+        else:
+            super().delete_queryset(request, queryset)
+
     @admin.action(description='Reset to L2 (Department Manager)')
     def reset_to_l2(self, request, queryset):
         """Reset documents to PENDING_L2 status"""
@@ -229,6 +279,56 @@ class PaymentFormAdmin(admin.ModelAdmin):
         if not change:  # New object
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
+
+    def delete_model(self, request, obj):
+        """Prevent deletion if payment form is in a pending batch"""
+        from django.contrib import messages
+
+        pending_batches = BatchFormItem.objects.filter(
+            payment_form=obj,
+            batch__status='PENDING'
+        ).select_related('batch')
+
+        if pending_batches.exists():
+            batch_numbers = ', '.join([item.batch.batch_number for item in pending_batches])
+            messages.error(
+                request,
+                f'Cannot delete Payment Form {obj.pf_number} - it is in pending signature batch(es): {batch_numbers}. '
+                f'Please remove it from the batch first or delete the batch.'
+            )
+            return  # Don't delete
+
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        """Prevent bulk deletion of payment forms in pending batches"""
+        from django.contrib import messages
+
+        # Check each form
+        protected_forms = []
+        for obj in queryset:
+            pending_batches = BatchFormItem.objects.filter(
+                payment_form=obj,
+                batch__status='PENDING'
+            ).select_related('batch')
+
+            if pending_batches.exists():
+                batch_numbers = ', '.join([item.batch.batch_number for item in pending_batches])
+                protected_forms.append(f'{obj.pf_number} (in batch: {batch_numbers})')
+
+        if protected_forms:
+            messages.error(
+                request,
+                f'Cannot delete {len(protected_forms)} payment form(s) - they are in pending batches: {", ".join(protected_forms[:5])}'
+                + ('...' if len(protected_forms) > 5 else '')
+            )
+            # Delete only the ones not in pending batches
+            safe_to_delete = queryset.exclude(
+                batch_items__batch__status='PENDING'
+            )
+            super().delete_queryset(request, safe_to_delete)
+        else:
+            super().delete_queryset(request, queryset)
 
     @admin.action(description='Reset to L2 (Department Manager)')
     def reset_to_l2(self, request, queryset):
