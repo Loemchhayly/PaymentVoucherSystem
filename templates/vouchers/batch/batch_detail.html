@@ -697,15 +697,15 @@ function showToast(title, message, type = 'info') {
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.875rem;
-    table-layout: auto;
+    table-layout: fixed;
 }
-.col-docnum  { width: 9%; }
-.col-payee   { width: 13%; }
-.col-desc    { width: 20%; }
-.col-date    { width: 10%; }
-.col-bank    { width: 28%; }
-.col-amount  { width: 13%; }
-.col-action  { width: 7%;  }
+.col-docnum  { width: 11%; }
+.col-payee   { width: 15%; }
+.col-desc    { width: 21%; }
+.col-date    { width: 12%; }
+.col-bank    { width: 26%; }
+.col-amount  { width: 11%; }
+.col-action  { width: 4%;  }
 
 /* Table Header */
 .batch-table thead tr { background: #f8fafc; }
@@ -728,7 +728,12 @@ function showToast(title, message, type = 'info') {
     transition: background 0.12s ease, box-shadow 0.12s ease;
 }
 .batch-table tbody tr:last-child { border-bottom: none; }
-.batch-table td { padding: 0.8rem 0.85rem; vertical-align: middle; color: #374151; }
+.batch-table td {
+    padding: 0.8rem 0.85rem;
+    vertical-align: middle;
+    color: #374151;
+    overflow: hidden;
+}
 
 /* Clickable rows */
 .doc-row { cursor: pointer; -webkit-user-select: none; user-select: none; }
@@ -803,6 +808,7 @@ function showToast(title, message, type = 'info') {
     padding: 0.22rem 0.55rem;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
+    max-width: 100%;
 }
 
 /* Action Cell */
