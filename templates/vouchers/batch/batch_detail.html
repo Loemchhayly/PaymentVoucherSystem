@@ -766,9 +766,10 @@ function showToast(title, message, type = 'info') {
     display: block;
     color: #475569;
     font-size: 0.81rem;
-    line-height: 1.45;
-    word-break: break-word;
-    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 28ch;
 }
 
 /* Date Chip */
