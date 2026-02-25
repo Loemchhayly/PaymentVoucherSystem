@@ -47,7 +47,7 @@
     </div>
     {% endif %}
 
-    <div class="row">
+    <div class="row" style="margin-top: -30px;">
         <!-- Batch Information Card -->
         <div class="col-lg-4 mb-4">
             <div class="bi-card">
@@ -760,18 +760,18 @@ function showToast(title, message, type = 'info') {
     font-size: 0.875rem;
     table-layout: fixed;
 }
-.col-docnum  { width: 11%; }
-.col-payee   { width: 15%; }
-.col-desc    { width: 21%; }
+.col-docnum  { width: 12%; }
+.col-payee   { width: 14%; }
+.col-desc    { width: 20%; }
 .col-date    { width: 12%; }
-.col-bank    { width: 26%; }
-.col-amount  { width: 11%; }
+.col-bank    { width: 25%; }
+.col-amount  { width: 13%; }
 .col-action  { width: 4%;  }
 
 /* Table Header */
 .batch-table thead tr { background: #f8fafc; }
 .batch-table thead th {
-    padding: 0.65rem 0.85rem;
+    padding: 0.65rem 0.75rem;
     font-size: 0.71rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -781,6 +781,10 @@ function showToast(title, message, type = 'info') {
     border-bottom: 2px solid #e2e8f0;
     vertical-align: middle;
 }
+/* Align PV No, Date, Amount headers to center */
+.batch-table thead th:nth-child(1),
+.batch-table thead th:nth-child(4),
+.batch-table thead th:nth-child(6) { text-align: center; }
 .th-icon { font-size: 0.72rem; margin-right: 0.25rem; opacity: 0.65; }
 
 /* Table Body */
@@ -790,11 +794,15 @@ function showToast(title, message, type = 'info') {
 }
 .batch-table tbody tr:last-child { border-bottom: none; }
 .batch-table td {
-    padding: 0.8rem 0.85rem;
+    padding: 0.85rem 0.75rem;
     vertical-align: middle;
     color: #374151;
     overflow: hidden;
 }
+/* Align PV No, Date, Amount cells to center */
+.batch-table td:nth-child(1),
+.batch-table td:nth-child(4),
+.batch-table td:nth-child(6) { text-align: center; }
 
 /* Clickable rows */
 .doc-row { cursor: pointer; -webkit-user-select: none; user-select: none; }
@@ -806,7 +814,7 @@ function showToast(title, message, type = 'info') {
     display: inline-block;
     font-size: 0.76rem;
     font-weight: 700;
-    padding: 0.2rem 0.5rem;
+    padding: 0.22rem 0.55rem;
     border-radius: 5px;
     white-space: nowrap;
     letter-spacing: 0.02em;
@@ -820,7 +828,6 @@ function showToast(title, message, type = 'info') {
     color: #1e293b;
     font-size: 0.86rem;
     display: block;
-    max-width: 14ch;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -830,23 +837,22 @@ function showToast(title, message, type = 'info') {
 .desc-cell { line-height: 1.5; }
 .desc-line {
     display: block;
-    color: #475569;
-    font-size: 0.81rem;
+    color: #374151;
+    font-size: 0.875rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 28ch;
 }
 
 /* Date Chip */
 .date-chip {
     display: inline-block;
-    font-size: 0.79rem;
+    font-size: 0.8rem;
     color: #475569;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 5px;
-    padding: 0.18rem 0.45rem;
+    padding: 0.2rem 0.45rem;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
