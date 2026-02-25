@@ -267,25 +267,18 @@ def batch_detail(request, batch_id):
         if item.payment_form_id and item.payment_form_id not in existing_form_ids:
             orphaned_form_items.append(item.id)
 
-    # Remove orphaned items and notify user
+    # REPORT orphaned items WITHOUT deleting (for admin to review)
     if orphaned_voucher_items or orphaned_form_items:
         from django.contrib import messages
         orphan_count = len(orphaned_voucher_items) + len(orphaned_form_items)
 
-        # Delete orphaned items by ID
-        if orphaned_voucher_items:
-            BatchVoucherItem.objects.filter(id__in=orphaned_voucher_items).delete()
-        if orphaned_form_items:
-            BatchFormItem.objects.filter(id__in=orphaned_form_items).delete()
-
+        # SHOW WARNING ONLY - DO NOT DELETE AUTOMATICALLY
         messages.warning(
             request,
-            f'Removed {orphan_count} deleted document(s) from this batch. '
-            f'The referenced vouchers/forms no longer exist in the system.'
+            f'Warning: Found {orphan_count} deleted document(s) in this batch. '
+            f'These documents no longer exist in the system. '
+            f'Contact administrator to clean up batch items.'
         )
-
-        # IMPORTANT: Reload batch with fresh data after deletion
-        batch.refresh_from_db()
 
     # Now load with prefetch for efficient template rendering
     batch = SignatureBatch.objects.prefetch_related(

@@ -34,7 +34,9 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
-CSRF_TRUSTED_ORIGINS = ['https://gcpv.izoor.com']
+CSRF_TRUSTED_ORIGINS = [
+    'https://gcpv.izoor.com']
+
 
 # Application definition
 

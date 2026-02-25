@@ -54,61 +54,80 @@
                 <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
                     <h5 style="margin: 0;"><i class="bi bi-info-circle"></i> Batch Information</h5>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <small class="text-muted">Status</small>
-                        <p style="margin: 0;">
-                            {% if batch.status == 'PENDING' %}<span class="badge bg-warning text-dark">PENDING</span>
-                            {% elif batch.status == 'SIGNED' %}<span class="badge bg-success">SIGNED</span>
-                            {% elif batch.status == 'REJECTED' %}<span class="badge bg-danger">REJECTED</span>
-                            {% endif %}
-                        </p>
+                <div class="card-body p-0">
+
+                    <!-- Total Amount Hero -->
+                    <div class="bi-amount-hero">
+                        <span class="bi-amount-label">Total Amount</span>
+                        <span class="bi-amount-value">{{ total_amount_display }}</span>
+                        <span class="bi-amount-count">
+                            <i class="bi bi-files"></i> {{ document_count }} document{{ document_count|pluralize }}
+                        </span>
                     </div>
-                    <div class="mb-3">
-                        <small class="text-muted">Created By</small>
-                        <p style="margin: 0; font-weight: 600;">
-                            {% if batch.created_by.get_full_name %}{{ batch.created_by.get_full_name }}{% else %}{{ batch.created_by.username }}{% endif %}
-                        </p>
-                        <small>{{ batch.created_at|date:"M d, Y H:i" }}</small>
+
+                    <!-- Info Grid -->
+                    <div class="bi-grid">
+
+                        <div class="bi-row">
+                            <span class="bi-key"><i class="bi bi-circle-fill bi-dot-status"></i>Status</span>
+                            <span class="bi-val">
+                                {% if batch.status == 'PENDING' %}
+                                <span class="bi-status bi-status--pending"><i class="bi bi-clock"></i> Pending</span>
+                                {% elif batch.status == 'SIGNED' %}
+                                <span class="bi-status bi-status--signed"><i class="bi bi-check-circle-fill"></i> Signed</span>
+                                {% elif batch.status == 'REJECTED' %}
+                                <span class="bi-status bi-status--rejected"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="bi-row">
+                            <span class="bi-key"><i class="bi bi-person"></i>Created By</span>
+                            <span class="bi-val">
+                                <strong>{% if batch.created_by.get_full_name %}{{ batch.created_by.get_full_name }}{% else %}{{ batch.created_by.username }}{% endif %}</strong>
+                                <small class="d-block text-muted">{{ batch.created_at|date:"d M Y, H:i" }}</small>
+                            </span>
+                        </div>
+
+                        {% if batch.status == 'SIGNED' %}
+                        <div class="bi-row">
+                            <span class="bi-key"><i class="bi bi-pen"></i>Signed By</span>
+                            <span class="bi-val">
+                                <strong>{% if batch.signed_by.get_full_name %}{{ batch.signed_by.get_full_name }}{% else %}{{ batch.signed_by.username }}{% endif %}</strong>
+                                <small class="d-block text-muted">{{ batch.signed_at|date:"d M Y, H:i" }}</small>
+                                {% if batch.signature_ip %}<small class="d-block text-muted">IP: {{ batch.signature_ip }}</small>{% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        {% if batch.fm_notes %}
+                        <div class="bi-row bi-row--note">
+                            <span class="bi-key"><i class="bi bi-sticky"></i>FM Notes</span>
+                            <span class="bi-val bi-note bi-note--amber">{{ batch.fm_notes }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if batch.md_comments %}
+                        <div class="bi-row bi-row--note">
+                            <span class="bi-key"><i class="bi bi-chat-left-text"></i>MD Comments</span>
+                            <span class="bi-val bi-note bi-note--indigo">{{ batch.md_comments }}</span>
+                        </div>
+                        {% endif %}
+
                     </div>
-                    <div class="mb-3">
-                        <small class="text-muted">Total Documents</small>
-                        <p style="margin: 0;"><span class="badge bg-primary" style="font-size: 1.1rem;">{{ document_count }}</span></p>
-                    </div>
-                    <div class="mb-3" style="padding: 1rem; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 0.25rem;">
-                        <small class="text-muted">Total Amount</small>
-                        <p style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #10b981;">{{ total_amount_display }}</p>
-                    </div>
-                    {% if batch.fm_notes %}
-                    <div class="mb-3">
-                        <small class="text-muted">Finance Manager Notes</small>
-                        <p style="margin: 0.5rem 0 0 0; padding: 0.75rem; background: #fef3c7; border-left: 3px solid #f59e0b; font-size: 0.9rem; border-radius: 0.25rem;">{{ batch.fm_notes }}</p>
-                    </div>
-                    {% endif %}
-                    {% if batch.status == 'SIGNED' %}
-                    <div class="mt-4 pt-3" style="border-top: 2px solid #e5e7eb;">
-                        <small class="text-muted">Signed By</small>
-                        <p style="margin: 0; font-weight: 600;">{% if batch.signed_by.get_full_name %}{{ batch.signed_by.get_full_name }}{% else %}{{ batch.signed_by.username }}{% endif %}</p>
-                        <small>{{ batch.signed_at|date:"M d, Y H:i" }}</small>
-                        {% if batch.signature_ip %}<br><small class="text-muted">IP: {{ batch.signature_ip }}</small>{% endif %}
-                    </div>
-                    {% endif %}
-                    {% if batch.md_comments %}
-                    <div class="mt-3">
-                        <small class="text-muted">MD Comments</small>
-                        <p style="margin: 0.5rem 0 0 0; padding: 0.75rem; background: #e0e7ff; border-left: 3px solid #667eea; font-size: 0.9rem; border-radius: 0.25rem;">{{ batch.md_comments }}</p>
-                    </div>
-                    {% endif %}
+
+                    <!-- Action Buttons -->
                     {% if user.role_level == 5 and batch.status == 'PENDING' %}
-                    <div class="mt-4 d-grid gap-2">
-                        <button type="button" class="btn btn-success" onclick="showSignModal()">
-                            <i class="bi bi-check-circle"></i> Sign All Documents
+                    <div class="bi-actions">
+                        <button type="button" class="bi-btn bi-btn--sign" onclick="showSignModal()">
+                            <i class="bi bi-check-circle"></i> Sign All
                         </button>
-                        <button type="button" class="btn btn-outline-danger" onclick="showRejectModal()">
-                            <i class="bi bi-x-circle"></i> Reject Batch
+                        <button type="button" class="bi-btn bi-btn--reject" onclick="showRejectModal()">
+                            <i class="bi bi-x-circle"></i> Reject
                         </button>
                     </div>
                     {% endif %}
+
                 </div>
             </div>
         </div>
@@ -132,7 +151,7 @@
                             Payment Vouchers
                             <span class="doc-count-badge">{{ batch.voucher_items.count }}</span>
                         </div>
-                        <div class="table-responsive">
+                        <div>
                             <table class="batch-table">
                                 <colgroup>
                                     <col class="col-docnum">
@@ -213,7 +232,7 @@
                             Payment Forms
                             <span class="doc-count-badge pf-badge">{{ batch.form_items.count }}</span>
                         </div>
-                        <div class="table-responsive">
+                        <div>
                             <table class="batch-table">
                                 <colgroup>
                                     <col class="col-docnum">
@@ -513,23 +532,6 @@ function showToast(title, message, type = 'info') {
     const t = new bootstrap.Toast(te, { autohide: true, delay: 5000 }); t.show();
     te.addEventListener('hidden.bs.toast', () => te.remove());
 }
-
-// SAFETY: Add error handling for document row clicks
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.doc-row').forEach(function(row) {
-        row.addEventListener('click', function(e) {
-            try {
-                // If onclick attribute exists and fails, show error
-                if (this.onclick) {
-                    this.onclick.call(this, e);
-                }
-            } catch (error) {
-                console.error('Error opening document:', error);
-                showToast('Error', 'This document no longer exists. Please refresh the page.', 'error');
-            }
-        });
-    });
-});
 </script>
 
 <style>
@@ -539,6 +541,125 @@ document.addEventListener('DOMContentLoaded', function() {
     justify-content: space-between;
     align-items: center;
 }
+
+/* ─────────────────────────────────────────
+   Batch Information Card
+───────────────────────────────────────── */
+.bi-amount-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem 1rem 1rem;
+    background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+    border-bottom: 1px solid #d1fae5;
+    text-align: center;
+    gap: 0.15rem;
+}
+.bi-amount-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+}
+.bi-amount-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #059669;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+.bi-amount-count {
+    font-size: 0.75rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.1rem;
+}
+.bi-grid { display: flex; flex-direction: column; }
+.bi-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.12s;
+}
+.bi-row:last-child { border-bottom: none; }
+.bi-row:hover { background: #fafafa; }
+.bi-key {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 95px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9ca3af;
+    padding-top: 0.15rem;
+    flex-shrink: 0;
+}
+.bi-key i { font-size: 0.7rem; }
+.bi-dot-status { font-size: 0.45rem !important; }
+.bi-val {
+    font-size: 0.84rem;
+    color: #1f2937;
+    line-height: 1.4;
+    flex: 1;
+}
+.bi-val strong { font-weight: 600; }
+.bi-val .text-muted { font-size: 0.75rem; margin-top: 0.05rem; }
+.bi-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+}
+.bi-status--pending  { background: #fef9c3; color: #92400e; border: 1px solid #fde68a; }
+.bi-status--signed   { background: #dcfce7; color: #14532d; border: 1px solid #86efac; }
+.bi-status--rejected { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+.bi-note {
+    display: block;
+    font-size: 0.8rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: 5px;
+    line-height: 1.45;
+}
+.bi-note--amber  { background: #fffbeb; border-left: 3px solid #f59e0b; color: #78350f; }
+.bi-note--indigo { background: #eef2ff; border-left: 3px solid #667eea; color: #312e81; }
+.bi-actions {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+}
+.bi-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.bi-btn--sign   { background: #10b981; color: #fff; }
+.bi-btn--sign:hover { background: #059669; box-shadow: 0 3px 8px rgba(16,185,129,0.35); transform: translateY(-1px); }
+.bi-btn--reject { background: #fff; color: #ef4444; border: 1.5px solid #fca5a5; }
+.bi-btn--reject:hover { background: #fef2f2; box-shadow: 0 3px 8px rgba(239,68,68,0.2); transform: translateY(-1px); }
 
 /* Document Section */
 .doc-section { padding: 1.25rem 1.5rem 0.5rem; }
@@ -576,6 +697,7 @@ document.addEventListener('DOMContentLoaded', function() {
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.875rem;
+    table-layout: auto;
 }
 .col-docnum  { width: 10%; }
 .col-payee   { width: 14%; }
@@ -644,10 +766,9 @@ document.addEventListener('DOMContentLoaded', function() {
     display: block;
     color: #475569;
     font-size: 0.81rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 28ch;
+    line-height: 1.45;
+    word-break: break-word;
+    white-space: normal;
 }
 
 /* Date Chip */
@@ -737,7 +858,6 @@ document.addEventListener('DOMContentLoaded', function() {
 @media (max-width: 768px) {
     .page-header { flex-direction: column; align-items: flex-start; }
     .page-header > div:last-child { margin-top: 1rem; }
-    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .batch-table th, .batch-table td { padding: 0.55rem 0.5rem; font-size: 0.78rem; }
     .gt-amount { font-size: 1.2rem; }
 }
