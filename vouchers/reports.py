@@ -129,29 +129,27 @@ class ReportGenerator:
         return stats
 
     def export_to_excel(self):
-        """Export filtered data to Excel matching the exact template format"""
+        """Export filtered data to Excel grouped by bank account sections"""
         if self.vouchers is None or self.forms is None:
             self.apply_filters()
 
         # Create workbook
         wb = Workbook()
         ws = wb.active
-        ws.title = "All Documents Summary"
+        ws.title = "Payment Summary by Bank"
 
         # ===========================================================================
-        # SET COLUMN WIDTHS (WITH TYPE COLUMN)
+        # SET COLUMN WIDTHS
         # ===========================================================================
         column_widths = {
-            'A': 3.71,   # No
-            'B': 8.0,    # Type (PV/PF)
-            'C': 15.14,  # Doc No
-            'D': 25.0,   # Supplier
-            'E': 50.0,   # Description
-            'F': 18.0,   # Amount
-            'G': 28.0,   # Transfer Account (Company)
-            'H': 25.0,   # Account Name (Payee)
-            'I': 20.0,   # Account Number (Payee)
-            'J': 20.0    # Remark
+            'A': 5.0,    # No
+            'B': 15.0,   # PV/PF No.
+            'C': 25.0,   # Supplier
+            'D': 45.0,   # Description
+            'E': 15.0,   # Amount
+            'F': 25.0,   # Receiver Account Name
+            'G': 20.0,   # Receiver Account Number
+            'H': 20.0    # Remark
         }
 
         for col, width in column_widths.items():
@@ -181,375 +179,372 @@ class ReportGenerator:
         # ===========================================================================
         # ROW 1: COMPANY NAME
         # ===========================================================================
-        ws.merge_cells('A1:J1')
+        ws.merge_cells('A1:H1')
         company_cell = ws['A1']
         company_cell.value = "Phat Phnom Penh  Co.,LTD  (Garden City Water Park)"
         company_cell.font = company_font
         company_cell.alignment = center_alignment
 
         # ===========================================================================
-        # ROW 2: TITLE
+        # ROW 2: TITLE & DATE
         # ===========================================================================
-        ws.merge_cells('A2:J2')
+        ws.merge_cells('A2:F2')
         title_cell = ws['A2']
-        title_cell.value = "Summary Payment Vouchers & Forms"
+        title_cell.value = "Payment Summary by Bank Account"
         title_cell.font = title_font
         title_cell.alignment = center_alignment
 
-        # ===========================================================================
-        # ROW 3: DATE
-        # ===========================================================================
-        # "Date" label (Column I)
-        date_label_cell = ws['I3']
-        date_label_cell.value = "Date"
-        date_label_cell.font = header_font
-        date_label_cell.alignment = right_alignment
-
-        # Current date (Column J)
-        date_cell = ws['J3']
-        date_cell.value = timezone.now().strftime('%Y-%m-%d')
-        date_cell.font = data_font
-        date_cell.alignment = left_alignment
+        # Date on the right (G2:H2)
+        ws.merge_cells('G2:H2')
+        date_cell = ws['G2']
+        date_cell.value = f"Date: {timezone.now().strftime('%d-%b-%Y')}"
+        date_cell.font = Font(name='Calibri', size=11, bold=True)
+        date_cell.alignment = right_alignment
 
         # ===========================================================================
-        # ROW 4: REPORT DESCRIPTION
+        # GROUP DOCUMENTS BY BANK AND TYPE
         # ===========================================================================
-        ws.merge_cells('A4:J4')
-        transfer_cell = ws['A4']
-        transfer_cell.value = "Payment Vouchers & Forms Report - Grouped by Transfer Account"
-        transfer_cell.font = Font(name='Calibri', size=11, bold=False)
-        transfer_cell.alignment = left_alignment
-
-        # ===========================================================================
-        # PREPARE AND SORT DATA BY TRANSFER ACCOUNT
-        # ===========================================================================
-        # Combine all documents
-        all_documents = list(self.vouchers) + list(self.forms)
-
-        # Sort by: 1) company_bank_account, 2) payment_date
-        def get_sort_key(doc):
-            if doc.company_bank_account:
-                return (0, doc.company_bank_account.bank, doc.payment_date)
-            else:
-                return (1, 'ZZZ_No Account', doc.payment_date)
-
-        all_documents.sort(key=get_sort_key)
-
-        # ===========================================================================
-        # ROWS 5-6: COLUMN HEADERS (WITH MERGED CELLS)
-        # ===========================================================================
-        # Merge cells for headers
-        merge_ranges = [
-            'A5:A6',  # No
-            'B5:B6',  # Type (PV/PF)
-            'C5:C6',  # Doc No
-            'D5:D6',  # Supplier
-            'E5:E6',  # Description
-            'F5:F6',  # Amount
-            'G5:G6',  # Transfer Account (Company)
-            'H5:I5',  # Receiver Bank Account (merged horizontally)
-            'J5:J6'   # Remark
+        # Define bank sections
+        bank_sections = [
+            {'code': 'AC', 'name': 'ACLEDA Bank', 'type': 'PV', 'title': 'AC PV'},
+            {'code': 'ABA', 'name': 'ABA Bank', 'type': 'PV', 'title': 'ABA PV'},
+            {'code': 'AC', 'name': 'ACLEDA Bank', 'type': 'PF', 'title': 'AC PF'},
+            {'code': 'ABA', 'name': 'ABA Bank', 'type': 'PF', 'title': 'ABA PF'},
         ]
 
-        for merge_range in merge_ranges:
-            ws.merge_cells(merge_range)
-
-        # Row 5 headers
-        headers_row5 = [
-            ('A5', 'No'),
-            ('B5', 'Type'),
-            ('C5', 'Doc No.'),
-            ('D5', 'Supplier'),
-            ('E5', 'Description'),
-            ('F5', 'Amount'),
-            ('G5', 'Transfer Account'),
-            ('H5', 'Receiver Bank Account'),
-            ('J5', 'Remark')
-        ]
-
-        for cell_ref, value in headers_row5:
-            cell = ws[cell_ref]
-            cell.value = value
-            cell.font = header_font
-            cell.alignment = center_alignment
-            cell.fill = header_fill
-            cell.border = border
-
-        # Row 6 sub-headers
-        headers_row6 = [
-            ('H6', 'Account Name'),
-            ('I6', 'Account Number')
-        ]
-
-        for cell_ref, value in headers_row6:
-            cell = ws[cell_ref]
-            cell.value = value
-            cell.font = header_font
-            cell.alignment = center_alignment
-            cell.fill = header_fill
-            cell.border = border
-
-        # Apply borders to all header cells
-        for row in [5, 6]:
-            for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']:
-                cell = ws[f'{col}{row}']
-                if not cell.border.left.style:
-                    cell.border = border
-                    cell.fill = header_fill
-
-        header_row = 7
-
-        # ===========================================================================
-        # DATA ROWS WITH GROUPING BY TRANSFER ACCOUNT
-        # ===========================================================================
-        row = header_row
-        total_amount = Decimal('0')
-        idx = 0
-        current_bank = None
-        bank_subtotal = Decimal('0')
-
-        # Loop through all documents (sorted by transfer account)
-        for doc in all_documents:
-            idx += 1
-
-            # Determine if this is a voucher or form
+        # Group documents by bank and type
+        def categorize_document(doc):
+            """Return bank code and document type"""
             is_voucher = hasattr(doc, 'pv_number')
-            doc_number = doc.pv_number if is_voucher else doc.pf_number
+            doc_type = 'PV' if is_voucher else 'PF'
 
-            # Get transfer account (company account)
             if doc.company_bank_account:
-                transfer_account = f"{doc.company_bank_account.bank}"
-                transfer_account_full = f"{doc.company_bank_account.company_name} - {doc.company_bank_account.account_number} ({doc.company_bank_account.currency}) {doc.company_bank_account.bank}"
+                bank_name = doc.company_bank_account.bank
+                if 'ACLEDA' in bank_name.upper() or 'AC' in bank_name.upper():
+                    return 'AC', doc_type
+                elif 'ABA' in bank_name.upper():
+                    return 'ABA', doc_type
+            return None, doc_type
+
+        # Organize documents into sections
+        sections_data = {
+            ('AC', 'PV'): [],
+            ('ABA', 'PV'): [],
+            ('AC', 'PF'): [],
+            ('ABA', 'PF'): [],
+        }
+
+        for voucher in self.vouchers:
+            bank_code, doc_type = categorize_document(voucher)
+            if bank_code and (bank_code, doc_type) in sections_data:
+                sections_data[(bank_code, doc_type)].append(voucher)
+
+        for form in self.forms:
+            bank_code, doc_type = categorize_document(form)
+            if bank_code and (bank_code, doc_type) in sections_data:
+                sections_data[(bank_code, doc_type)].append(form)
+
+        # ===========================================================================
+        # START BUILDING SECTIONS
+        # ===========================================================================
+        row = 4  # Start after title and date
+        grand_total = Decimal('0')
+
+        # ===========================================================================
+        # GENERATE SECTIONS
+        # ===========================================================================
+        # Professional color scheme
+        section_header_fill = PatternFill(start_color='FDB462', end_color='FDB462', fill_type='solid')  # Professional orange
+        table_header_fill = PatternFill(start_color='B3CDE3', end_color='B3CDE3', fill_type='solid')   # Professional blue
+        subtotal_fill = PatternFill(start_color='E6F3FF', end_color='E6F3FF', fill_type='solid')      # Light blue
+
+        for section in bank_sections:
+            row += 2  # Add spacing
+
+            bank_code = section['code']
+            doc_type = section['type']
+            section_title = section['title']
+
+            # Get documents for this section
+            documents = sections_data.get((bank_code, doc_type), [])
+
+            # Get first document with bank account info (if exists)
+            sample_account = None
+            if documents:
+                for doc in documents:
+                    if doc.company_bank_account:
+                        sample_account = doc.company_bank_account
+                        break
+
+            # ===========================================================================
+            # SECTION HEADER ROW (Yellow/Orange background)
+            # ===========================================================================
+            ws.merge_cells(f'A{row}:G{row}')
+            header_cell = ws[f'A{row}']
+
+            if sample_account:
+                header_cell.value = f"Transfer by Account: {sample_account.company_name}, Account Number {sample_account.account_number} ({sample_account.currency}) {sample_account.bank}"
             else:
-                transfer_account = "No Transfer Account"
-                transfer_account_full = "No Transfer Account Specified"
+                header_cell.value = f"Transfer by Account: {section['name']} (No account assigned)"
 
-            # Check if we need to add a section header (transfer account changed)
-            if current_bank != transfer_account:
-                # Add subtotal for previous bank (if any)
-                if current_bank is not None and bank_subtotal > 0:
-                    # Subtotal row
-                    subtotal_cell = ws.cell(row=row, column=5)
-                    subtotal_cell.value = f"Subtotal - {current_bank}:"
-                    subtotal_cell.font = Font(name='Calibri', size=11, bold=True)
-                    subtotal_cell.alignment = right_alignment
-                    subtotal_cell.fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
-                    subtotal_cell.border = border
+            header_cell.font = Font(name='Calibri', size=11, bold=True, color='000000')
+            header_cell.alignment = left_alignment
+            header_cell.fill = section_header_fill
+            header_cell.border = border
 
-                    subtotal_amount_cell = ws.cell(row=row, column=6)
-                    subtotal_amount_cell.value = float(bank_subtotal)
-                    subtotal_amount_cell.font = Font(name='Calibri', size=11, bold=True)
-                    subtotal_amount_cell.alignment = right_alignment
-                    subtotal_amount_cell.number_format = '#,##0.00'
-                    subtotal_amount_cell.fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
-                    subtotal_amount_cell.border = border
-
-                    # Apply borders to other cells in subtotal row
-                    for col in [1, 2, 3, 4, 7, 8, 9, 10]:
-                        cell = ws.cell(row=row, column=col)
-                        cell.border = border
-                        cell.fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
-
-                    row += 1
-                    bank_subtotal = Decimal('0')
-
-                # Section header
-                ws.merge_cells(f'A{row}:J{row}')
-                section_cell = ws.cell(row=row, column=1)
-                section_cell.value = f"═══ Transfer Account: {transfer_account_full} ═══"
-                section_cell.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
-                section_cell.alignment = center_alignment
-                section_cell.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
-                section_cell.border = border
-
-                row += 1
-                current_bank = transfer_account
-
-            # Calculate totals
-            totals = doc.calculate_grand_total()
-
-            # Combine all line item descriptions (with newlines)
-            descriptions = [item.description for item in doc.line_items.all()]
-            combined_description = '\n'.join(descriptions) if descriptions else ''
-
-            # Calculate USD amount
-            amount = totals.get('USD', Decimal('0'))
-            total_amount += amount
-            bank_subtotal += amount
-
-            # Get PAYEE's bank account information (recipient, not company account)
-            account_name = doc.bank_name or ''  # Payee's account holder name
-            account_number = doc.bank_account_number or ''  # Payee's account number
-
-            # Column A: Sequential number
-            cell_a = ws.cell(row=row, column=1)
-            cell_a.value = idx
-            cell_a.font = data_font
-            cell_a.alignment = center_alignment
-            cell_a.border = border
-
-            # Column B: Type (PV or PF)
-            cell_b = ws.cell(row=row, column=2)
-            cell_b.value = 'PV' if is_voucher else 'PF'
-            cell_b.font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
-            cell_b.alignment = center_alignment
-            cell_b.border = border
-            # Color code: PV = Orange, PF = Blue
-            if is_voucher:
-                cell_b.fill = PatternFill(start_color='F59E0B', end_color='F59E0B', fill_type='solid')
-            else:
-                cell_b.fill = PatternFill(start_color='3B82F6', end_color='3B82F6', fill_type='solid')
-
-            # Column C: PV/PF Number
-            cell_c = ws.cell(row=row, column=3)
-            cell_c.value = doc_number or 'DRAFT'
-            cell_c.font = data_font
-            cell_c.alignment = left_alignment
-            cell_c.border = border
-
-            # Column D: Supplier/Payee
-            cell_d = ws.cell(row=row, column=4)
-            cell_d.value = doc.payee_name
-            cell_d.font = data_font
-            cell_d.alignment = left_alignment
-            cell_d.border = border
-
-            # Column E: Description
-            cell_e = ws.cell(row=row, column=5)
-            cell_e.value = combined_description
-            cell_e.font = data_font
-            cell_e.alignment = left_alignment
-            cell_e.border = border
-
-            # Column F: Amount (right-aligned, formatted)
-            cell_f = ws.cell(row=row, column=6)
-            cell_f.value = float(amount)
-            cell_f.font = data_font
-            cell_f.alignment = right_alignment
-            cell_f.border = border
-            cell_f.number_format = '#,##0.00'
-
-            # Column G: Transfer Account (Company Bank)
-            cell_g = ws.cell(row=row, column=7)
-            cell_g.value = transfer_account
-            cell_g.font = data_font
-            cell_g.alignment = left_alignment
-            cell_g.border = border
-
-            # Column H: Account Name (Payee)
-            cell_h = ws.cell(row=row, column=8)
-            cell_h.value = account_name
-            cell_h.font = data_font
-            cell_h.alignment = left_alignment
-            cell_h.border = border
-
-            # Column I: Account Number (Payee)
-            cell_i = ws.cell(row=row, column=9)
-            cell_i.value = account_number
-            cell_i.font = data_font
-            cell_i.alignment = left_alignment
-            cell_i.border = border
-
-            # Column J: Remark (blank for manual entry)
-            cell_j = ws.cell(row=row, column=10)
-            cell_j.value = ''
-            cell_j.font = data_font
-            cell_j.alignment = left_alignment
-            cell_j.border = border
+            # Section title on right (H column)
+            title_cell = ws[f'H{row}']
+            title_cell.value = section_title
+            title_cell.font = Font(name='Calibri', size=12, bold=True, color='000000')
+            title_cell.alignment = center_alignment
+            title_cell.fill = section_header_fill
+            title_cell.border = border
 
             row += 1
 
-        # Add final subtotal for last bank group
-        if current_bank is not None and bank_subtotal > 0:
-            subtotal_cell = ws.cell(row=row, column=5)
-            subtotal_cell.value = f"Subtotal - {current_bank}:"
-            subtotal_cell.font = Font(name='Calibri', size=11, bold=True)
-            subtotal_cell.alignment = right_alignment
-            subtotal_cell.fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
-            subtotal_cell.border = border
+            # ===========================================================================
+            # TABLE HEADERS
+            # ===========================================================================
+            table_headers = [
+                ('A', 'No'),
+                ('B', 'PV No.' if doc_type == 'PV' else 'PF No.'),
+                ('C', 'Supplier'),
+                ('D', 'Description'),
+                ('E', 'Amount'),
+                ('F', 'Receiver Bank Account\nAccount Name'),
+                ('G', 'Receiver Bank Account\nAccount Number'),
+                ('H', 'Remark')
+            ]
 
-            subtotal_amount_cell = ws.cell(row=row, column=6)
-            subtotal_amount_cell.value = float(bank_subtotal)
-            subtotal_amount_cell.font = Font(name='Calibri', size=11, bold=True)
-            subtotal_amount_cell.alignment = right_alignment
-            subtotal_amount_cell.number_format = '#,##0.00'
-            subtotal_amount_cell.fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
-            subtotal_amount_cell.border = border
-
-            # Apply borders to other cells in subtotal row
-            for col in [1, 2, 3, 4, 7, 8, 9, 10]:
-                cell = ws.cell(row=row, column=col)
+            for col, header_text in table_headers:
+                cell = ws[f'{col}{row}']
+                cell.value = header_text
+                cell.font = Font(name='Calibri', size=10, bold=True, color='000000')
+                cell.alignment = center_alignment
+                cell.fill = table_header_fill
                 cell.border = border
-                cell.fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
 
+            row += 1
+
+            # ===========================================================================
+            # DATA ROWS
+            # ===========================================================================
+            section_total = Decimal('0')
+
+            if documents:
+                for idx, doc in enumerate(documents, 1):
+                    # Determine if this is a voucher or form
+                    is_voucher = hasattr(doc, 'pv_number')
+                    doc_number = doc.pv_number if is_voucher else doc.pf_number
+
+                    # Calculate totals
+                    totals = doc.calculate_grand_total()
+                    amount = totals.get('USD', Decimal('0'))
+                    section_total += amount
+
+                    # Combine all line item descriptions
+                    descriptions = [item.description for item in doc.line_items.all()]
+                    combined_description = '\n'.join(descriptions) if descriptions else ''
+
+                    # Receiver bank info
+                    receiver_account_name = doc.bank_name or '-'
+                    receiver_account_number = doc.bank_account_number or '-'
+
+                    # Column A: No
+                    ws[f'A{row}'] = idx
+                    ws[f'A{row}'].font = data_font
+                    ws[f'A{row}'].alignment = center_alignment
+                    ws[f'A{row}'].border = border
+
+                    # Column B: Doc Number
+                    ws[f'B{row}'] = doc_number or 'DRAFT'
+                    ws[f'B{row}'].font = data_font
+                    ws[f'B{row}'].alignment = left_alignment
+                    ws[f'B{row}'].border = border
+
+                    # Column C: Supplier
+                    ws[f'C{row}'] = doc.payee_name
+                    ws[f'C{row}'].font = data_font
+                    ws[f'C{row}'].alignment = left_alignment
+                    ws[f'C{row}'].border = border
+
+                    # Column D: Description
+                    ws[f'D{row}'] = combined_description
+                    ws[f'D{row}'].font = data_font
+                    ws[f'D{row}'].alignment = left_alignment
+                    ws[f'D{row}'].border = border
+
+                    # Column E: Amount
+                    ws[f'E{row}'] = float(amount)
+                    ws[f'E{row}'].font = data_font
+                    ws[f'E{row}'].alignment = right_alignment
+                    ws[f'E{row}'].border = border
+                    ws[f'E{row}'].number_format = '#,##0.00'
+
+                    # Column F: Receiver Account Name
+                    ws[f'F{row}'] = receiver_account_name
+                    ws[f'F{row}'].font = data_font
+                    ws[f'F{row}'].alignment = left_alignment
+                    ws[f'F{row}'].border = border
+
+                    # Column G: Receiver Account Number
+                    ws[f'G{row}'] = receiver_account_number
+                    ws[f'G{row}'].font = data_font
+                    ws[f'G{row}'].alignment = left_alignment
+                    ws[f'G{row}'].border = border
+
+                    # Column H: Remark (blank)
+                    ws[f'H{row}'] = ''
+                    ws[f'H{row}'].font = data_font
+                    ws[f'H{row}'].alignment = left_alignment
+                    ws[f'H{row}'].border = border
+
+                    row += 1
+            else:
+                # No documents - add 3 empty rows
+                for _ in range(3):
+                    for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
+                        ws[f'{col}{row}'] = ''
+                        ws[f'{col}{row}'].border = border
+                    row += 1
+
+            # ===========================================================================
+            # SUBTOTAL ROW
+            # ===========================================================================
+            ws.merge_cells(f'A{row}:D{row}')
+            subtotal_label = ws[f'A{row}']
+            subtotal_label.value = f"Subtotal - {section_title}"
+            subtotal_label.font = Font(name='Calibri', size=11, bold=True)
+            subtotal_label.alignment = right_alignment
+            subtotal_label.fill = subtotal_fill
+            subtotal_label.border = border
+
+            ws[f'E{row}'] = float(section_total)
+            ws[f'E{row}'].font = Font(name='Calibri', size=11, bold=True)
+            ws[f'E{row}'].alignment = right_alignment
+            ws[f'E{row}'].number_format = '"$" #,##0.00'
+            ws[f'E{row}'].fill = subtotal_fill
+            ws[f'E{row}'].border = border
+
+            # Empty cells for subtotal row
+            for col in ['F', 'G', 'H']:
+                ws[f'{col}{row}'] = ''
+                ws[f'{col}{row}'].fill = subtotal_fill
+                ws[f'{col}{row}'].border = border
+
+            grand_total += section_total
             row += 1
 
         # ===========================================================================
         # GRAND TOTAL ROW
         # ===========================================================================
-        # Column E: "Grand Total:" label
-        total_label_cell = ws.cell(row=row, column=5)
-        total_label_cell.value = "GRAND TOTAL:"
-        total_label_cell.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
-        total_label_cell.alignment = right_alignment
-        total_label_cell.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
-        total_label_cell.border = border
+        row += 1
+        ws.merge_cells(f'A{row}:D{row}')
+        grand_total_label = ws[f'A{row}']
+        grand_total_label.value = "GRAND TOTAL"
+        grand_total_label.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+        grand_total_label.alignment = right_alignment
+        grand_total_label.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+        grand_total_label.border = border
 
-        # Column F: Total amount
-        total_amount_cell = ws.cell(row=row, column=6)
-        total_amount_cell.value = float(total_amount)
-        total_amount_cell.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
-        total_amount_cell.alignment = right_alignment
-        total_amount_cell.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
-        total_amount_cell.border = border
-        total_amount_cell.number_format = '#,##0.00'
+        ws[f'E{row}'] = float(grand_total)
+        ws[f'E{row}'].font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+        ws[f'E{row}'].alignment = right_alignment
+        ws[f'E{row}'].number_format = '"$" #,##0.00'
+        ws[f'E{row}'].fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+        ws[f'E{row}'].border = border
 
-        # Apply borders and fill to other cells in total row
-        for col in [1, 2, 3, 4, 7, 8, 9, 10]:
-            cell = ws.cell(row=row, column=col)
-            cell.border = border
-            cell.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+        for col in ['F', 'G', 'H']:
+            ws[f'{col}{row}'] = ''
+            ws[f'{col}{row}'].fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+            ws[f'{col}{row}'].border = border
 
         row += 1
 
         # ===========================================================================
-        # SIGNATURE SECTION (3 ROWS AFTER TOTAL)
+        # SIGNATURE FOOTER (3 COLUMNS)
         # ===========================================================================
-        row += 3  # Add some spacing
+        row += 3  # Add spacing
 
-        # Merge B:C for "Prepared by"
-        ws.merge_cells(f'B{row}:C{row}')
-        prepared_cell = ws.cell(row=row, column=2)
-        prepared_cell.value = "Prepared by"
-        prepared_cell.font = header_font
-        prepared_cell.alignment = center_alignment
+        # Get current user for "Prepared By"
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
 
-        # Configure page setup for A4 Landscape
-        ws.page_setup.paperSize = 9  # A4 paper size
+        # Prepared By (Columns A-B)
+        ws.merge_cells(f'A{row}:B{row}')
+        prepared_cell = ws[f'A{row}']
+        prepared_cell.value = "Prepared By:"
+        prepared_cell.font = Font(name='Calibri', size=11, bold=True)
+        prepared_cell.alignment = left_alignment
+
+        ws.merge_cells(f'A{row+1}:B{row+1}')
+        prepared_name = ws[f'A{row+1}']
+        prepared_name.value = "___________________________"
+        prepared_name.font = data_font
+        prepared_name.alignment = center_alignment
+
+        ws.merge_cells(f'A{row+2}:B{row+2}')
+        prepared_date = ws[f'A{row+2}']
+        prepared_date.value = "Date: ............"
+        prepared_date.font = data_font
+        prepared_date.alignment = center_alignment
+
+        # Checked By (Columns C-E)
+        ws.merge_cells(f'C{row}:E{row}')
+        checked_cell = ws[f'C{row}']
+        checked_cell.value = "Checked By: Finance Manager"
+        checked_cell.font = Font(name='Calibri', size=11, bold=True)
+        checked_cell.alignment = center_alignment
+
+        ws.merge_cells(f'C{row+1}:E{row+1}')
+        checked_name = ws[f'C{row+1}']
+        checked_name.value = "___________________________"
+        checked_name.font = data_font
+        checked_name.alignment = center_alignment
+
+        ws.merge_cells(f'C{row+2}:E{row+2}')
+        checked_date = ws[f'C{row+2}']
+        checked_date.value = "Date: ............"
+        checked_date.font = data_font
+        checked_date.alignment = center_alignment
+
+        # Approved By (Columns F-H)
+        ws.merge_cells(f'F{row}:H{row}')
+        approved_cell = ws[f'F{row}']
+        approved_cell.value = "Approved By: Managing Director"
+        approved_cell.font = Font(name='Calibri', size=11, bold=True)
+        approved_cell.alignment = center_alignment
+
+        ws.merge_cells(f'F{row+1}:H{row+1}')
+        approved_name = ws[f'F{row+1}']
+        approved_name.value = "___________________________"
+        approved_name.font = data_font
+        approved_name.alignment = center_alignment
+
+        ws.merge_cells(f'F{row+2}:H{row+2}')
+        approved_date = ws[f'F{row+2}']
+        approved_date.value = "Date: ............"
+        approved_date.font = data_font
+        approved_date.alignment = center_alignment
+
+        # ===========================================================================
+        # PAGE SETUP
+        # ===========================================================================
+        ws.page_setup.paperSize = 9  # A4
         ws.page_setup.orientation = 'landscape'
         ws.page_setup.fitToPage = True
-        ws.page_setup.fitToHeight = 0  # Fit all rows on pages as needed
-        ws.page_setup.fitToWidth = 1   # Fit to 1 page wide
+        ws.page_setup.fitToHeight = 0
+        ws.page_setup.fitToWidth = 1
         ws.print_options.horizontalCentered = True
         ws.print_options.verticalCentered = False
 
-        # Set print area to include all data and signature section
-        ws.print_area = f'A1:J{row}'
-
-        # Set margins (in inches) - smaller margins for more space
         ws.page_margins.left = 0.4
         ws.page_margins.right = 0.4
         ws.page_margins.top = 0.5
         ws.page_margins.bottom = 0.5
-        ws.page_margins.header = 0.2
-        ws.page_margins.footer = 0.2
 
-        # Set zoom/scale for better fit
-        ws.page_setup.scale = 100  # 100% scale
-
-        # Enable gridlines for printing
+        ws.print_area = f'A1:H{row+2}'
         ws.print_options.gridLines = False
-        ws.print_options.gridLinesSet = True
 
         # Save to BytesIO
         output = BytesIO()
