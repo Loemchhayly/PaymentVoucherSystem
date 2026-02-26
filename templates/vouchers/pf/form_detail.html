@@ -615,92 +615,6 @@
     <!-- ==================== END PAGE HEADER ==================== -->
 
 
-    <!-- ==================== PAYMENT FORM INFORMATION ==================== -->
-    <div class="detail-card info-card">
-        <div class="detail-card-header">
-            <h2 class="detail-card-title">
-                <i class="bi bi-info-circle"></i>
-                <span>Payment Form Information</span>
-            </h2>
-        </div>
-        <div class="detail-card-body">
-            <div class="info-grid">
-                <dl class="info-item">
-                    <dt>Payee Name</dt>
-                    <dd>{{ payment_form.payee_name }}</dd>
-                </dl>
-
-                <dl class="info-item">
-                    <dt>Payment Date</dt>
-                    <dd>{{ payment_form.payment_date|date:"F d, Y" }}</dd>
-                </dl>
-
-                <dl class="info-item">
-                    <dt>Created By</dt>
-                    <dd>{{ payment_form.created_by.get_full_name|default:payment_form.created_by.username }}</dd>
-                </dl>
-
-                {% if payment_form.company_bank_account %}
-                    <dl class="info-item">
-                        <dt>Transfer From (Company)</dt>
-                        <dd><strong style="color: #667eea;">{{ payment_form.company_bank_account.company_name }}</strong></dd>
-                    </dl>
-
-                    <dl class="info-item">
-                        <dt>Company Bank</dt>
-                        <dd>{{ payment_form.company_bank_account.bank }}</dd>
-                    </dl>
-
-                    <dl class="info-item">
-                        <dt>Company Account</dt>
-                        <dd>{{ payment_form.company_bank_account.account_number }} ({{ payment_form.company_bank_account.currency }})</dd>
-                    </dl>
-                {% endif %}
-
-                <dl class="info-item">
-                    <dt>Transfer To (Supplier Bank)</dt>
-                    <dd><strong style="color: #10b981;">{{ payment_form.bank_address|default:"Not specified" }}</strong></dd>
-                </dl>
-
-                <dl class="info-item">
-                    <dt>Supplier Account Holder</dt>
-                    <dd>{{ payment_form.bank_name|default:"Not specified" }}</dd>
-                </dl>
-
-                <dl class="info-item">
-                    <dt>Supplier Account Number</dt>
-                    <dd>{{ payment_form.bank_account_number|default:"Not specified" }}</dd>
-                </dl>
-
-                <dl class="info-item">
-                    <dt>Created At</dt>
-                    <dd>{{ payment_form.created_at|date:"F d, Y g:i A" }}</dd>
-                </dl>
-
-                {% if payment_form.submitted_at %}
-                    <dl class="info-item">
-                        <dt>Submitted At</dt>
-                        <dd>{{ payment_form.submitted_at|date:"F d, Y g:i A" }}</dd>
-                    </dl>
-                {% endif %}
-
-                {% if payment_form.current_approver %}
-                    <dl class="info-item">
-                        <dt>Current Approver</dt>
-                        <dd>
-                            {{ payment_form.current_approver.get_full_name|default:payment_form.current_approver.username }}
-                            <span style="color: var(--primary-600); font-weight: 600; font-size: 0.75rem;">
-                                ({{ payment_form.current_approver.get_role_level_display }})
-                            </span>
-                        </dd>
-                    </dl>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <!-- ==================== END PAYMENT FORM INFORMATION ==================== -->
-
-
     <!-- ==================== LINE ITEMS ==================== -->
     <div class="detail-card">
         <div class="detail-card-header info">
@@ -714,24 +628,24 @@
                 <table class="line-items-table">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">#</th>
-                            <th style="width: 30%;">Description</th>
-                            <th style="width: 15%;">Department</th>
-                            <th style="width: 15%;">Program</th>
-                            <th style="width: 12%;">Amount</th>
-                            <th style="width: 11%;">VAT</th>
-                            <th style="width: 12%;">Total</th>
+                            <th style="width: 5%; text-align: center;">#</th>
+                            <th style="width: 30%; text-align: left;">Description</th>
+                            <th style="width: 15%; text-align: left;">Department</th>
+                            <th style="width: 15%; text-align: left;">Program</th>
+                            <th style="width: 12%; text-align: right;">Amount</th>
+                            <th style="width: 11%; text-align: center;">VAT</th>
+                            <th style="width: 12%; text-align: right;">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in payment_form.line_items.all %}
                         <tr>
-                            <td class="text-center"><strong>{{ item.line_number }}</strong></td>
-                            <td>{{ item.description }}</td>
-                            <td>{{ item.department.name }}</td>
-                            <td>{{ item.program|default:"-" }}</td>
-                            <td style="text-align: right;">{{ item.get_currency_symbol }}{{ item.amount|floatformat:2 }}</td>
-                            <td class="text-center">
+                            <td style="text-align: center; vertical-align: middle;"><strong>{{ item.line_number }}</strong></td>
+                            <td style="text-align: left; vertical-align: middle; font-size: 1rem; font-weight: 500; line-height: 1.5;">{{ item.description }}</td>
+                            <td style="text-align: left; vertical-align: middle;">{{ item.department.name }}</td>
+                            <td style="text-align: left; vertical-align: middle;">{{ item.program|default:"-" }}</td>
+                            <td style="text-align: right; vertical-align: middle;">{{ item.get_currency_symbol }}{{ item.amount|floatformat:2 }}</td>
+                            <td style="text-align: center; vertical-align: middle;">
                                 {% if item.vat_applicable %}
                                     <span class="status-badge approved" style="font-size: 0.75rem;">Yes</span>
                                     <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 2px;">
@@ -741,7 +655,7 @@
                                     <span class="status-badge draft" style="font-size: 0.75rem;">No</span>
                                 {% endif %}
                             </td>
-                            <td style="text-align: right; font-weight: 700; color: var(--gray-900); font-size: 1rem;">
+                            <td style="text-align: right; vertical-align: middle; font-weight: 700; color: var(--gray-900); font-size: 1rem;">
                                 {{ item.get_total_with_currency }}
                             </td>
                         </tr>
@@ -845,6 +759,92 @@
         </div>
     </div>
     <!-- ==================== END ATTACHMENTS ==================== -->
+
+
+    <!-- ==================== PAYMENT FORM INFORMATION ==================== -->
+    <div class="detail-card info-card">
+        <div class="detail-card-header">
+            <h2 class="detail-card-title">
+                <i class="bi bi-info-circle"></i>
+                <span>Payment Form Information</span>
+            </h2>
+        </div>
+        <div class="detail-card-body">
+            <div class="info-grid">
+                <dl class="info-item">
+                    <dt>Payee Name</dt>
+                    <dd>{{ payment_form.payee_name }}</dd>
+                </dl>
+
+                <dl class="info-item">
+                    <dt>Payment Date</dt>
+                    <dd>{{ payment_form.payment_date|date:"F d, Y" }}</dd>
+                </dl>
+
+                <dl class="info-item">
+                    <dt>Created By</dt>
+                    <dd>{{ payment_form.created_by.get_full_name|default:payment_form.created_by.username }}</dd>
+                </dl>
+
+                {% if payment_form.company_bank_account %}
+                    <dl class="info-item">
+                        <dt>Transfer From (Company)</dt>
+                        <dd><strong style="color: #667eea;">{{ payment_form.company_bank_account.company_name }}</strong></dd>
+                    </dl>
+
+                    <dl class="info-item">
+                        <dt>Company Bank</dt>
+                        <dd>{{ payment_form.company_bank_account.bank }}</dd>
+                    </dl>
+
+                    <dl class="info-item">
+                        <dt>Company Account</dt>
+                        <dd>{{ payment_form.company_bank_account.account_number }} ({{ payment_form.company_bank_account.currency }})</dd>
+                    </dl>
+                {% endif %}
+
+                <dl class="info-item">
+                    <dt>Transfer To (Supplier Bank)</dt>
+                    <dd><strong style="color: #10b981;">{{ payment_form.bank_address|default:"Not specified" }}</strong></dd>
+                </dl>
+
+                <dl class="info-item">
+                    <dt>Supplier Account Holder</dt>
+                    <dd>{{ payment_form.bank_name|default:"Not specified" }}</dd>
+                </dl>
+
+                <dl class="info-item">
+                    <dt>Supplier Account Number</dt>
+                    <dd>{{ payment_form.bank_account_number|default:"Not specified" }}</dd>
+                </dl>
+
+                <dl class="info-item">
+                    <dt>Created At</dt>
+                    <dd>{{ payment_form.created_at|date:"F d, Y g:i A" }}</dd>
+                </dl>
+
+                {% if payment_form.submitted_at %}
+                    <dl class="info-item">
+                        <dt>Submitted At</dt>
+                        <dd>{{ payment_form.submitted_at|date:"F d, Y g:i A" }}</dd>
+                    </dl>
+                {% endif %}
+
+                {% if payment_form.current_approver %}
+                    <dl class="info-item">
+                        <dt>Current Approver</dt>
+                        <dd>
+                            {{ payment_form.current_approver.get_full_name|default:payment_form.current_approver.username }}
+                            <span style="color: var(--primary-600); font-weight: 600; font-size: 0.75rem;">
+                                ({{ payment_form.current_approver.get_role_level_display }})
+                            </span>
+                        </dd>
+                    </dl>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- ==================== END PAYMENT FORM INFORMATION ==================== -->
 
 
     <!-- ==================== APPROVAL HISTORY ==================== -->

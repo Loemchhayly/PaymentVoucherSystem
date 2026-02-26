@@ -128,15 +128,17 @@ class ReportGenerator:
 
         return stats
 
-    def export_to_excel(self):
-        """Export filtered data to Excel matching the exact template format"""
-        if self.vouchers is None or self.forms is None:
-            self.apply_filters()
+    def _create_sheet(self, wb, sheet_name, documents, doc_type_label):
+        """Helper method to create a sheet for a specific document type"""
+        ws = wb.create_sheet(title=sheet_name)
 
-        # Create workbook
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Payment Voucher Summary"
+        if not documents:
+            # If no documents, create minimal sheet
+            ws['A1'] = f"No {doc_type_label} found with current filters"
+            ws.merge_cells('A1:I1')
+            ws['A1'].font = Font(name='Calibri', size=12, bold=True)
+            ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+            return ws
 
         # ===========================================================================
         # SET COLUMN WIDTHS (UPDATED WITH TRANSFER ACCOUNT COLUMN)
@@ -191,7 +193,7 @@ class ReportGenerator:
         # ===========================================================================
         ws.merge_cells('A2:I2')
         title_cell = ws['A2']
-        title_cell.value = "Summary Payment Voucher"
+        title_cell.value = f"Summary {doc_type_label}"
         title_cell.font = title_font
         title_cell.alignment = center_alignment
 
@@ -215,15 +217,13 @@ class ReportGenerator:
         # ===========================================================================
         ws.merge_cells('A4:I4')
         transfer_cell = ws['A4']
-        transfer_cell.value = "Payment Vouchers Report - Grouped by Transfer Account"
+        transfer_cell.value = f"{doc_type_label} Report - Grouped by Transfer Account"
         transfer_cell.font = Font(name='Calibri', size=11, bold=False)
         transfer_cell.alignment = left_alignment
 
         # ===========================================================================
         # PREPARE AND SORT DATA BY TRANSFER ACCOUNT
         # ===========================================================================
-        all_documents = list(self.vouchers) + list(self.forms)
-
         # Sort by: 1) company_bank_account, 2) payment_date
         def get_sort_key(doc):
             if doc.company_bank_account:
@@ -231,7 +231,7 @@ class ReportGenerator:
             else:
                 return (1, 'ZZZ_No Account', doc.payment_date)
 
-        all_documents.sort(key=get_sort_key)
+        all_documents = sorted(documents, key=get_sort_key)
 
         # ===========================================================================
         # ROWS 5-6: COLUMN HEADERS (WITH MERGED CELLS)
@@ -252,9 +252,10 @@ class ReportGenerator:
             ws.merge_cells(merge_range)
 
         # Row 5 headers
+        doc_no_header = 'PV No.' if 'Voucher' in doc_type_label else 'PF No.'
         headers_row5 = [
             ('A5', 'No'),
-            ('B5', 'PV No.'),
+            ('B5', doc_no_header),
             ('C5', 'Supplier'),
             ('D5', 'Description'),
             ('E5', 'Amount'),
@@ -534,6 +535,24 @@ class ReportGenerator:
         # Enable gridlines for printing
         ws.print_options.gridLines = False
         ws.print_options.gridLinesSet = True
+
+        return ws
+
+    def export_to_excel(self):
+        """Export filtered data to Excel with separate sheets for PV and PF"""
+        if self.vouchers is None or self.forms is None:
+            self.apply_filters()
+
+        # Create workbook
+        wb = Workbook()
+
+        # Remove default sheet
+        default_sheet = wb.active
+        wb.remove(default_sheet)
+
+        # Create separate sheets for Payment Vouchers and Payment Forms
+        self._create_sheet(wb, "Payment Vouchers (PV)", list(self.vouchers), "Payment Voucher")
+        self._create_sheet(wb, "Payment Forms (PF)", list(self.forms), "Payment Form")
 
         # Save to BytesIO
         output = BytesIO()

@@ -537,12 +537,6 @@
     </div>
 
     <!-- ==================== PAGE HEADER ==================== -->
-    <div class="report-page-header no-print">
-        <h1 class="report-page-title">
-            <i class="bi bi-file-earmark-bar-graph"></i>
-            Advanced Reports
-        </h1>
-    </div>
 
     <!-- ==================== FILTER CARD ==================== -->
     <div class="filter-card no-print">
@@ -609,7 +603,7 @@
                             <option value="">All Creators</option>
                             {% for u in users %}
                                 <option value="{{ u.id }}" {% if request.GET.creator == u.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ u.get_full_name }}
+                                    {{ u.get_full_name|default:u.username }}
                                 </option>
                             {% endfor %}
                         </select>
@@ -846,7 +840,7 @@
                         <td>{{ record.description|default:"-" }}</td>
                         <td>{{ record.department|default:"-" }}</td>
                         <td>{{ record.payment_date|date:"d M Y" }}</td>
-                        <td>{{ record.created_by }}</td>
+                        <td>{{ record.created_by|default:"-" }}</td>
                         <td>
                             {% if record.status == 'APPROVED' %}
                                 <span class="status-badge approved"><i class="bi bi-check-circle"></i> Approved</span>
