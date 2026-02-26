@@ -128,31 +128,30 @@ class ReportGenerator:
 
         return stats
 
-    def _create_sheet(self, wb, sheet_name, documents, doc_type_label):
-        """Helper method to create a sheet for a specific document type"""
-        ws = wb.create_sheet(title=sheet_name)
+    def export_to_excel(self):
+        """Export filtered data to Excel matching the exact template format"""
+        if self.vouchers is None or self.forms is None:
+            self.apply_filters()
 
-        if not documents:
-            # If no documents, create minimal sheet
-            ws['A1'] = f"No {doc_type_label} found with current filters"
-            ws.merge_cells('A1:I1')
-            ws['A1'].font = Font(name='Calibri', size=12, bold=True)
-            ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
-            return ws
+        # Create workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "All Documents Summary"
 
         # ===========================================================================
-        # SET COLUMN WIDTHS (UPDATED WITH TRANSFER ACCOUNT COLUMN)
+        # SET COLUMN WIDTHS (WITH TYPE COLUMN)
         # ===========================================================================
         column_widths = {
             'A': 3.71,   # No
-            'B': 15.14,  # PV No
-            'C': 25.0,   # Supplier
-            'D': 50.0,   # Description
-            'E': 18.0,   # Amount
-            'F': 28.0,   # Transfer Account (Company)
-            'G': 25.0,   # Account Name (Payee)
-            'H': 20.0,   # Account Number (Payee)
-            'I': 20.0    # Remark
+            'B': 8.0,    # Type (PV/PF)
+            'C': 15.14,  # Doc No
+            'D': 25.0,   # Supplier
+            'E': 50.0,   # Description
+            'F': 18.0,   # Amount
+            'G': 28.0,   # Transfer Account (Company)
+            'H': 25.0,   # Account Name (Payee)
+            'I': 20.0,   # Account Number (Payee)
+            'J': 20.0    # Remark
         }
 
         for col, width in column_widths.items():
@@ -182,7 +181,7 @@ class ReportGenerator:
         # ===========================================================================
         # ROW 1: COMPANY NAME
         # ===========================================================================
-        ws.merge_cells('A1:I1')
+        ws.merge_cells('A1:J1')
         company_cell = ws['A1']
         company_cell.value = "Phat Phnom Penh  Co.,LTD  (Garden City Water Park)"
         company_cell.font = company_font
@@ -191,23 +190,23 @@ class ReportGenerator:
         # ===========================================================================
         # ROW 2: TITLE
         # ===========================================================================
-        ws.merge_cells('A2:I2')
+        ws.merge_cells('A2:J2')
         title_cell = ws['A2']
-        title_cell.value = f"Summary {doc_type_label}"
+        title_cell.value = "Summary Payment Vouchers & Forms"
         title_cell.font = title_font
         title_cell.alignment = center_alignment
 
         # ===========================================================================
         # ROW 3: DATE
         # ===========================================================================
-        # "Date" label (Column H)
-        date_label_cell = ws['H3']
+        # "Date" label (Column I)
+        date_label_cell = ws['I3']
         date_label_cell.value = "Date"
         date_label_cell.font = header_font
         date_label_cell.alignment = right_alignment
 
-        # Current date (Column I)
-        date_cell = ws['I3']
+        # Current date (Column J)
+        date_cell = ws['J3']
         date_cell.value = timezone.now().strftime('%Y-%m-%d')
         date_cell.font = data_font
         date_cell.alignment = left_alignment
@@ -215,15 +214,18 @@ class ReportGenerator:
         # ===========================================================================
         # ROW 4: REPORT DESCRIPTION
         # ===========================================================================
-        ws.merge_cells('A4:I4')
+        ws.merge_cells('A4:J4')
         transfer_cell = ws['A4']
-        transfer_cell.value = f"{doc_type_label} Report - Grouped by Transfer Account"
+        transfer_cell.value = "Payment Vouchers & Forms Report - Grouped by Transfer Account"
         transfer_cell.font = Font(name='Calibri', size=11, bold=False)
         transfer_cell.alignment = left_alignment
 
         # ===========================================================================
         # PREPARE AND SORT DATA BY TRANSFER ACCOUNT
         # ===========================================================================
+        # Combine all documents
+        all_documents = list(self.vouchers) + list(self.forms)
+
         # Sort by: 1) company_bank_account, 2) payment_date
         def get_sort_key(doc):
             if doc.company_bank_account:
@@ -231,7 +233,7 @@ class ReportGenerator:
             else:
                 return (1, 'ZZZ_No Account', doc.payment_date)
 
-        all_documents = sorted(documents, key=get_sort_key)
+        all_documents.sort(key=get_sort_key)
 
         # ===========================================================================
         # ROWS 5-6: COLUMN HEADERS (WITH MERGED CELLS)
@@ -239,29 +241,30 @@ class ReportGenerator:
         # Merge cells for headers
         merge_ranges = [
             'A5:A6',  # No
-            'B5:B6',  # PV No
-            'C5:C6',  # Supplier
-            'D5:D6',  # Description
-            'E5:E6',  # Amount
-            'F5:F6',  # Transfer Account (Company)
-            'G5:H5',  # Receiver Bank Account (merged horizontally)
-            'I5:I6'   # Remark
+            'B5:B6',  # Type (PV/PF)
+            'C5:C6',  # Doc No
+            'D5:D6',  # Supplier
+            'E5:E6',  # Description
+            'F5:F6',  # Amount
+            'G5:G6',  # Transfer Account (Company)
+            'H5:I5',  # Receiver Bank Account (merged horizontally)
+            'J5:J6'   # Remark
         ]
 
         for merge_range in merge_ranges:
             ws.merge_cells(merge_range)
 
         # Row 5 headers
-        doc_no_header = 'PV No.' if 'Voucher' in doc_type_label else 'PF No.'
         headers_row5 = [
             ('A5', 'No'),
-            ('B5', doc_no_header),
-            ('C5', 'Supplier'),
-            ('D5', 'Description'),
-            ('E5', 'Amount'),
-            ('F5', 'Transfer Account'),
-            ('G5', 'Receiver Bank Account'),
-            ('I5', 'Remark')
+            ('B5', 'Type'),
+            ('C5', 'Doc No.'),
+            ('D5', 'Supplier'),
+            ('E5', 'Description'),
+            ('F5', 'Amount'),
+            ('G5', 'Transfer Account'),
+            ('H5', 'Receiver Bank Account'),
+            ('J5', 'Remark')
         ]
 
         for cell_ref, value in headers_row5:
@@ -274,8 +277,8 @@ class ReportGenerator:
 
         # Row 6 sub-headers
         headers_row6 = [
-            ('G6', 'Account Name'),
-            ('H6', 'Account Number')
+            ('H6', 'Account Name'),
+            ('I6', 'Account Number')
         ]
 
         for cell_ref, value in headers_row6:
@@ -288,7 +291,7 @@ class ReportGenerator:
 
         # Apply borders to all header cells
         for row in [5, 6]:
-            for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
+            for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']:
                 cell = ws[f'{col}{row}']
                 if not cell.border.left.style:
                     cell.border = border
@@ -326,14 +329,14 @@ class ReportGenerator:
                 # Add subtotal for previous bank (if any)
                 if current_bank is not None and bank_subtotal > 0:
                     # Subtotal row
-                    subtotal_cell = ws.cell(row=row, column=4)
+                    subtotal_cell = ws.cell(row=row, column=5)
                     subtotal_cell.value = f"Subtotal - {current_bank}:"
                     subtotal_cell.font = Font(name='Calibri', size=11, bold=True)
                     subtotal_cell.alignment = right_alignment
                     subtotal_cell.fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
                     subtotal_cell.border = border
 
-                    subtotal_amount_cell = ws.cell(row=row, column=5)
+                    subtotal_amount_cell = ws.cell(row=row, column=6)
                     subtotal_amount_cell.value = float(bank_subtotal)
                     subtotal_amount_cell.font = Font(name='Calibri', size=11, bold=True)
                     subtotal_amount_cell.alignment = right_alignment
@@ -342,7 +345,7 @@ class ReportGenerator:
                     subtotal_amount_cell.border = border
 
                     # Apply borders to other cells in subtotal row
-                    for col in [1, 2, 3, 6, 7, 8, 9]:
+                    for col in [1, 2, 3, 4, 7, 8, 9, 10]:
                         cell = ws.cell(row=row, column=col)
                         cell.border = border
                         cell.fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
@@ -351,7 +354,7 @@ class ReportGenerator:
                     bank_subtotal = Decimal('0')
 
                 # Section header
-                ws.merge_cells(f'A{row}:I{row}')
+                ws.merge_cells(f'A{row}:J{row}')
                 section_cell = ws.cell(row=row, column=1)
                 section_cell.value = f"═══ Transfer Account: {transfer_account_full} ═══"
                 section_cell.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
@@ -385,75 +388,87 @@ class ReportGenerator:
             cell_a.alignment = center_alignment
             cell_a.border = border
 
-            # Column B: PV/PF Number
+            # Column B: Type (PV or PF)
             cell_b = ws.cell(row=row, column=2)
-            cell_b.value = doc_number or 'DRAFT'
-            cell_b.font = data_font
-            cell_b.alignment = left_alignment
+            cell_b.value = 'PV' if is_voucher else 'PF'
+            cell_b.font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+            cell_b.alignment = center_alignment
             cell_b.border = border
+            # Color code: PV = Orange, PF = Blue
+            if is_voucher:
+                cell_b.fill = PatternFill(start_color='F59E0B', end_color='F59E0B', fill_type='solid')
+            else:
+                cell_b.fill = PatternFill(start_color='3B82F6', end_color='3B82F6', fill_type='solid')
 
-            # Column C: Supplier/Payee
+            # Column C: PV/PF Number
             cell_c = ws.cell(row=row, column=3)
-            cell_c.value = doc.payee_name
+            cell_c.value = doc_number or 'DRAFT'
             cell_c.font = data_font
             cell_c.alignment = left_alignment
             cell_c.border = border
 
-            # Column D: Description
+            # Column D: Supplier/Payee
             cell_d = ws.cell(row=row, column=4)
-            cell_d.value = combined_description
+            cell_d.value = doc.payee_name
             cell_d.font = data_font
             cell_d.alignment = left_alignment
             cell_d.border = border
 
-            # Column E: Amount (right-aligned, formatted)
+            # Column E: Description
             cell_e = ws.cell(row=row, column=5)
-            cell_e.value = float(amount)
+            cell_e.value = combined_description
             cell_e.font = data_font
-            cell_e.alignment = right_alignment
+            cell_e.alignment = left_alignment
             cell_e.border = border
-            cell_e.number_format = '#,##0.00'
 
-            # Column F: Transfer Account (Company Bank)
+            # Column F: Amount (right-aligned, formatted)
             cell_f = ws.cell(row=row, column=6)
-            cell_f.value = transfer_account
+            cell_f.value = float(amount)
             cell_f.font = data_font
-            cell_f.alignment = left_alignment
+            cell_f.alignment = right_alignment
             cell_f.border = border
+            cell_f.number_format = '#,##0.00'
 
-            # Column G: Account Name (Payee)
+            # Column G: Transfer Account (Company Bank)
             cell_g = ws.cell(row=row, column=7)
-            cell_g.value = account_name
+            cell_g.value = transfer_account
             cell_g.font = data_font
             cell_g.alignment = left_alignment
             cell_g.border = border
 
-            # Column H: Account Number (Payee)
+            # Column H: Account Name (Payee)
             cell_h = ws.cell(row=row, column=8)
-            cell_h.value = account_number
+            cell_h.value = account_name
             cell_h.font = data_font
             cell_h.alignment = left_alignment
             cell_h.border = border
 
-            # Column I: Remark (blank for manual entry)
+            # Column I: Account Number (Payee)
             cell_i = ws.cell(row=row, column=9)
-            cell_i.value = ''
+            cell_i.value = account_number
             cell_i.font = data_font
             cell_i.alignment = left_alignment
             cell_i.border = border
+
+            # Column J: Remark (blank for manual entry)
+            cell_j = ws.cell(row=row, column=10)
+            cell_j.value = ''
+            cell_j.font = data_font
+            cell_j.alignment = left_alignment
+            cell_j.border = border
 
             row += 1
 
         # Add final subtotal for last bank group
         if current_bank is not None and bank_subtotal > 0:
-            subtotal_cell = ws.cell(row=row, column=4)
+            subtotal_cell = ws.cell(row=row, column=5)
             subtotal_cell.value = f"Subtotal - {current_bank}:"
             subtotal_cell.font = Font(name='Calibri', size=11, bold=True)
             subtotal_cell.alignment = right_alignment
             subtotal_cell.fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
             subtotal_cell.border = border
 
-            subtotal_amount_cell = ws.cell(row=row, column=5)
+            subtotal_amount_cell = ws.cell(row=row, column=6)
             subtotal_amount_cell.value = float(bank_subtotal)
             subtotal_amount_cell.font = Font(name='Calibri', size=11, bold=True)
             subtotal_amount_cell.alignment = right_alignment
@@ -462,7 +477,7 @@ class ReportGenerator:
             subtotal_amount_cell.border = border
 
             # Apply borders to other cells in subtotal row
-            for col in [1, 2, 3, 6, 7, 8, 9]:
+            for col in [1, 2, 3, 4, 7, 8, 9, 10]:
                 cell = ws.cell(row=row, column=col)
                 cell.border = border
                 cell.fill = PatternFill(start_color='E8F4F8', end_color='E8F4F8', fill_type='solid')
@@ -472,16 +487,16 @@ class ReportGenerator:
         # ===========================================================================
         # GRAND TOTAL ROW
         # ===========================================================================
-        # Column D: "Grand Total:" label
-        total_label_cell = ws.cell(row=row, column=4)
+        # Column E: "Grand Total:" label
+        total_label_cell = ws.cell(row=row, column=5)
         total_label_cell.value = "GRAND TOTAL:"
         total_label_cell.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
         total_label_cell.alignment = right_alignment
         total_label_cell.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
         total_label_cell.border = border
 
-        # Column E: Total amount
-        total_amount_cell = ws.cell(row=row, column=5)
+        # Column F: Total amount
+        total_amount_cell = ws.cell(row=row, column=6)
         total_amount_cell.value = float(total_amount)
         total_amount_cell.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
         total_amount_cell.alignment = right_alignment
@@ -490,7 +505,7 @@ class ReportGenerator:
         total_amount_cell.number_format = '#,##0.00'
 
         # Apply borders and fill to other cells in total row
-        for col in [1, 2, 3, 6, 7, 8, 9]:
+        for col in [1, 2, 3, 4, 7, 8, 9, 10]:
             cell = ws.cell(row=row, column=col)
             cell.border = border
             cell.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
@@ -519,7 +534,7 @@ class ReportGenerator:
         ws.print_options.verticalCentered = False
 
         # Set print area to include all data and signature section
-        ws.print_area = f'A1:I{row}'
+        ws.print_area = f'A1:J{row}'
 
         # Set margins (in inches) - smaller margins for more space
         ws.page_margins.left = 0.4
@@ -535,24 +550,6 @@ class ReportGenerator:
         # Enable gridlines for printing
         ws.print_options.gridLines = False
         ws.print_options.gridLinesSet = True
-
-        return ws
-
-    def export_to_excel(self):
-        """Export filtered data to Excel with separate sheets for PV and PF"""
-        if self.vouchers is None or self.forms is None:
-            self.apply_filters()
-
-        # Create workbook
-        wb = Workbook()
-
-        # Remove default sheet
-        default_sheet = wb.active
-        wb.remove(default_sheet)
-
-        # Create separate sheets for Payment Vouchers and Payment Forms
-        self._create_sheet(wb, "Payment Vouchers (PV)", list(self.vouchers), "Payment Voucher")
-        self._create_sheet(wb, "Payment Forms (PF)", list(self.forms), "Payment Form")
 
         # Save to BytesIO
         output = BytesIO()
