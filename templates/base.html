@@ -463,6 +463,19 @@
         }
 
         .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-xl);
+        }
+
+        /* Specialized containers for different content types */
+        .content-container-narrow {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-xl);
+        }
+
+        .content-container-wide {
             max-width: 1400px;
             margin: 0 auto;
             padding: 0 var(--spacing-xl);
@@ -640,11 +653,36 @@
             background-clip: text;
         }
 
+        /* Professional content widths for better readability */
+        .container-form {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .container-table {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .container-reading {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Better spacing for content sections */
+        .section-spacing {
+            padding: var(--spacing-xl) 0;
+        }
+
+        .section-spacing-sm {
+            padding: var(--spacing-lg) 0;
+        }
+
         /* ==================== RESPONSIVE DESIGN ==================== */
 
         /* Responsive Container */
         .container-responsive {
-            max-width: 1600px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 var(--spacing-xl);
         }
@@ -652,7 +690,7 @@
         /* Extra Large Screens (4K+) */
         @media (min-width: 1800px) {
             .container-responsive {
-                max-width: 1800px;
+                max-width: 1400px;
             }
         }
 
