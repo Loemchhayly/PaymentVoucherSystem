@@ -11,6 +11,7 @@ Pillow>=10.2.0
 
 # PDF Generation
 weasyprint>=60.1
+pypdf>=5.1.0
 
 # Forms
 django-crispy-forms==2.1

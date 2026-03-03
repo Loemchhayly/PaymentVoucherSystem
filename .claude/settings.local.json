@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python manage.py:*)"
+      "Bash(python manage.py:*)",
+      "Bash(pip install:*)"
     ]
   }
 }
