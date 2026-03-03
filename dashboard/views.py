@@ -324,17 +324,17 @@ class ApprovedView(LoginRequiredMixin, ListView):
 
         # Filter by document type
         if doc_type == 'pv':
-            # Only Payment Vouchers
-            combined = sorted(pv_queryset, key=attrgetter('created_at'), reverse=True)
+            # Only Payment Vouchers - sorted by number (0001 first)
+            combined = sorted(pv_queryset, key=attrgetter('pv_number'), reverse=False)
         elif doc_type == 'pf':
-            # Only Payment Forms
-            combined = sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
+            # Only Payment Forms - sorted by number (0001 first)
+            combined = sorted(pf_queryset, key=attrgetter('pf_number'), reverse=False)
         else:
-            # All documents (default)
+            # All documents (default) - sorted by creation date (oldest first)
             combined = sorted(
                 chain(pv_queryset, pf_queryset),
                 key=attrgetter('created_at'),
-                reverse=True
+                reverse=False
             )
 
         return combined

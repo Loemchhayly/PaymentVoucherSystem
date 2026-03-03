@@ -440,6 +440,50 @@
         transform: rotate(-90deg);
     }
 
+    /* Quick Filter Buttons - Compact */
+    .quick-filter-buttons {
+        display: flex;
+        gap: 6px;
+        margin-bottom: var(--spacing-sm);
+        flex-wrap: wrap;
+    }
+
+    .quick-filter-btn {
+        padding: 5px 12px;
+        border-radius: var(--radius-sm);
+        font-family: var(--font-body);
+        font-size: 0.8125rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all var(--transition-base);
+        border: 1px solid var(--gray-300);
+        background: white;
+        color: var(--gray-700);
+        height: 32px;
+    }
+
+    .quick-filter-btn:hover {
+        background: var(--primary-50);
+        border-color: var(--primary-400);
+        color: var(--primary-700);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .quick-filter-btn.active {
+        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+        border-color: var(--primary-600);
+        color: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .quick-filter-btn i {
+        font-size: 0.875rem;
+    }
+
     .filter-form {
         display: grid;
         grid-template-columns: repeat(6, 1fr);  /* 6 columns for compact layout */
@@ -1064,6 +1108,24 @@
     </div>
     {% endif %}
 
+    <!-- Quick Filter Buttons -->
+    {% if title == "Approved Vouchers & Forms" %}
+    <div class="quick-filter-buttons">
+        <a href="?doc_type=all" class="quick-filter-btn {% if request.GET.doc_type == 'all' or not request.GET.doc_type %}active{% endif %}">
+            <i class="bi bi-files"></i>
+            <span>All Documents</span>
+        </a>
+        <a href="?doc_type=pv" class="quick-filter-btn {% if request.GET.doc_type == 'pv' %}active{% endif %}">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>PV Only</span>
+        </a>
+        <a href="?doc_type=pf" class="quick-filter-btn {% if request.GET.doc_type == 'pf' %}active{% endif %}">
+            <i class="bi bi-file-earmark-check"></i>
+            <span>PF Only</span>
+        </a>
+    </div>
+    {% endif %}
+
     <!-- Vouchers Card -->
     <div class="vouchers-card">
         <div class="vouchers-card-header">
@@ -1202,10 +1264,10 @@
             <div class="pagination-container">
                 <div class="modern-pagination">
                     {% if page_obj.has_previous %}
-                    <a href="?{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page=1" class="pagination-btn" title="First">
+                    <a href="?{% if request.GET.doc_type %}doc_type={{ request.GET.doc_type }}&{% endif %}{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page=1" class="pagination-btn" title="First">
                         <i class="bi bi-chevron-double-left"></i>
                     </a>
-                    <a href="?{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}" class="pagination-btn" title="Previous">
+                    <a href="?{% if request.GET.doc_type %}doc_type={{ request.GET.doc_type }}&{% endif %}{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}" class="pagination-btn" title="Previous">
                         <i class="bi bi-chevron-left"></i> Prev
                     </a>
                     {% else %}
@@ -1218,10 +1280,10 @@
                     </div>
 
                     {% if page_obj.has_next %}
-                    <a href="?{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}" class="pagination-btn" title="Next">
+                    <a href="?{% if request.GET.doc_type %}doc_type={{ request.GET.doc_type }}&{% endif %}{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}" class="pagination-btn" title="Next">
                         Next <i class="bi bi-chevron-right"></i>
                     </a>
-                    <a href="?{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="pagination-btn" title="Last">
+                    <a href="?{% if request.GET.doc_type %}doc_type={{ request.GET.doc_type }}&{% endif %}{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="pagination-btn" title="Last">
                         <i class="bi bi-chevron-double-right"></i>
                     </a>
                     {% else %}
