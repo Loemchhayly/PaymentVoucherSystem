@@ -2,6 +2,7 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.conf import settings
 from django.utils import timezone
+from django.core.files.base import ContentFile
 from weasyprint import HTML
 import os
 
@@ -84,6 +85,42 @@ class VoucherPDFGenerator:
 
         return response
 
+    @staticmethod
+    def generate_pdf_file(voucher):
+        """
+        Generate PDF file content for saving as attachment.
+        Returns tuple of (pdf_bytes, filename)
+        """
+        grand_total = voucher.calculate_grand_total()
+
+        approval_history = voucher.approval_history.filter(
+            action='APPROVE'
+        ).order_by('timestamp')
+
+        context = {
+            'voucher': voucher,
+            'grand_total': grand_total,
+            'approval_history': approval_history,
+            'line_items': voucher.line_items.all(),
+        }
+
+        html_string = render_to_string('vouchers/voucher_pdf.html', context)
+
+        media_root = os.path.abspath(settings.MEDIA_ROOT)
+        media_root = media_root.replace('\\', '/')
+
+        if not media_root.endswith('/'):
+            media_root += '/'
+
+        base_url = f"file:///{media_root}"
+
+        html = HTML(string=html_string, base_url=base_url)
+        pdf_bytes = html.write_pdf()
+
+        filename = f'PV_{voucher.pv_number}.pdf'
+
+        return pdf_bytes, filename
+
 
 class FormPDFGenerator:
     """Service for generating PDF payment forms with WeasyPrint"""
@@ -164,3 +201,40 @@ class FormPDFGenerator:
         response['Content-Disposition'] = 'inline'
 
         return response
+
+    @staticmethod
+    def generate_pdf_file(payment_form):
+        """
+        Generate PDF file content for saving as attachment.
+        Returns tuple of (pdf_bytes, filename)
+        """
+        grand_total = payment_form.calculate_grand_total()
+
+        approval_history = payment_form.approval_history.filter(
+            action='APPROVE'
+        ).order_by('timestamp')
+
+        context = {
+            'payment_form': payment_form,
+            'grand_total': grand_total,
+            'approval_history': approval_history,
+            'line_items': payment_form.line_items.all(),
+            'now': timezone.now(),
+        }
+
+        html_string = render_to_string('vouchers/pf/form_pdf.html', context)
+
+        media_root = os.path.abspath(settings.MEDIA_ROOT)
+        media_root = media_root.replace('\\', '/')
+
+        if not media_root.endswith('/'):
+            media_root += '/'
+
+        base_url = f"file:///{media_root}"
+
+        html = HTML(string=html_string, base_url=base_url)
+        pdf_bytes = html.write_pdf()
+
+        filename = f'PF_{payment_form.pf_number}.pdf'
+
+        return pdf_bytes, filename

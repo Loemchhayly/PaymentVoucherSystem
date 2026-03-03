@@ -2,6 +2,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
+from django.core.files.base import ContentFile
 import threading
 
 
@@ -91,6 +92,9 @@ class NotificationService:
     @staticmethod
     def _notify_creator_approved(voucher, approver):
         """Notify creator that voucher was approved"""
+        # 🔥 AUTO-ATTACH PDF: Generate and save PDF as attachment
+        AutoAttachmentService.attach_pdf_to_approved_document(voucher, approver)
+
         doc_type, doc_number = NotificationService._get_document_info(voucher)
         subject = f"{doc_type} {doc_number} - APPROVED"
 
@@ -179,3 +183,83 @@ class NotificationService:
             )
         except Exception as e:
             print(f"Error sending return notification: {e}")
+
+
+class AutoAttachmentService:
+    """Service for automatically attaching generated PDFs to approved documents"""
+
+    @staticmethod
+    def attach_pdf_to_approved_document(document, system_user):
+        """
+        Automatically generate and attach PDF when document is approved.
+
+        Args:
+            document: PaymentVoucher or PaymentForm instance (must be APPROVED)
+            system_user: User object to record as uploader (typically the last approver)
+        """
+        # Only attach PDF if document is approved
+        if document.status != 'APPROVED':
+            return
+
+        # Determine document type and import appropriate models
+        if hasattr(document, 'pv_number'):
+            # This is a PaymentVoucher
+            from vouchers.models import VoucherAttachment
+            from vouchers.pdf_generator import VoucherPDFGenerator
+
+            # Check if PDF already exists to avoid duplicates
+            pdf_filename = f'PV_{document.pv_number}.pdf'
+            if document.attachments.filter(filename=pdf_filename).exists():
+                print(f"PDF attachment already exists for {document.pv_number}")
+                return
+
+            # Generate PDF
+            try:
+                pdf_bytes, filename = VoucherPDFGenerator.generate_pdf_file(document)
+
+                # Create attachment record
+                attachment = VoucherAttachment(
+                    voucher=document,
+                    filename=filename,
+                    file_size=len(pdf_bytes),
+                    uploaded_by=system_user
+                )
+
+                # Save PDF file using Django's file storage
+                attachment.file.save(filename, ContentFile(pdf_bytes), save=True)
+
+                print(f"✅ Auto-attached PDF: {filename} to {document.pv_number}")
+
+            except Exception as e:
+                print(f"❌ Error auto-attaching PDF to {document.pv_number}: {e}")
+
+        elif hasattr(document, 'pf_number'):
+            # This is a PaymentForm
+            from vouchers.models import FormAttachment
+            from vouchers.pdf_generator import FormPDFGenerator
+
+            # Check if PDF already exists to avoid duplicates
+            pdf_filename = f'PF_{document.pf_number}.pdf'
+            if document.attachments.filter(filename=pdf_filename).exists():
+                print(f"PDF attachment already exists for {document.pf_number}")
+                return
+
+            # Generate PDF
+            try:
+                pdf_bytes, filename = FormPDFGenerator.generate_pdf_file(document)
+
+                # Create attachment record
+                attachment = FormAttachment(
+                    payment_form=document,
+                    filename=filename,
+                    file_size=len(pdf_bytes),
+                    uploaded_by=system_user
+                )
+
+                # Save PDF file using Django's file storage
+                attachment.file.save(filename, ContentFile(pdf_bytes), save=True)
+
+                print(f"✅ Auto-attached PDF: {filename} to {document.pf_number}")
+
+            except Exception as e:
+                print(f"❌ Error auto-attaching PDF to {document.pf_number}: {e}")
