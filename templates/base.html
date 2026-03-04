@@ -269,18 +269,51 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
-            animation: pulse 2s infinite;
+            animation: badgePulseGlow 2s ease-in-out infinite;
+            border: 2px solid white;
         }
 
-        @keyframes pulse {
+        @keyframes badgePulseGlow {
             0%, 100% {
                 transform: scale(1);
-                box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7), 0 2px 4px rgba(239, 68, 68, 0.4);
             }
             50% {
-                transform: scale(1.1);
-                box-shadow: 0 4px 8px rgba(239, 68, 68, 0.6);
+                transform: scale(1.15);
+                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0), 0 4px 12px rgba(239, 68, 68, 0.8);
             }
+        }
+
+        /* Bell Icon Ring Animation */
+        .nav-link .bi-bell-fill {
+            transition: all 0.3s ease;
+        }
+
+        .nav-link.has-notifications .bi-bell-fill {
+            animation: bellRing 2s ease-in-out infinite;
+            transform-origin: top center;
+        }
+
+        @keyframes bellRing {
+            0% { transform: rotate(0deg); }
+            5% { transform: rotate(15deg); }
+            10% { transform: rotate(-15deg); }
+            15% { transform: rotate(10deg); }
+            20% { transform: rotate(-10deg); }
+            25% { transform: rotate(5deg); }
+            30% { transform: rotate(-5deg); }
+            35% { transform: rotate(0deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .nav-link.has-notifications:hover .bi-bell-fill {
+            animation: bellShake 0.5s ease-in-out;
+        }
+
+        @keyframes bellShake {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+            20%, 40%, 60%, 80% { transform: rotate(10deg); }
         }
 
         .notification-dropdown {
@@ -1160,7 +1193,7 @@
                 <ul class="navbar-nav">
                     <!-- Notification Bell -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link position-relative" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                        <a class="nav-link position-relative {% if pending_count > 0 %}has-notifications{% endif %}" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
                             <i class="bi bi-bell-fill" style="font-size: 1.25rem;"></i>
                             {% if pending_count > 0 %}
                             <span class="notification-badge">{{ pending_count }}</span>

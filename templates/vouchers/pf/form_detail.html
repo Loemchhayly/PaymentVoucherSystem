@@ -109,10 +109,71 @@
         .status-badge-large i { font-size: 0.875rem; }
 
         .status-badge-large.draft { background: var(--gray-200); color: var(--gray-700); }
-        .status-badge-large.pending { background: var(--warning-light); color: #92400e; }
+
+        .status-badge-large.pending {
+            background: var(--warning-light);
+            color: #92400e;
+            animation: badgePulseLarge 2s ease-in-out infinite;
+            border: 2px solid #fbbf24;
+        }
+
+        @keyframes badgePulseLarge {
+            0%, 100% {
+                background: #fef3c7;
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
+            }
+            50% {
+                background: #fde68a;
+                box-shadow: 0 0 0 6px rgba(251, 191, 36, 0);
+            }
+        }
+
+        .status-badge-large.pending i {
+            animation: iconSpinLarge 2s linear infinite;
+        }
+
+        @keyframes iconSpinLarge {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         .status-badge-large.approved { background: var(--success-light); color: #065f46; }
         .status-badge-large.rejected { background: var(--danger-light); color: #991b1b; }
         .status-badge-large.revision { background: var(--info-light); color: #1e40af; }
+
+        /* Regular status badge pending animation */
+        .status-badge.pending {
+            animation: badgePulseSmall 2s ease-in-out infinite;
+            border: 2px solid #fbbf24;
+        }
+
+        @keyframes badgePulseSmall {
+            0%, 100% {
+                background: #fef3c7;
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
+            }
+            50% {
+                background: #fde68a;
+                box-shadow: 0 0 0 3px rgba(251, 191, 36, 0);
+            }
+        }
+
+        .status-badge.pending i {
+            animation: iconSpinSmall 2s linear infinite;
+        }
+
+        @keyframes iconSpinSmall {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
 
         /* COMPACT Detail Cards with Fade Animation */
         .detail-card {

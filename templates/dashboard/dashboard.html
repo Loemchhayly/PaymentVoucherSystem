@@ -24,6 +24,98 @@
         }
     }
 
+    /* Pulse animation for pending status */
+    @keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
+        }
+    }
+
+    @keyframes iconPulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+
+    /* Pending card special effects */
+    .stat-card.warning.pending-action {
+        animation: fadeInUp 0.5s ease-out 0.15s forwards, pulse 2s ease-in-out infinite;
+        border: 2px solid #fbbf24;
+    }
+
+    .stat-card.warning.pending-action::before {
+        background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24);
+        background-size: 200% 100%;
+        animation: shimmer 3s linear infinite;
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: -200% 0;
+        }
+        100% {
+            background-position: 200% 0;
+        }
+    }
+
+    .stat-card.warning.pending-action .stat-card-icon {
+        animation: iconPulse 2s ease-in-out infinite;
+        box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+    }
+
+    .stat-card.warning.pending-action:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+        border-color: #f59e0b;
+    }
+
+    /* In Progress card special effects */
+    .stat-card.info.in-progress-action {
+        animation: fadeInUp 0.5s ease-out 0.45s forwards, pulseBlue 2s ease-in-out infinite;
+        border: 2px solid #60a5fa;
+    }
+
+    @keyframes pulseBlue {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(96, 165, 250, 0);
+        }
+    }
+
+    .stat-card.info.in-progress-action::before {
+        background: linear-gradient(90deg, #60a5fa, #3b82f6, #60a5fa);
+        background-size: 200% 100%;
+        animation: shimmer 3s linear infinite;
+    }
+
+    .stat-card.info.in-progress-action .stat-card-icon {
+        animation: iconRotate 3s linear infinite;
+        box-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
+    }
+
+    @keyframes iconRotate {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .stat-card.info.in-progress-action:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 30px rgba(96, 165, 250, 0.3);
+        border-color: #3b82f6;
+    }
+
     /* Extra Large Screens */
     @media (min-width: 1800px) {
         .dashboard-container {
@@ -62,12 +154,12 @@
     /* Stats Cards Grid */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: var(--spacing-md);
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: var(--spacing-lg);
         margin-bottom: var(--spacing-2xl);
     }
 
-    /* Force 6 columns on large screens */
+    /* Force 5 columns on large screens */
     @media (min-width: 1200px) {
         .stats-grid {
             grid-template-columns: repeat(5, 1fr);
@@ -447,6 +539,32 @@
     .status-badge.pending {
         background: var(--warning-light);
         color: #92400e;
+        animation: badgePulse 2s ease-in-out infinite;
+        border: 2px solid #fbbf24;
+    }
+
+    @keyframes badgePulse {
+        0%, 100% {
+            background: #fef3c7;
+            box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
+        }
+        50% {
+            background: #fde68a;
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0);
+        }
+    }
+
+    .status-badge.pending i {
+        animation: iconSpin 2s linear infinite;
+    }
+
+    @keyframes iconSpin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     .status-badge.approved {
@@ -719,7 +837,7 @@
     <!-- Stats Cards Grid -->
     <div class="stats-grid">
         <!-- Pending My Action -->
-        <div class="stat-card warning">
+        <div class="stat-card warning {% if pending_my_action > 0 %}pending-action{% endif %}">
             <div class="stat-card-header">
                 <div>
                     <div class="stat-card-title">Pending My Action</div>
@@ -781,7 +899,7 @@
         </div>
 
         <!-- In Progress -->
-        <div class="stat-card info">
+        <div class="stat-card info {% if in_progress > 0 %}in-progress-action{% endif %}">
             <div class="stat-card-header">
                 <div>
                     <div class="stat-card-title">In Progress</div>
