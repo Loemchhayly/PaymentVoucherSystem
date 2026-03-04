@@ -9,7 +9,7 @@
     <div class="page-header" style="margin-bottom: 2rem;">
         <div>
             <h1 style="font-size: 2rem; font-weight: 700; color: #1f2937; margin: 0;">
-                <i class="bi bi-folder2-open" style="color: #667eea;"></i>
+                <i class="bi bi-folder2-open" style="color: #0d7874;"></i>
                 {{ batch.batch_number }}
             </h1>
             <p style="color: #6b7280; margin-top: 0.5rem;">Batch Details</p>
@@ -186,7 +186,7 @@
                                 <tbody>
                                     {% for item in batch.voucher_items.all %}
                                     {% if item.voucher %}
-                                    <tr class="doc-row" onclick="window.open('{% url 'vouchers:detail' item.voucher.id %}', '_blank')">
+                                    <tr class="doc-row" onclick="openDocumentPanel('pv', {{ item.voucher.id }}, '{{ item.voucher.pv_number }}')">
                                         <td><span class="doc-number pv-number">{{ item.voucher.pv_number }}</span></td>
                                         <td><span class="payee-name">{{ item.voucher.payee_name }}</span></td>
                                         <td>
@@ -267,7 +267,7 @@
                                 <tbody>
                                     {% for item in batch.form_items.all %}
                                     {% if item.payment_form %}
-                                    <tr class="doc-row" onclick="window.open('{% url 'vouchers:pf_detail' item.payment_form.id %}', '_blank')">
+                                    <tr class="doc-row" onclick="openDocumentPanel('pf', {{ item.payment_form.id }}, '{{ item.payment_form.pf_number }}')">
                                         <td><span class="doc-number pf-number">{{ item.payment_form.pf_number }}</span></td>
                                         <td><span class="payee-name">{{ item.payment_form.payee_name }}</span></td>
                                         <td>
@@ -328,6 +328,32 @@
                     </div>
 
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Side Panel for Document Details -->
+<div class="side-panel-overlay" id="sidePanelOverlay" onclick="closeSidePanel()">
+    <div class="side-panel" onclick="event.stopPropagation()">
+        <div class="side-panel-header">
+            <h3 id="sidePanelTitle">Document Details</h3>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <a href="#" id="viewFullDetailBtn" target="_blank" class="view-full-detail-btn">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                    <span>Full Details</span>
+                </a>
+                <button class="side-panel-close" onclick="closeSidePanel()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+        </div>
+        <div class="side-panel-body" id="sidePanelBody">
+            <div style="text-align: center; padding: 3rem;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p style="margin-top: 1rem; color: #6b7280;">Loading document details...</p>
             </div>
         </div>
     </div>
@@ -542,6 +568,151 @@ function showToast(title, message, type = 'info') {
     const t = new bootstrap.Toast(te, { autohide: true, delay: 5000 }); t.show();
     te.addEventListener('hidden.bs.toast', () => te.remove());
 }
+
+// Side Panel Functions
+function openDocumentPanel(docType, docId, docNumber) {
+    const overlay = document.getElementById('sidePanelOverlay');
+    const title = document.getElementById('sidePanelTitle');
+    const body = document.getElementById('sidePanelBody');
+    const viewFullBtn = document.getElementById('viewFullDetailBtn');
+
+    // Set title
+    title.textContent = (docType === 'pv' ? 'PV ' : 'PF ') + docNumber;
+
+    // Set full detail link
+    const detailUrl = docType === 'pv'
+        ? `/vouchers/pv/${docId}/`
+        : `/vouchers/pf/${docId}/`;
+    viewFullBtn.href = detailUrl;
+
+    // Show loading
+    body.innerHTML = `
+        <div style="text-align: center; padding: 3rem;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p style="margin-top: 1rem; color: #6b7280;">Loading document details...</p>
+        </div>
+    `;
+
+    // Show panel
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Fetch document details
+    const url = docType === 'pv'
+        ? `/vouchers/${docId}/api/details/`
+        : `/vouchers/pf/${docId}/api/details/`;
+
+    fetch(url, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            renderDocumentDetails(data.document, docType);
+        } else {
+            body.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p>Failed to load document details</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error loading document:', error);
+        body.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-exclamation-triangle"></i>
+                <p>Network error. Please try again.</p>
+            </div>
+        `;
+    });
+}
+
+function closeSidePanel() {
+    const overlay = document.getElementById('sidePanelOverlay');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function renderDocumentDetails(doc, docType) {
+    const body = document.getElementById('sidePanelBody');
+
+    // Line Items Section
+    let lineItemsHtml = '';
+    if (doc.line_items && doc.line_items.length > 0) {
+        lineItemsHtml = doc.line_items.map(item => `
+            <div class="line-item">
+                <div class="line-item-desc">${item.description || 'No description'}</div>
+                <div class="line-item-details">
+                    <div class="line-item-detail">
+                        <span class="line-item-detail-label">Department</span>
+                        <span class="line-item-detail-value">${item.department || '-'}</span>
+                    </div>
+                    <div class="line-item-detail">
+                        <span class="line-item-detail-label">Amount</span>
+                        <span class="line-item-detail-value">${item.amount_display || '-'}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        lineItemsHtml = `
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p>No line items</p>
+            </div>
+        `;
+    }
+
+    // Attachments Section
+    let attachmentsHtml = '';
+    if (doc.attachments && doc.attachments.length > 0) {
+        attachmentsHtml = doc.attachments.map(att => `
+            <div class="attachment-item">
+                <div class="attachment-icon">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                </div>
+                <div class="attachment-info">
+                    <div class="attachment-name">${att.filename}</div>
+                    <div class="attachment-meta">${att.file_size} • ${att.uploaded_at}</div>
+                </div>
+                <a href="${att.url}" target="_blank" class="attachment-download">
+                    <i class="bi bi-eye"></i>
+                    <span>View</span>
+                </a>
+            </div>
+        `).join('');
+    } else {
+        attachmentsHtml = `
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p>No attachments</p>
+            </div>
+        `;
+    }
+
+    // Render
+    body.innerHTML = `
+        <div class="panel-section">
+            <div class="panel-section-title">
+                <i class="bi bi-list-ul"></i>
+                Line Items
+            </div>
+            ${lineItemsHtml}
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-section-title">
+                <i class="bi bi-paperclip"></i>
+                Attachments
+            </div>
+            ${attachmentsHtml}
+        </div>
+    `;
+}
 </script>
 
 <style>
@@ -558,6 +729,7 @@ function showToast(title, message, type = 'info') {
 .bi-card {
     border-radius: 12px;
     border: 1.5px solid #e5e7eb;
+    border-top: 3px solid #0d7874;
     overflow: hidden;
     background: #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -569,7 +741,7 @@ function showToast(title, message, type = 'info') {
     align-items: center;
     gap: 0.5rem;
     padding: 0.85rem 1.1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0d7874 0%, #0a5f5c 100%);
     color: #fff;
     font-size: 0.92rem;
     font-weight: 700;
@@ -693,7 +865,7 @@ function showToast(title, message, type = 'info') {
     display: inline-block;
 }
 .bi-note--amber  { background: #fffbeb; border-left: 3px solid #f59e0b; color: #78350f; }
-.bi-note--indigo { background: #eef2ff; border-left: 3px solid #667eea; color: #312e81; }
+.bi-note--indigo { background: #f0fdfa; border-left: 3px solid #0d7874; color: #134e4a; }
 
 /* Action Buttons */
 .bi-actions {
@@ -760,14 +932,13 @@ function showToast(title, message, type = 'info') {
     font-size: 0.875rem;
     table-layout: fixed;
 }
-.col-docnum  { width: 12%; }
+.col-docnum  { width: 15%; }
 .col-payee   { width: 14%; }
-.col-desc    { width: 20%; }
-.col-date    { width: 12%; }
-.col-bank    { width: 25%; }
-.col-amount  { width: 13%; }
+.col-desc    { width: 17%; }
+.col-date    { width: 13%; }
+.col-bank    { width: 23%; }
+.col-amount  { width: 14%; }
 .col-action  { width: 4%;  }
-
 /* Table Header */
 .batch-table thead tr { background: #f8fafc; }
 .batch-table thead th {
@@ -797,7 +968,6 @@ function showToast(title, message, type = 'info') {
     padding: 0.85rem 0.75rem;
     vertical-align: middle;
     color: #374151;
-    overflow: hidden;
 }
 /* Align PV No, Date, Amount cells to center */
 .batch-table td:nth-child(1),
@@ -806,8 +976,8 @@ function showToast(title, message, type = 'info') {
 
 /* Clickable rows */
 .doc-row { cursor: pointer; -webkit-user-select: none; user-select: none; }
-.doc-row:hover { background: #f5f7ff !important; box-shadow: inset 3px 0 0 #667eea; }
-.doc-row:active { background: #eef2ff !important; }
+.doc-row:hover { background: #f0fdfa !important; box-shadow: inset 3px 0 0 #0d7874; }
+.doc-row:active { background: #ccfbf1 !important; }
 
 /* Doc Number Badge */
 .doc-number {
@@ -918,8 +1088,8 @@ function showToast(title, message, type = 'info') {
     align-items: center;
     justify-content: space-between;
     padding: 1rem 1.5rem;
-    background: linear-gradient(to right, #f5f7ff, #f0fdf4);
-    border-top: 2px solid #667eea;
+    background: linear-gradient(to right, #f0fdfa, #f0fdf4);
+    border-top: 2px solid #0d7874;
     margin-top: 0.5rem;
     border-radius: 0 0 0.375rem 0.375rem;
 }
@@ -934,6 +1104,250 @@ function showToast(title, message, type = 'info') {
     .page-header > div:last-child { margin-top: 1rem; }
     .batch-table th, .batch-table td { padding: 0.55rem 0.5rem; font-size: 0.78rem; }
     .gt-amount { font-size: 1.2rem; }
+}
+
+/* ==================== SIDE PANEL ==================== */
+.side-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.side-panel-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.side-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 600px;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 20px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.side-panel-overlay.active .side-panel {
+    transform: translateX(0);
+}
+
+.side-panel-header {
+    padding: 1.5rem;
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #0d7874 0%, #0a5f5c 100%);
+    color: white;
+}
+
+.side-panel-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.side-panel-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.side-panel-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.view-full-detail-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.view-full-detail-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.side-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.panel-section {
+    margin-bottom: 2rem;
+}
+
+.panel-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.panel-section-title i {
+    color: #0d7874;
+}
+
+.line-item {
+    background: #f9fafb;
+    border-left: 3px solid #0d7874;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 0 8px 8px 0;
+}
+
+.line-item-desc {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.line-item-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.line-item-detail {
+    display: flex;
+    flex-direction: column;
+}
+
+.line-item-detail-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #9ca3af;
+}
+
+.line-item-detail-value {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.attachment-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.875rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s;
+}
+
+.attachment-item:hover {
+    border-color: #0d7874;
+    box-shadow: 0 2px 8px rgba(13, 120, 116, 0.1);
+}
+
+.attachment-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #0d7874 0%, #0a5f5c 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.attachment-info {
+    flex: 1;
+}
+
+.attachment-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.attachment-meta {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.attachment-download {
+    background: #0d7874;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.attachment-download:hover {
+    background: #0a5f5c;
+    transform: translateY(-2px);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #9ca3af;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+@media (max-width: 768px) {
+    .side-panel {
+        width: 100%;
+    }
 }
 </style>
 {% endblock %}

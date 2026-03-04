@@ -3,6 +3,24 @@
 
 {% block title %}All Signature Batches{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Clickable rows */
+    .batch-row {
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .batch-row:hover {
+        background-color: #f3f4f6 !important;
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .batch-row:active {
+        transform: scale(0.99);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid" style="max-width: 1200px; margin-top: -2rem;">
     <!-- Page Header -->
@@ -101,7 +119,7 @@
                     </thead>
                     <tbody>
                         {% for batch in pending_batches %}
-                        <tr>
+                        <tr class="batch-row" onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
                             <td>
                                 <strong style="color: #667eea;">{{ batch.batch_number }}</strong>
                             </td>
@@ -119,7 +137,7 @@
                             <td>
                                 <strong style="color: #10b981;">{{ batch.get_total_amount_display }}</strong>
                             </td>
-                            <td>
+                            <td onclick="event.stopPropagation()">
                                 <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-eye"></i> View
                                 </a>
@@ -161,7 +179,7 @@
                     </thead>
                     <tbody>
                         {% for batch in signed_batches %}
-                        <tr>
+                        <tr class="batch-row" onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
                             <td>
                                 <strong style="color: #667eea;">{{ batch.batch_number }}</strong>
                             </td>
@@ -186,7 +204,7 @@
                             <td>
                                 <strong style="color: #10b981;">{{ batch.get_total_amount_display }}</strong>
                             </td>
-                            <td>
+                            <td onclick="event.stopPropagation()">
                                 <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-success">
                                     <i class="bi bi-eye"></i> View
                                 </a>
@@ -228,7 +246,7 @@
                     </thead>
                     <tbody>
                         {% for batch in rejected_batches %}
-                        <tr>
+                        <tr class="batch-row" onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
                             <td>
                                 <strong style="color: #667eea;">{{ batch.batch_number }}</strong>
                             </td>
@@ -263,7 +281,7 @@
                             <td>
                                 <strong style="color: #10b981;">{{ batch.get_total_amount_display }}</strong>
                             </td>
-                            <td>
+                            <td onclick="event.stopPropagation()">
                                 <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-eye"></i> View
                                 </a>

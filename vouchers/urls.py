@@ -23,6 +23,9 @@ urlpatterns = [
     # PV PDF Generation
     path('pv/<int:pk>/pdf/', views.voucher_pdf, name='pdf'),
 
+    # PV API
+    path('<int:pk>/api/details/', views.voucher_api_details, name='voucher_api_details'),
+
     # Payment Form (PF) CRUD
     path('pf/create/', views.FormCreateView.as_view(), name='pf_create'),
     path('pf/<int:pk>/', views.FormDetailView.as_view(), name='pf_detail'),
@@ -36,6 +39,10 @@ urlpatterns = [
 
     # PF PDF Generation
     path('pf/<int:pk>/pdf/', views.form_pdf, name='pf_pdf'),
+
+    # PF API
+    path('pf/<int:pk>/api/details/', views.form_api_details, name='form_api_details'),
+
     path('pf/<int:pk>/upload/', views.upload_form_attachment, name='upload_form_attachment'),
     path('pf/<int:pk>/attachments/<int:attachment_id>/', views.download_form_attachment,
          name='download_form_attachment'),

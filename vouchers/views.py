@@ -6,7 +6,7 @@ from django.views.generic import CreateView, UpdateView, DetailView
 from django.urls import reverse_lazy
 from django.db import transaction
 from django.db.models import Q
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, JsonResponse
 from .models import PaymentVoucher, VoucherAttachment, PaymentForm, FormAttachment
 from .forms import (PaymentVoucherForm, VoucherLineItemFormSet, VoucherAttachmentForm, ApprovalActionForm,
                    PaymentFormForm, FormLineItemFormSet, FormAttachmentForm)
@@ -1684,3 +1684,141 @@ def bulk_approval_action(request):
             messages.warning(request, f"...and {len(errors) - 5} more error(s)")
 
     return redirect('dashboard:pending')
+
+
+@login_required
+def voucher_api_details(request, pk):
+    """
+    API endpoint to fetch Payment Voucher details for side panel
+    Returns JSON with line items and attachments
+    """
+    try:
+        voucher = get_object_or_404(PaymentVoucher, pk=pk)
+
+        # Build line items data
+        line_items_data = []
+        for item in voucher.line_items.all():
+            line_items_data.append({
+                'description': item.description or '',
+                'department': item.department.name if item.department else '',
+                'amount_display': item.get_amount_display() if hasattr(item, 'get_amount_display') else str(item.amount),
+            })
+
+        # Build attachments data
+        attachments_data = []
+        for att in voucher.attachments.all().order_by('uploaded_at'):
+            try:
+                # Get file size in human-readable format
+                file_size = 0
+                if att.file and hasattr(att.file, 'size'):
+                    try:
+                        file_size = att.file.size
+                    except:
+                        # Fallback to getting size from path
+                        import os
+                        if os.path.exists(att.file.path):
+                            file_size = os.path.getsize(att.file.path)
+
+                if file_size < 1024:
+                    size_display = f"{file_size} B"
+                elif file_size < 1024 * 1024:
+                    size_display = f"{file_size / 1024:.1f} KB"
+                else:
+                    size_display = f"{file_size / (1024 * 1024):.1f} MB"
+
+                attachments_data.append({
+                    'filename': att.filename or 'Unnamed',
+                    'file_size': size_display,
+                    'uploaded_at': att.uploaded_at.strftime('%Y-%m-%d %H:%M') if att.uploaded_at else '',
+                    'url': att.file.url if att.file else '',
+                })
+            except Exception as e:
+                # Skip problematic attachments but continue
+                print(f"Error processing attachment {att.id}: {e}")
+                continue
+
+        return JsonResponse({
+            'success': True,
+            'document': {
+                'line_items': line_items_data,
+                'attachments': attachments_data,
+            }
+        })
+
+    except Exception as e:
+        print(f"Error in voucher_api_details: {e}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+
+@login_required
+def form_api_details(request, pk):
+    """
+    API endpoint to fetch Payment Form details for side panel
+    Returns JSON with line items and attachments
+    """
+    try:
+        form = get_object_or_404(PaymentForm, pk=pk)
+
+        # Build line items data
+        line_items_data = []
+        for item in form.line_items.all():
+            line_items_data.append({
+                'description': item.description or '',
+                'department': item.department.name if item.department else '',
+                'amount_display': item.get_amount_display() if hasattr(item, 'get_amount_display') else str(item.amount),
+            })
+
+        # Build attachments data
+        attachments_data = []
+        for att in form.attachments.all().order_by('uploaded_at'):
+            try:
+                # Get file size in human-readable format
+                file_size = 0
+                if att.file and hasattr(att.file, 'size'):
+                    try:
+                        file_size = att.file.size
+                    except:
+                        # Fallback to getting size from path
+                        import os
+                        if os.path.exists(att.file.path):
+                            file_size = os.path.getsize(att.file.path)
+
+                if file_size < 1024:
+                    size_display = f"{file_size} B"
+                elif file_size < 1024 * 1024:
+                    size_display = f"{file_size / 1024:.1f} KB"
+                else:
+                    size_display = f"{file_size / (1024 * 1024):.1f} MB"
+
+                attachments_data.append({
+                    'filename': att.filename or 'Unnamed',
+                    'file_size': size_display,
+                    'uploaded_at': att.uploaded_at.strftime('%Y-%m-%d %H:%M') if att.uploaded_at else '',
+                    'url': att.file.url if att.file else '',
+                })
+            except Exception as e:
+                # Skip problematic attachments but continue
+                print(f"Error processing attachment {att.id}: {e}")
+                continue
+
+        return JsonResponse({
+            'success': True,
+            'document': {
+                'line_items': line_items_data,
+                'attachments': attachments_data,
+            }
+        })
+
+    except Exception as e:
+        print(f"Error in form_api_details: {e}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)

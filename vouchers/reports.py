@@ -248,7 +248,7 @@ class ReportGenerator:
         # START BUILDING SECTIONS
         # ===========================================================================
         row = 4  # Start after title and date
-        grand_total = Decimal('0')
+        grand_totals = {'USD': Decimal('0'), 'KHR': Decimal('0'), 'THB': Decimal('0')}
 
         # ===========================================================================
         # GENERATE SECTIONS
@@ -329,7 +329,7 @@ class ReportGenerator:
             # ===========================================================================
             # DATA ROWS
             # ===========================================================================
-            section_total = Decimal('0')
+            section_totals = {'USD': Decimal('0'), 'KHR': Decimal('0'), 'THB': Decimal('0')}
 
             if documents:
                 for idx, doc in enumerate(documents, 1):
@@ -337,10 +337,18 @@ class ReportGenerator:
                     is_voucher = hasattr(doc, 'pv_number')
                     doc_number = doc.pv_number if is_voucher else doc.pf_number
 
-                    # Calculate totals
+                    # Calculate totals for all currencies
                     totals = doc.calculate_grand_total()
-                    amount = totals.get('USD', Decimal('0'))
-                    section_total += amount
+
+                    # Build amount display string with all currencies
+                    amount_parts = []
+                    for currency in ['USD', 'KHR', 'THB']:
+                        if currency in totals and totals[currency] > 0:
+                            amount_parts.append(f"{currency} {totals[currency]:,.2f}")
+                            section_totals[currency] += totals[currency]
+                            grand_totals[currency] += totals[currency]
+
+                    amount_display = '\n'.join(amount_parts) if amount_parts else '0.00'
 
                     # Combine all line item descriptions
                     descriptions = [item.description for item in doc.line_items.all()]
@@ -374,12 +382,11 @@ class ReportGenerator:
                     ws[f'D{row}'].alignment = left_alignment
                     ws[f'D{row}'].border = border
 
-                    # Column E: Amount
-                    ws[f'E{row}'] = float(amount)
+                    # Column E: Amount (with all currencies)
+                    ws[f'E{row}'] = amount_display
                     ws[f'E{row}'].font = data_font
                     ws[f'E{row}'].alignment = right_alignment
                     ws[f'E{row}'].border = border
-                    ws[f'E{row}'].number_format = '#,##0.00'
 
                     # Column F: Receiver Account Name
                     ws[f'F{row}'] = receiver_account_name
@@ -419,10 +426,16 @@ class ReportGenerator:
             subtotal_label.fill = subtotal_fill
             subtotal_label.border = border
 
-            ws[f'E{row}'] = float(section_total)
+            # Build subtotal display with all currencies
+            subtotal_parts = []
+            for currency in ['USD', 'KHR', 'THB']:
+                if section_totals[currency] > 0:
+                    subtotal_parts.append(f"{currency} {section_totals[currency]:,.2f}")
+            subtotal_display = '\n'.join(subtotal_parts) if subtotal_parts else '0.00'
+
+            ws[f'E{row}'] = subtotal_display
             ws[f'E{row}'].font = Font(name='Calibri', size=11, bold=True)
             ws[f'E{row}'].alignment = right_alignment
-            ws[f'E{row}'].number_format = '"$" #,##0.00'
             ws[f'E{row}'].fill = subtotal_fill
             ws[f'E{row}'].border = border
 
@@ -432,7 +445,6 @@ class ReportGenerator:
                 ws[f'{col}{row}'].fill = subtotal_fill
                 ws[f'{col}{row}'].border = border
 
-            grand_total += section_total
             row += 1
 
         # ===========================================================================
@@ -447,10 +459,16 @@ class ReportGenerator:
         grand_total_label.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
         grand_total_label.border = border
 
-        ws[f'E{row}'] = float(grand_total)
+        # Build grand total display with all currencies
+        grand_total_parts = []
+        for currency in ['USD', 'KHR', 'THB']:
+            if grand_totals[currency] > 0:
+                grand_total_parts.append(f"{currency} {grand_totals[currency]:,.2f}")
+        grand_total_display = '\n'.join(grand_total_parts) if grand_total_parts else '0.00'
+
+        ws[f'E{row}'] = grand_total_display
         ws[f'E{row}'].font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
         ws[f'E{row}'].alignment = right_alignment
-        ws[f'E{row}'].number_format = '"$" #,##0.00'
         ws[f'E{row}'].fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
         ws[f'E{row}'].border = border
 
