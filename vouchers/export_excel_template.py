@@ -298,11 +298,14 @@ def export_excel_template_view(request):
         # Calculate total amount for ALL currencies
         totals = doc.calculate_grand_total()
 
-        # Build amount string with all currencies
+        # Currency symbols
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+
+        # Build amount string with all currencies using symbols
         amount_parts = []
         for currency in ['USD', 'KHR', 'THB']:
             if currency in totals and totals[currency] > 0:
-                amount_parts.append(f"{currency} {totals[currency]:,.2f}")
+                amount_parts.append(f"{symbols[currency]}{totals[currency]:,.2f}")
                 total_amounts[currency] += float(totals[currency])
 
         amount_display = '\n'.join(amount_parts) if amount_parts else '0.00'
@@ -388,11 +391,12 @@ def export_excel_template_view(request):
     total_label_cell.alignment = right_alignment
     total_label_cell.border = thin_border
 
-    # Column E: Total amounts for ALL currencies
+    # Column E: Total amounts for ALL currencies using symbols
+    symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
     total_parts = []
     for currency in ['USD', 'KHR', 'THB']:
         if total_amounts[currency] > 0:
-            total_parts.append(f"{currency} {total_amounts[currency]:,.2f}")
+            total_parts.append(f"{symbols[currency]}{total_amounts[currency]:,.2f}")
 
     total_amount_cell = ws[f'E{current_row}']
     total_amount_cell.value = '\n'.join(total_parts) if total_parts else '0.00'

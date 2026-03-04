@@ -340,11 +340,14 @@ class ReportGenerator:
                     # Calculate totals for all currencies
                     totals = doc.calculate_grand_total()
 
+                    # Currency symbols
+                    symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+
                     # Build amount display string with all currencies
                     amount_parts = []
                     for currency in ['USD', 'KHR', 'THB']:
                         if currency in totals and totals[currency] > 0:
-                            amount_parts.append(f"{currency} {totals[currency]:,.2f}")
+                            amount_parts.append(f"{symbols[currency]}{totals[currency]:,.2f}")
                             section_totals[currency] += totals[currency]
                             grand_totals[currency] += totals[currency]
 
@@ -426,11 +429,12 @@ class ReportGenerator:
             subtotal_label.fill = subtotal_fill
             subtotal_label.border = border
 
-            # Build subtotal display with all currencies
+            # Build subtotal display with all currencies using symbols
+            symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
             subtotal_parts = []
             for currency in ['USD', 'KHR', 'THB']:
                 if section_totals[currency] > 0:
-                    subtotal_parts.append(f"{currency} {section_totals[currency]:,.2f}")
+                    subtotal_parts.append(f"{symbols[currency]}{section_totals[currency]:,.2f}")
             subtotal_display = '\n'.join(subtotal_parts) if subtotal_parts else '0.00'
 
             ws[f'E{row}'] = subtotal_display
@@ -459,11 +463,12 @@ class ReportGenerator:
         grand_total_label.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
         grand_total_label.border = border
 
-        # Build grand total display with all currencies
+        # Build grand total display with all currencies using symbols
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
         grand_total_parts = []
         for currency in ['USD', 'KHR', 'THB']:
             if grand_totals[currency] > 0:
-                grand_total_parts.append(f"{currency} {grand_totals[currency]:,.2f}")
+                grand_total_parts.append(f"{symbols[currency]}{grand_totals[currency]:,.2f}")
         grand_total_display = '\n'.join(grand_total_parts) if grand_total_parts else '0.00'
 
         ws[f'E{row}'] = grand_total_display
