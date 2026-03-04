@@ -280,7 +280,7 @@ def export_excel_template_view(request):
     # ===========================================================================
 
     current_row = 7
-    total_amount = 0
+    total_amounts = {'USD': 0, 'KHR': 0, 'THB': 0}  # Track all currencies
 
     for idx, doc in enumerate(all_documents, start=1):
         # Get document type
@@ -295,11 +295,17 @@ def export_excel_template_view(request):
             descriptions.append(item.description)
         combined_description = '\n'.join(descriptions) if descriptions else ''
 
-        # Calculate total amount
+        # Calculate total amount for ALL currencies
         totals = doc.calculate_grand_total()
-        # For simplicity, we'll show USD amount (you can customize this)
-        amount = float(totals.get('USD', 0))
-        total_amount += amount
+
+        # Build amount string with all currencies
+        amount_parts = []
+        for currency in ['USD', 'KHR', 'THB']:
+            if currency in totals and totals[currency] > 0:
+                amount_parts.append(f"{currency} {totals[currency]:,.2f}")
+                total_amounts[currency] += float(totals[currency])
+
+        amount_display = '\n'.join(amount_parts) if amount_parts else '0.00'
 
         # Get bank account information
         if doc.company_bank_account:
@@ -341,13 +347,12 @@ def export_excel_template_view(request):
         cell_d.alignment = left_alignment
         cell_d.border = thin_border
 
-        # Column E: Amount (right-aligned, formatted)
+        # Column E: Amount (right-aligned, show all currencies)
         cell_e = ws[f'E{current_row}']
-        cell_e.value = amount
+        cell_e.value = amount_display
         cell_e.font = data_font
         cell_e.alignment = right_alignment
         cell_e.border = thin_border
-        cell_e.number_format = '#,##0.00'
 
         # Column F: Account Name
         cell_f = ws[f'F{current_row}']
@@ -383,13 +388,17 @@ def export_excel_template_view(request):
     total_label_cell.alignment = right_alignment
     total_label_cell.border = thin_border
 
-    # Column E: Total amount
+    # Column E: Total amounts for ALL currencies
+    total_parts = []
+    for currency in ['USD', 'KHR', 'THB']:
+        if total_amounts[currency] > 0:
+            total_parts.append(f"{currency} {total_amounts[currency]:,.2f}")
+
     total_amount_cell = ws[f'E{current_row}']
-    total_amount_cell.value = total_amount
+    total_amount_cell.value = '\n'.join(total_parts) if total_parts else '0.00'
     total_amount_cell.font = header_font
     total_amount_cell.alignment = right_alignment
     total_amount_cell.border = thin_border
-    total_amount_cell.number_format = '#,##0.00'
 
     # Apply borders to other cells in total row
     for col in ['A', 'B', 'C', 'F', 'G', 'H']:
