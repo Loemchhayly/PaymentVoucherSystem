@@ -381,33 +381,33 @@ def export_excel_template_view(request):
         current_row += 1
 
     # ===========================================================================
-    # 11. TOTAL ROW
+    # 11. TOTAL ROWS - One row per currency
     # ===========================================================================
 
-    # Column D: "Total:" label
-    total_label_cell = ws[f'D{current_row}']
-    total_label_cell.value = "Total:"
-    total_label_cell.font = header_font
-    total_label_cell.alignment = right_alignment
-    total_label_cell.border = thin_border
-
-    # Column E: Total amounts for ALL currencies using symbols
     symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
-    total_parts = []
+
     for currency in ['USD', 'KHR', 'THB']:
         if total_amounts[currency] > 0:
-            total_parts.append(f"{symbols[currency]}{total_amounts[currency]:,.2f}")
+            # Column D: "Total (Currency):" label
+            total_label_cell = ws[f'D{current_row}']
+            total_label_cell.value = f"Total ({currency}):"
+            total_label_cell.font = header_font
+            total_label_cell.alignment = right_alignment
+            total_label_cell.border = thin_border
 
-    total_amount_cell = ws[f'E{current_row}']
-    total_amount_cell.value = '\n'.join(total_parts) if total_parts else '0.00'
-    total_amount_cell.font = header_font
-    total_amount_cell.alignment = right_alignment
-    total_amount_cell.border = thin_border
+            # Column E: Total amount for this currency
+            total_amount_cell = ws[f'E{current_row}']
+            total_amount_cell.value = f"{symbols[currency]}{total_amounts[currency]:,.2f}"
+            total_amount_cell.font = header_font
+            total_amount_cell.alignment = right_alignment
+            total_amount_cell.border = thin_border
 
-    # Apply borders to other cells in total row
-    for col in ['A', 'B', 'C', 'F', 'G', 'H']:
-        cell = ws[f'{col}{current_row}']
-        cell.border = thin_border
+            # Apply borders to other cells in total row
+            for col in ['A', 'B', 'C', 'F', 'G', 'H']:
+                cell = ws[f'{col}{current_row}']
+                cell.border = thin_border
+
+            current_row += 1
 
     # ===========================================================================
     # 12. SIGNATURE SECTION (3 ROWS AFTER TOTAL)

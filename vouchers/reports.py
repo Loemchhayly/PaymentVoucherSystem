@@ -419,70 +419,62 @@ class ReportGenerator:
                     row += 1
 
             # ===========================================================================
-            # SUBTOTAL ROW
+            # SUBTOTAL ROWS - One row per currency
             # ===========================================================================
-            ws.merge_cells(f'A{row}:D{row}')
-            subtotal_label = ws[f'A{row}']
-            subtotal_label.value = f"Subtotal - {section_title}"
-            subtotal_label.font = Font(name='Calibri', size=11, bold=True)
-            subtotal_label.alignment = right_alignment
-            subtotal_label.fill = subtotal_fill
-            subtotal_label.border = border
-
-            # Build subtotal display with all currencies using symbols
             symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
-            subtotal_parts = []
+
             for currency in ['USD', 'KHR', 'THB']:
                 if section_totals[currency] > 0:
-                    subtotal_parts.append(f"{symbols[currency]}{section_totals[currency]:,.2f}")
-            subtotal_display = '\n'.join(subtotal_parts) if subtotal_parts else '0.00'
+                    ws.merge_cells(f'A{row}:D{row}')
+                    subtotal_label = ws[f'A{row}']
+                    subtotal_label.value = f"Subtotal - {section_title} ({currency})"
+                    subtotal_label.font = Font(name='Calibri', size=11, bold=True)
+                    subtotal_label.alignment = right_alignment
+                    subtotal_label.fill = subtotal_fill
+                    subtotal_label.border = border
 
-            ws[f'E{row}'] = subtotal_display
-            ws[f'E{row}'].font = Font(name='Calibri', size=11, bold=True)
-            ws[f'E{row}'].alignment = right_alignment
-            ws[f'E{row}'].fill = subtotal_fill
-            ws[f'E{row}'].border = border
+                    ws[f'E{row}'] = f"{symbols[currency]}{section_totals[currency]:,.2f}"
+                    ws[f'E{row}'].font = Font(name='Calibri', size=11, bold=True)
+                    ws[f'E{row}'].alignment = right_alignment
+                    ws[f'E{row}'].fill = subtotal_fill
+                    ws[f'E{row}'].border = border
 
-            # Empty cells for subtotal row
-            for col in ['F', 'G', 'H']:
-                ws[f'{col}{row}'] = ''
-                ws[f'{col}{row}'].fill = subtotal_fill
-                ws[f'{col}{row}'].border = border
+                    # Empty cells for subtotal row
+                    for col in ['F', 'G', 'H']:
+                        ws[f'{col}{row}'] = ''
+                        ws[f'{col}{row}'].fill = subtotal_fill
+                        ws[f'{col}{row}'].border = border
 
-            row += 1
+                    row += 1
 
         # ===========================================================================
-        # GRAND TOTAL ROW
+        # GRAND TOTAL ROWS - One row per currency
         # ===========================================================================
         row += 1
-        ws.merge_cells(f'A{row}:D{row}')
-        grand_total_label = ws[f'A{row}']
-        grand_total_label.value = "GRAND TOTAL"
-        grand_total_label.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
-        grand_total_label.alignment = right_alignment
-        grand_total_label.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
-        grand_total_label.border = border
-
-        # Build grand total display with all currencies using symbols
         symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
-        grand_total_parts = []
+
         for currency in ['USD', 'KHR', 'THB']:
             if grand_totals[currency] > 0:
-                grand_total_parts.append(f"{symbols[currency]}{grand_totals[currency]:,.2f}")
-        grand_total_display = '\n'.join(grand_total_parts) if grand_total_parts else '0.00'
+                ws.merge_cells(f'A{row}:D{row}')
+                grand_total_label = ws[f'A{row}']
+                grand_total_label.value = f"GRAND TOTAL ({currency})"
+                grand_total_label.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+                grand_total_label.alignment = right_alignment
+                grand_total_label.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+                grand_total_label.border = border
 
-        ws[f'E{row}'] = grand_total_display
-        ws[f'E{row}'].font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
-        ws[f'E{row}'].alignment = right_alignment
-        ws[f'E{row}'].fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
-        ws[f'E{row}'].border = border
+                ws[f'E{row}'] = f"{symbols[currency]}{grand_totals[currency]:,.2f}"
+                ws[f'E{row}'].font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+                ws[f'E{row}'].alignment = right_alignment
+                ws[f'E{row}'].fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+                ws[f'E{row}'].border = border
 
-        for col in ['F', 'G', 'H']:
-            ws[f'{col}{row}'] = ''
-            ws[f'{col}{row}'].fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
-            ws[f'{col}{row}'].border = border
+                for col in ['F', 'G', 'H']:
+                    ws[f'{col}{row}'] = ''
+                    ws[f'{col}{row}'].fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+                    ws[f'{col}{row}'].border = border
 
-        row += 1
+                row += 1
 
         # ===========================================================================
         # SIGNATURE FOOTER (3 COLUMNS)
