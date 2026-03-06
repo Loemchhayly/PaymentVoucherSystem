@@ -1055,10 +1055,10 @@
             <i class="bi bi-chevron-down" id="filterToggleIcon"></i>
         </div>
         <div class="filter-content" id="filterContent">
-            <form method="get" action="" class="filter-form">
+            <form method="get" action="" class="filter-form" id="filter-form">
                 <div class="filter-field">
                     <label for="doc_type">Document Type</label>
-                    <select id="doc_type" name="doc_type">
+                    <select id="doc_type" name="doc_type" class="instant-filter">
                         <option value="all" {% if request.GET.doc_type == 'all' or not request.GET.doc_type %}selected{% endif %}>All Documents</option>
                         <option value="pv" {% if request.GET.doc_type == 'pv' %}selected{% endif %}>Payment Voucher (PV)</option>
                         <option value="pf" {% if request.GET.doc_type == 'pf' %}selected{% endif %}>Payment Form (PF)</option>
@@ -1066,23 +1066,23 @@
                 </div>
                 <div class="filter-field">
                     <label for="pv_number">Doc Number</label>
-                    <input type="text" id="pv_number" name="pv_number" placeholder="2601-0001" value="{{ request.GET.pv_number }}">
+                    <input type="text" id="pv_number" name="pv_number" placeholder="2601-0001" value="{{ request.GET.pv_number }}" class="instant-filter">
                 </div>
                 <div class="filter-field">
                     <label for="payee_name">Payee Name</label>
-                    <input type="text" id="payee_name" name="payee_name" placeholder="Payee name" value="{{ request.GET.payee_name }}">
+                    <input type="text" id="payee_name" name="payee_name" placeholder="Payee name" value="{{ request.GET.payee_name }}" class="instant-filter">
                 </div>
                 <div class="filter-field">
                     <label for="date_from">From Date</label>
-                    <input type="date" id="date_from" name="date_from" value="{{ request.GET.date_from }}">
+                    <input type="date" id="date_from" name="date_from" value="{{ request.GET.date_from }}" class="instant-filter">
                 </div>
                 <div class="filter-field">
                     <label for="date_to">To Date</label>
-                    <input type="date" id="date_to" name="date_to" value="{{ request.GET.date_to }}">
+                    <input type="date" id="date_to" name="date_to" value="{{ request.GET.date_to }}" class="instant-filter">
                 </div>
                 <div class="filter-field">
                     <label for="status">Status</label>
-                    <select id="status" name="status">
+                    <select id="status" name="status" class="instant-filter">
                         <option value="">All Statuses</option>
                         <option value="DRAFT" {% if request.GET.status == 'DRAFT' %}selected{% endif %}>Draft</option>
                         <option value="PENDING_L2" {% if request.GET.status == 'PENDING_L2' %}selected{% endif %}>Pending L2</option>
@@ -1095,14 +1095,10 @@
                     </select>
                 </div>
                 <div class="filter-actions">
-                    <button type="submit" class="filter-btn primary">
-                        <i class="bi bi-search"></i>
-                        <span>Search</span>
-                    </button>
-                    <a href="?" class="filter-btn secondary">
+                    <button type="button" class="filter-btn secondary" onclick="clearFilters()">
                         <i class="bi bi-x-circle"></i>
                         <span>Clear</span>
-                    </a>
+                    </button>
                 </div>
             </form>
         </div>
@@ -1185,8 +1181,13 @@
                     </thead>
                     <tbody>
                         {% for voucher in vouchers %}
-                        <tr class="clickable-row{% if title == 'Pending My Action' %} doc-row{% endif %}"
+                        <tr class="clickable-row{% if title == 'Pending My Action' %} doc-row{% endif %} voucher-row"
                             data-href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}"
+                            data-doc-type="{% if voucher.pf_number %}pf{% else %}pv{% endif %}"
+                            data-doc-number="{% if voucher.pf_number %}PF {{ voucher.pf_number|default:'DRAFT' }}{% else %}PV {{ voucher.pv_number|default:'DRAFT' }}{% endif %}"
+                            data-payee-name="{{ voucher.payee_name|lower }}"
+                            data-payment-date="{{ voucher.payment_date|date:'Y-m-d' }}"
+                            data-status="{{ voucher.status }}"
                             {% if title == "Pending My Action" %}data-id="{{ voucher.id }}" data-type="{% if voucher.pv_number %}pv{% else %}pf{% endif %}"{% endif %}>
                             {% if title == "Pending My Action" %}
                             <td class="checkbox-col" onclick="event.stopPropagation();">
@@ -1346,7 +1347,110 @@
         header.classList.toggle('collapsed');
     }
 
+    // Instant filter function
+    function instantFilter() {
+        const docType = document.getElementById('doc_type').value;
+        const pvNumber = document.getElementById('pv_number').value.toLowerCase().trim();
+        const payeeName = document.getElementById('payee_name').value.toLowerCase().trim();
+        const dateFrom = document.getElementById('date_from').value;
+        const dateTo = document.getElementById('date_to').value;
+        const status = document.getElementById('status').value;
+
+        const rows = document.querySelectorAll('.voucher-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            let show = true;
+
+            // Filter by document type
+            if (docType !== 'all') {
+                const rowDocType = row.getAttribute('data-doc-type');
+                if (rowDocType !== docType) {
+                    show = false;
+                }
+            }
+
+            // Filter by document number
+            if (show && pvNumber) {
+                const rowDocNumber = row.getAttribute('data-doc-number').toLowerCase();
+                if (!rowDocNumber.includes(pvNumber)) {
+                    show = false;
+                }
+            }
+
+            // Filter by payee name
+            if (show && payeeName) {
+                const rowPayeeName = row.getAttribute('data-payee-name');
+                if (!rowPayeeName.includes(payeeName)) {
+                    show = false;
+                }
+            }
+
+            // Filter by date from
+            if (show && dateFrom) {
+                const rowDate = row.getAttribute('data-payment-date');
+                if (rowDate < dateFrom) {
+                    show = false;
+                }
+            }
+
+            // Filter by date to
+            if (show && dateTo) {
+                const rowDate = row.getAttribute('data-payment-date');
+                if (rowDate > dateTo) {
+                    show = false;
+                }
+            }
+
+            // Filter by status
+            if (show && status) {
+                const rowStatus = row.getAttribute('data-status');
+                if (rowStatus !== status) {
+                    show = false;
+                }
+            }
+
+            // Show or hide the row
+            if (show) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update voucher count
+        updateVoucherCount(visibleCount);
+    }
+
+    // Update voucher count display
+    function updateVoucherCount(count) {
+        const countElement = document.querySelector('.vouchers-count');
+        if (countElement) {
+            countElement.textContent = count + ' voucher' + (count !== 1 ? 's' : '');
+        }
+    }
+
+    // Clear all filters
+    function clearFilters() {
+        document.getElementById('doc_type').value = 'all';
+        document.getElementById('pv_number').value = '';
+        document.getElementById('payee_name').value = '';
+        document.getElementById('date_from').value = '';
+        document.getElementById('date_to').value = '';
+        document.getElementById('status').value = '';
+        instantFilter();
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        // Attach instant filter to all filter inputs
+        const filterInputs = document.querySelectorAll('.instant-filter');
+        filterInputs.forEach(input => {
+            input.addEventListener('input', instantFilter);
+            input.addEventListener('change', instantFilter);
+        });
+
+        // Collapse filters if no filters are applied
         const urlParams = new URLSearchParams(window.location.search);
         const hasFilters = urlParams.has('pv_number') || urlParams.has('payee_name') ||
                           urlParams.has('date_from') || urlParams.has('date_to') || urlParams.has('status');
