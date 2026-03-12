@@ -1,405 +1,627 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Upload Signature - Payment Voucher System{% endblock %}
+{% block title %}Upload Signature — Payment Voucher System{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* ==================== Signature Upload Specific Styles ==================== */
-    .signature-container {
-        max-width: 700px;
-        margin: 0 auto;
-        padding: 0 var(--spacing-xl);
-    }
+/* ══════════════════════════════════════════════════════════
+   SIGNATURE UPLOAD PAGE — Enterprise Dark Edition
+   Matches FinVault Design System
+══════════════════════════════════════════════════════════ */
 
-    .page-header {
-        margin-bottom: var(--spacing-2xl);
-        text-align: center;
-    }
+.sig-upload-root {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
 
-    .page-title {
-        font-family: var(--font-heading);
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--gray-900);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--spacing-md);
-        margin: 0;
-    }
+/* ── Page Header ── */
+.sig-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
 
-    .page-title i {
-        font-size: 2.5rem;
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
+.sig-page-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-    /* Upload Card */
-    .upload-card {
-        background: white;
-        border-radius: var(--radius-xl);
-        box-shadow: var(--shadow-lg);
-        overflow: hidden;
-    }
+.sig-title-icon {
+    width: 42px;
+    height: 42px;
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: var(--success);
+    flex-shrink: 0;
+}
 
-    .upload-card-body {
-        padding: var(--spacing-2xl);
-    }
+.sig-title-text {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+}
 
-    /* Current Signature Display */
-    .current-signature {
-        background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
-        border: 2px solid var(--primary-300);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-xl);
-        text-align: center;
-        margin-bottom: var(--spacing-xl);
-    }
+.sig-title-sub {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
 
-    .current-signature-label {
-        font-weight: 600;
-        color: var(--primary-800);
-        margin-bottom: var(--spacing-md);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--spacing-sm);
-    }
+/* ── Panel ── */
+.sig-panel {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+.sig-panel:hover {
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-glow);
+}
 
-    .current-signature-label i {
-        font-size: 1.25rem;
-    }
+.sig-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+}
 
-    .signature-preview {
-        max-width: 300px;
-        border: 2px solid var(--primary-500);
-        border-radius: var(--radius-md);
-        padding: var(--spacing-md);
-        background: white;
-        box-shadow: var(--shadow-md);
-        margin: 0 auto;
-    }
+.panel-icon-wrap {
+    width: 30px; height: 30px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; flex-shrink: 0;
+}
+.panel-icon-wrap.green  { background: var(--success-light); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+.panel-icon-wrap.yellow { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
+.panel-icon-wrap.cyan   { background: rgba(6,182,212,0.12); color: var(--cyan-400); border: 1px solid var(--border-accent); }
 
-    /* Guidelines Box */
-    .guidelines-box {
-        background: linear-gradient(135deg, var(--warning-light) 0%, #fef3c7 100%);
-        border-left: 4px solid var(--warning);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-lg);
-        margin-bottom: var(--spacing-xl);
-    }
+.sig-panel-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
 
-    .guidelines-title {
-        font-weight: 700;
-        color: #92400e;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        margin-bottom: var(--spacing-md);
-        font-size: 1.125rem;
-    }
+.sig-panel-body { padding: 20px 18px; }
 
-    .guidelines-title i {
-        font-size: 1.5rem;
-    }
+/* ── Current signature preview ── */
+.current-sig-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
 
-    .guidelines-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
+.sig-frame {
+    flex: 1;
+    min-width: 220px;
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+    position: relative;
+    overflow: hidden;
+}
 
-    .guidelines-list li {
-        color: #92400e;
-        padding: var(--spacing-xs) 0;
-        padding-left: var(--spacing-lg);
-        position: relative;
-        font-weight: 500;
-    }
+/* Corner brackets */
+.sig-frame::before,
+.sig-frame::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    border-color: rgba(6,182,212,0.35);
+    border-style: solid;
+}
+.sig-frame::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+.sig-frame::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
 
-    .guidelines-list li::before {
-        content: '✓';
-        position: absolute;
-        left: 0;
-        color: var(--success);
-        font-weight: 700;
-        font-size: 1.125rem;
-    }
+.sig-frame img {
+    max-width: 240px;
+    max-height: 110px;
+    object-fit: contain;
+    filter: brightness(1.1);
+}
 
-    /* Upload Form */
-    .upload-form {
-        margin-bottom: var(--spacing-xl);
-    }
+.sig-frame-label {
+    margin-top: 10px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+}
 
-    .file-input-container {
-        position: relative;
-        margin-bottom: var(--spacing-xl);
-    }
+.sig-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
-    .file-input-label {
-        font-weight: 600;
-        color: var(--gray-700);
-        margin-bottom: var(--spacing-sm);
-        display: block;
-        font-size: 1rem;
-    }
+.sig-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+.sig-meta-row i { color: var(--success); font-size: 0.9rem; }
 
-    .file-input-wrapper {
-        position: relative;
-        background: var(--gray-50);
-        border: 2px dashed var(--gray-300);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-2xl);
-        text-align: center;
-        transition: all var(--transition-base);
-        cursor: pointer;
-    }
+/* ── Guidelines ── */
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
 
-    .file-input-wrapper:hover {
-        background: var(--primary-50);
-        border-color: var(--primary-400);
-    }
+.guideline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px 12px;
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    transition: all var(--transition-fast);
+}
+.guideline-item:hover {
+    border-color: var(--border-accent);
+    color: var(--text-primary);
+    background: var(--ink-750);
+}
+.guideline-item i {
+    color: var(--success);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
 
-    .file-input-wrapper.drag-over {
-        background: var(--primary-100);
-        border-color: var(--primary-500);
-        transform: scale(1.02);
-    }
+/* ── Drop zone ── */
+.drop-zone {
+    position: relative;
+    background: var(--ink-800);
+    border: 1.5px dashed rgba(6,182,212,0.25);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-2xl) var(--spacing-xl);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    overflow: hidden;
+}
 
-    .file-input-icon {
-        font-size: 3rem;
-        color: var(--gray-400);
-        margin-bottom: var(--spacing-md);
-    }
+/* Subtle glow pulse on idle */
+.drop-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(6,182,212,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    transition: opacity var(--transition-base);
+}
 
-    .file-input-wrapper:hover .file-input-icon {
-        color: var(--primary-600);
-    }
+.drop-zone:hover,
+.drop-zone.drag-over {
+    border-color: var(--cyan-500);
+    background: rgba(6,182,212,0.05);
+    box-shadow: 0 0 0 3px rgba(6,182,212,0.08), inset 0 0 30px rgba(6,182,212,0.04);
+}
 
-    .file-input-text {
-        font-weight: 600;
-        color: var(--gray-700);
-        margin-bottom: var(--spacing-sm);
-    }
+.drop-zone.drag-over {
+    border-style: solid;
+    transform: scale(1.01);
+}
 
-    .file-input-hint {
-        font-size: 0.875rem;
-        color: var(--gray-600);
-    }
+.drop-zone.has-file {
+    border-color: rgba(34,197,94,0.4);
+    background: rgba(34,197,94,0.04);
+}
 
-    .form-control-file {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        opacity: 0;
-        cursor: pointer;
-    }
+.dz-icon {
+    width: 56px; height: 56px;
+    background: rgba(6,182,212,0.08);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-xl);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    color: var(--cyan-400);
+    margin: 0 auto var(--spacing-md);
+    transition: all var(--transition-base);
+}
+.drop-zone:hover .dz-icon,
+.drop-zone.drag-over .dz-icon {
+    background: rgba(6,182,212,0.15);
+    box-shadow: 0 0 20px rgba(6,182,212,0.2);
+    transform: translateY(-3px);
+}
+.drop-zone.has-file .dz-icon {
+    background: var(--success-light);
+    border-color: rgba(34,197,94,0.4);
+    color: var(--success);
+}
 
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: var(--spacing-md);
-        flex-wrap: wrap;
-    }
+.dz-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
 
-    .action-btn {
-        flex: 1;
-        min-width: 200px;
-        padding: var(--spacing-md) var(--spacing-xl);
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 1rem;
-        border-radius: var(--radius-lg);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--spacing-sm);
-        transition: all var(--transition-base);
-        text-decoration: none;
-        border: none;
-        cursor: pointer;
-        box-shadow: var(--shadow-md);
-    }
+.dz-hint {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
 
-    .action-btn i {
-        font-size: 1.25rem;
-    }
+.dz-browse {
+    color: var(--cyan-400);
+    font-weight: 700;
+}
 
-    .action-btn.success {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        color: white;
-    }
+/* Hidden file input over the whole zone */
+.dz-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
 
-    .action-btn.success:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    }
+/* File name pill */
+.file-pill {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    background: var(--ink-700);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: var(--radius-full);
+    padding: 5px 14px;
+    font-size: 0.78rem;
+    color: var(--success);
+    font-weight: 600;
+    justify-content: center;
+}
+.file-pill.show { display: flex; }
+.file-pill i { font-size: 0.9rem; }
 
-    .action-btn.secondary {
-        background: white;
-        color: var(--gray-700);
-        border: 2px solid var(--gray-300);
-    }
+/* Remove button in pill */
+.file-pill-remove {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 0.85rem;
+    transition: color var(--transition-fast);
+    margin-left: 2px;
+}
+.file-pill-remove:hover { color: var(--danger); }
 
-    .action-btn.secondary:hover {
-        background: var(--gray-50);
-        border-color: var(--gray-400);
-        color: var(--gray-900);
-        transform: translateY(-2px);
-    }
+/* ── Image preview ── */
+.img-preview-wrap {
+    display: none;
+    margin-top: var(--spacing-lg);
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    text-align: center;
+    position: relative;
+}
+.img-preview-wrap.show { display: block; }
 
-    /* Responsive Design */
-    @media (max-width: 991px) {
-        .signature-container {
-            padding: 0 var(--spacing-md);
-        }
+.img-preview-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
 
-        .page-title {
-            font-size: 1.75rem;
-        }
-    }
+.img-preview-wrap img {
+    max-width: 280px;
+    max-height: 120px;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+}
 
-    @media (max-width: 768px) {
-        .upload-card-body {
-            padding: var(--spacing-lg);
-        }
+/* ── Buttons ── */
+.sig-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: var(--spacing-lg);
+}
 
-        .action-buttons {
-            flex-direction: column;
-        }
+.pv-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 20px;
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    border: none;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.pv-btn i { font-size: 0.9rem; }
 
-        .action-btn {
-            width: 100%;
-        }
-    }
+.pv-btn.success {
+    background: linear-gradient(135deg, var(--success), #15803d);
+    color: white;
+    box-shadow: 0 2px 10px rgba(34,197,94,0.25);
+    flex: 1;
+}
+.pv-btn.success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 18px rgba(34,197,94,0.35);
+    color: white;
+    filter: brightness(1.05);
+}
+
+.pv-btn.ghost {
+    background: var(--ink-700);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+.pv-btn.ghost:hover {
+    border-color: var(--border-accent);
+    color: var(--cyan-400);
+    background: var(--ink-600);
+}
+
+/* ── Responsive ── */
+@media (max-width: 576px) {
+    .sig-upload-root { padding: 0 12px; }
+    .guidelines-grid { grid-template-columns: 1fr; }
+    .sig-actions { flex-direction: column; }
+    .pv-btn.success { flex: auto; width: 100%; }
+    .current-sig-wrap { flex-direction: column; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="signature-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1 class="page-title">
-            <i class="bi bi-pen"></i>
-            <span>Upload Digital Signature</span>
-        </h1>
+<div class="sig-upload-root">
+
+    <!-- ── Header ── -->
+    <div class="sig-page-header">
+        <div class="sig-page-title">
+            <div class="sig-title-icon"><i class="bi bi-pen-fill"></i></div>
+            <div>
+                <div class="sig-title-text">Digital Signature</div>
+                <div class="sig-title-sub">Upload or replace your signature for voucher approvals</div>
+            </div>
+        </div>
+        <a href="{% url 'accounts:profile' %}" class="pv-btn ghost">
+            <i class="bi bi-arrow-left"></i> Back to Profile
+        </a>
     </div>
 
-    <!-- Upload Card -->
-    <div class="upload-card">
-        <div class="upload-card-body">
-            <!-- Current Signature (if exists) -->
-            {% if user.signature_image %}
-            <div class="current-signature">
-                <div class="current-signature-label">
-                    <i class="bi bi-info-circle-fill"></i>
-                    <span>Current Signature</span>
+    <!-- ── Current signature (if exists) ── -->
+    {% if user.signature_image %}
+    <div class="sig-panel">
+        <div class="sig-panel-header">
+            <div class="panel-icon-wrap green"><i class="bi bi-check-circle-fill"></i></div>
+            <span class="sig-panel-title">Current Signature on File</span>
+            <span style="margin-left:auto;font-size:0.68rem;font-weight:700;color:var(--success);background:var(--success-light);border:1px solid rgba(34,197,94,0.25);padding:2px 9px;border-radius:var(--radius-full);">
+                <i class="bi bi-patch-check-fill"></i> Active
+            </span>
+        </div>
+        <div class="sig-panel-body">
+            <div class="current-sig-wrap">
+                <div class="sig-frame">
+                    <img src="{{ user.signature_image.url }}" alt="Current signature">
+                    <span class="sig-frame-label">Live Signature</span>
                 </div>
-                <img src="{{ user.signature_image.url }}" alt="Current Signature" class="signature-preview">
-            </div>
-            {% endif %}
-
-            <!-- Guidelines -->
-            <div class="guidelines-box">
-                <div class="guidelines-title">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    <span>Important Guidelines</span>
+                <div class="sig-meta">
+                    <div class="sig-meta-row"><i class="bi bi-check-circle-fill"></i> Signature is active</div>
+                    <div class="sig-meta-row"><i class="bi bi-file-earmark-text"></i> Appears on approved vouchers</div>
+                    <div class="sig-meta-row"><i class="bi bi-arrow-repeat"></i> Upload below to replace</div>
                 </div>
-                <ul class="guidelines-list">
-                    <li>Upload a clear image of your signature</li>
-                    <li>Supported formats: PNG, JPG, JPEG</li>
-                    <li>Maximum file size: 2MB</li>
-                    <li>Recommended: White background, black ink</li>
-                    <li>This signature will appear on all approved vouchers</li>
-                </ul>
             </div>
+        </div>
+    </div>
+    {% endif %}
 
-            <!-- Upload Form -->
-            <form method="post" enctype="multipart/form-data" class="upload-form">
+    <!-- ── Guidelines ── -->
+    <div class="sig-panel">
+        <div class="sig-panel-header">
+            <div class="panel-icon-wrap yellow"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <span class="sig-panel-title">Upload Guidelines</span>
+        </div>
+        <div class="sig-panel-body">
+            <div class="guidelines-grid">
+                <div class="guideline-item">
+                    <i class="bi bi-check2-circle"></i>
+                    Clear image of your physical signature
+                </div>
+                <div class="guideline-item">
+                    <i class="bi bi-file-image"></i>
+                    Supported formats: PNG, JPG, JPEG
+                </div>
+                <div class="guideline-item">
+                    <i class="bi bi-hdd"></i>
+                    Maximum file size: 2MB
+                </div>
+                <div class="guideline-item">
+                    <i class="bi bi-palette"></i>
+                    Best quality: white background, black ink
+                </div>
+                <div class="guideline-item" style="grid-column: 1 / -1;">
+                    <i class="bi bi-shield-check"></i>
+                    This signature will be embedded on all approved payment vouchers and printed documents
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Upload form ── -->
+    <div class="sig-panel">
+        <div class="sig-panel-header">
+            <div class="panel-icon-wrap cyan"><i class="bi bi-cloud-upload"></i></div>
+            <span class="sig-panel-title">Upload New Signature</span>
+        </div>
+        <div class="sig-panel-body">
+            <form method="post" enctype="multipart/form-data" id="sig-form">
                 {% csrf_token %}
 
-                <div class="file-input-container">
-                    <label class="file-input-label">
-                        <i class="bi bi-cloud-arrow-up"></i> Select Signature File
-                    </label>
-                    <div class="file-input-wrapper" id="file-drop-zone">
-                        <div class="file-input-icon">
-                            <i class="bi bi-cloud-upload"></i>
-                        </div>
-                        <div class="file-input-text">
-                            Click to browse or drag and drop
-                        </div>
-                        <div class="file-input-hint">
-                            PNG, JPG, JPEG (Max 2MB)
-                        </div>
-                        {{ form.signature_image }}
+                <!-- Drop zone -->
+                <div class="drop-zone" id="dropZone">
+                    <div class="dz-icon" id="dzIcon">
+                        <i class="bi bi-cloud-upload" id="dzIconGlyph"></i>
                     </div>
-                    <div id="file-name-display" style="margin-top: var(--spacing-sm); color: var(--gray-600); font-size: 0.875rem; text-align: center;"></div>
+                    <div class="dz-text" id="dzText">
+                        Drop your signature here, or <span class="dz-browse">browse</span>
+                    </div>
+                    <div class="dz-hint" id="dzHint">PNG · JPG · JPEG — max 2MB</div>
+                    {{ form.signature_image }}
                 </div>
 
-                <div class="action-buttons">
-                    <button type="submit" class="action-btn success">
-                        <i class="bi bi-check-circle"></i>
-                        <span>Upload Signature</span>
+                <!-- Selected file pill -->
+                <div class="file-pill" id="filePill">
+                    <i class="bi bi-file-image"></i>
+                    <span id="fileName">filename.png</span>
+                    <button type="button" class="file-pill-remove" id="removeFile" title="Remove">
+                        <i class="bi bi-x-lg"></i>
                     </button>
-                    <a href="{% url 'accounts:profile' %}" class="action-btn secondary">
-                        <i class="bi bi-arrow-left"></i>
-                        <span>Back to Profile</span>
+                </div>
+
+                <!-- Image preview -->
+                <div class="img-preview-wrap" id="imgPreviewWrap">
+                    <div class="img-preview-label">Preview</div>
+                    <img id="imgPreview" src="" alt="Signature preview">
+                </div>
+
+                <!-- Buttons -->
+                <div class="sig-actions">
+                    <button type="submit" class="pv-btn success" id="submitBtn" disabled>
+                        <i class="bi bi-check2-circle"></i>
+                        {% if user.signature_image %}Replace Signature{% else %}Upload Signature{% endif %}
+                    </button>
+                    <a href="{% url 'accounts:profile' %}" class="pv-btn ghost">
+                        <i class="bi bi-arrow-left"></i> Cancel
                     </a>
                 </div>
+
             </form>
         </div>
     </div>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // File input enhancement
-    document.addEventListener('DOMContentLoaded', function() {
-        const fileInput = document.querySelector('input[type="file"]');
-        const dropZone = document.getElementById('file-drop-zone');
-        const fileNameDisplay = document.getElementById('file-name-display');
+document.addEventListener('DOMContentLoaded', function () {
+    const dropZone    = document.getElementById('dropZone');
+    const fileInput   = document.querySelector('input[type="file"]');
+    const filePill    = document.getElementById('filePill');
+    const fileName    = document.getElementById('fileName');
+    const removeFile  = document.getElementById('removeFile');
+    const imgWrap     = document.getElementById('imgPreviewWrap');
+    const imgPreview  = document.getElementById('imgPreview');
+    const submitBtn   = document.getElementById('submitBtn');
+    const dzIcon      = document.getElementById('dzIcon');
+    const dzIconGlyph = document.getElementById('dzIconGlyph');
+    const dzText      = document.getElementById('dzText');
+    const dzHint      = document.getElementById('dzHint');
 
-        // Show selected file name
-        fileInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                fileNameDisplay.textContent = '📄 Selected: ' + this.files[0].name;
-            } else {
-                fileNameDisplay.textContent = '';
-            }
-        });
+    function applyFile(file) {
+        if (!file) return;
 
-        // Drag and drop functionality
-        dropZone.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.classList.add('drag-over');
-        });
+        // Pill
+        fileName.textContent = file.name;
+        filePill.classList.add('show');
 
-        dropZone.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.classList.remove('drag-over');
-        });
+        // Drop zone state
+        dropZone.classList.add('has-file');
+        dzIconGlyph.className = 'bi bi-file-image';
+        dzText.innerHTML = '<span style="color:var(--success)">File selected</span>';
+        dzHint.textContent = (file.size / 1024).toFixed(1) + ' KB — ' + file.type;
 
-        dropZone.addEventListener('drop', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.classList.remove('drag-over');
+        // Image preview
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            imgPreview.src = e.target.result;
+            imgWrap.classList.add('show');
+        };
+        reader.readAsDataURL(file);
 
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                fileInput.files = files;
-                fileNameDisplay.textContent = '📄 Selected: ' + files[0].name;
-            }
-        });
+        // Enable submit
+        submitBtn.disabled = false;
+    }
+
+    function clearFile() {
+        fileInput.value = '';
+        filePill.classList.remove('show');
+        imgWrap.classList.remove('show');
+        dropZone.classList.remove('has-file');
+        dzIconGlyph.className = 'bi bi-cloud-upload';
+        dzText.innerHTML = 'Drop your signature here, or <span class="dz-browse">browse</span>';
+        dzHint.textContent = 'PNG · JPG · JPEG — max 2MB';
+        imgPreview.src = '';
+        submitBtn.disabled = true;
+    }
+
+    // File input change
+    fileInput.addEventListener('change', function () {
+        if (this.files && this.files[0]) applyFile(this.files[0]);
+        else clearFile();
     });
+
+    // Remove
+    removeFile.addEventListener('click', clearFile);
+
+    // Drag & drop
+    dropZone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+    dropZone.addEventListener('dragleave', function (e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+    });
+    dropZone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            applyFile(files[0]);
+        }
+    });
+});
 </script>
 {% endblock %}

@@ -375,6 +375,89 @@
         .toast-notification{right:10px;left:10px;min-width:auto;max-width:none;}
     }
     @media(max-width:576px) { .fv-wrap{padding:10px 10px 40px;} .fv-title{font-size:1.1rem;} }
+
+    /* ══════════════════════════════════════════════════════════
+       LIGHT MODE OVERRIDES — Perfect Light Colors
+    ══════════════════════════════════════════════════════════ */
+    body[data-theme="light"] {
+        --bg:          #f8fafc;
+        --bg-card:     #ffffff;
+        --bg-card2:    #ffffff;
+        --bg-input:    #ffffff;
+        --border:      #e2e8f0;
+        --border-2:    #cbd5e1;
+        --border-active: rgba(6,182,212,.4);
+        --text-1:      #0f172a;
+        --text-2:      #475569;
+        --text-3:      #64748b;
+        --teal:        #0891b2;
+        --teal-dim:    rgba(6,182,212,.12);
+        --teal-glow:   rgba(6,182,212,.25);
+        --blue:        #3b82f6;
+        --green:       #10b981;
+        --green-dim:   rgba(16,185,129,.15);
+        --green-btn:   #059669;
+        --amber:       #f59e0b;
+        --red:         #ef4444;
+        --violet:      #8b5cf6;
+    }
+    body[data-theme="light"] {
+        background: #f8fafc !important;
+        color: #0f172a !important;
+    }
+    body[data-theme="light"] .fv-card {
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    body[data-theme="light"] .fv-card-head {
+        background: rgba(0,0,0,0.02);
+    }
+    body[data-theme="light"] .btn-cancel-top:hover {
+        background: rgba(0,0,0,0.04);
+    }
+    body[data-theme="light"] .form-control,
+    body[data-theme="light"] .form-select,
+    body[data-theme="light"] textarea {
+        background: #ffffff;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+    body[data-theme="light"] .form-control:focus,
+    body[data-theme="light"] .form-select:focus,
+    body[data-theme="light"] textarea:focus,
+    body[data-theme="light"] .fv-card-body input:focus,
+    body[data-theme="light"] .fv-card-body select:focus,
+    body[data-theme="light"] .fv-card-body textarea:focus {
+        background: #ffffff !important;
+        border-color: #0891b2 !important;
+        box-shadow: 0 0 0 3px rgba(6,182,212,0.12) !important;
+    }
+    body[data-theme="light"] .fv-tbl td input:focus,
+    body[data-theme="light"] .fv-tbl td select:focus {
+        background: #ffffff !important;
+        border-color: #0891b2 !important;
+        box-shadow: 0 0 0 2px rgba(6,182,212,0.12) !important;
+    }
+    body[data-theme="light"] .item-row {
+        background: #ffffff;
+        border-color: #e2e8f0;
+    }
+    body[data-theme="light"] .item-row input,
+    body[data-theme="light"] .item-row select {
+        background: #ffffff;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+    body[data-theme="light"] .fv-tbl tbody tr:hover {
+        background: rgba(6,182,212,0.04) !important;
+    }
+    body[data-theme="light"] details summary:hover {
+        background: rgba(0,0,0,0.04) !important;
+    }
+    body[data-theme="light"] .attachment-upload-label:hover,
+    body[data-theme="light"] .fv-att-upload:hover,
+    body[data-theme="light"] .file-upload-container:hover {
+        background: rgba(6,182,212,0.05) !important;
+    }
 </style>
 {% endblock %}
 

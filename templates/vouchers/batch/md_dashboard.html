@@ -442,6 +442,22 @@
     .md-vel-row  { grid-template-columns: 1fr 1fr; }
     .md-drawer   { width: 100%; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+══════════════════════════════════════════════════════════ */
+body[data-theme="light"] .md-vel-delta.neu { background: rgba(0,0,0,0.05); }
+body[data-theme="light"] .md-queue-head,
+body[data-theme="light"] .md-feed-head,
+body[data-theme="light"] .md-hist-head,
+body[data-theme="light"] .md-drawer-top,
+body[data-theme="light"] .md-drawer-foot { background: rgba(0,0,0,0.02); }
+body[data-theme="light"] .md-qbtn.view { background: rgba(0,0,0,0.04); }
+body[data-theme="light"] .md-drawer-overlay { background: rgba(0,0,0,0.4); }
+body[data-theme="light"] .md-dw-note {
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.3);
+}
 </style>
 {% endblock %}
 
@@ -531,7 +547,8 @@
                              data-notes="{{ batch.fm_notes|default:'' }}"
                              data-created-str="{{ batch.created_at|date:'d M Y · H:i' }}"
                              data-fm="{{ batch.created_by.get_full_name|default:batch.created_by.username }}"
-                             onclick="openPreview(this)"
+                             onclick="window.location.href='{% url 'vouchers:batch_detail' batch.id %}'"
+                             style="cursor: pointer;"
                              tabindex="0">
 
                             <div class="md-q-idx">{{ forloop.counter }}</div>
@@ -564,9 +581,6 @@
                                 <button class="md-qbtn reject" title="Reject (R)" onclick="quickReject({{ batch.id }}, '{{ batch.batch_number }}')">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
-                                <a href="{% url 'vouchers:batch_detail' batch.id %}" class="md-qbtn view" title="Full detail">
-                                    <i class="bi bi-arrow-right"></i>
-                                </a>
                             </div>
                         </div>
                         {% endfor %}

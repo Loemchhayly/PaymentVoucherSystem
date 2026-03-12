@@ -18,6 +18,15 @@
         box-sizing: border-box;
     }
 
+    /* FORCE transparent background on login page */
+    html,
+    html:has(body[data-theme="light"]),
+    body,
+    body[data-theme="light"],
+    body[data-theme="dark"] {
+        background: transparent !important;
+    }
+
     body {
         width: 100vw;
         height: 100vh;
@@ -29,6 +38,13 @@
         font-family: var(--font-body);
         opacity: 0;
         animation: fadeInPage 0.5s ease-in forwards;
+    }
+
+    /* Force background image to show in all themes */
+    body::before,
+    body[data-theme="light"]::before,
+    body[data-theme="dark"]::before {
+        display: block !important;
     }
 
     @keyframes fadeInPage {
@@ -48,7 +64,10 @@
         background: url("{% static 'images/IMG_8229.jpg' %}") no-repeat center center;
         background-size: cover;
         filter: blur(3px);
-        z-index: -1;
+        z-index: -2;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 
     /* Dark overlay for better contrast */
@@ -59,8 +78,9 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(0, 0, 0, 0.3);
         z-index: -1;
+        transition: background 0.3s ease;
     }
 
     /* Glassmorphic Container - FIXED HEIGHT */
@@ -467,10 +487,217 @@
         width: 100%;
         flex-shrink: 0;
     }
+
+    /* ══════════════════════════════════════════════════════════
+       THEME TOGGLE BUTTON
+    ══════════════════════════════════════════════════════════ */
+    .theme-toggle-login {
+        position: fixed;
+        top: 30px;
+        right: 30px;
+        width: 56px;
+        height: 56px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .theme-toggle-login:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: scale(1.05);
+    }
+
+    .theme-toggle-login i {
+        font-size: 1.5rem;
+        color: #fff;
+        transition: all 0.3s ease;
+    }
+
+    body[data-theme="light"] .theme-toggle-login {
+        background: rgba(0, 0, 0, 0.08);
+        border: 2px solid rgba(0, 0, 0, 0.15);
+    }
+
+    body[data-theme="light"] .theme-toggle-login:hover {
+        background: rgba(0, 0, 0, 0.12);
+        border-color: rgba(0, 0, 0, 0.25);
+    }
+
+    body[data-theme="light"] .theme-toggle-login i {
+        color: #0f172a;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       LIGHT MODE OVERRIDES — Perfect Light Theme Login
+    ══════════════════════════════════════════════════════════ */
+    body[data-theme="light"]::before {
+        filter: blur(3px) brightness(1.15);
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        background: url("{% static 'images/IMG_8229.jpg' %}") no-repeat center center !important;
+        background-size: cover !important;
+    }
+
+    body[data-theme="light"]::after {
+        background: transparent !important;
+    }
+
+    body[data-theme="light"] .container {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        border: 3px solid rgba(0, 0, 0, 0.2);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+    }
+
+    body[data-theme="light"] h2 {
+        color: #0f172a;
+        text-shadow: none;
+    }
+
+    body[data-theme="light"] .info-box {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.1) 100%);
+        border: 2px solid rgba(6, 182, 212, 0.3);
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] .info-box:hover {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.15) 100%);
+        border-color: rgba(6, 182, 212, 0.4);
+    }
+
+    body[data-theme="light"] .info-box i {
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] .form-group {
+        border-bottom: 3px solid rgba(0, 0, 0, 0.2);
+    }
+
+    body[data-theme="light"] .form-group:focus-within {
+        border-bottom-color: #0891b2;
+    }
+
+    body[data-theme="light"] .form-group input {
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] .form-group input::placeholder {
+        color: transparent;
+    }
+
+    body[data-theme="light"] .form-group label {
+        color: rgba(0, 0, 0, 0.7);
+    }
+
+    body[data-theme="light"] .form-group input:focus ~ label,
+    body[data-theme="light"] .form-group input:not(:placeholder-shown) ~ label {
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] .form-group i {
+        color: rgba(0, 0, 0, 0.6);
+    }
+
+    body[data-theme="light"] .form-group:focus-within i {
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] .remember-me {
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] .remember-me:hover {
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] .remember-me input[type="checkbox"] {
+        accent-color: #0891b2;
+    }
+
+    body[data-theme="light"] .forgot-link {
+        color: rgba(0, 0, 0, 0.8);
+    }
+
+    body[data-theme="light"] .forgot-link:hover {
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] p {
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] p > a {
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] p > a:hover {
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] #btn {
+        background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+        color: #ffffff;
+        box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.3);
+    }
+
+    body[data-theme="light"] #btn:hover {
+        background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+        color: #ffffff;
+        border: 2px solid #0891b2;
+        box-shadow: 0 20px 40px -10px rgba(6, 182, 212, 0.4);
+    }
+
+    body[data-theme="light"] .alert {
+        background: rgba(0, 0, 0, 0.05);
+        border: 2px solid rgba(0, 0, 0, 0.15);
+    }
+
+    body[data-theme="light"] .alert-danger {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: #991b1b;
+    }
+
+    body[data-theme="light"] .alert-success {
+        background: rgba(34, 197, 94, 0.15);
+        border-color: rgba(34, 197, 94, 0.4);
+        color: #166534;
+    }
+
+    body[data-theme="light"] .alert-warning {
+        background: rgba(251, 191, 36, 0.15);
+        border-color: rgba(251, 191, 36, 0.4);
+        color: #92400e;
+    }
+
+    body[data-theme="light"] .alert-info {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: rgba(59, 130, 246, 0.4);
+        color: #1e40af;
+    }
+
+    body[data-theme="light"] .alert i {
+        opacity: 0.8;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Theme Toggle Button -->
+<button class="theme-toggle-login" id="themeToggleLogin" aria-label="Toggle theme">
+    <i class="bi bi-moon-fill"></i>
+</button>
+
 <div class="container">
     <h2>Login</h2>
 
@@ -516,4 +743,39 @@
 
     <p>Don't have an account? <a href="{% url 'accounts:register' %}">Sign Up</a></p>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggleBtn = document.getElementById('themeToggleLogin');
+    const body = document.body;
+    const icon = themeToggleBtn.querySelector('i');
+
+    // Initialize theme from localStorage or default to dark for login page
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    body.setAttribute('data-theme', savedTheme);
+    updateIcon(savedTheme);
+
+    // Toggle theme on click
+    themeToggleBtn.addEventListener('click', function() {
+        const currentTheme = body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+        body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateIcon(newTheme);
+    });
+
+    function updateIcon(theme) {
+        if (theme === 'light') {
+            icon.classList.remove('bi-moon-fill');
+            icon.classList.add('bi-sun-fill');
+        } else {
+            icon.classList.remove('bi-sun-fill');
+            icon.classList.add('bi-moon-fill');
+        }
+    }
+});
+</script>
 {% endblock %}

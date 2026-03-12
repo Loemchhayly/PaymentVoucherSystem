@@ -80,7 +80,7 @@
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--text-muted);
-    margin-top: 3px;
+    margin-top: -3px;
 }
 
 /* ── Section panel ── */
@@ -90,6 +90,7 @@
     border-radius: var(--radius-xl);
     overflow: hidden;
     transition: border-color var(--transition-base);
+    margin-top: -29px;
 }
 .batch-section:hover { border-color: var(--border-accent); }
 
@@ -100,6 +101,7 @@
     padding: 13px 18px;
     border-bottom: 1px solid var(--border);
     background: rgba(255,255,255,0.02);
+
 }
 
 .section-icon {
@@ -275,6 +277,22 @@
     .stats-strip { grid-template-columns: 1fr 1fr; }
     .batches-table { font-size: 0.75rem; }
     .batches-table td, .batches-table th { padding: 8px 10px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+══════════════════════════════════════════════════════════ */
+body[data-theme="light"] .stat-cell {
+    background: #ffffff;
+}
+body[data-theme="light"] .stat-cell:hover {
+    background: #f8fafc;
+}
+body[data-theme="light"] .batches-table thead {
+    background: #f1f5f9;
+}
+body[data-theme="light"] .batches-table tbody tr:hover td {
+    background: rgba(6,182,212,0.08);
 }
 </style>
 {% endblock %}

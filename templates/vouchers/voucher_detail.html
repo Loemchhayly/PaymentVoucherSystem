@@ -1699,6 +1699,70 @@
                 flex-direction: row;
             }
         }
+
+        /* ══════════════════════════════════════════════════════════
+           LIGHT MODE OVERRIDES
+        ══════════════════════════════════════════════════════════ */
+        body[data-theme="light"] {
+            --ink-950: #f8fafc;
+            --v-surface: #f8fafc;
+            --v-panel: #ffffff;
+            --v-card: #ffffff;
+            --v-elevated: #f1f5f9;
+            --v-border: rgba(0,0,0,0.08);
+            --v-border-bright: rgba(6,182,212,0.4);
+            --v-cyan: #0891b2;
+            --v-cyan-dim: rgba(6,182,212,0.7);
+            --v-cyan-glow: rgba(6,182,212,0.15);
+            --v-text: #0f172a;
+            --v-muted: #64748b;
+            --v-green: #10b981;
+            --v-green-dim: rgba(16,185,129,0.15);
+            --v-amber: #f59e0b;
+            --v-amber-dim: rgba(245,158,11,0.15);
+            --v-red: #ef4444;
+            --v-red-dim: rgba(239,68,68,0.15);
+            --v-blue: #3b82f6;
+            --v-purple: #8b5cf6;
+        }
+        body[data-theme="light"] {
+            background: #f8fafc !important;
+        }
+        body[data-theme="light"] .vd-card,
+        body[data-theme="light"] .vd-items-card,
+        body[data-theme="light"] .vd-history-card,
+        body[data-theme="light"] .vd-audit-card {
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        body[data-theme="light"] .vd-table thead {
+            background: #f1f5f9;
+        }
+        body[data-theme="light"] .vd-table tbody tr:hover td {
+            background: rgba(6,182,212,0.08);
+        }
+        /* Fix white text in light mode */
+        body[data-theme="light"] .vd-pv-number {
+            color: #0f172a;
+            text-shadow: 0 0 20px rgba(6,182,212,0.15);
+        }
+        body[data-theme="light"] .vd-table .td-desc {
+            color: #0f172a;
+        }
+        body[data-theme="light"] .vd-total-value {
+            color: #0f172a;
+            text-shadow: 0 0 15px rgba(6,182,212,0.2);
+        }
+        body[data-theme="light"] .vd-summary-amount-value {
+            color: #0f172a;
+            text-shadow: 0 0 20px rgba(6,182,212,0.15);
+        }
+        body[data-theme="light"] .vd-btn-primary,
+        body[data-theme="light"] .vd-btn-success,
+        body[data-theme="light"] .vd-btn-danger,
+        body[data-theme="light"] .vd-btn-warning {
+            color: #ffffff;
+        }
     </style>
 {% endblock %}
 

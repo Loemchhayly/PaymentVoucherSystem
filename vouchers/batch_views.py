@@ -5,9 +5,10 @@ Allows Finance Manager to group approved vouchers and send to MD for bulk signat
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
+from datetime import timedelta
 from decimal import Decimal
 from io import BytesIO
 
@@ -187,15 +188,120 @@ def md_dashboard(request):
         'form_items__payment_form'
     ).order_by('-created_at')
 
-    # Get signed batches (last 10)
-    signed_batches = SignatureBatch.objects.filter(
+    # Calculate statistics
+    pending_count = pending_batches.count()
+    signed_count = SignatureBatch.objects.filter(status='SIGNED').count()
+    rejected_count = SignatureBatch.objects.filter(status='REJECTED').count()
+
+    # Get signed this week
+    week_ago = timezone.now() - timedelta(days=7)
+    signed_this_week = SignatureBatch.objects.filter(
+        status='SIGNED',
+        signed_at__gte=week_ago
+    ).count()
+
+    # Calculate total signed amount (multi-currency)
+    signed_batches_all = SignatureBatch.objects.filter(status='SIGNED').prefetch_related(
+        'voucher_items__voucher',
+        'form_items__payment_form'
+    )
+
+    # Initialize totals for each currency
+    total_amounts = {'USD': Decimal('0'), 'KHR': Decimal('0'), 'THB': Decimal('0')}
+
+    for batch in signed_batches_all:
+        batch_totals = batch.get_total_amount()
+        for currency in total_amounts.keys():
+            total_amounts[currency] += batch_totals.get(currency, Decimal('0'))
+
+    # Format total amount (prioritize USD, show others if significant)
+    usd_total = total_amounts['USD']
+    khr_total = total_amounts['KHR']
+    thb_total = total_amounts['THB']
+
+    # Format USD with K/M suffix
+    if usd_total >= 1000000:
+        usd_display = f"${usd_total / 1000000:.2f}M"
+    elif usd_total >= 1000:
+        usd_display = f"${usd_total / 1000:.1f}K"
+    else:
+        usd_display = f"${usd_total:,.0f}"
+
+    # Add other currencies if they have values
+    currency_parts = [usd_display]
+    if khr_total > 0:
+        if khr_total >= 1000000:
+            currency_parts.append(f"៛{khr_total / 1000000:.1f}M")
+        elif khr_total >= 1000:
+            currency_parts.append(f"៛{khr_total / 1000:.0f}K")
+    if thb_total > 0:
+        if thb_total >= 1000000:
+            currency_parts.append(f"฿{thb_total / 1000000:.1f}M")
+        elif thb_total >= 1000:
+            currency_parts.append(f"฿{thb_total / 1000:.0f}K")
+
+    total_signed_amount = " + ".join(currency_parts)
+
+    # Get recent batches for "Recent Decisions" table (last 10 signed or rejected)
+    recent_batches = SignatureBatch.objects.filter(
+        status__in=['SIGNED', 'REJECTED']
+    ).select_related('created_by', 'signed_by').prefetch_related(
+        'voucher_items__voucher',
+        'form_items__payment_form'
+    ).order_by('-signed_at')[:10]
+
+    # Build activity feed (last 15 events)
+    activity_feed = []
+
+    # Get recent signed batches
+    recent_signed = SignatureBatch.objects.filter(
         status='SIGNED'
-    ).select_related('created_by', 'signed_by').order_by('-signed_at')[:10]
+    ).select_related('created_by', 'signed_by').order_by('-signed_at')[:5]
+
+    for batch in recent_signed:
+        activity_feed.append({
+            'type': 'signed',
+            'description': f'<strong>{batch.signed_by.get_full_name() if batch.signed_by else "MD"}</strong> signed batch <strong>{batch.batch_number}</strong>',
+            'timestamp': batch.signed_at
+        })
+
+    # Get recent rejected batches
+    recent_rejected = SignatureBatch.objects.filter(
+        status='REJECTED'
+    ).select_related('created_by', 'signed_by').order_by('-signed_at')[:5]
+
+    for batch in recent_rejected:
+        activity_feed.append({
+            'type': 'rejected',
+            'description': f'<strong>{batch.signed_by.get_full_name() if batch.signed_by else "MD"}</strong> rejected batch <strong>{batch.batch_number}</strong>',
+            'timestamp': batch.signed_at
+        })
+
+    # Get recently created batches
+    recent_created = SignatureBatch.objects.filter(
+        status='PENDING'
+    ).select_related('created_by').order_by('-created_at')[:5]
+
+    for batch in recent_created:
+        activity_feed.append({
+            'type': 'created',
+            'description': f'<strong>{batch.created_by.get_full_name() if batch.created_by else "Finance"}</strong> created batch <strong>{batch.batch_number}</strong>',
+            'timestamp': batch.created_at
+        })
+
+    # Sort activity feed by timestamp (most recent first) and limit to 15
+    activity_feed.sort(key=lambda x: x['timestamp'] if x['timestamp'] else timezone.now(), reverse=True)
+    activity_feed = activity_feed[:15]
 
     context = {
         'pending_batches': pending_batches,
-        'signed_batches': signed_batches,
-        'pending_count': pending_batches.count(),
+        'pending_count': pending_count,
+        'signed_count': signed_count,
+        'rejected_count': rejected_count,
+        'signed_this_week': signed_this_week,
+        'total_signed_amount': total_signed_amount,
+        'recent_batches': recent_batches,
+        'activity_feed': activity_feed,
     }
 
     return render(request, 'vouchers/batch/md_dashboard.html', context)

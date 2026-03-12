@@ -839,6 +839,23 @@
     .bulk-btns { width: 100%; }
     .bulk-btns button { flex: 1; justify-content: center; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+══════════════════════════════════════════════════════════ */
+body[data-theme="light"] .pv-card-top {
+    background: #f1f5f9;
+}
+body[data-theme="light"] .pv-table-row:hover {
+    background: rgba(6,182,212,0.08);
+}
+body[data-theme="light"] .search-box input {
+    background: #ffffff;
+    border-color: rgba(0,0,0,0.15);
+}
+body[data-theme="light"] .search-box input:focus {
+    background: #ffffff;
+}
 </style>
 {% endblock %}
 

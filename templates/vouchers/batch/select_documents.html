@@ -161,6 +161,33 @@
     .summary-stat .label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.75; color: var(--cyan-100); }
     .summary-stat .value { font-size: 1.375rem; font-weight: 800; color: #fff; line-height: 1.1; }
     .summary-stat .value.amount { font-size: 1.1rem; }
+
+    /* ══════════════════════════════════════════════════════════
+       LIGHT MODE OVERRIDES
+    ══════════════════════════════════════════════════════════ */
+    body[data-theme="light"] div.dataTables_wrapper .dataTables_length select,
+    body[data-theme="light"] div.dataTables_wrapper .dataTables_filter input {
+        background: #ffffff;
+        border-color: rgba(0,0,0,0.15);
+    }
+    body[data-theme="light"] div.dataTables_wrapper .dataTables_filter input:focus {
+        background: #ffffff;
+    }
+    body[data-theme="light"] div.dataTables_wrapper .dataTables_paginate .paginate_button {
+        background: #ffffff !important;
+    }
+    body[data-theme="light"] div.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #f8fafc !important;
+    }
+    body[data-theme="light"] .summary-card {
+        background: linear-gradient(135deg, var(--cyan-500) 0%, var(--cyan-600) 100%);
+    }
+    body[data-theme="light"] .summary-stat .label {
+        color: rgba(255,255,255,0.9);
+    }
+    body[data-theme="light"] .summary-stat .value {
+        color: #ffffff;
+    }
 </style>
 {% endblock %}
 

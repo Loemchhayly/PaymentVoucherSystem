@@ -104,14 +104,69 @@
             --topbar-h:           52px;
         }
 
+        /* ══════════════════════════════════════════════════════════
+           LIGHT MODE — Default Theme
+        ══════════════════════════════════════════════════════════ */
+        body[data-theme="light"] {
+            --ink-950: #f8fafc;
+            --ink-900: #f1f5f9;
+            --ink-800: #e2e8f0;
+            --ink-750: #cbd5e1;
+            --ink-700: #e2e8f0;
+            --ink-600: #cbd5e1;
+            --ink-500: #94a3b8;
+
+            --surface-900: #ffffff;
+            --surface-800: #ffffff;
+            --surface-700: #f8fafc;
+
+            --text-primary:   #0f172a;
+            --text-secondary: #475569;
+            --text-muted:     #64748b;
+            --text-disabled:  #cbd5e1;
+            --text-accent:    #0891b2;
+
+            --border:        rgba(0,0,0,0.1);
+            --border-accent: rgba(6,182,212,0.4);
+
+            --shadow-sm:   0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md:   0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg:   0 10px 15px rgba(0,0,0,0.1);
+            --shadow-xl:   0 20px 25px rgba(0,0,0,0.15);
+            --shadow-2xl:  0 25px 50px rgba(0,0,0,0.2);
+            --shadow-glow: 0 0 20px rgba(6,182,212,0.2);
+
+            /* Light mode specific colors */
+            --success-light: rgba(34,197,94,0.15);
+            --warning-light: rgba(245,158,11,0.15);
+            --danger-light:  rgba(239,68,68,0.15);
+            --info-light:    rgba(59,130,246,0.15);
+        }
+
+        body[data-theme="light"] {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        body[data-theme="light"]::before {
+            display: none;
+        }
+
+        /* Light mode - update html background */
+        body[data-theme="light"] ~ html,
+        html:has(body[data-theme="light"]) {
+            background: #f8fafc;
+        }
+
         /* ══════════════ RESET & BASE ══════════════ */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; background: #070d14; }
+        html { scroll-behavior: smooth; background: var(--ink-950); transition: background-color 0.3s ease; }
 
         body {
             font-family: var(--font-body);
             font-size: 14px;
             line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
             color: var(--text-primary);
             background: var(--ink-950);
             min-height: 100vh;
@@ -195,7 +250,7 @@
         }
 
         .brand-mark {
-            width: 32px; height: 32px;
+            width: 80px; height: 80px;
             background: none;
             box-shadow: none;
             border-radius: 0;
@@ -216,7 +271,7 @@
         /* ── Collapse toggle button ── */
         .sidebar-toggle {
             position: absolute;
-            top: 14px; right: 10px;
+            top: 65px; right: 10px;
             width: 26px; height: 26px;
             background: var(--ink-700);
             border: 1px solid var(--border);
@@ -515,6 +570,95 @@
             background: var(--danger);
             border-radius: 50%;
             border: 1.5px solid var(--ink-900);
+        }
+
+        /* Theme toggle button */
+        #themeToggle {
+            font-size: 1rem;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        #themeToggle:hover {
+            transform: rotate(15deg);
+        }
+        body[data-theme="light"] #themeToggle {
+            color: #f59e0b;
+        }
+        body[data-theme="dark"] #themeToggle {
+            color: #60a5fa;
+        }
+
+        /* Smooth transitions for theme changes */
+        .sidebar, .topbar, .content-wrapper, .sidebar-nav,
+        .sidebar-link, .topbar-btn, .card, .table,
+        .form-control, .form-select, .badge {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           LIGHT MODE — Component Overrides
+        ══════════════════════════════════════════════════════════ */
+
+        /* Topbar dropdown in light mode */
+        body[data-theme="light"] .topbar-dropdown {
+            background: #ffffff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        /* Sidebar in light mode */
+        body[data-theme="light"] .sidebar {
+            background: #ffffff;
+            border-right: 1px solid rgba(0,0,0,0.08);
+        }
+
+        body[data-theme="light"] .sidebar-link:hover {
+            background: rgba(6,182,212,0.08);
+        }
+
+        body[data-theme="light"] .sidebar-link.active {
+            background: rgba(6,182,212,0.12);
+        }
+
+        /* Tables in light mode */
+        body[data-theme="light"] .table thead th {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        body[data-theme="light"] .table tbody tr:hover td {
+            background: rgba(6,182,212,0.08);
+        }
+
+        /* Forms in light mode */
+        body[data-theme="light"] .form-control,
+        body[data-theme="light"] .form-select {
+            background: #ffffff;
+            border-color: rgba(0,0,0,0.15);
+            color: #0f172a;
+        }
+
+        body[data-theme="light"] .form-control:focus,
+        body[data-theme="light"] .form-select:focus {
+            background: #ffffff;
+            border-color: var(--cyan-500);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.15);
+        }
+
+        /* Cards in light mode */
+        body[data-theme="light"] .card,
+        body[data-theme="light"] .card-modern {
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Modals in light mode */
+        body[data-theme="light"] .modal-content {
+            background: #ffffff;
+        }
+
+        /* Page header in light mode */
+        body[data-theme="light"] .page-title i {
+            background: rgba(6,182,212,0.15);
+            color: var(--cyan-600);
         }
 
         /* Dropdown for notifications in topbar */
@@ -832,7 +976,7 @@
 
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body data-theme="light">
 
 <div class="app-shell">
 
@@ -846,7 +990,7 @@
         <a class="sidebar-brand" href="{% url 'dashboard:home' %}">
             <!-- AFTER -->
             <div class="brand-mark">
-                <img src="{% static 'images/Logo3.png' %}" alt="Logo" style="width:22px;height:22px;object-fit:contain;">
+                <img src="{% static 'images/Logo3.png' %}" alt="Logo" style="width:70px;height:70px;object-fit:contain;">
             </div>
             <div class="brand-text">
                 <span class="brand-name-main">PV System</span>
@@ -1021,6 +1165,11 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Theme Toggle -->
+                <button class="topbar-btn" id="themeToggle" title="Toggle theme">
+                    <i class="bi bi-sun-fill" id="themeIcon"></i>
+                </button>
 
                 <!-- User chip -->
                 <div style="position:relative;">
@@ -1249,6 +1398,41 @@ document.addEventListener('DOMContentLoaded', function () {
     if (titleEl) {
         const activeLink = document.querySelector('.sidebar-link.active .nav-label');
         if (activeLink) titleEl.textContent = activeLink.textContent.trim();
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       THEME TOGGLE — Light/Dark Mode
+    ═══════════════════════════════════════════════════════════ */
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const body = document.body;
+
+    // Initialize theme from localStorage or default to light
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    body.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+
+    // Toggle theme on click
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+    }
+
+    // Update icon based on theme
+    function updateThemeIcon(theme) {
+        if (theme === 'light') {
+            themeIcon.className = 'bi bi-sun-fill';
+            themeToggle.title = 'Switch to dark mode';
+        } else {
+            themeIcon.className = 'bi bi-moon-fill';
+            themeToggle.title = 'Switch to light mode';
+        }
     }
 
 });
