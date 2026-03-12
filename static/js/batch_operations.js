@@ -10,12 +10,11 @@
 /**
  * Get CSRF token from Django
  */
+// NEW - reads from Django's hidden input, guaranteed to exist
 function getCSRFToken() {
-    const cookieValue = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-    return cookieValue;
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value
+        || document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1]
+        || '';
 }
 
 /**
@@ -161,18 +160,21 @@ function updateSelection() {
  */
 function createBatch() {
     const checkboxes = document.querySelectorAll('.doc-checkbox:checked');
-
     if (checkboxes.length === 0) {
         showToast('Error', 'Please select at least one document', 'error');
         return;
     }
+    const modalEl = document.getElementById('notesModal');
+    // Destroy existing instance first to prevent stacking issues
+    const existing = bootstrap.Modal.getInstance(modalEl);
+    if (existing) existing.dispose();
 
-    // Show notes modal
-    const modal = document.getElementById('notesModal');
-    if (modal) {
-        const bsModal = new bootstrap.Modal(modal);
-        bsModal.show();
-    }
+    const bsModal = new bootstrap.Modal(modalEl, {
+        backdrop: true,
+        keyboard: true,
+        focus: true
+    });
+    bsModal.show();
 }
 
 /**
@@ -192,7 +194,7 @@ function submitBatch() {
     });
 
     const notes = document.getElementById('fm-notes')?.value || '';
-    const submitButton = event.target;
+    const submitButton = document.querySelector('#notesModal .btn-primary');  // ✅ FIX
 
     // Validate
     if (voucherIds.length === 0 && formIds.length === 0) {

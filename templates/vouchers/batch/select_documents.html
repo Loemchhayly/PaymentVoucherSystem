@@ -6,7 +6,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 <style>
-    /* ── DataTables overrides ── */
     div.dataTables_wrapper .dataTables_length select,
     div.dataTables_wrapper .dataTables_filter input {
         background: var(--ink-700);
@@ -56,22 +55,16 @@
         opacity: 0.35 !important;
         cursor: not-allowed !important;
     }
-
-    /* ── Custom checkbox ── */
-    .doc-checkbox,
-    #select-all {
+    .doc-checkbox, #select-all {
         width: 16px; height: 16px;
         accent-color: var(--cyan-500);
         cursor: pointer;
     }
-
-    /* ── Selectable row ── */
     .selectable-row {
         cursor: pointer;
         transition: background var(--transition-fast), border-left var(--transition-fast);
     }
     .selectable-row td { transition: background var(--transition-fast); }
-
     .selectable-row:has(.doc-checkbox:checked) td {
         background: rgba(6,182,212,0.07) !important;
         border-left: none;
@@ -82,8 +75,6 @@
     .selectable-row:has(.doc-checkbox:checked):hover td {
         background: rgba(6,182,212,0.11) !important;
     }
-
-    /* ── Summary card gradient ── */
     .summary-card {
         background: linear-gradient(135deg, var(--cyan-700) 0%, var(--ink-600) 100%);
         border: 1px solid var(--border-accent);
@@ -111,8 +102,6 @@
         background: rgba(6,182,212,0.08);
         pointer-events: none;
     }
-
-    /* ── Send to MD button ── */
     #create-batch-btn {
         background: white;
         color: var(--ink-900);
@@ -134,8 +123,6 @@
         opacity: 0.45;
         cursor: not-allowed;
     }
-
-    /* ── Empty state ── */
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
@@ -151,8 +138,6 @@
     .empty-state p { margin: 0; }
     .empty-state .empty-title { font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.4rem; font-weight: 600; }
     .empty-state .empty-sub   { font-size: 0.8125rem; }
-
-    /* ── Modal dark theme ── */
     .modal-content {
         background: var(--surface-800);
         border: 1px solid var(--border);
@@ -172,8 +157,6 @@
         padding: 12px 18px;
         gap: 8px;
     }
-
-    /* ── Stats in summary ── */
     .summary-stat { display: flex; flex-direction: column; }
     .summary-stat .label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.75; color: var(--cyan-100); }
     .summary-stat .value { font-size: 1.375rem; font-weight: 800; color: #fff; line-height: 1.1; }
@@ -205,7 +188,7 @@
 
     <!-- ── Summary Card ── -->
     <div class="summary-card mb-4">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; position:relative; z-index:1;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
             <div style="display:flex; gap:2rem; flex-wrap:wrap;">
                 <div class="summary-stat">
                     <span class="label">Selected</span>
@@ -307,7 +290,7 @@
 
 </div>
 
-<!-- ── Notes Modal ── -->
+<!-- ── Notes Modal (ONE copy only) ── -->
 <div class="modal fade" id="notesModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -319,13 +302,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                {% csrf_token %}   {# ← add this line #}
                 <label class="form-label">Notes / Instructions for MD</label>
                 <textarea class="form-control" id="fm-notes" rows="4"
                           placeholder="Add any notes or instructions for MD..."></textarea>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="submitBatch()">
+                <button type="button" id="submit-batch-btn" class="btn btn-primary" onclick="submitBatch()">
                     <i class="bi bi-send-fill"></i> Create Batch
                 </button>
             </div>
@@ -333,7 +317,10 @@
     </div>
 </div>
 
-<!-- jQuery + DataTables -->
+{% endblock %}
+
+{% block extra_js %}
+<!-- jQuery + DataTables (Bootstrap is already loaded by base.html) -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
@@ -359,7 +346,7 @@ $(document).ready(function () {
         drawCallback: function () { updateSelection(); }
     });
 
-    /* Select-all (current page) */
+    /* Select-all (current page only) */
     $('#select-all').on('change', function () {
         const checked = this.checked;
         table.$('input.doc-checkbox', { page: 'current' }).each(function () {
