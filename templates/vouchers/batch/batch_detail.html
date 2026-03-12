@@ -1,1353 +1,1397 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Batch {{ batch.batch_number }} - Details{% endblock %}
+{% block title %}{{ batch.batch_number }} — Batch Detail{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   OBSIDIAN GOLD — Premium Finance Aesthetic
+   Warm charcoal · amber gold · editorial layout
+   Completely different from the base teal-navy system
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Local palette overrides ── */
+:root {
+  --ob-void:    #0f0d0b;
+  --ob-900:     #161310;
+  --ob-800:     #1e1a16;
+  --ob-750:     #252018;
+  --ob-700:     #2d271e;
+  --ob-600:     #3a3026;
+
+  --gold-500:   #d4a843;
+  --gold-400:   #e2bc60;
+  --gold-300:   #f0d080;
+  --gold-200:   #f8e8b0;
+  --gold-glow:  rgba(212,168,67,0.15);
+
+  --jade-500:   #2ecc8a;
+  --jade-400:   #4dddaa;
+  --jade-light: rgba(46,204,138,0.1);
+
+  --rose-500:   #e05c6a;
+  --rose-light: rgba(224,92,106,0.1);
+
+  --amber-500:  #e8a030;
+  --amber-light:rgba(232,160,48,0.1);
+
+  --ob-text-100: #f2ede6;
+  --ob-text-200: #c8bfb0;
+  --ob-text-400: #7a6e5e;
+  --ob-text-600: #4a4236;
+
+  --ob-border:        rgba(255,255,255,0.06);
+  --ob-border-gold:   rgba(212,168,67,0.25);
+  --ob-border-strong: rgba(255,255,255,0.1);
+
+  --ob-radius:  10px;
+  --ob-radius-sm: 6px;
+  --ob-radius-lg: 16px;
+}
+
+/* ── Page shell ── */
+.ob-page {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 28px 60px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* ── Entry animation ── */
+@keyframes obFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ob-fade { animation: obFadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+.ob-fade:nth-child(1) { animation-delay: 0.05s; }
+.ob-fade:nth-child(2) { animation-delay: 0.12s; }
+.ob-fade:nth-child(3) { animation-delay: 0.19s; }
+.ob-fade:nth-child(4) { animation-delay: 0.26s; }
+
+/* ══════════════════════════════════════
+   PAGE HEADER — minimal editorial
+══════════════════════════════════════ */
+.ob-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 0 24px;
+  border-bottom: 1px solid var(--ob-border);
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.ob-header-left {}
+.ob-batch-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ob-text-400);
+  margin-bottom: 6px;
+}
+.ob-batch-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 24px; height: 1px;
+  background: var(--gold-500);
+  flex-shrink: 0;
+}
+
+.ob-batch-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--ob-text-100);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ob-status-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+.ob-status-inline.pending  { background: var(--amber-light); color: var(--amber-500); border: 1px solid rgba(232,160,48,0.3); }
+.ob-status-inline.signed   { background: var(--jade-light);  color: var(--jade-400);  border: 1px solid rgba(46,204,138,0.3); }
+.ob-status-inline.rejected { background: var(--rose-light);  color: var(--rose-500);  border: 1px solid rgba(224,92,106,0.3); }
+
+.ob-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+/* Header buttons */
+.ob-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--ob-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.22,1,0.36,1);
+  white-space: nowrap;
+}
+.ob-btn i { font-size: 0.8rem; }
+
+.ob-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--ob-border-strong);
+  color: var(--ob-text-200);
+}
+.ob-btn-ghost:hover { background: var(--ob-700); color: var(--ob-text-100); border-color: var(--ob-border-gold); }
+
+.ob-btn-gold {
+  background: linear-gradient(135deg, var(--gold-500), #b8922e);
+  color: #1a1510;
+  box-shadow: 0 2px 12px rgba(212,168,67,0.3);
+  font-weight: 800;
+}
+.ob-btn-gold:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212,168,67,0.4); color: #0f0d0b; }
+
+.ob-btn-jade {
+  background: linear-gradient(135deg, var(--jade-500), #1fa870);
+  color: #0a1a12;
+  font-weight: 800;
+}
+.ob-btn-jade:hover { transform: translateY(-2px); filter: brightness(1.1); color: #0a1a12; }
+
+.ob-btn-rose {
+  background: transparent;
+  border: 1px solid rgba(224,92,106,0.35);
+  color: var(--rose-500);
+}
+.ob-btn-rose:hover { background: var(--rose-light); border-color: var(--rose-500); }
+
+.ob-btn-danger {
+  background: transparent;
+  border: 1px solid rgba(224,92,106,0.35);
+  color: var(--rose-500);
+}
+.ob-btn-danger:hover { background: var(--rose-light); }
+
+/* ══════════════════════════════════════
+   EMPTY BATCH ALERT
+══════════════════════════════════════ */
+.ob-alert-empty {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 18px;
+  background: var(--rose-light);
+  border: 1px solid rgba(224,92,106,0.2);
+  border-left: 3px solid var(--rose-500);
+  border-radius: var(--ob-radius);
+  margin-bottom: 24px;
+  font-size: 0.8rem;
+  color: #f09090;
+}
+.ob-alert-empty i { color: var(--rose-500); flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+.ob-alert-empty strong { display: block; font-weight: 700; color: #fca5a5; margin-bottom: 2px; }
+
+/* ══════════════════════════════════════
+   MAIN LAYOUT
+══════════════════════════════════════ */
+.ob-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ══════════════════════════════════════
+   BATCH INFO SIDEBAR
+══════════════════════════════════════ */
+.ob-info-card {
+  background: var(--ob-800);
+  border: 1px solid var(--ob-border);
+  border-radius: var(--ob-radius-lg);
+  overflow: hidden;
+  position: sticky;
+  top: calc(52px + 16px);
+}
+
+/* Gold accent top bar */
+.ob-info-card::before {
+  content: '';
+  display: block;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold-500), var(--gold-300), transparent);
+}
+
+/* Amount hero */
+.ob-amount-hero {
+  padding: 24px 20px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--ob-border);
+}
+
+/* Decorative radial */
+.ob-amount-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; left: 50%;
+  transform: translateX(-50%);
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.ob-amount-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: var(--ob-text-400);
+  margin-bottom: 8px;
+}
+
+.ob-amount-value {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--gold-400);
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ob-amount-pills {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ob-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 9px;
+  border-radius: 4px;
+}
+.ob-pill-neutral { background: var(--ob-700); color: var(--ob-text-200); border: 1px solid var(--ob-border-strong); }
+.ob-pill-pending  { background: var(--amber-light); color: var(--amber-500); border: 1px solid rgba(232,160,48,0.25); }
+.ob-pill-signed   { background: var(--jade-light);  color: var(--jade-400);  border: 1px solid rgba(46,204,138,0.25); }
+.ob-pill-rejected { background: var(--rose-light);  color: var(--rose-500);  border: 1px solid rgba(224,92,106,0.25); }
+
+/* Info list */
+.ob-info-list { padding: 6px 0; }
+
+.ob-info-item {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--ob-border);
+}
+.ob-info-item:last-child { border-bottom: none; }
+
+.ob-info-key {
+  min-width: 90px;
+  padding: 10px 10px 10px 18px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ob-text-400);
+  border-right: 1px solid var(--ob-border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  line-height: 1.4;
+}
+.ob-info-key i { font-size: 0.65rem; margin-top: 1px; color: var(--gold-500); opacity: 0.7; }
+
+.ob-info-val {
+  padding: 10px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ob-info-name { font-size: 0.8rem; font-weight: 600; color: var(--ob-text-100); line-height: 1.3; }
+.ob-info-time { font-size: 0.68rem; color: var(--ob-text-400); }
+.ob-info-ip   { font-size: 0.62rem; color: var(--ob-text-600); font-variant-numeric: tabular-nums; }
+
+.ob-note {
+  font-size: 0.75rem;
+  padding: 6px 10px;
+  border-radius: var(--ob-radius-sm);
+  line-height: 1.5;
+}
+.ob-note-amber { background: var(--amber-light); border-left: 2px solid var(--amber-500); color: #fbbf24; }
+.ob-note-teal  { background: rgba(46,204,138,0.07); border-left: 2px solid var(--jade-500); color: var(--jade-400); }
+
+/* Sign/Reject buttons */
+.ob-card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--ob-750);
+  border-top: 1px solid var(--ob-border);
+}
+
+.ob-action-sign {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 10px 12px;
+  background: linear-gradient(135deg, var(--jade-500), #1fa870);
+  color: #0a1a12;
+  border: none; border-radius: var(--ob-radius-sm);
+  font-size: 0.78rem; font-weight: 800;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 12px rgba(46,204,138,0.25);
+}
+.ob-action-sign:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46,204,138,0.35); }
+
+.ob-action-reject {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 10px 12px;
+  background: transparent;
+  color: var(--rose-500);
+  border: 1px solid rgba(224,92,106,0.3);
+  border-radius: var(--ob-radius-sm);
+  font-size: 0.78rem; font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ob-action-reject:hover { background: var(--rose-light); border-color: var(--rose-500); transform: translateY(-2px); }
+
+/* ══════════════════════════════════════
+   DOCUMENTS PANEL
+══════════════════════════════════════ */
+.ob-docs {
+  background: var(--ob-800);
+  border: 1px solid var(--ob-border);
+  border-radius: var(--ob-radius-lg);
+  overflow: hidden;
+}
+.ob-docs::before {
+  content: '';
+  display: block;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--jade-500), transparent);
+}
+
+.ob-docs-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--ob-border);
+}
+.ob-docs-title { font-size: 0.75rem; font-weight: 700; color: var(--ob-text-100); letter-spacing: 0.3px; flex: 1; }
+
+/* Doc type section */
+.ob-doc-section { border-bottom: 1px solid var(--ob-border); }
+.ob-doc-section:last-of-type { border-bottom: none; }
+
+.ob-doc-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border-bottom: 1px solid var(--ob-border);
+  background: var(--ob-750);
+}
+.ob-doc-section-label.pv { color: var(--gold-400); }
+.ob-doc-section-label.pf { color: var(--jade-400); }
+.ob-doc-section-label .count {
+  margin-left: auto;
+  font-size: 0.6rem;
+  padding: 1px 7px;
+  border-radius: 3px;
+}
+.ob-doc-section-label.pv .count { background: rgba(212,168,67,0.12); color: var(--gold-400); border: 1px solid rgba(212,168,67,0.2); }
+.ob-doc-section-label.pf .count { background: var(--jade-light); color: var(--jade-400); border: 1px solid rgba(46,204,138,0.2); }
+
+/* Table */
+.ob-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  table-layout: fixed;
+}
+.col-docnum { width: 11%; }
+.col-payee  { width: 14%; }
+.col-desc   { width: 21%; }
+.col-date   { width: 11%; }
+.col-bank   { width: 24%; }
+.col-amount { width: 13%; }
+.col-action { width: 6%; }
+
+.ob-table thead th {
+  background: transparent;
+  color: var(--ob-text-400);
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 8px 14px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--ob-border);
+}
+.ob-table thead th:nth-child(1),
+.ob-table thead th:nth-child(4),
+.ob-table thead th:nth-child(6) { text-align: center; }
+
+.ob-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--ob-border);
+  vertical-align: middle;
+  color: var(--ob-text-200);
+}
+.ob-table tbody tr:last-child td { border-bottom: none; }
+.ob-table td:nth-child(1),
+.ob-table td:nth-child(4),
+.ob-table td:nth-child(6) { text-align: center; }
+
+.ob-doc-row { cursor: pointer; transition: background 0.15s; }
+.ob-doc-row:hover td {
+  background: rgba(212,168,67,0.04);
+}
+.ob-doc-row:hover td:first-child {
+  box-shadow: inset 3px 0 0 var(--gold-500);
+}
+.ob-doc-row:active td { background: rgba(212,168,67,0.08); }
+
+/* Number badge */
+.ob-num {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: 'Montserrat', monospace;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.ob-num-pv { background: rgba(212,168,67,0.1); color: var(--gold-400); border: 1px solid rgba(212,168,67,0.2); }
+.ob-num-pf { background: var(--jade-light); color: var(--jade-400); border: 1px solid rgba(46,204,138,0.2); }
+
+.ob-payee {
+  font-weight: 600;
+  color: var(--ob-text-100);
+  font-size: 0.78rem;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ob-desc-line {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--ob-text-200);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.45;
+}
+
+.ob-date {
+  display: inline-block;
+  font-size: 0.68rem;
+  color: var(--ob-text-400);
+  background: var(--ob-700);
+  border: 1px solid var(--ob-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
+.ob-bank-cell { display: flex; flex-direction: column; gap: 1px; line-height: 1.3; }
+.ob-bank-name { font-size: 0.72rem; font-weight: 700; color: var(--gold-400); }
+.ob-bank-co   { font-size: 0.65rem; color: var(--ob-text-400); }
+.ob-bank-acct { font-size: 0.6rem; color: var(--ob-text-600); font-variant-numeric: tabular-nums; }
+
+.ob-amount {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--jade-400);
+  background: var(--jade-light);
+  border: 1px solid rgba(46,204,138,0.2);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ob-remove {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 25px; height: 25px;
+  border-radius: 4px;
+  border: 1px solid rgba(224,92,106,0.25);
+  background: var(--rose-light);
+  color: var(--rose-500);
+  font-size: 0.6rem;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s;
+}
+.ob-remove:hover { background: var(--rose-500); color: white; border-color: var(--rose-500); transform: scale(1.1); }
+
+.ob-deleted-row td {
+  text-align: center;
+  background: var(--rose-light);
+  color: #f09090;
+  font-size: 0.75rem;
+  padding: 8px;
+  border: none;
+}
+
+/* Total bar */
+.ob-total-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--ob-750);
+  border-top: 1px solid var(--ob-border-gold);
+}
+.ob-total-left { display: flex; flex-direction: column; gap: 2px; }
+.ob-total-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ob-text-400);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ob-total-label::before { content: ''; width: 16px; height: 1px; background: var(--gold-500); }
+.ob-total-count { font-size: 0.68rem; color: var(--ob-text-400); }
+.ob-total-amount {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--gold-400);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+/* ══════════════════════════════════════
+   SIDE PANEL
+══════════════════════════════════════ */
+.ob-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1050;
+  opacity: 0; visibility: hidden;
+  transition: all 0.3s;
+  backdrop-filter: blur(4px);
+}
+.ob-overlay.active { opacity: 1; visibility: visible; }
+
+.ob-panel {
+  position: fixed;
+  top: 0; right: 0;
+  width: 560px; height: 100%;
+  background: var(--ob-900);
+  border-left: 1px solid var(--ob-border-gold);
+  z-index: 1051;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+  display: flex; flex-direction: column;
+  box-shadow: -12px 0 48px rgba(0,0,0,0.6);
+}
+.ob-overlay.active .ob-panel { transform: translateX(0); }
+
+/* Panel gold top */
+.ob-panel::before {
+  content: '';
+  display: block;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold-500), var(--gold-300), transparent);
+  flex-shrink: 0;
+}
+
+.ob-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--ob-border);
+  background: var(--ob-800);
+  flex-shrink: 0;
+  gap: 12px;
+}
+.ob-panel-title-col { display: flex; flex-direction: column; gap: 2px; }
+.ob-panel-title { font-size: 0.9375rem; font-weight: 800; color: var(--ob-text-100); margin: 0; letter-spacing: -0.2px; }
+.ob-panel-sub   { font-size: 0.62rem; color: var(--ob-text-400); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+
+.ob-panel-btns { display: flex; align-items: center; gap: 6px; }
+.ob-plink {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 12px;
+  border-radius: var(--ob-radius-sm);
+  font-size: 0.72rem; font-weight: 700;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid var(--ob-border-gold);
+  color: var(--gold-400);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.ob-plink:hover { background: rgba(212,168,67,0.18); color: var(--gold-300); }
+.ob-pclose {
+  width: 30px; height: 30px;
+  background: var(--ob-700); border: 1px solid var(--ob-border);
+  border-radius: var(--ob-radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; color: var(--ob-text-400);
+  cursor: pointer; transition: all 0.15s;
+}
+.ob-pclose:hover { color: var(--rose-500); border-color: rgba(224,92,106,0.3); background: var(--rose-light); }
+
+.ob-panel-body {
+  flex: 1; overflow-y: auto; padding: 18px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.ob-panel-body::-webkit-scrollbar { width: 4px; }
+.ob-panel-body::-webkit-scrollbar-thumb { background: var(--ob-600); border-radius: 99px; }
+
+.ob-panel-loading { text-align: center; padding: 40px; color: var(--ob-text-400); }
+.ob-panel-loading .ob-spinner {
+  width: 24px; height: 24px;
+  border: 2px solid var(--ob-600);
+  border-top-color: var(--gold-400);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ob-panel-loading p { font-size: 0.78rem; }
+
+.ob-panel-section {}
+.ob-panel-section-title {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 0.6rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--ob-text-400);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ob-border);
+}
+.ob-panel-section-title i { color: var(--gold-500); }
+
+.ob-line-item {
+  background: var(--ob-800);
+  border: 1px solid var(--ob-border);
+  border-left: 3px solid var(--gold-500);
+  border-radius: var(--ob-radius);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  transition: all 0.15s;
+}
+.ob-line-item:hover { border-color: var(--ob-border-gold); border-left-color: var(--gold-400); }
+.ob-line-item:last-child { margin-bottom: 0; }
+.ob-li-desc { font-size: 0.8rem; font-weight: 600; color: var(--ob-text-100); margin-bottom: 8px; line-height: 1.4; }
+.ob-li-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ob-li-field { display: flex; flex-direction: column; gap: 1px; }
+.ob-li-label { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--ob-text-400); }
+.ob-li-value { font-size: 0.78rem; font-weight: 600; color: var(--ob-text-100); }
+.ob-li-value.amount { color: var(--jade-400); font-variant-numeric: tabular-nums; }
+
+.ob-att-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--ob-800);
+  border: 1px solid var(--ob-border);
+  border-radius: var(--ob-radius);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.ob-att-item:hover { border-color: var(--ob-border-gold); background: var(--ob-750); }
+.ob-att-item:last-child { margin-bottom: 0; }
+.ob-att-icon {
+  width: 34px; height: 34px;
+  background: rgba(212,168,67,0.1);
+  border: 1px solid var(--ob-border-gold);
+  border-radius: var(--ob-radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; color: var(--gold-400); flex-shrink: 0;
+}
+.ob-att-name { font-size: 0.78rem; font-weight: 600; color: var(--ob-text-100); }
+.ob-att-meta { font-size: 0.65rem; color: var(--ob-text-400); }
+.ob-att-view {
+  margin-left: auto;
+  font-size: 0.68rem; font-weight: 700;
+  color: var(--gold-400);
+  background: rgba(212,168,67,0.1);
+  border: 1px solid var(--ob-border-gold);
+  padding: 3px 9px; border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.ob-att-view:hover { background: rgba(212,168,67,0.2); color: var(--gold-300); }
+
+.ob-panel-empty { text-align: center; padding: 24px; color: var(--ob-text-400); }
+.ob-panel-empty i { font-size: 1.5rem; display: block; margin-bottom: 6px; opacity: 0.3; }
+.ob-panel-empty span { font-size: 0.75rem; }
+
+/* ══════════════════════════════════════
+   MODALS — Obsidian Dark
+══════════════════════════════════════ */
+.modal-content {
+  background: var(--ob-800) !important;
+  border: 1px solid var(--ob-border-strong) !important;
+  border-radius: var(--ob-radius-lg) !important;
+  color: var(--ob-text-100) !important;
+  overflow: hidden;
+}
+.modal-content::before {
+  content: '';
+  display: block;
+  height: 2px;
+  flex-shrink: 0;
+}
+.modal-sign   .modal-content::before { background: linear-gradient(90deg, var(--jade-500), transparent); }
+.modal-reject .modal-content::before { background: linear-gradient(90deg, var(--rose-500), transparent); }
+.modal-remove .modal-content::before { background: linear-gradient(90deg, var(--amber-500), transparent); }
+.modal-delete .modal-content::before { background: linear-gradient(90deg, var(--rose-500), transparent); }
+
+.modal-header { border-bottom: 1px solid var(--ob-border) !important; padding: 14px 18px !important; background: var(--ob-750) !important; }
+.modal-body   { padding: 18px !important; }
+.modal-footer { border-top: 1px solid var(--ob-border) !important; padding: 12px 18px !important; background: var(--ob-750) !important; gap: 8px; }
+
+.modal-title {
+  font-size: 0.9375rem !important;
+  font-weight: 800 !important;
+  color: var(--ob-text-100) !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.modal-title .ico-sign   { color: var(--jade-400); }
+.modal-title .ico-reject { color: var(--rose-500); }
+.modal-title .ico-remove { color: var(--amber-500); }
+.modal-title .ico-delete { color: var(--rose-500); }
+
+/* Form inputs in modal */
+.modal-body .form-control {
+  background: var(--ob-750) !important;
+  border: 1px solid var(--ob-border-strong) !important;
+  color: var(--ob-text-100) !important;
+}
+.modal-body .form-control:focus {
+  border-color: var(--ob-border-gold) !important;
+  box-shadow: 0 0 0 3px rgba(212,168,67,0.1) !important;
+}
+.modal-body .form-control::placeholder { color: var(--ob-text-600) !important; }
+.modal-body .form-label { font-size: 0.65rem !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.8px !important; color: var(--ob-text-400) !important; }
+
+/* Modal alerts */
+.ob-m-alert {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 12px; border-radius: var(--ob-radius-sm);
+  font-size: 0.78rem; line-height: 1.5;
+  margin-bottom: 14px;
+}
+.ob-m-alert i { flex-shrink: 0; margin-top: 1px; }
+.ob-m-alert.info    { background: rgba(212,168,67,0.08); border: 1px solid var(--ob-border-gold); color: var(--gold-300); }
+.ob-m-alert.info i  { color: var(--gold-400); }
+.ob-m-alert.danger  { background: var(--rose-light); border: 1px solid rgba(224,92,106,0.25); color: #f09090; }
+.ob-m-alert.danger i{ color: var(--rose-500); }
+.ob-m-alert.warn    { background: var(--amber-light); border: 1px solid rgba(232,160,48,0.25); color: #fbbf24; }
+.ob-m-alert.warn i  { color: var(--amber-500); }
+
+.ob-del-center {
+  text-align: center;
+  padding: 20px 0 10px;
+}
+.ob-del-center i { font-size: 2.75rem; color: var(--rose-500); display: block; margin-bottom: 10px; opacity: 0.8; }
+.ob-del-center h4 { font-size: 1.1rem; font-weight: 800; color: var(--ob-text-100); margin: 0; }
+.ob-del-center p  { font-size: 0.8rem; color: var(--ob-text-400); margin-top: 6px; }
+
+/* Modal buttons */
+.ob-m-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--ob-radius-sm);
+  font-size: 0.78rem; font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer; border: none;
+  transition: all 0.2s;
+}
+.ob-m-btn.sec {
+  background: var(--ob-700); border: 1px solid var(--ob-border);
+  color: var(--ob-text-200);
+}
+.ob-m-btn.sec:hover { background: var(--ob-600); color: var(--ob-text-100); }
+.ob-m-btn.jade { background: linear-gradient(135deg, var(--jade-500), #1fa870); color: #0a1a12; box-shadow: 0 2px 10px rgba(46,204,138,0.25); font-weight: 800; }
+.ob-m-btn.jade:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(46,204,138,0.35); }
+.ob-m-btn.rose { background: linear-gradient(135deg, var(--rose-500), #b03040); color: white; }
+.ob-m-btn.rose:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.ob-m-btn.amber { background: linear-gradient(135deg, var(--amber-500), #b8722a); color: #1a0f00; font-weight: 800; }
+.ob-m-btn.amber:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .ob-layout { grid-template-columns: 1fr; }
+  .ob-info-card { position: static; }
+}
+@media (max-width: 576px) {
+  .ob-page { padding: 0 14px 40px; }
+  .ob-panel { width: 100%; }
+  .ob-table { font-size: 0.7rem; }
+  .ob-table td, .ob-table th { padding: 7px 8px; }
+  .ob-batch-title { font-size: 1.3rem; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid" style="max-width: 1400px; margin-top: -2.5rem;">
-    <!-- Page Header -->
-    <div class="page-header" style="margin-bottom: 2rem;">
-        <div>
-            <h1 style="font-size: 2rem; font-weight: 700; color: #1f2937; margin: 0;">
-                <i class="bi bi-folder2-open" style="color: #0d7874;"></i>
-                {{ batch.batch_number }}
-            </h1>
-            <p style="color: #6b7280; margin-top: 0.5rem;">Batch Details</p>
+<div class="ob-page">
+
+  <!-- ══ HEADER ══ -->
+  <div class="ob-header ob-fade">
+    <div class="ob-header-left">
+      <div class="ob-batch-eyebrow">Batch Record</div>
+      <div class="ob-batch-title">
+        {{ batch.batch_number }}
+        {% if batch.status == 'PENDING' %}
+        <span class="ob-status-inline pending"><i class="bi bi-clock-fill"></i> Pending</span>
+        {% elif batch.status == 'SIGNED' %}
+        <span class="ob-status-inline signed"><i class="bi bi-patch-check-fill"></i> Signed</span>
+        {% elif batch.status == 'REJECTED' %}
+        <span class="ob-status-inline rejected"><i class="bi bi-x-octagon-fill"></i> Rejected</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="ob-header-actions">
+      {% if batch.status == 'PENDING' and batch.created_by == user %}
+      <a href="{% url 'vouchers:batch_edit' batch.id %}" class="ob-btn ob-btn-ghost">
+        <i class="bi bi-pencil"></i> Edit
+      </a>
+      <button type="button" class="ob-btn ob-btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBatchModal">
+        <i class="bi bi-trash3"></i> Delete
+      </button>
+      {% endif %}
+      {% if document_count > 0 %}
+      <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="ob-btn ob-btn-jade">
+        <i class="bi bi-file-earmark-excel"></i> Export Excel
+      </a>
+      {% endif %}
+      {% if user.role_level == 5 %}
+      <a href="{% url 'vouchers:md_dashboard' %}" class="ob-btn ob-btn-ghost">
+        <i class="bi bi-arrow-left"></i> MD Dashboard
+      </a>
+      {% else %}
+      <a href="{% url 'dashboard:home' %}" class="ob-btn ob-btn-ghost">
+        <i class="bi bi-arrow-left"></i> Dashboard
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if document_count == 0 %}
+  <div class="ob-alert-empty ob-fade">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div><strong>Empty Batch</strong>Add documents via "Edit" or delete this batch.</div>
+  </div>
+  {% endif %}
+
+  <!-- ══ LAYOUT ══ -->
+  <div class="ob-layout">
+
+    <!-- ── Info Card ── -->
+    <div class="ob-info-card ob-fade">
+
+      <div class="ob-amount-hero">
+        <div class="ob-amount-label">Total Amount</div>
+        <div class="ob-amount-value">{{ total_amount_display }}</div>
+        <div class="ob-amount-pills">
+          <span class="ob-pill ob-pill-neutral">
+            <i class="bi bi-files"></i> {{ document_count }} doc{{ document_count|pluralize }}
+          </span>
+          {% if batch.status == 'PENDING' %}
+          <span class="ob-pill ob-pill-pending"><i class="bi bi-clock-fill"></i> Pending</span>
+          {% elif batch.status == 'SIGNED' %}
+          <span class="ob-pill ob-pill-signed"><i class="bi bi-patch-check-fill"></i> Signed</span>
+          {% elif batch.status == 'REJECTED' %}
+          <span class="ob-pill ob-pill-rejected"><i class="bi bi-x-octagon-fill"></i> Rejected</span>
+          {% endif %}
         </div>
-        <div style="display: flex; gap: 0.5rem;">
-            {% if batch.status == 'PENDING' and batch.created_by == user %}
-            <a href="{% url 'vouchers:batch_edit' batch.id %}" class="btn btn-primary">
-                <i class="bi bi-pencil"></i> Edit Batch
-            </a>
-            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBatchModal">
-                <i class="bi bi-trash"></i> Delete Batch
-            </button>
-            {% endif %}
-            {% if document_count > 0 %}
-            <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="btn btn-success">
-                <i class="bi bi-file-earmark-excel"></i> Export to Excel
-            </a>
-            {% endif %}
-            {% if user.role_level == 5 %}
-            <a href="{% url 'vouchers:md_dashboard' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to MD Dashboard
-            </a>
-            {% else %}
-            <a href="{% url 'dashboard:home' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
-            {% endif %}
+      </div>
+
+      <div class="ob-info-list">
+        <div class="ob-info-item">
+          <div class="ob-info-key"><i class="bi bi-person-fill"></i> Created</div>
+          <div class="ob-info-val">
+            <span class="ob-info-name">{{ batch.created_by.get_full_name|default:batch.created_by.username }}</span>
+            <span class="ob-info-time">{{ batch.created_at|date:"d M Y · H:i" }}</span>
+          </div>
         </div>
+
+        {% if batch.status == 'SIGNED' %}
+        <div class="ob-info-item">
+          <div class="ob-info-key"><i class="bi bi-pen-fill"></i> Signed</div>
+          <div class="ob-info-val">
+            <span class="ob-info-name">{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}</span>
+            <span class="ob-info-time">{{ batch.signed_at|date:"d M Y · H:i" }}</span>
+            {% if batch.signature_ip %}<span class="ob-info-ip">IP {{ batch.signature_ip }}</span>{% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if batch.status == 'REJECTED' and batch.signed_by %}
+        <div class="ob-info-item">
+          <div class="ob-info-key"><i class="bi bi-x-circle-fill"></i> Rejected</div>
+          <div class="ob-info-val">
+            <span class="ob-info-name">{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}</span>
+            {% if batch.signed_at %}<span class="ob-info-time">{{ batch.signed_at|date:"d M Y · H:i" }}</span>{% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if batch.fm_notes %}
+        <div class="ob-info-item">
+          <div class="ob-info-key"><i class="bi bi-sticky-fill"></i> FM Note</div>
+          <div class="ob-info-val">
+            <span class="ob-note ob-note-amber">{{ batch.fm_notes }}</span>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if batch.md_comments %}
+        <div class="ob-info-item">
+          <div class="ob-info-key"><i class="bi bi-chat-dots-fill"></i> MD Note</div>
+          <div class="ob-info-val">
+            <span class="ob-note ob-note-teal">{{ batch.md_comments }}</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if user.role_level == 5 and batch.status == 'PENDING' %}
+      <div class="ob-card-actions">
+        <button type="button" class="ob-action-sign" onclick="showSignModal()">
+          <i class="bi bi-check-circle-fill"></i> Sign All
+        </button>
+        <button type="button" class="ob-action-reject" onclick="showRejectModal()">
+          <i class="bi bi-x-circle-fill"></i> Reject
+        </button>
+      </div>
+      {% endif %}
+
     </div>
 
-    {% if document_count == 0 %}
-    <div class="alert alert-danger" style="margin-bottom: 1.5rem; border-left: 4px solid #dc3545;">
-        <h4 style="margin: 0 0 0.5rem 0;"><i class="bi bi-exclamation-triangle"></i> Empty Batch</h4>
-        <p style="margin: 0;">This batch has no documents. Please add documents using the "Edit Batch" button or delete this batch.</p>
-    </div>
-    {% endif %}
+    <!-- ── Documents ── -->
+    <div class="ob-docs ob-fade">
+      <div class="ob-docs-head">
+        <i class="bi bi-file-earmark-text" style="color:var(--gold-500);font-size:0.9rem;"></i>
+        <span class="ob-docs-title">Documents</span>
+        <span class="ob-pill ob-pill-neutral">
+          <span id="document-count-display">{{ document_count }}</span> total
+        </span>
+      </div>
 
-    <div class="row" style="margin-top: -30px;">
-        <!-- Batch Information Card -->
-        <div class="col-lg-4 mb-4">
-            <div class="bi-card">
-
-                <!-- Card Header -->
-                <div class="bi-card-header">
-                    <i class="bi bi-layers"></i>
-                    <span>Batch Information</span>
+      <!-- Payment Vouchers -->
+      {% if batch.voucher_items.all %}
+      <div class="ob-doc-section">
+        <div class="ob-doc-section-label pv">
+          <i class="bi bi-receipt"></i> Payment Vouchers
+          <span class="count">{{ batch.voucher_items.count }}</span>
+        </div>
+        <table class="ob-table">
+          <colgroup>
+            <col class="col-docnum"><col class="col-payee"><col class="col-desc">
+            <col class="col-date"><col class="col-bank"><col class="col-amount"><col class="col-action">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>PV No.</th><th>Payee</th><th>Description</th>
+              <th>Date</th><th>Bank</th><th>Amount</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in batch.voucher_items.all %}
+            {% if item.voucher %}
+            <tr class="ob-doc-row" onclick="openPanel('pv',{{ item.voucher.id }},'{{ item.voucher.pv_number }}')">
+              <td><span class="ob-num ob-num-pv">{{ item.voucher.pv_number }}</span></td>
+              <td><span class="ob-payee">{{ item.voucher.payee_name }}</span></td>
+              <td>
+                {% for li in item.voucher.line_items.all %}
+                <span class="ob-desc-line">{{ li.description }}</span>{% if not forloop.last %}<br>{% endif %}
+                {% empty %}<span style="color:var(--ob-text-600);font-style:italic;font-size:.7rem;">—</span>{% endfor %}
+              </td>
+              <td><span class="ob-date">{{ item.voucher.payment_date|date:"d M Y" }}</span></td>
+              <td>
+                {% if item.voucher.company_bank_account %}
+                <div class="ob-bank-cell">
+                  <span class="ob-bank-name">{{ item.voucher.company_bank_account.bank }}</span>
+                  <span class="ob-bank-co">{{ item.voucher.company_bank_account.company_name }}</span>
+                  <span class="ob-bank-acct">{{ item.voucher.company_bank_account.account_number }}</span>
                 </div>
-
-                <!-- Amount Hero -->
-                <div class="bi-hero">
-                    <div class="bi-hero-label">Total Amount</div>
-                    <div class="bi-hero-amount">{{ total_amount_display }}</div>
-                    <div class="bi-hero-meta">
-                        <span class="bi-hero-doc-pill">
-                            <i class="bi bi-file-earmark-text"></i>
-                            {{ document_count }} doc{{ document_count|pluralize }}
-                        </span>
-                        {% if batch.status == 'PENDING' %}
-                        <span class="bi-hero-status bi-hero-status--pending"><i class="bi bi-clock-fill"></i> Pending</span>
-                        {% elif batch.status == 'SIGNED' %}
-                        <span class="bi-hero-status bi-hero-status--signed"><i class="bi bi-patch-check-fill"></i> Signed</span>
-                        {% elif batch.status == 'REJECTED' %}
-                        <span class="bi-hero-status bi-hero-status--rejected"><i class="bi bi-x-octagon-fill"></i> Rejected</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Info Rows -->
-                <div class="bi-info">
-
-                    <div class="bi-info-row">
-                        <div class="bi-info-label">
-                            <i class="bi bi-person-circle"></i> Created By
-                        </div>
-                        <div class="bi-info-value">
-                            <span class="bi-name">{% if batch.created_by.get_full_name %}{{ batch.created_by.get_full_name }}{% else %}{{ batch.created_by.username }}{% endif %}</span>
-                            <span class="bi-time">{{ batch.created_at|date:"d M Y · H:i" }}</span>
-                        </div>
-                    </div>
-
-                    {% if batch.status == 'SIGNED' %}
-                    <div class="bi-info-row bi-info-row--signed">
-                        <div class="bi-info-label">
-                            <i class="bi bi-pen-fill"></i> Signed By
-                        </div>
-                        <div class="bi-info-value">
-                            <span class="bi-name">{% if batch.signed_by.get_full_name %}{{ batch.signed_by.get_full_name }}{% else %}{{ batch.signed_by.username }}{% endif %}</span>
-                            <span class="bi-time">{{ batch.signed_at|date:"d M Y · H:i" }}</span>
-                            {% if batch.signature_ip %}<span class="bi-ip">IP {{ batch.signature_ip }}</span>{% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if batch.fm_notes %}
-                    <div class="bi-info-row">
-                        <div class="bi-info-label">
-                            <i class="bi bi-sticky-fill"></i> FM Notes
-                        </div>
-                        <div class="bi-info-value">
-                            <span class="bi-note bi-note--amber">{{ batch.fm_notes }}</span>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if batch.md_comments %}
-                    <div class="bi-info-row">
-                        <div class="bi-info-label">
-                            <i class="bi bi-chat-dots-fill"></i> MD Notes
-                        </div>
-                        <div class="bi-info-value">
-                            <span class="bi-note bi-note--indigo">{{ batch.md_comments }}</span>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                </div>
-
-                <!-- Action Buttons -->
+                {% else %}<span style="color:var(--ob-text-400);font-size:.7rem;">{{ item.voucher.bank_address|default:"—" }}</span>{% endif %}
+              </td>
+              <td><span class="ob-amount">{{ item.voucher.get_grand_total_display }}</span></td>
+              <td onclick="event.stopPropagation()">
                 {% if user.role_level == 5 and batch.status == 'PENDING' %}
-                <div class="bi-actions">
-                    <button type="button" class="bi-btn bi-btn--sign" onclick="showSignModal()">
-                        <i class="bi bi-check-circle-fill"></i> Sign All
-                    </button>
-                    <button type="button" class="bi-btn bi-btn--reject" onclick="showRejectModal()">
-                        <i class="bi bi-x-circle-fill"></i> Reject
-                    </button>
-                </div>
+                <button class="ob-remove" onclick="showRemoveModal('voucher',{{ item.voucher.id }},'{{ item.voucher.pv_number }}')">
+                  <i class="bi bi-x-lg"></i>
+                </button>
                 {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr class="ob-deleted-row"><td colspan="7"><i class="bi bi-exclamation-triangle-fill"></i> Document deleted</td></tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
 
-            </div>
+      <!-- Payment Forms -->
+      {% if batch.form_items.all %}
+      <div class="ob-doc-section">
+        <div class="ob-doc-section-label pf">
+          <i class="bi bi-file-text"></i> Payment Forms
+          <span class="count">{{ batch.form_items.count }}</span>
         </div>
-
-        <!-- Documents List -->
-        <div class="col-lg-8 mb-4">
-            <div class="card" style="border: 2px solid #e5e7eb;">
-                <div class="card-header" style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-                    <h5 style="margin: 0; color: #1f2937;">
-                        <i class="bi bi-file-earmark-text"></i>
-                        Documents in Batch ({{ document_count }})
-                    </h5>
+        <table class="ob-table">
+          <colgroup>
+            <col class="col-docnum"><col class="col-payee"><col class="col-desc">
+            <col class="col-date"><col class="col-bank"><col class="col-amount"><col class="col-action">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>PF No.</th><th>Payee</th><th>Description</th>
+              <th>Date</th><th>Bank</th><th>Amount</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in batch.form_items.all %}
+            {% if item.payment_form %}
+            <tr class="ob-doc-row" onclick="openPanel('pf',{{ item.payment_form.id }},'{{ item.payment_form.pf_number }}')">
+              <td><span class="ob-num ob-num-pf">{{ item.payment_form.pf_number }}</span></td>
+              <td><span class="ob-payee">{{ item.payment_form.payee_name }}</span></td>
+              <td>
+                {% for li in item.payment_form.line_items.all %}
+                <span class="ob-desc-line">{{ li.description }}</span>{% if not forloop.last %}<br>{% endif %}
+                {% empty %}<span style="color:var(--ob-text-600);font-style:italic;font-size:.7rem;">—</span>{% endfor %}
+              </td>
+              <td><span class="ob-date">{{ item.payment_form.payment_date|date:"d M Y" }}</span></td>
+              <td>
+                {% if item.payment_form.company_bank_account %}
+                <div class="ob-bank-cell">
+                  <span class="ob-bank-name">{{ item.payment_form.company_bank_account.bank }}</span>
+                  <span class="ob-bank-co">{{ item.payment_form.company_bank_account.company_name }}</span>
+                  <span class="ob-bank-acct">{{ item.payment_form.company_bank_account.account_number }}</span>
                 </div>
-                <div class="card-body p-0">
-
-                    <!-- Payment Vouchers -->
-                    {% if batch.voucher_items.all %}
-                    <div class="doc-section">
-                        <div class="doc-section-header pv-header">
-                            <i class="bi bi-receipt"></i>
-                            Payment Vouchers
-                            <span class="doc-count-badge">{{ batch.voucher_items.count }}</span>
-                        </div>
-                        <div>
-                            <table class="batch-table">
-                                <colgroup>
-                                    <col class="col-docnum">
-                                    <col class="col-payee">
-                                    <col class="col-desc">
-                                    <col class="col-date">
-                                    <col class="col-bank">
-                                    <col class="col-amount">
-                                    <col class="col-action">
-                                </colgroup>
-                                <thead>
-                                    <tr>
-                                        <th><i class="bi bi-hash th-icon"></i>PV No.</th>
-                                        <th><i class="bi bi-person th-icon"></i>Payee</th>
-                                        <th><i class="bi bi-card-text th-icon"></i>Description</th>
-                                        <th><i class="bi bi-calendar3 th-icon"></i>Date</th>
-                                        <th><i class="bi bi-bank th-icon"></i>Transfer Account</th>
-                                        <th><i class="bi bi-currency-dollar th-icon"></i>Amount</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for item in batch.voucher_items.all %}
-                                    {% if item.voucher %}
-                                    <tr class="doc-row" onclick="openDocumentPanel('pv', {{ item.voucher.id }}, '{{ item.voucher.pv_number }}')">
-                                        <td><span class="doc-number pv-number">{{ item.voucher.pv_number }}</span></td>
-                                        <td><span class="payee-name">{{ item.voucher.payee_name }}</span></td>
-                                        <td>
-                                            <div class="desc-cell">
-                                                {% for line_item in item.voucher.line_items.all %}
-                                                    <span class="desc-line">{{ line_item.description }}</span>{% if not forloop.last %}<br>{% endif %}
-                                                {% empty %}
-                                                    <span class="text-muted fst-italic" style="font-size:0.8rem;">No description</span>
-                                                {% endfor %}
-                                            </div>
-                                        </td>
-                                        <td><span class="date-chip">{{ item.voucher.payment_date|date:"d M Y" }}</span></td>
-                                        <td>
-                                            {% if item.voucher.company_bank_account %}
-                                            <div class="bank-cell">
-                                                <span class="bank-name">{{ item.voucher.company_bank_account.bank }}</span>
-                                                <span class="bank-company">{{ item.voucher.company_bank_account.company_name }}</span>
-                                                <span class="bank-acct">Acc: {{ item.voucher.company_bank_account.account_number }}</span>
-                                            </div>
-                                            {% else %}
-                                            <span class="text-muted" style="font-size:0.82rem;">
-                                                {% if item.voucher.bank_address %}{{ item.voucher.bank_address }}{% else %}Not specified{% endif %}
-                                            </span>
-                                            {% endif %}
-                                        </td>
-                                        <td><span class="amount-chip">{{ item.voucher.get_grand_total_display }}</span></td>
-                                        <td class="action-cell">
-                                            {% if user.role_level == 5 and batch.status == 'PENDING' %}
-                                            <button type="button" class="btn-remove" title="Remove from batch"
-                                                onclick="event.stopPropagation(); showRemoveModal('voucher', {{ item.voucher.id }}, '{{ item.voucher.pv_number }}')">
-                                                <i class="bi bi-x-lg"></i>
-                                            </button>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% else %}
-                                    <tr class="deleted-row">
-                                        <td colspan="7"><i class="bi bi-exclamation-triangle-fill"></i> Document deleted — will be removed automatically</td>
-                                    </tr>
-                                    {% endif %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Payment Forms -->
-                    {% if batch.form_items.all %}
-                    <div class="doc-section {% if batch.voucher_items.all %}doc-section--bordered{% endif %}">
-                        <div class="doc-section-header pf-header">
-                            <i class="bi bi-file-text"></i>
-                            Payment Forms
-                            <span class="doc-count-badge pf-badge">{{ batch.form_items.count }}</span>
-                        </div>
-                        <div>
-                            <table class="batch-table">
-                                <colgroup>
-                                    <col class="col-docnum">
-                                    <col class="col-payee">
-                                    <col class="col-desc">
-                                    <col class="col-date">
-                                    <col class="col-bank">
-                                    <col class="col-amount">
-                                    <col class="col-action">
-                                </colgroup>
-                                <thead>
-                                    <tr>
-                                        <th><i class="bi bi-hash th-icon"></i>PF No.</th>
-                                        <th><i class="bi bi-person th-icon"></i>Payee</th>
-                                        <th><i class="bi bi-card-text th-icon"></i>Description</th>
-                                        <th><i class="bi bi-calendar3 th-icon"></i>Date</th>
-                                        <th><i class="bi bi-bank th-icon"></i>Transfer Account</th>
-                                        <th><i class="bi bi-currency-dollar th-icon"></i>Amount</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for item in batch.form_items.all %}
-                                    {% if item.payment_form %}
-                                    <tr class="doc-row" onclick="openDocumentPanel('pf', {{ item.payment_form.id }}, '{{ item.payment_form.pf_number }}')">
-                                        <td><span class="doc-number pf-number">{{ item.payment_form.pf_number }}</span></td>
-                                        <td><span class="payee-name">{{ item.payment_form.payee_name }}</span></td>
-                                        <td>
-                                            <div class="desc-cell">
-                                                {% for line_item in item.payment_form.line_items.all %}
-                                                    <span class="desc-line">{{ line_item.description }}</span>{% if not forloop.last %}<br>{% endif %}
-                                                {% empty %}
-                                                    <span class="text-muted fst-italic" style="font-size:0.8rem;">No description</span>
-                                                {% endfor %}
-                                            </div>
-                                        </td>
-                                        <td><span class="date-chip">{{ item.payment_form.payment_date|date:"d M Y" }}</span></td>
-                                        <td>
-                                            {% if item.payment_form.company_bank_account %}
-                                            <div class="bank-cell">
-                                                <span class="bank-name">{{ item.payment_form.company_bank_account.bank }}</span>
-                                                <span class="bank-company">{{ item.payment_form.company_bank_account.company_name }}</span>
-                                                <span class="bank-acct">Acc: {{ item.payment_form.company_bank_account.account_number }}</span>
-                                            </div>
-                                            {% else %}
-                                            <span class="text-muted" style="font-size:0.82rem;">
-                                                {% if item.payment_form.bank_address %}{{ item.payment_form.bank_address }}{% else %}Not specified{% endif %}
-                                            </span>
-                                            {% endif %}
-                                        </td>
-                                        <td><span class="amount-chip">{{ item.payment_form.get_grand_total_display }}</span></td>
-                                        <td class="action-cell">
-                                            {% if user.role_level == 5 and batch.status == 'PENDING' %}
-                                            <button type="button" class="btn-remove" title="Remove from batch"
-                                                onclick="event.stopPropagation(); showRemoveModal('form', {{ item.payment_form.id }}, '{{ item.payment_form.pf_number }}')">
-                                                <i class="bi bi-x-lg"></i>
-                                            </button>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% else %}
-                                    <tr class="deleted-row">
-                                        <td colspan="7"><i class="bi bi-exclamation-triangle-fill"></i> Document deleted — will be removed automatically</td>
-                                    </tr>
-                                    {% endif %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Grand Total Bar -->
-                    <div class="grand-total-bar">
-                        <div class="gt-left">
-                            <span class="gt-label">Grand Total</span>
-                            <span class="gt-count">
-                                <i class="bi bi-files"></i>
-                                <span id="document-count-display">{{ document_count }}</span> document{{ document_count|pluralize }}
-                            </span>
-                        </div>
-                        <div class="gt-amount" id="grand-total-display">{{ total_amount_display }}</div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Side Panel for Document Details -->
-<div class="side-panel-overlay" id="sidePanelOverlay" onclick="closeSidePanel()">
-    <div class="side-panel" onclick="event.stopPropagation()">
-        <div class="side-panel-header">
-            <h3 id="sidePanelTitle">Document Details</h3>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <a href="#" id="viewFullDetailBtn" target="_blank" class="view-full-detail-btn">
-                    <i class="bi bi-box-arrow-up-right"></i>
-                    <span>Full Details</span>
-                </a>
-                <button class="side-panel-close" onclick="closeSidePanel()">
-                    <i class="bi bi-x"></i>
+                {% else %}<span style="color:var(--ob-text-400);font-size:.7rem;">{{ item.payment_form.bank_address|default:"—" }}</span>{% endif %}
+              </td>
+              <td><span class="ob-amount">{{ item.payment_form.get_grand_total_display }}</span></td>
+              <td onclick="event.stopPropagation()">
+                {% if user.role_level == 5 and batch.status == 'PENDING' %}
+                <button class="ob-remove" onclick="showRemoveModal('form',{{ item.payment_form.id }},'{{ item.payment_form.pf_number }}')">
+                  <i class="bi bi-x-lg"></i>
                 </button>
-            </div>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr class="ob-deleted-row"><td colspan="7"><i class="bi bi-exclamation-triangle-fill"></i> Document deleted</td></tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
+      <!-- Total bar -->
+      <div class="ob-total-bar">
+        <div class="ob-total-left">
+          <span class="ob-total-label">Grand Total</span>
+          <span class="ob-total-count"><span id="grand-count-label">{{ document_count }} document{{ document_count|pluralize }}</span></span>
         </div>
-        <div class="side-panel-body" id="sidePanelBody">
-            <div style="text-align: center; padding: 3rem;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p style="margin-top: 1rem; color: #6b7280;">Loading document details...</p>
-            </div>
-        </div>
+        <div class="ob-total-amount" id="grand-total-display">{{ total_amount_display }}</div>
+      </div>
     </div>
+
+  </div>
 </div>
 
-<!-- Sign Modal -->
-<div class="modal fade" id="signModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
-                <h5 class="modal-title"><i class="bi bi-check-circle"></i> Sign Batch</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>
-                    You are about to sign <strong>{{ document_count }} documents</strong> in batch <strong>{{ batch.batch_number }}</strong>.
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Comments (Optional)</label>
-                    <textarea class="form-control" id="sign-comments" rows="3" placeholder="Add any comments or instructions..."></textarea>
-                </div>
-                <div class="alert alert-warning mb-0">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <strong>This action cannot be undone.</strong> All documents in this batch will be marked as MD-approved.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="confirmSign()" id="sign-confirm-btn">
-                    <i class="bi bi-pen"></i> Sign All Documents
-                </button>
-            </div>
-        </div>
+<!-- ══ SIDE PANEL ══ -->
+<div class="ob-overlay" id="obOverlay" onclick="closePanel()">
+  <div class="ob-panel" onclick="event.stopPropagation()">
+    <div class="ob-panel-head">
+      <div class="ob-panel-title-col">
+        <h3 class="ob-panel-title" id="panelTitle">Document Details</h3>
+        <span class="ob-panel-sub" id="panelSub">—</span>
+      </div>
+      <div class="ob-panel-btns">
+        <a href="#" id="panelFullLink" target="_blank" class="ob-plink">
+          <i class="bi bi-box-arrow-up-right"></i> Full View
+        </a>
+        <button class="ob-pclose" onclick="closePanel()"><i class="bi bi-x-lg"></i></button>
+      </div>
     </div>
+    <div class="ob-panel-body" id="panelBody">
+      <div class="ob-panel-loading">
+        <div class="ob-spinner"></div>
+        <p>Loading…</p>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Reject Modal -->
-<div class="modal fade" id="rejectModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none;">
-                <h5 class="modal-title"><i class="bi bi-x-circle"></i> Reject Batch</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    You are about to reject batch <strong>{{ batch.batch_number }}</strong>.
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Rejection Reason <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="reject-comments" rows="4" placeholder="Please provide a reason for rejection..." required></textarea>
-                    <div class="invalid-feedback">Please provide a rejection reason</div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="confirmReject()" id="reject-confirm-btn">
-                    <i class="bi bi-x-circle"></i> Reject Batch
-                </button>
-            </div>
+<!-- ══ SIGN MODAL ══ -->
+<div class="modal fade modal-sign" id="signModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title"><i class="bi bi-check-circle-fill ico-sign"></i> Sign Batch</div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="ob-m-alert info">
+          <i class="bi bi-info-circle-fill"></i>
+          <span>Signing <strong>{{ document_count }} document{{ document_count|pluralize }}</strong> in <strong>{{ batch.batch_number }}</strong>. All will be marked MD-approved.</span>
         </div>
+        <label class="form-label">Comments <span style="color:var(--ob-text-400);font-weight:400;text-transform:none;font-size:0.7rem;">(optional)</span></label>
+        <textarea class="form-control" id="sign-comments" rows="3" placeholder="Any notes or instructions…"></textarea>
+        <div class="ob-m-alert warn" style="margin-top:12px;margin-bottom:0;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>This action cannot be undone.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="ob-m-btn sec" data-bs-dismiss="modal"><i class="bi bi-x"></i> Cancel</button>
+        <button type="button" class="ob-m-btn jade" onclick="confirmSign()" id="sign-confirm-btn">
+          <i class="bi bi-pen"></i> Sign All Documents
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- Remove Document Modal -->
-<div class="modal fade" id="removeDocModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none;">
-                <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Remove Document</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning">
-                    <i class="bi bi-info-circle"></i>
-                    You are about to remove document <strong id="remove-doc-number"></strong> from this batch.
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Reason for Removal <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="remove-reason" rows="3" placeholder="Why are you removing this document?" required></textarea>
-                    <div class="invalid-feedback">Please provide a reason for removal</div>
-                </div>
-                <div class="alert alert-info mb-0">
-                    <small><i class="bi bi-lightbulb"></i> <strong>Tip:</strong> The document will remain at PENDING_L5 status and can be added to another batch later.</small>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" onclick="confirmRemove()" id="remove-confirm-btn">
-                    <i class="bi bi-x-circle"></i> Remove Document
-                </button>
-            </div>
+<!-- ══ REJECT MODAL ══ -->
+<div class="modal fade modal-reject" id="rejectModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title"><i class="bi bi-x-circle-fill ico-reject"></i> Reject Batch</div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="ob-m-alert danger">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>Rejecting <strong>{{ batch.batch_number }}</strong>. The creator will be notified.</span>
         </div>
+        <label class="form-label">Rejection Reason <span style="color:var(--rose-500);">*</span></label>
+        <textarea class="form-control" id="reject-comments" rows="4" placeholder="Provide a clear reason…"></textarea>
+        <div class="invalid-feedback">A rejection reason is required.</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="ob-m-btn sec" data-bs-dismiss="modal"><i class="bi bi-x"></i> Cancel</button>
+        <button type="button" class="ob-m-btn rose" onclick="confirmReject()" id="reject-confirm-btn">
+          <i class="bi bi-x-circle"></i> Reject Batch
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
+<!-- ══ REMOVE DOC MODAL ══ -->
+<div class="modal fade modal-remove" id="removeDocModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title"><i class="bi bi-dash-circle-fill ico-remove" style="color:var(--amber-500);"></i> Remove Document</div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="ob-m-alert warn">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>Removing <strong id="remove-doc-number"></strong> from this batch. It remains in PENDING status and can be added elsewhere.</span>
+        </div>
+        <label class="form-label">Reason <span style="color:var(--rose-500);">*</span></label>
+        <textarea class="form-control" id="remove-reason" rows="3" placeholder="Why are you removing this document?"></textarea>
+        <div class="invalid-feedback">A reason is required.</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="ob-m-btn sec" data-bs-dismiss="modal"><i class="bi bi-x"></i> Cancel</button>
+        <button type="button" class="ob-m-btn amber" onclick="confirmRemove()" id="remove-confirm-btn">
+          <i class="bi bi-dash-circle"></i> Remove Document
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DELETE BATCH MODAL ══ -->
 {% if batch.status == 'PENDING' and batch.created_by == user %}
-<div class="modal fade" id="deleteBatchModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white;">
-                <h5 class="modal-title"><i class="bi bi-trash"></i> Delete Batch</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" style="text-align: center; padding: 2rem;">
-                <i class="bi bi-exclamation-triangle" style="font-size: 4rem; color: #dc2626;"></i>
-                <h4 style="margin-top: 1rem;">Are you sure?</h4>
-                <p style="color: #6b7280; margin-top: 0.5rem;">
-                    This will permanently delete batch <strong>{{ batch.batch_number }}</strong>.<br>This action cannot be undone.
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x"></i> Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="deleteBatch()" data-bs-dismiss="modal">
-                    <i class="bi bi-trash"></i> Yes, Delete Batch
-                </button>
-            </div>
+<div class="modal fade modal-delete" id="deleteBatchModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title"><i class="bi bi-trash3-fill ico-delete"></i> Delete Batch</div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="ob-del-center">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <h4>Permanently Delete?</h4>
+          <p>Batch <strong style="color:var(--ob-text-100);">{{ batch.batch_number }}</strong><br>will be permanently removed. This cannot be undone.</p>
         </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="ob-m-btn sec" data-bs-dismiss="modal"><i class="bi bi-x"></i> Cancel</button>
+        <button type="button" class="ob-m-btn rose" onclick="deleteBatch()" data-bs-dismiss="modal">
+          <i class="bi bi-trash3"></i> Delete Permanently
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
-function showSignModal() {
-    document.getElementById('sign-comments').value = '';
-    new bootstrap.Modal(document.getElementById('signModal')).show();
-}
-function showRejectModal() {
-    document.getElementById('reject-comments').value = '';
-    new bootstrap.Modal(document.getElementById('rejectModal')).show();
-}
+// ── Modals ──
+function showSignModal()  { document.getElementById('sign-comments').value=''; new bootstrap.Modal(document.getElementById('signModal')).show(); }
+function showRejectModal(){ document.getElementById('reject-comments').value=''; new bootstrap.Modal(document.getElementById('rejectModal')).show(); }
+
 function confirmSign() {
-    const btn = document.getElementById('sign-confirm-btn');
-    const comments = document.getElementById('sign-comments').value;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Signing...';
-    const fd = new FormData();
-    fd.append('comments', comments);
-    fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    fetch('{% url "vouchers:batch_sign" batch.id %}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: fd, credentials: 'same-origin' })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) { bootstrap.Modal.getInstance(document.getElementById('signModal')).hide(); window.location.href = data.redirect_url; }
-            else { showToast('Error', data.error || 'Failed to sign', 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents'; }
-        })
-        .catch(e => { showToast('Error', 'Network error: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents'; });
+  const btn=document.getElementById('sign-confirm-btn'), comments=document.getElementById('sign-comments').value;
+  btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Signing…';
+  const fd=new FormData(); fd.append('comments',comments); fd.append('csrfmiddlewaretoken','{{ csrf_token }}');
+  fetch('{% url "vouchers:batch_sign" batch.id %}',{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'},body:fd,credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{ if(d.success){bootstrap.Modal.getInstance(document.getElementById('signModal')).hide();window.location.href=d.redirect_url;}else{toast('Error',d.error||'Failed','error');btn.disabled=false;btn.innerHTML='<i class="bi bi-pen"></i> Sign All Documents';} })
+    .catch(e=>{toast('Error',e.message,'error');btn.disabled=false;btn.innerHTML='<i class="bi bi-pen"></i> Sign All Documents';});
 }
+
 function confirmReject() {
-    const btn = document.getElementById('reject-confirm-btn');
-    const cf = document.getElementById('reject-comments');
-    const comments = cf.value.trim();
-    if (!comments) { cf.classList.add('is-invalid'); return; }
-    cf.classList.remove('is-invalid');
-    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Rejecting...';
-    const fd = new FormData();
-    fd.append('comments', comments); fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    fetch('{% url "vouchers:batch_reject" batch.id %}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: fd, credentials: 'same-origin' })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) { bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide(); window.location.href = data.redirect_url; }
-            else { showToast('Error', data.error || 'Failed to reject', 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch'; }
-        })
-        .catch(e => { showToast('Error', 'Network error: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch'; });
-}
-let currentRemoveDocType = null, currentRemoveDocId = null;
-function showRemoveModal(docType, docId, docNumber) {
-    currentRemoveDocType = docType; currentRemoveDocId = docId;
-    document.getElementById('remove-doc-number').textContent = docNumber;
-    const rf = document.getElementById('remove-reason'); rf.value = ''; rf.classList.remove('is-invalid');
-    new bootstrap.Modal(document.getElementById('removeDocModal')).show();
-}
-function confirmRemove() {
-    const rf = document.getElementById('remove-reason'); const reason = rf.value.trim();
-    const btn = document.getElementById('remove-confirm-btn');
-    if (!reason) { rf.classList.add('is-invalid'); return; }
-    rf.classList.remove('is-invalid');
-    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Removing...';
-    const fd = new FormData();
-    fd.append('doc_type', currentRemoveDocType); fd.append('doc_id', currentRemoveDocId);
-    fd.append('reason', reason); fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    fetch('{% url "vouchers:batch_remove_document" batch.id %}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: fd, credentials: 'same-origin' })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                bootstrap.Modal.getInstance(document.getElementById('removeDocModal')).hide();
-                if (data.batch_empty) { showToast('Batch Empty', data.message, 'warning'); setTimeout(() => window.location.href = data.redirect_url, 2000); }
-                else {
-                    showToast('Success', data.message, 'success');
-                    if (data.new_total) document.getElementById('grand-total-display').textContent = data.new_total;
-                    if (data.new_count !== undefined) document.getElementById('document-count-display').textContent = data.new_count;
-                    setTimeout(() => window.location.reload(), 1500);
-                }
-            } else { showToast('Error', data.error || 'Failed to remove', 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-circle"></i> Remove Document'; }
-        })
-        .catch(e => { showToast('Error', 'Network error: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-circle"></i> Remove Document'; });
-}
-function deleteBatch() {
-    fetch("{% url 'vouchers:batch_delete' batch.id %}", { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' }, credentials: 'same-origin' })
-        .then(r => r.json())
-        .then(data => { if (data.success) window.location.href = data.redirect_url; else showToast('Error', data.error || 'Failed to delete', 'error'); })
-        .catch(e => showToast('Error', 'Network error: ' + e.message, 'error'));
-}
-function showToast(title, message, type = 'info') {
-    const escHtml = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
-    const bg = type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'primary';
-    let tc = document.querySelector('.toast-container');
-    if (!tc) { tc = document.createElement('div'); tc.className = 'toast-container position-fixed top-0 end-0 p-3'; tc.style.zIndex = '9999'; document.body.appendChild(tc); }
-    tc.insertAdjacentHTML('beforeend', `<div class="toast align-items-center text-white bg-${bg} border-0" role="alert"><div class="d-flex"><div class="toast-body"><strong>${escHtml(title)}</strong><br>${escHtml(message)}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`);
-    const te = tc.lastElementChild;
-    const t = new bootstrap.Toast(te, { autohide: true, delay: 5000 }); t.show();
-    te.addEventListener('hidden.bs.toast', () => te.remove());
+  const btn=document.getElementById('reject-confirm-btn'),cf=document.getElementById('reject-comments'),c=cf.value.trim();
+  if(!c){cf.classList.add('is-invalid');return;} cf.classList.remove('is-invalid');
+  btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Rejecting…';
+  const fd=new FormData(); fd.append('comments',c); fd.append('csrfmiddlewaretoken','{{ csrf_token }}');
+  fetch('{% url "vouchers:batch_reject" batch.id %}',{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'},body:fd,credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{ if(d.success){bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();window.location.href=d.redirect_url;}else{toast('Error',d.error||'Failed','error');btn.disabled=false;btn.innerHTML='<i class="bi bi-x-circle"></i> Reject Batch';} })
+    .catch(e=>{toast('Error',e.message,'error');btn.disabled=false;btn.innerHTML='<i class="bi bi-x-circle"></i> Reject Batch';});
 }
 
-// Side Panel Functions
-function openDocumentPanel(docType, docId, docNumber) {
-    const overlay = document.getElementById('sidePanelOverlay');
-    const title = document.getElementById('sidePanelTitle');
-    const body = document.getElementById('sidePanelBody');
-    const viewFullBtn = document.getElementById('viewFullDetailBtn');
-
-    // Set title
-    title.textContent = (docType === 'pv' ? 'PV ' : 'PF ') + docNumber;
-
-    // Set full detail link
-    const detailUrl = docType === 'pv'
-        ? `/vouchers/pv/${docId}/`
-        : `/vouchers/pf/${docId}/`;
-    viewFullBtn.href = detailUrl;
-
-    // Show loading
-    body.innerHTML = `
-        <div style="text-align: center; padding: 3rem;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p style="margin-top: 1rem; color: #6b7280;">Loading document details...</p>
-        </div>
-    `;
-
-    // Show panel
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-
-    // Fetch document details
-    const url = docType === 'pv'
-        ? `/vouchers/${docId}/api/details/`
-        : `/vouchers/pf/${docId}/api/details/`;
-
-    fetch(url, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            renderDocumentDetails(data.document, docType);
-        } else {
-            body.innerHTML = `
-                <div class="empty-state">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <p>Failed to load document details</p>
-                </div>
-            `;
+let _rmType=null,_rmId=null;
+function showRemoveModal(t,id,num){
+  _rmType=t; _rmId=id;
+  document.getElementById('remove-doc-number').textContent=num;
+  const rf=document.getElementById('remove-reason'); rf.value=''; rf.classList.remove('is-invalid');
+  new bootstrap.Modal(document.getElementById('removeDocModal')).show();
+}
+function confirmRemove(){
+  const rf=document.getElementById('remove-reason'),reason=rf.value.trim(),btn=document.getElementById('remove-confirm-btn');
+  if(!reason){rf.classList.add('is-invalid');return;} rf.classList.remove('is-invalid');
+  btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Removing…';
+  const fd=new FormData(); fd.append('doc_type',_rmType); fd.append('doc_id',_rmId); fd.append('reason',reason); fd.append('csrfmiddlewaretoken','{{ csrf_token }}');
+  fetch('{% url "vouchers:batch_remove_document" batch.id %}',{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'},body:fd,credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      if(d.success){
+        bootstrap.Modal.getInstance(document.getElementById('removeDocModal')).hide();
+        if(d.batch_empty){toast('Empty','Batch is now empty','warning');setTimeout(()=>window.location.href=d.redirect_url,2000);}
+        else{
+          toast('Removed',d.message,'success');
+          if(d.new_total) document.getElementById('grand-total-display').textContent=d.new_total;
+          if(d.new_count!==undefined){ document.getElementById('document-count-display').textContent=d.new_count; document.getElementById('grand-count-label').textContent=d.new_count+' document'+(d.new_count!==1?'s':''); }
+          setTimeout(()=>window.location.reload(),1500);
         }
-    })
-    .catch(error => {
-        console.error('Error loading document:', error);
-        body.innerHTML = `
-            <div class="empty-state">
-                <i class="bi bi-exclamation-triangle"></i>
-                <p>Network error. Please try again.</p>
-            </div>
-        `;
-    });
+      } else{toast('Error',d.error||'Failed','error');btn.disabled=false;btn.innerHTML='<i class="bi bi-dash-circle"></i> Remove Document';}
+    }).catch(e=>{toast('Error',e.message,'error');btn.disabled=false;btn.innerHTML='<i class="bi bi-dash-circle"></i> Remove Document';});
 }
 
-function closeSidePanel() {
-    const overlay = document.getElementById('sidePanelOverlay');
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
+function deleteBatch(){
+  fetch("{% url 'vouchers:batch_delete' batch.id %}",{method:'POST',headers:{'X-CSRFToken':'{{ csrf_token }}','X-Requested-With':'XMLHttpRequest','Content-Type':'application/json'},credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{ if(d.success) window.location.href=d.redirect_url; else toast('Error',d.error||'Failed','error'); })
+    .catch(e=>toast('Error',e.message,'error'));
 }
 
-function renderDocumentDetails(doc, docType) {
-    const body = document.getElementById('sidePanelBody');
-
-    // Line Items Section
-    let lineItemsHtml = '';
-    if (doc.line_items && doc.line_items.length > 0) {
-        lineItemsHtml = doc.line_items.map(item => `
-            <div class="line-item">
-                <div class="line-item-desc">${item.description || 'No description'}</div>
-                <div class="line-item-details">
-                    <div class="line-item-detail">
-                        <span class="line-item-detail-label">Department</span>
-                        <span class="line-item-detail-value">${item.department || '-'}</span>
-                    </div>
-                    <div class="line-item-detail">
-                        <span class="line-item-detail-label">Amount</span>
-                        <span class="line-item-detail-value">${item.amount_display || '-'}</span>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    } else {
-        lineItemsHtml = `
-            <div class="empty-state">
-                <i class="bi bi-inbox"></i>
-                <p>No line items</p>
-            </div>
-        `;
-    }
-
-    // Attachments Section
-    let attachmentsHtml = '';
-    if (doc.attachments && doc.attachments.length > 0) {
-        attachmentsHtml = doc.attachments.map(att => `
-            <div class="attachment-item">
-                <div class="attachment-icon">
-                    <i class="bi bi-file-earmark-pdf"></i>
-                </div>
-                <div class="attachment-info">
-                    <div class="attachment-name">${att.filename}</div>
-                    <div class="attachment-meta">${att.file_size} • ${att.uploaded_at}</div>
-                </div>
-                <a href="${att.url}" target="_blank" class="attachment-download">
-                    <i class="bi bi-eye"></i>
-                    <span>View</span>
-                </a>
-            </div>
-        `).join('');
-    } else {
-        attachmentsHtml = `
-            <div class="empty-state">
-                <i class="bi bi-inbox"></i>
-                <p>No attachments</p>
-            </div>
-        `;
-    }
-
-    // Render
-    body.innerHTML = `
-        <div class="panel-section">
-            <div class="panel-section-title">
-                <i class="bi bi-list-ul"></i>
-                Line Items
-            </div>
-            ${lineItemsHtml}
-        </div>
-
-        <div class="panel-section">
-            <div class="panel-section-title">
-                <i class="bi bi-paperclip"></i>
-                Attachments
-            </div>
-            ${attachmentsHtml}
-        </div>
-    `;
+// ── Side Panel ──
+function openPanel(docType,docId,docNumber){
+  document.getElementById('panelTitle').textContent=(docType==='pv'?'PV ':'PF ')+docNumber;
+  document.getElementById('panelSub').textContent=docType==='pv'?'Payment Voucher':'Payment Form';
+  document.getElementById('panelFullLink').href=docType==='pv'?`/vouchers/pv/${docId}/`:`/vouchers/pf/${docId}/`;
+  document.getElementById('panelBody').innerHTML='<div class="ob-panel-loading"><div class="ob-spinner"></div><p>Loading…</p></div>';
+  document.getElementById('obOverlay').classList.add('active');
+  document.body.style.overflow='hidden';
+  const url=docType==='pv'?`/vouchers/${docId}/api/details/`:`/vouchers/pf/${docId}/api/details/`;
+  fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'}})
+    .then(r=>r.json()).then(d=>{ if(d.success) renderPanel(d.document); else renderPanelError('Failed to load document.'); })
+    .catch(()=>renderPanelError('Network error.'));
 }
+function closePanel(){ document.getElementById('obOverlay').classList.remove('active'); document.body.style.overflow=''; }
+function renderPanelError(msg){ document.getElementById('panelBody').innerHTML=`<div class="ob-panel-empty"><i class="bi bi-exclamation-triangle"></i><span>${msg}</span></div>`; }
+
+function renderPanel(doc){
+  const body=document.getElementById('panelBody');
+  const liHTML=doc.line_items&&doc.line_items.length
+    ? doc.line_items.map(i=>`<div class="ob-line-item"><div class="ob-li-desc">${i.description||'No description'}</div><div class="ob-li-grid"><div class="ob-li-field"><span class="ob-li-label">Department</span><span class="ob-li-value">${i.department||'—'}</span></div><div class="ob-li-field"><span class="ob-li-label">Amount</span><span class="ob-li-value amount">${i.amount_display||'—'}</span></div></div></div>`).join('')
+    : '<div class="ob-panel-empty"><i class="bi bi-inbox"></i><span>No line items</span></div>';
+  const attHTML=doc.attachments&&doc.attachments.length
+    ? doc.attachments.map(a=>`<div class="ob-att-item"><div class="ob-att-icon"><i class="bi bi-file-earmark-pdf"></i></div><div><div class="ob-att-name">${a.filename}</div><div class="ob-att-meta">${a.file_size} · ${a.uploaded_at}</div></div><a href="${a.url}" target="_blank" class="ob-att-view"><i class="bi bi-eye"></i> View</a></div>`).join('')
+    : '<div class="ob-panel-empty"><i class="bi bi-paperclip"></i><span>No attachments</span></div>';
+  body.innerHTML=`
+    <div class="ob-panel-section"><div class="ob-panel-section-title"><i class="bi bi-list-ul"></i> Line Items</div>${liHTML}</div>
+    <div class="ob-panel-section"><div class="ob-panel-section-title"><i class="bi bi-paperclip"></i> Attachments</div>${attHTML}</div>`;
+}
+
+// ── Toast ──
+function toast(title,message,type='info'){
+  const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
+  const bg=type==='success'?'success':type==='error'?'danger':type==='warning'?'warning':'primary';
+  let tc=document.querySelector('.toast-container');
+  if(!tc){tc=document.createElement('div');tc.className='toast-container position-fixed top-0 end-0 p-3';tc.style.zIndex='9999';document.body.appendChild(tc);}
+  tc.insertAdjacentHTML('beforeend',`<div class="toast align-items-center text-white bg-${bg} border-0" role="alert"><div class="d-flex"><div class="toast-body"><strong>${esc(title)}</strong><br>${esc(message)}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`);
+  const te=tc.lastElementChild;
+  new bootstrap.Toast(te,{autohide:true,delay:5000}).show();
+  te.addEventListener('hidden.bs.toast',()=>te.remove());
+}
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePanel(); });
 </script>
-
-<style>
-/* Page Layout */
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* ─────────────────────────────────────────
-   Batch Information Card
-───────────────────────────────────────── */
-.bi-card {
-    border-radius: 12px;
-    border: 1.5px solid #e5e7eb;
-    border-top: 3px solid #0d7874;
-    overflow: hidden;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-/* Header */
-.bi-card-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.85rem 1.1rem;
-    background: linear-gradient(135deg, #0d7874 0%, #0a5f5c 100%);
-    color: #fff;
-    font-size: 0.92rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-}
-.bi-card-header i { font-size: 1rem; opacity: 0.9; }
-
-/* Hero Amount Block */
-.bi-hero {
-    padding: 1.3rem 1.1rem 1.1rem;
-    background: linear-gradient(160deg, #f0fdf4 0%, #ecfdf5 100%);
-    border-bottom: 1px solid #d1fae5;
-    text-align: center;
-}
-.bi-hero-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #6b7280;
-    margin-bottom: 0.25rem;
-}
-.bi-hero-amount {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #059669;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    margin-bottom: 0.6rem;
-}
-.bi-hero-meta {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-.bi-hero-doc-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #374151;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    padding: 0.2rem 0.6rem;
-    border-radius: 20px;
-}
-.bi-hero-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 0.2rem 0.65rem;
-    border-radius: 20px;
-}
-.bi-hero-status--pending  { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
-.bi-hero-status--signed   { background: #dcfce7; color: #14532d; border: 1px solid #86efac; }
-.bi-hero-status--rejected { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
-
-/* Info Rows */
-.bi-info { display: flex; flex-direction: column; }
-
-.bi-info-row {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid #f3f4f6;
-}
-.bi-info-row:last-child { border-bottom: none; }
-.bi-info-row--signed { background: #f9fffe; }
-
-.bi-info-label {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.35rem;
-    min-width: 105px;
-    padding: 0.75rem 0.75rem 0.75rem 1rem;
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #9ca3af;
-    border-right: 1px solid #f3f4f6;
-    flex-shrink: 0;
-    padding-top: 0.8rem;
-}
-.bi-info-label i { font-size: 0.72rem; margin-top: 0.05rem; flex-shrink: 0; }
-
-.bi-info-value {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    padding: 0.75rem 1rem;
-    flex: 1;
-}
-.bi-name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #111827;
-    line-height: 1.3;
-}
-.bi-time {
-    font-size: 0.73rem;
-    color: #9ca3af;
-}
-.bi-ip {
-    font-size: 0.7rem;
-    color: #b0b8c4;
-    font-variant-numeric: tabular-nums;
-}
-
-/* Notes */
-.bi-note {
-    font-size: 0.79rem;
-    padding: 0.4rem 0.65rem;
-    border-radius: 5px;
-    line-height: 1.45;
-    display: inline-block;
-}
-.bi-note--amber  { background: #fffbeb; border-left: 3px solid #f59e0b; color: #78350f; }
-.bi-note--indigo { background: #f0fdfa; border-left: 3px solid #0d7874; color: #134e4a; }
-
-/* Action Buttons */
-.bi-actions {
-    display: flex;
-    gap: 0.5rem;
-    padding: 0.85rem 1rem;
-    background: #f9fafb;
-    border-top: 1px solid #e5e7eb;
-}
-.bi-btn {
-    flex: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 0.55rem 0.75rem;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-.bi-btn--sign   { background: #10b981; color: #fff; }
-.bi-btn--sign:hover { background: #059669; box-shadow: 0 3px 10px rgba(16,185,129,0.4); transform: translateY(-1px); }
-.bi-btn--reject { background: #fff; color: #ef4444; border: 1.5px solid #fca5a5; }
-.bi-btn--reject:hover { background: #fef2f2; box-shadow: 0 3px 10px rgba(239,68,68,0.2); transform: translateY(-1px); }
-
-/* Document Section */
-.doc-section { padding: 1.25rem 1.5rem 0.5rem; }
-.doc-section--bordered { border-top: 1px solid #e5e7eb; padding-top: 1.25rem; }
-
-.doc-section-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-bottom: 0.85rem;
-    padding: 0.45rem 0.8rem;
-    border-radius: 6px;
-}
-.pv-header { color: #4f46e5; background: #eef2ff; }
-.pf-header { color: #059669; background: #ecfdf5; }
-.doc-count-badge {
-    margin-left: auto;
-    background: #4f46e5;
-    color: #fff;
-    font-size: 0.7rem;
-    padding: 0.12rem 0.5rem;
-    border-radius: 20px;
-    font-weight: 700;
-    letter-spacing: 0;
-}
-.pf-badge { background: #059669; }
-
-/* Table Core */
-.batch-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 0.875rem;
-    table-layout: fixed;
-}
-.col-docnum  { width: 15%; }
-.col-payee   { width: 14%; }
-.col-desc    { width: 17%; }
-.col-date    { width: 13%; }
-.col-bank    { width: 23%; }
-.col-amount  { width: 14%; }
-.col-action  { width: 4%;  }
-/* Table Header */
-.batch-table thead tr { background: #f8fafc; }
-.batch-table thead th {
-    padding: 0.65rem 0.75rem;
-    font-size: 0.71rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #64748b;
-    white-space: nowrap;
-    border-bottom: 2px solid #e2e8f0;
-    vertical-align: middle;
-}
-/* Align PV No, Date, Amount headers to center */
-.batch-table thead th:nth-child(1),
-.batch-table thead th:nth-child(4),
-.batch-table thead th:nth-child(6) { text-align: center; }
-.th-icon { font-size: 0.72rem; margin-right: 0.25rem; opacity: 0.65; }
-
-/* Table Body */
-.batch-table tbody tr {
-    border-bottom: 1px solid #f1f5f9;
-    transition: background 0.12s ease, box-shadow 0.12s ease;
-}
-.batch-table tbody tr:last-child { border-bottom: none; }
-.batch-table td {
-    padding: 0.85rem 0.75rem;
-    vertical-align: middle;
-    color: #374151;
-}
-/* Align PV No, Date, Amount cells to center */
-.batch-table td:nth-child(1),
-.batch-table td:nth-child(4),
-.batch-table td:nth-child(6) { text-align: center; }
-
-/* Clickable rows */
-.doc-row { cursor: pointer; -webkit-user-select: none; user-select: none; }
-.doc-row:hover { background: #f0fdfa !important; box-shadow: inset 3px 0 0 #0d7874; }
-.doc-row:active { background: #ccfbf1 !important; }
-
-/* Doc Number Badge */
-.doc-number {
-    display: inline-block;
-    font-size: 0.76rem;
-    font-weight: 700;
-    padding: 0.22rem 0.55rem;
-    border-radius: 5px;
-    white-space: nowrap;
-    letter-spacing: 0.02em;
-}
-.pv-number { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
-.pf-number { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-
-/* Payee */
-.payee-name {
-    font-weight: 600;
-    color: #1e293b;
-    font-size: 0.86rem;
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Description */
-.desc-cell { line-height: 1.5; }
-.desc-line {
-    display: block;
-    color: #374151;
-    font-size: 0.875rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Date Chip */
-.date-chip {
-    display: inline-block;
-    font-size: 0.8rem;
-    color: #475569;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 5px;
-    padding: 0.2rem 0.45rem;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-}
-
-/* Bank Cell */
-.bank-cell { display: flex; flex-direction: column; gap: 0.04rem; line-height: 1.35; }
-.bank-name  { font-weight: 700; font-size: 0.81rem; color: #4f46e5; }
-.bank-company { font-size: 0.76rem; color: #64748b; white-space: nowrap; }
-.bank-acct  { font-size: 0.7rem; color: #94a3b8; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; white-space: nowrap; }
-
-/* Amount */
-.amount-chip {
-    display: inline-block;
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: #065f46;
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    border-radius: 6px;
-    padding: 0.22rem 0.55rem;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-    max-width: 100%;
-}
-
-/* Action Cell */
-.action-cell { text-align: center; }
-.btn-remove {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    border: 1.5px solid #fca5a5;
-    background: #fff5f5;
-    color: #ef4444;
-    font-size: 0.7rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    padding: 0;
-}
-.btn-remove:hover {
-    background: #ef4444;
-    border-color: #ef4444;
-    color: #fff;
-    transform: scale(1.1);
-    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
-}
-
-/* Deleted row */
-.deleted-row td {
-    text-align: center;
-    background: #fff1f2;
-    color: #be123c;
-    font-size: 0.81rem;
-    padding: 0.65rem;
-}
-
-/* Grand Total Bar */
-.grand-total-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.5rem;
-    background: linear-gradient(to right, #f0fdfa, #f0fdf4);
-    border-top: 2px solid #0d7874;
-    margin-top: 0.5rem;
-    border-radius: 0 0 0.375rem 0.375rem;
-}
-.gt-left { display: flex; flex-direction: column; gap: 0.15rem; }
-.gt-label { font-size: 0.82rem; font-weight: 700; color: #1f2937; text-transform: uppercase; letter-spacing: 0.06em; }
-.gt-count  { font-size: 0.76rem; color: #6b7280; display: flex; align-items: center; gap: 0.3rem; }
-.gt-amount { font-size: 1.55rem; font-weight: 800; color: #059669; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-
-/* Responsive */
-@media (max-width: 768px) {
-    .page-header { flex-direction: column; align-items: flex-start; }
-    .page-header > div:last-child { margin-top: 1rem; }
-    .batch-table th, .batch-table td { padding: 0.55rem 0.5rem; font-size: 0.78rem; }
-    .gt-amount { font-size: 1.2rem; }
-}
-
-/* ==================== SIDE PANEL ==================== */
-.side-panel-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 9998;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-
-.side-panel-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.side-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 600px;
-    height: 100%;
-    background: white;
-    box-shadow: -2px 0 20px rgba(0, 0, 0, 0.15);
-    z-index: 9999;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    display: flex;
-    flex-direction: column;
-}
-
-.side-panel-overlay.active .side-panel {
-    transform: translateX(0);
-}
-
-.side-panel-header {
-    padding: 1.5rem;
-    border-bottom: 2px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(135deg, #0d7874 0%, #0a5f5c 100%);
-    color: white;
-}
-
-.side-panel-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.side-panel-close {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.side-panel-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
-}
-
-.view-full-detail-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-
-.view-full-detail-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.side-panel-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1.5rem;
-}
-
-.panel-section {
-    margin-bottom: 2rem;
-}
-
-.panel-section-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #e5e7eb;
-}
-
-.panel-section-title i {
-    color: #0d7874;
-}
-
-.line-item {
-    background: #f9fafb;
-    border-left: 3px solid #0d7874;
-    padding: 1rem;
-    margin-bottom: 0.75rem;
-    border-radius: 0 8px 8px 0;
-}
-
-.line-item-desc {
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-}
-
-.line-item-details {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.line-item-detail {
-    display: flex;
-    flex-direction: column;
-}
-
-.line-item-detail-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    font-weight: 600;
-    color: #9ca3af;
-}
-
-.line-item-detail-value {
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.attachment-item {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 0.875rem;
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    transition: all 0.2s;
-}
-
-.attachment-item:hover {
-    border-color: #0d7874;
-    box-shadow: 0 2px 8px rgba(13, 120, 116, 0.1);
-}
-
-.attachment-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #0d7874 0%, #0a5f5c 100%);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.25rem;
-}
-
-.attachment-info {
-    flex: 1;
-}
-
-.attachment-name {
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 0.875rem;
-    margin-bottom: 0.25rem;
-}
-
-.attachment-meta {
-    font-size: 0.75rem;
-    color: #6b7280;
-}
-
-.attachment-download {
-    background: #0d7874;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
-}
-
-.attachment-download:hover {
-    background: #0a5f5c;
-    transform: translateY(-2px);
-}
-
-.empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: #9ca3af;
-}
-
-.empty-state i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.3;
-}
-
-@media (max-width: 768px) {
-    .side-panel {
-        width: 100%;
-    }
-}
-</style>
 {% endblock %}

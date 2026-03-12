@@ -1,1941 +1,1657 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ title }} - Payment Voucher System{% endblock %}
+{% block title %}{{ title|default:"Vouchers" }} — Payment Voucher System{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* ==================== ULTRA COMPACT Voucher List ==================== */
-    .voucher-list-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: var(--spacing-sm) var(--spacing-md) 0;  /* Minimal top padding */
-        opacity: 0;
-        animation: fadeInPage 0.5s ease-in 0.1s forwards;
-    }
-
-    @keyframes fadeInPage {
-        to { opacity: 1; }
-    }
-
-    @keyframes fadeInUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (min-width: 1800px) {
-        .voucher-list-container {
-            max-width: 1400px;
-        }
-    }
-
-    /* MINIMAL Page Header */
-    .page-header {
-        margin-bottom: var(--spacing-sm);  /* Very small margin */
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: var(--spacing-sm);
-        padding: 0;  /* No extra padding */
-        margin-top: -45px;
-     
-
-
-    }
-
-    .page-title {
-        font-family: var(--font-heading);
-        font-size: 1.375rem;  /* Compact size */
-        font-weight: 700;
-        color: var(--gray-900);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        margin-bottom: 20px;
-    }
-
-    .page-title i {
-        font-size: 1.5rem;
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .page-actions {
-        display: flex;
-        gap: var(--spacing-sm);
-    }
-
-    .back-btn {
-        background: white;
-        color: var(--gray-700);
-        border: 1px solid var(--gray-300);
-        border-radius: var(--radius-sm);
-        padding: 5px var(--spacing-sm);
-        font-family: var(--font-body);
-        font-weight: 500;
-        font-size: 0.8125rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: all var(--transition-base);
-        height: 32px;  /* Fixed compact height */
-    }
-
-    .back-btn:hover {
-        background: var(--gray-50);
-        border-color: var(--gray-400);
-        color: var(--gray-900);
-        transform: translateX(-3px);
-    }
-
-    .bulk-approval-btn {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        color: white;
-        border: none;
-        border-radius: var(--radius-sm);
-        padding: 5px var(--spacing-md);
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 0.8125rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: all var(--transition-base);
-        height: 32px;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .bulk-approval-btn:hover {
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .bulk-approval-btn i {
-        font-size: 1rem;
-    }
-
-    /* Bulk Action Bar */
-    .bulk-action-bar {
-        background: white;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-sm);
-        padding: var(--spacing-md);
-        margin-bottom: var(--spacing-md);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--spacing-md);
-        flex-wrap: wrap;
-        animation: fadeInUp 0.5s ease-out 0.2s forwards;
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    .bulk-selection-info {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-lg);
-    }
-
-    .select-all-container {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
-
-    .select-all-checkbox {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-    }
-
-    .select-all-label {
-        font-weight: 600;
-        color: var(--gray-700);
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .selected-count {
-        font-size: 0.875rem;
-        padding: 6px var(--spacing-md);
-        background: var(--primary-50);
-        color: var(--primary-700);
-        border-radius: var(--radius-full);
-        font-weight: 600;
-    }
-
-    .bulk-action-buttons {
-        display: flex;
-        gap: var(--spacing-sm);
-    }
-
-    .bulk-action-btn {
-        padding: var(--spacing-sm) var(--spacing-lg);
-        border-radius: var(--radius-md);
-        font-weight: 600;
-        font-size: 0.875rem;
-        border: none;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        transition: all var(--transition-base);
-    }
-
-    .bulk-action-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .bulk-action-btn.approve {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        color: white;
-        box-shadow: var(--shadow-md);
-    }
-
-    .bulk-action-btn.approve:not(:disabled):hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-    }
-
-    .bulk-action-btn.reject {
-        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-        color: white;
-        box-shadow: var(--shadow-md);
-    }
-
-    .bulk-action-btn.reject:not(:disabled):hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-    }
-
-    /* Table checkbox column */
-    .checkbox-col {
-        width: 50px;
-        text-align: center;
-    }
-
-    .row-checkbox {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-    }
-
-    .modern-table tbody tr.selected {
-        background: var(--primary-100);
-    }
-
-    /* Confirmation Modal */
-    .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 9999;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .modal.active {
-        display: flex;
-    }
-
-    .modal-dialog {
-        position: relative;
-        z-index: 10000;
-        background: white;
-        border-radius: var(--radius-xl);
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        max-width: 500px;
-        width: 90%;
-        animation: slideUp 0.3s ease-out;
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .modal-header {
-        padding: var(--spacing-lg);
-        border-bottom: 2px solid var(--gray-200);
-        pointer-events: auto;
-        position: relative;
-        z-index: 1;
-    }
-
-    .modal-header h3 {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--gray-900);
-    }
-
-    .modal-body {
-        padding: var(--spacing-xl);
-        pointer-events: auto;
-        position: relative;
-        z-index: 1;
-    }
-
-    .modal-body label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: var(--spacing-sm);
-        color: var(--gray-700);
-    }
-
-    .modal-body textarea {
-        width: 100%;
-        padding: var(--spacing-sm);
-        border: 1px solid var(--gray-300);
-        border-radius: var(--radius-md);
-        font-family: var(--font-body);
-        font-size: 0.9375rem;
-        resize: vertical;
-        pointer-events: auto;
-    }
-
-    .modal-footer {
-        padding: var(--spacing-md) var(--spacing-xl);
-        background: var(--gray-50);
-        display: flex;
-        justify-content: flex-end;
-        gap: var(--spacing-md);
-        pointer-events: auto;
-        position: relative;
-        z-index: 1;
-    }
-
-    .modal-btn {
-        padding: var(--spacing-sm) var(--spacing-lg);
-        border-radius: var(--radius-md);
-        font-weight: 600;
-        font-size: 0.9375rem;
-        border: none;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        transition: all var(--transition-base);
-        pointer-events: auto;
-        position: relative;
-        z-index: 1;
-    }
-
-    .modal-btn.cancel {
-        background: white;
-        color: var(--gray-700);
-        border: 1px solid var(--gray-300);
-    }
-
-    .modal-btn.cancel:hover {
-        background: var(--gray-100);
-        border-color: var(--gray-400);
-    }
-
-    .modal-btn.confirm {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        color: white;
-        box-shadow: var(--shadow-md);
-    }
-
-    .modal-btn.confirm:hover {
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-    }
-
-    .modal-btn.reject {
-        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-        color: white;
-        box-shadow: var(--shadow-md);
-    }
-
-    .modal-btn.reject:hover {
-        background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-    }
-
-    @media (max-width: 768px) {
-        .bulk-action-bar {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .bulk-selection-info {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .bulk-action-buttons {
-            width: 100%;
-        }
-
-        .bulk-action-btn {
-            flex: 1;
-        }
-    }
-
-    /* ULTRA COMPACT Search & Filter with Animation */
-    .search-filter-card {
-        background: white;
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-sm);
-        padding: var(--spacing-sm);  /* Minimal padding */
-        margin-bottom: var(--spacing-sm);  /* Small margin */
-        border: 1px solid var(--gray-200);
-        opacity: 0;
-        transform: translateY(15px);
-        animation: fadeInUp 0.5s ease-out 0.2s forwards;
-    }
-
-    .filter-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: var(--spacing-xs);  /* Minimal margin */
-        cursor: pointer;
-        user-select: none;
-        padding: 2px 0;  /* Almost no padding */
-    }
-
-    .filter-header h3 {
-        font-family: var(--font-heading);
-        font-size: 0.875rem;  /* Small */
-        font-weight: 600;
-        color: var(--gray-900);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .filter-header i {
-        color: var(--primary-600);
-        transition: transform var(--transition-base);
-        font-size: 0.75rem;
-    }
-
-    .filter-header.collapsed i {
-        transform: rotate(-90deg);
-    }
-
-    /* Quick Filter Buttons - Compact */
-    .quick-filter-buttons {
-        display: flex;
-        gap: 6px;
-        margin-bottom: var(--spacing-sm);
-        flex-wrap: wrap;
-    }
-
-    .quick-filter-btn {
-        padding: 5px 12px;
-        border-radius: var(--radius-sm);
-        font-family: var(--font-body);
-        font-size: 0.8125rem;
-        font-weight: 500;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        transition: all var(--transition-base);
-        border: 1px solid var(--gray-300);
-        background: white;
-        color: var(--gray-700);
-        height: 32px;
-    }
-
-    .quick-filter-btn:hover {
-        background: var(--primary-50);
-        border-color: var(--primary-400);
-        color: var(--primary-700);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .quick-filter-btn.active {
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        border-color: var(--primary-600);
-        color: white;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .quick-filter-btn i {
-        font-size: 0.875rem;
-    }
-
-    .filter-form {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);  /* 6 columns for compact layout */
-        gap: 8px;  /* Minimal gap */
-        margin-bottom: 0;
-    }
-
-    .filter-field {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;  /* Tiny gap */
-    }
-
-    .filter-field label {
-        font-family: var(--font-body);
-        font-size: 0.6875rem;  /* Very small label */
-        font-weight: 600;
-        color: var(--gray-700);
-    }
-
-    .filter-field input,
-    .filter-field select {
-        padding: 5px 8px;  /* Very compact */
-        border: 1px solid var(--gray-300);
-        border-radius: var(--radius-sm);
-        font-family: var(--font-body);
-        font-size: 0.8125rem;
-        transition: all var(--transition-base);
-        height: 32px;  /* Compact height */
-    }
-
-    .filter-field input:focus,
-    .filter-field select:focus {
-        outline: none;
-        border-color: var(--primary-500);
-        box-shadow: 0 0 0 2px var(--primary-100);
-    }
-
-    .filter-actions {
-        display: flex;
-        gap: 6px;
-        justify-content: flex-end;
-        margin-top: 8px;
-        grid-column: 1 / -1;
-    }
-
-    .filter-btn {
-        padding: 5px var(--spacing-sm);
-        border: none;
-        border-radius: var(--radius-sm);
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 0.75rem;
-        cursor: pointer;
-        transition: all var(--transition-base);
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        height: 32px;
-    }
-
-    .filter-btn.primary {
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        color: white;
-    }
-
-    .filter-btn.primary:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .filter-btn.secondary {
-        background: white;
-        color: var(--gray-700);
-        border: 1px solid var(--gray-300);
-    }
-
-    .filter-btn.secondary:hover {
-        background: var(--gray-50);
-    }
-
-    .filter-content {
-        max-height: 350px;
-        overflow: hidden;
-        transition: max-height 0.3s ease-in-out;
-    }
-
-    .filter-content.collapsed {
-        max-height: 0;
-    }
-
-    /* Vouchers Card with Animation */
-    .vouchers-card {
-        background: white;
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-        margin-bottom: var(--spacing-xl);
-        opacity: 0;
-        transform: translateY(15px);
-        animation: fadeInUp 0.5s ease-out 0.3s forwards;
-    }
-
-    .vouchers-card-header {
-        background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
-        padding: var(--spacing-sm) var(--spacing-md);  /* Compact */
-        border-bottom: 1px solid var(--gray-200);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: var(--spacing-xs);
-    }
-
-    .vouchers-count {
-        font-family: var(--font-body);
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--gray-600);
-        background: white;
-        padding: 3px 10px;
-        border-radius: var(--radius-full);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .vouchers-card-body {
-        padding: 0;
-    }
-
-    /* Compact Table */
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .modern-table thead {
-        background: var(--gray-50);
-    }
-
-    .modern-table th {
-        font-family: var(--font-body);
-        font-size: 0.6875rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        padding: 10px 16px;
-        text-align: left;
-        border-bottom: 1px solid var(--gray-200);
-        white-space: nowrap;
-    }
-
-    .modern-table td {
-        font-family: var(--font-body);
-        font-size: 0.8125rem;
-        color: var(--gray-800);
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--gray-100);
-        vertical-align: middle;
-    }
-
-    .modern-table tbody tr {
-        transition: all var(--transition-fast);
-        opacity: 0;
-        transform: translateY(10px);
-        animation: fadeInUp 0.4s ease-out forwards;
-    }
-
-    /* Staggered animation for table rows */
-    .modern-table tbody tr:nth-child(1) { animation-delay: 0.4s; }
-    .modern-table tbody tr:nth-child(2) { animation-delay: 0.45s; }
-    .modern-table tbody tr:nth-child(3) { animation-delay: 0.5s; }
-    .modern-table tbody tr:nth-child(4) { animation-delay: 0.55s; }
-    .modern-table tbody tr:nth-child(5) { animation-delay: 0.6s; }
-    .modern-table tbody tr:nth-child(6) { animation-delay: 0.65s; }
-    .modern-table tbody tr:nth-child(7) { animation-delay: 0.7s; }
-    .modern-table tbody tr:nth-child(8) { animation-delay: 0.75s; }
-    .modern-table tbody tr:nth-child(9) { animation-delay: 0.8s; }
-    .modern-table tbody tr:nth-child(10) { animation-delay: 0.85s; }
-    .modern-table tbody tr:nth-child(n+11) { animation-delay: 0.9s; }
-
-    /* Clickable Row Styles */
-    .modern-table tbody tr.clickable-row {
-        cursor: pointer;
-    }
-
-    .modern-table tbody tr.clickable-row:hover {
-        background: linear-gradient(90deg, var(--primary-50) 0%, rgba(102, 126, 234, 0.08) 100%);
-        transform: scale(1.01) translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .modern-table tbody tr:hover {
-        background: var(--primary-50);
-        transform: scale(1.002);
-    }
-
-    .modern-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    /* PV Number Badge */
-    .pv-number {
-        font-family: var(--font-heading);
-        font-weight: 700;
-        font-size: 0.8125rem;
-        color: var(--primary-700);
-        background: var(--primary-50);
-        padding: 3px 8px;
-        border-radius: var(--radius-sm);
-        display: inline-block;
-        white-space: nowrap;
-        transition: all 0.2s ease;
-    }
-
-    /* ✅ Clickable PV/PF Numbers */
-    .clickable-number {
-        display: inline-block;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .clickable-number:hover .pv-number {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        filter: brightness(1.05);
-    }
-
-    .clickable-number:active .pv-number {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Status Badges */
-    .status-badge {
-        padding: 3px 8px;
-        border-radius: var(--radius-full);
-        font-size: 0.6875rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        white-space: nowrap;
-    }
-
-    .status-badge i {
-        font-size: 0.6875rem;
-    }
-
-    .status-badge.draft {
-        background: var(--gray-200);
-        color: var(--gray-700);
-    }
-
-    .status-badge.pending {
-        background: var(--warning-light);
-        color: #92400e;
-        animation: badgePulse 2s ease-in-out infinite;
-        border: 2px solid #fbbf24;
-    }
-
-    @keyframes badgePulse {
-        0%, 100% {
-            background: #fef3c7;
-            box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
-        }
-        50% {
-            background: #fde68a;
-            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0);
-        }
-    }
-
-    .status-badge.pending i {
-        animation: iconSpin 2s linear infinite;
-    }
-
-    @keyframes iconSpin {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    .status-badge.approved {
-        background: var(--success-light);
-        color: #065f46;
-    }
-
-    .status-badge.rejected {
-        background: var(--danger-light);
-        color: #991b1b;
-    }
-
-    .status-badge.revision {
-        background: var(--info-light);
-        color: #1e40af;
-    }
-
-    /* User Badge */
-    .user-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        color: var(--gray-700);
-        font-size: 0.8125rem;
-    }
-
-    .user-badge i {
-        color: var(--primary-600);
-        font-size: 0.8125rem;
-    }
-
-    /* Amount Display */
-    .amount-display {
-        font-family: var(--font-heading);
-        font-weight: 700;
-        font-size: 0.9375rem;
-        color: var(--gray-900);
-    }
-
-    /* Action Buttons */
-    .view-btn, .edit-btn, .delete-btn {
-        border: none;
-        border-radius: var(--radius-sm);
-        padding: 4px 8px;
-        font-family: var(--font-body);
-        font-weight: 500;
-        font-size: 0.6875rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        transition: all var(--transition-base);
-        white-space: nowrap;
-        cursor: pointer;
-    }
-
-    .view-btn {
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        color: white;
-    }
-
-    .view-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        color: white;
-    }
-
-    .edit-btn {
-        background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
-        color: white;
-    }
-
-    .edit-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        color: white;
-    }
-
-    .delete-btn {
-        background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
-        color: white;
-    }
-
-    .delete-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        color: white;
-    }
-
-    /* Pagination */
-    .pagination-container {
-        padding: var(--spacing-sm) var(--spacing-md);
-        background: var(--gray-50);
-        border-top: 1px solid var(--gray-200);
-    }
-
-    .modern-pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
-    }
-
-    .pagination-btn {
-        background: white;
-        color: var(--gray-700);
-        border: 1px solid var(--gray-300);
-        border-radius: var(--radius-sm);
-        padding: 5px 8px;
-        font-family: var(--font-body);
-        font-weight: 500;
-        font-size: 0.75rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        transition: all var(--transition-base);
-        min-width: 32px;
-        height: 32px;
-        justify-content: center;
-    }
-
-    .pagination-btn:hover {
-        background: var(--primary-50);
-        border-color: var(--primary-500);
-        color: var(--primary-700);
-    }
-
-    .pagination-btn.active {
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        border-color: var(--primary-600);
-        color: white;
-        font-weight: 600;
-    }
-
-    .pagination-btn.disabled {
-        opacity: 0.5;
-        pointer-events: none;
-    }
-
-    .pagination-info {
-        font-family: var(--font-body);
-        font-size: 0.75rem;
-        color: var(--gray-600);
-        padding: 5px 8px;
-        font-weight: 500;
-    }
-
-    /* Empty State */
-    .empty-state {
-        padding: var(--spacing-xl);
-        text-align: center;
-        color: var(--gray-500);
-    }
-
-    .empty-state-icon {
-        width: 64px;
-        height: 64px;
-        margin: 0 auto var(--spacing-sm);
-        background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
-        border-radius: var(--radius-lg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .empty-state-icon i {
-        font-size: 2rem;
-        color: var(--gray-400);
-    }
-
-    .empty-state-title {
-        font-family: var(--font-heading);
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        margin-bottom: 4px;
-    }
-
-    .empty-state-text {
-        font-size: 0.875rem;
-        color: var(--gray-500);
-        margin-bottom: var(--spacing-md);
-    }
-
-    /* ==================== RESPONSIVE ==================== */
-
-    @media (max-width: 991px) {
-        .voucher-list-container {
-            padding: var(--spacing-xs) var(--spacing-sm) 0;
-        }
-
-        .filter-form {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .voucher-list-container {
-            padding: 8px 12px 0;
-        }
-
-        .page-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .page-title {
-            font-size: 1.125rem;
-        }
-
-        .page-actions {
-            width: 100%;
-        }
-
-        .back-btn {
-            width: 100%;
-            justify-content: center;
-            min-height: 44px;
-        }
-
-        .filter-form {
-            grid-template-columns: 1fr;
-        }
-
-        .filter-actions {
-            flex-direction: column;
-        }
-
-        .filter-btn {
-            width: 100%;
-            min-height: 44px;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 0 -12px;
-            padding: 0 12px;
-        }
-
-        .modern-table {
-            min-width: 900px;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .page-title {
-            font-size: 1rem;
-        }
-
-        .modern-table {
-            font-size: 0.75rem;
-        }
-    }
+:root {
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vouchers-container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 24px 40px;
+    opacity: 0;
+    animation: fadeInPage 0.4s var(--ease) 0.05s forwards;
+    font-family: 'Montserrat', sans-serif;
+}
+
+@keyframes fadeInPage { to { opacity: 1; } }
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Page Header ── */
+.pv-page-header {
+    padding: 20px 0 18px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    opacity: 0;
+    animation: fadeUp 0.4s var(--ease) 0.08s forwards;
+    margin-top: -25px;
+}
+
+.pv-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pv-title-icon {
+    width: 40px; height: 40px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.pv-title-icon.pending   { background: rgba(245,158,11,0.12); color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
+.pv-title-icon.approved  { background: rgba(34,197,94,0.12);  color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+.pv-title-icon.draft     { background: rgba(139,92,246,0.12); color: #a78bfa;        border: 1px solid rgba(139,92,246,0.25); }
+.pv-title-icon.in-progress { background: rgba(59,130,246,0.12); color: var(--info);  border: 1px solid rgba(59,130,246,0.25); }
+.pv-title-icon.rejected  { background: rgba(239,68,68,0.12);  color: var(--danger); border: 1px solid rgba(239,68,68,0.25); }
+.pv-title-icon.my-docs   { background: rgba(6,182,212,0.12);  color: var(--cyan-400); border: 1px solid var(--border-accent); }
+.pv-title-icon.all       { background: rgba(6,182,212,0.10);  color: var(--cyan-400); border: 1px solid var(--border-accent); }
+
+.pv-page-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.4px;
+    margin: 0 0 3px;
+    line-height: 1.2;
+}
+
+.pv-page-subtitle {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Montserrat', monospace;
+    letter-spacing: 0.3px;
+}
+.pv-page-subtitle .sep { opacity: 0.4; }
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn-export {
+    background: var(--ink-700);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 7px 14px;
+    border-radius: var(--radius-md);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    white-space: nowrap;
+}
+.btn-export:hover {
+    background: var(--ink-600);
+    border-color: rgba(255,255,255,0.12);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.btn-primary-action {
+    background: var(--cyan-700);
+    border: 1px solid var(--cyan-600);
+    color: white;
+    padding: 7px 16px;
+    border-radius: var(--radius-md);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(6,182,212,0.25);
+    letter-spacing: 0.2px;
+}
+.btn-primary-action:hover {
+    background: var(--cyan-600);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(6,182,212,0.4);
+}
+
+/* Context banner */
+.context-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border-radius: var(--radius-md);
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+    border: 1px solid;
+    opacity: 0;
+    animation: fadeUp 0.4s var(--ease) 0.12s forwards;
+}
+.context-banner.pending-banner {
+    background: rgba(245,158,11,0.07);
+    border-color: rgba(245,158,11,0.2);
+    color: #fbbf24;
+}
+.context-banner.approved-banner {
+    background: rgba(34,197,94,0.07);
+    border-color: rgba(34,197,94,0.2);
+    color: #4ade80;
+}
+.context-banner.in-progress-banner {
+    background: rgba(59,130,246,0.07);
+    border-color: rgba(59,130,246,0.2);
+    color: #60a5fa;
+}
+.context-banner i { font-size: 0.95rem; }
+.context-banner .banner-text { color: var(--text-secondary); font-weight: 400; }
+.context-banner .banner-text strong { color: inherit; }
+
+/* ── Filter / Toolbar Row ── */
+.vouchers-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.4s var(--ease) 0.15s forwards;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    background: var(--ink-750, #142540);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 5px 13px;
+    border-radius: 99px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.775rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+.filter-tab:hover {
+    border-color: var(--border-accent);
+    color: var(--text-primary);
+    background: rgba(6,182,212,0.06);
+}
+.filter-tab.active {
+    background: rgba(6,182,212,0.14);
+    border-color: var(--cyan-600);
+    color: var(--cyan-400);
+}
+
+.toolbar-right {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+}
+
+/* ── Multi-field Search ── */
+.multi-search-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 300px;
+}
+
+.multi-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.multi-search-icon {
+    position: absolute;
+    left: 10px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.multi-search-input {
+    background: var(--surface-800, #101f34);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    padding: 6px 30px 6px 34px;
+    width: 100%;
+    height: 34px;
+    transition: all var(--transition-fast);
+}
+.multi-search-input::placeholder { color: var(--text-muted); }
+.multi-search-input:focus {
+    border-color: var(--cyan-600);
+    background: var(--ink-700);
+    box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+    outline: none;
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 7px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+    padding: 0;
+}
+.search-clear-btn:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--text-primary);
+}
+
+/* Field pills */
+.search-field-pills {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.search-pill {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    user-select: none;
+    letter-spacing: 0.3px;
+}
+.search-pill:hover {
+    border-color: var(--border-accent);
+    color: var(--cyan-400);
+}
+.search-pill.active {
+    background: rgba(6,182,212,0.12);
+    border-color: var(--cyan-600);
+    color: var(--cyan-400);
+}
+
+/* Highlight matched text in table */
+.search-highlight {
+    background: rgba(6,182,212,0.22);
+    color: var(--cyan-300);
+    border-radius: 2px;
+    padding: 0 1px;
+    font-weight: 700;
+}
+
+/* ── Main Table Card ── */
+.vouchers-card {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeUp 0.4s var(--ease) 0.22s forwards;
+}
+
+/* ── Bulk Action Bar ── */
+.bulk-action-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 16px;
+    background: rgba(6,182,212,0.07);
+    border-bottom: 1px solid var(--border-accent);
+    font-size: 0.78rem;
+}
+.bulk-action-bar.visible { display: flex; }
+
+.bulk-count-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--cyan-400);
+    font-weight: 600;
+}
+.bulk-count-pill {
+    background: rgba(6,182,212,0.15);
+    border: 1px solid var(--border-accent);
+    color: var(--cyan-300);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+}
+
+.bulk-btns { display: flex; gap: 7px; }
+
+.bulk-btn-approve {
+    background: linear-gradient(135deg, var(--success), #16a34a);
+    border: none;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+.bulk-btn-approve:hover { transform: translateY(-1px); filter: brightness(1.1); }
+
+.bulk-btn-reject {
+    background: linear-gradient(135deg, var(--danger), #dc2626);
+    border: none;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+.bulk-btn-reject:hover { transform: translateY(-1px); filter: brightness(1.1); }
+
+/* ── Data Table ── */
+.table-container { overflow-x: auto; }
+
+.pv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Montserrat', sans-serif;
+    min-width: 900px;
+}
+
+.pv-table thead tr {
+    background: var(--ink-800);
+    border-bottom: 1px solid var(--border);
+}
+
+.pv-table th {
+    font-size: 0.67rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.85px;
+    padding: 10px 14px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.pv-table th:first-child,
+.pv-table td:first-child {
+    width: 40px;
+    text-align: center;
+    padding: 10px 8px;
+}
+
+.pv-table td {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    padding: 11px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.038);
+    vertical-align: middle;
+}
+
+.pv-table tbody tr {
+    transition: background var(--transition-fast);
+    cursor: pointer;
+    opacity: 0;
+    animation: fadeUp 0.32s var(--ease) forwards;
+}
+.pv-table tbody tr.row-selected td { background: rgba(6,182,212,0.06) !important; }
+.pv-table tbody tr.row-selected td:first-child { box-shadow: inset 3px 0 0 var(--cyan-400); }
+
+.pv-table tbody tr:nth-child(1)  { animation-delay: 0.28s; }
+.pv-table tbody tr:nth-child(2)  { animation-delay: 0.33s; }
+.pv-table tbody tr:nth-child(3)  { animation-delay: 0.38s; }
+.pv-table tbody tr:nth-child(4)  { animation-delay: 0.43s; }
+.pv-table tbody tr:nth-child(5)  { animation-delay: 0.48s; }
+.pv-table tbody tr:nth-child(6)  { animation-delay: 0.53s; }
+.pv-table tbody tr:nth-child(n+7){ animation-delay: 0.58s; }
+
+.pv-table tbody tr:hover td {
+    background: rgba(6,182,212,0.045);
+    color: var(--text-primary);
+}
+.pv-table tbody tr:last-child td { border-bottom: none; }
+
+/* Doc type badge */
+.doc-type-badge {
+    font-size: 0.63rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    display: inline-block;
+}
+.doc-type-badge.pv {
+    background: rgba(6,182,212,0.1);
+    color: var(--cyan-300);
+    border: 1px solid rgba(6,182,212,0.2);
+}
+.doc-type-badge.pf {
+    background: rgba(34,197,94,0.1);
+    color: #4ade80;
+    border: 1px solid rgba(34,197,94,0.2);
+}
+
+/* PV Number */
+.pv-number-link {
+    font-family: 'Montserrat', monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--cyan-400);
+    text-decoration: none;
+    background: rgba(6,182,212,0.08);
+    border: 1px solid rgba(6,182,212,0.15);
+    padding: 3px 9px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+.pv-number-link:hover {
+    background: rgba(6,182,212,0.16);
+    color: var(--cyan-300);
+    border-color: var(--cyan-600);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(6,182,212,0.15);
+}
+.pv-number-link.pf-link {
+    color: #4ade80;
+    background: rgba(34,197,94,0.08);
+    border-color: rgba(34,197,94,0.18);
+}
+.pv-number-link.pf-link:hover {
+    background: rgba(34,197,94,0.15);
+    border-color: #22c55e;
+    box-shadow: 0 3px 8px rgba(34,197,94,0.12);
+}
+
+.payee-cell strong {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.8125rem;
+    display: block;
+}
+
+.amount-cell {
+    font-family: 'Montserrat', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.currency-chip {
+    font-family: 'Montserrat', monospace;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+.currency-chip.usd { background: rgba(6,182,212,0.12);   color: var(--cyan-300);  border: 1px solid rgba(6,182,212,0.2); }
+.currency-chip.khr { background: rgba(245,158,11,0.12);  color: #fbbf24;          border: 1px solid rgba(245,158,11,0.2); }
+.currency-chip.thb { background: rgba(139,92,246,0.12);  color: #a78bfa;          border: 1px solid rgba(139,92,246,0.2); }
+
+.date-cell {
+    font-family: 'Montserrat', monospace;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+.status-badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.status-badge.approved  { background: rgba(34,197,94,0.1);   color: #4ade80;  border: 1px solid rgba(34,197,94,0.2); }
+.status-badge.approved::before { background: #4ade80; box-shadow: 0 0 4px rgba(74,222,128,0.5); }
+.status-badge.pending   { background: rgba(245,158,11,0.1);  color: #fbbf24;  border: 1px solid rgba(245,158,11,0.2); animation: pendingPulse 2.5s ease-in-out infinite; }
+.status-badge.pending::before { background: #fbbf24; animation: dotPulse 2s ease-in-out infinite; }
+.status-badge.draft     { background: rgba(100,116,139,0.1); color: #94a3b8;  border: 1px solid rgba(100,116,139,0.18); }
+.status-badge.draft::before { background: #94a3b8; }
+.status-badge.rejected  { background: rgba(239,68,68,0.1);   color: #f87171;  border: 1px solid rgba(239,68,68,0.2); }
+.status-badge.rejected::before { background: #f87171; }
+.status-badge.revision  { background: rgba(59,130,246,0.1);  color: #60a5fa;  border: 1px solid rgba(59,130,246,0.2); }
+.status-badge.revision::before { background: #60a5fa; }
+
+@keyframes pendingPulse { 0%,100%{background:rgba(245,158,11,0.10)}50%{background:rgba(245,158,11,0.17)} }
+@keyframes dotPulse     { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+/* Prepared By */
+.preparer-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+.preparer-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; font-weight: 800;
+    color: white; flex-shrink: 0;
+}
+.preparer-name {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.av-teal   { background: linear-gradient(135deg, var(--cyan-500), var(--cyan-700)); }
+.av-purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.av-green  { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.av-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
+.av-pink   { background: linear-gradient(135deg, #ec4899, #db2777); }
+.av-blue   { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.av-amber  { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+/* Row Actions */
+.row-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    justify-content: flex-end;
+}
+.pv-table tbody tr:hover .row-actions { opacity: 1; }
+
+.action-icon-btn {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--ink-700);
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+}
+.action-icon-btn:hover {
+    border-color: var(--border-accent);
+    color: var(--cyan-400);
+    background: rgba(6,182,212,0.1);
+}
+.action-icon-btn.edit:hover {
+    border-color: rgba(245,158,11,0.3);
+    color: #fbbf24;
+    background: rgba(245,158,11,0.08);
+}
+
+/* Checkbox */
+.pv-checkbox {
+    width: 15px; height: 15px;
+    accent-color: var(--cyan-500);
+    cursor: pointer;
+}
+
+/* Table Footer / Pagination */
+.table-footer {
+    padding: 12px 16px;
+    background: var(--ink-800);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.showing-info {
+    font-size: 0.73rem;
+    color: var(--text-muted);
+}
+.showing-info span {
+    font-family: 'Montserrat', monospace;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.pagination-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.page-btn {
+    width: 30px; height: 30px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--ink-750, #142540);
+    color: var(--text-secondary);
+    font-size: 0.75rem; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    font-family: 'Montserrat', monospace;
+}
+.page-btn:hover {
+    border-color: var(--border-accent);
+    color: var(--cyan-400);
+    background: rgba(6,182,212,0.08);
+}
+.page-btn.active {
+    background: var(--cyan-600);
+    border-color: var(--cyan-600);
+    color: white;
+    box-shadow: 0 2px 8px rgba(6,182,212,0.3);
+}
+.page-btn.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.page-btn-nav {
+    padding: 0 10px;
+    width: auto;
+    gap: 5px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem;
+}
+.page-dots {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    padding: 0 3px;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 60px 24px;
+    text-align: center;
+}
+.empty-icon-box {
+    width: 64px; height: 64px;
+    border-radius: var(--radius-xl);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.75rem;
+    margin: 0 auto 16px;
+}
+.empty-icon-box.pending-empty  { background: rgba(245,158,11,0.08); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+.empty-icon-box.approved-empty { background: rgba(34,197,94,0.08);  color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+.empty-icon-box.draft-empty    { background: rgba(139,92,246,0.08); color: #a78bfa; border: 1px solid rgba(139,92,246,0.2); }
+.empty-icon-box.default-empty  { background: rgba(6,182,212,0.08);  color: var(--cyan-400); border: 1px solid var(--border-accent); }
+.empty-icon-box.rejected-empty { background: rgba(239,68,68,0.08);  color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+
+.empty-state h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+.empty-state p {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    max-width: 360px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.empty-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+/* ── Bulk Modals ── */
+.bulk-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    z-index: 1060;
+    align-items: center;
+    justify-content: center;
+}
+.bulk-modal-overlay.active { display: flex; }
+
+.bulk-modal {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-2xl);
+    max-width: 460px;
+    width: 90%;
+    overflow: hidden;
+    animation: modalUp 0.25s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes modalUp {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.bulk-modal-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    display: flex; align-items: center; gap: 9px;
+}
+.bulk-modal-header h5 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.bulk-modal-body { padding: 20px 18px; }
+.bulk-modal-body p {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+    line-height: 1.6;
+}
+.bulk-modal-body p strong { color: var(--text-primary); }
+.bulk-modal-body .form-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    display: block;
+}
+
+.bulk-modal-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .vouchers-container { padding: 0 14px 32px; }
+    .pv-page-header { flex-direction: column; align-items: flex-start; }
+    .search-box { min-width: 180px; }
+}
+@media (max-width: 768px) {
+    .vouchers-container { padding: 0 12px 28px; }
+    .vouchers-toolbar { flex-direction: column; align-items: flex-start; }
+    .toolbar-right { width: 100%; }
+    .search-box { flex: 1; min-width: 0; }
+    .pv-page-title { font-size: 1.2rem; }
+    .header-actions { width: 100%; }
+    .btn-primary-action { flex: 1; justify-content: center; }
+    .bulk-action-bar { flex-direction: column; align-items: flex-start; }
+    .bulk-btns { width: 100%; }
+    .bulk-btns button { flex: 1; justify-content: center; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="voucher-list-container">
-    <!-- MINIMAL Page Header -->
-    <div class="page-header">
-        <h1 class="page-title">
-            <i class="bi bi-list-ul"></i>
-            <span>{{ title }}</span>
-        </h1>
-        <div class="page-actions">
-            <a href="{% url 'dashboard:home' %}" class="back-btn">
-                <i class="bi bi-arrow-left"></i>
-                <span>Back to Dashboard</span>
+{% with page_mode=title|default:"all" %}
+
+<div class="vouchers-container">
+
+    <!-- ── Page Header ── -->
+    <div class="pv-page-header">
+        <div class="pv-title-row">
+            {% if "Pending" in title %}
+                <div class="pv-title-icon pending"><i class="bi bi-clock-history"></i></div>
+            {% elif "Approved" in title %}
+                <div class="pv-title-icon approved"><i class="bi bi-check-circle"></i></div>
+            {% elif "Draft" in title %}
+                <div class="pv-title-icon draft"><i class="bi bi-file-earmark-minus"></i></div>
+            {% elif "Progress" in title %}
+                <div class="pv-title-icon in-progress"><i class="bi bi-arrow-repeat"></i></div>
+            {% elif "Rejected" in title or "Cancelled" in title %}
+                <div class="pv-title-icon rejected"><i class="bi bi-x-circle"></i></div>
+            {% elif "My Vouchers" in title or "My Forms" in title %}
+                <div class="pv-title-icon my-docs"><i class="bi bi-person-lines-fill"></i></div>
+            {% else %}
+                <div class="pv-title-icon all"><i class="bi bi-files"></i></div>
+            {% endif %}
+
+            <div>
+                <h1 class="pv-page-title">{{ title|default:"All Documents" }}</h1>
+                <div class="pv-page-subtitle">
+                    {% if "Pending" in title %}
+                        <span>រង់ចាំការអនុម័ត</span><span class="sep">·</span>
+                        <span>Documents awaiting your action</span>
+                    {% elif "Approved" in title %}
+                        <span>បានអនុម័ត</span><span class="sep">·</span>
+                        <span>Fully approved documents</span>
+                    {% elif "Draft" in title %}
+                        <span>ព្រាង</span><span class="sep">·</span>
+                        <span>Saved but not yet submitted</span>
+                    {% elif "Progress" in title %}
+                        <span>កំពុងដំណើរការ</span><span class="sep">·</span>
+                        <span>Documents in the approval chain</span>
+                    {% elif "Rejected" in title or "Cancelled" in title %}
+                        <span>បានបដិសេធ</span><span class="sep">·</span>
+                        <span>Rejected or cancelled documents</span>
+                    {% elif "My Vouchers" in title %}
+                        <span>របស់ខ្ញុំ</span><span class="sep">·</span>
+                        <span>All documents you created</span>
+                    {% else %}
+                        <span>បញ្ជីឯកសារ</span><span class="sep">·</span>
+                        <span>Payment Vouchers &amp; Payment Forms</span>
+                    {% endif %}
+                    <span class="sep">·</span>
+                    <span>FY 2026–2027</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            {% if user.role_level == 1 %}
+            <a href="{% url 'vouchers:create' %}" class="btn-primary-action">
+                <i class="bi bi-plus-lg"></i> New Voucher
             </a>
-        </div>
-    </div>
-
-    <!-- ULTRA COMPACT Search & Filter -->
-    <div class="search-filter-card">
-        <div class="filter-header" onclick="toggleFilters()">
-            <h3>
-                <i class="bi bi-funnel"></i>
-                <span>Search & Filter</span>
-            </h3>
-            <i class="bi bi-chevron-down" id="filterToggleIcon"></i>
-        </div>
-        <div class="filter-content" id="filterContent">
-            <form method="get" action="" class="filter-form" id="filter-form">
-                <div class="filter-field">
-                    <label for="doc_type">Document Type</label>
-                    <select id="doc_type" name="doc_type" class="instant-filter">
-                        <option value="all" {% if request.GET.doc_type == 'all' or not request.GET.doc_type %}selected{% endif %}>All Documents</option>
-                        <option value="pv" {% if request.GET.doc_type == 'pv' %}selected{% endif %}>Payment Voucher (PV)</option>
-                        <option value="pf" {% if request.GET.doc_type == 'pf' %}selected{% endif %}>Payment Form (PF)</option>
-                    </select>
-                </div>
-                <div class="filter-field">
-                    <label for="pv_number">Doc Number</label>
-                    <input type="text" id="pv_number" name="pv_number" placeholder="2601-0001" value="{{ request.GET.pv_number }}" class="instant-filter">
-                </div>
-                <div class="filter-field">
-                    <label for="payee_name">Payee Name</label>
-                    <input type="text" id="payee_name" name="payee_name" placeholder="Payee name" value="{{ request.GET.payee_name }}" class="instant-filter">
-                </div>
-                <div class="filter-field">
-                    <label for="date_from">From Date</label>
-                    <input type="date" id="date_from" name="date_from" value="{{ request.GET.date_from }}" class="instant-filter">
-                </div>
-                <div class="filter-field">
-                    <label for="date_to">To Date</label>
-                    <input type="date" id="date_to" name="date_to" value="{{ request.GET.date_to }}" class="instant-filter">
-                </div>
-                <div class="filter-field">
-                    <label for="status">Status</label>
-                    <select id="status" name="status" class="instant-filter">
-                        <option value="">All Statuses</option>
-                        <option value="DRAFT" {% if request.GET.status == 'DRAFT' %}selected{% endif %}>Draft</option>
-                        <option value="PENDING_L2" {% if request.GET.status == 'PENDING_L2' %}selected{% endif %}>Pending L2</option>
-                        <option value="PENDING_L3" {% if request.GET.status == 'PENDING_L3' %}selected{% endif %}>Pending L3</option>
-                        <option value="PENDING_L4" {% if request.GET.status == 'PENDING_L4' %}selected{% endif %}>Pending L4</option>
-                        <option value="PENDING_L5" {% if request.GET.status == 'PENDING_L5' %}selected{% endif %}>Pending L5</option>
-                        <option value="ON_REVISION" {% if request.GET.status == 'ON_REVISION' %}selected{% endif %}>On Revision</option>
-                        <option value="APPROVED" {% if request.GET.status == 'APPROVED' %}selected{% endif %}>Approved</option>
-                        <option value="REJECTED" {% if request.GET.status == 'REJECTED' %}selected{% endif %}>Rejected</option>
-                    </select>
-                </div>
-                <div class="filter-actions">
-                    <button type="button" class="filter-btn secondary" onclick="clearFilters()">
-                        <i class="bi bi-x-circle"></i>
-                        <span>Clear</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Bulk Action Bar (Only on Pending Action Page) -->
-    {% if title == "Pending My Action" and vouchers %}
-    <div class="bulk-action-bar">
-        <div class="bulk-selection-info">
-            <div class="select-all-container">
-                <input type="checkbox" id="select-all" class="select-all-checkbox">
-                <label for="select-all" class="select-all-label">Select All</label>
-            </div>
-            <div class="selected-count" id="selected-count">
-                <span id="count-value">0</span> selected
-            </div>
-        </div>
-
-        <div class="bulk-action-buttons">
-            <button type="button" class="bulk-action-btn approve" id="approve-btn" disabled onclick="showApproveModal()">
-                <i class="bi bi-check-circle"></i>
-                <span>Approve Selected</span>
-            </button>
-            <button type="button" class="bulk-action-btn reject" id="reject-btn" disabled onclick="showRejectModal()">
-                <i class="bi bi-x-circle"></i>
-                <span>Reject Selected</span>
-            </button>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Quick Filter Buttons -->
-    {% if title == "Approved Vouchers & Forms" %}
-    <div class="quick-filter-buttons">
-        <a href="?doc_type=all" class="quick-filter-btn {% if request.GET.doc_type == 'all' or not request.GET.doc_type %}active{% endif %}">
-            <i class="bi bi-files"></i>
-            <span>All Documents</span>
-        </a>
-        <a href="?doc_type=pv" class="quick-filter-btn {% if request.GET.doc_type == 'pv' %}active{% endif %}">
-            <i class="bi bi-file-earmark-text"></i>
-            <span>PV Only</span>
-        </a>
-        <a href="?doc_type=pf" class="quick-filter-btn {% if request.GET.doc_type == 'pf' %}active{% endif %}">
-            <i class="bi bi-file-earmark-check"></i>
-            <span>PF Only</span>
-        </a>
-    </div>
-    {% endif %}
-
-    <!-- Vouchers Card -->
-    <div class="vouchers-card">
-        <div class="vouchers-card-header">
-            <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                <i class="bi bi-file-earmark-text" style="color: var(--primary-600); font-size: 1.5rem;"></i>
-                <span style="color: var(--gray-900);">All Vouchers</span>
-            </h2>
-            {% if vouchers %}
-            <div class="vouchers-count">
-                {{ vouchers|length }} voucher{{ vouchers|length|pluralize }}
-            </div>
+            {% elif user.role_level == 3 and "Pending" in title %}
+            <a href="{% url 'vouchers:batch_select' %}" class="btn-primary-action">
+                <i class="bi bi-folder-plus"></i> Create Batch
+            </a>
             {% endif %}
         </div>
+    </div>
 
-        <div class="vouchers-card-body">
-            {% if vouchers %}
-            <div class="table-container">
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            {% if title == "Pending My Action" %}<th class="checkbox-col"></th>{% endif %}
-                            <th>Doc Number</th>
-                            <th>Payee</th>
-                            <th>Payment Date</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Created By</th>
-                            <th>Created At</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for voucher in vouchers %}
-                        <tr class="clickable-row{% if title == 'Pending My Action' %} doc-row{% endif %} voucher-row"
-                            data-href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}"
-                            data-doc-type="{% if voucher.pf_number %}pf{% else %}pv{% endif %}"
-                            data-doc-number="{% if voucher.pf_number %}PF {{ voucher.pf_number|default:'DRAFT' }}{% else %}PV {{ voucher.pv_number|default:'DRAFT' }}{% endif %}"
-                            data-payee-name="{{ voucher.payee_name|lower }}"
-                            data-payment-date="{{ voucher.payment_date|date:'Y-m-d' }}"
-                            data-status="{{ voucher.status }}"
-                            {% if title == "Pending My Action" %}data-id="{{ voucher.id }}" data-type="{% if voucher.pv_number %}pv{% else %}pf{% endif %}"{% endif %}>
-                            {% if title == "Pending My Action" %}
-                            <td class="checkbox-col" onclick="event.stopPropagation();">
-                                <input type="checkbox" class="row-checkbox"
-                                       data-id="{{ voucher.id }}"
-                                       data-type="{% if voucher.pv_number %}pv{% else %}pf{% endif %}">
-                            </td>
+    <!-- ── Context Banner ── -->
+{% if "Pending" in title and vouchers %}
+<div class="context-banner pending-banner">
+    <i class="bi bi-hourglass-split"></i>
+    <span class="banner-text">
+        <strong>
+            {% if is_paginated %}{{ page_obj.paginator.count }}{% else %}{{ vouchers|length }}{% endif %}
+            document{% if is_paginated %}{% if page_obj.paginator.count != 1 %}s{% endif %}{% else %}{{ vouchers|length|pluralize }}{% endif %}
+        </strong>
+        are waiting for your approval. Review and action each one below.
+    </span>
+</div>
+    {% elif "Approved" in title and vouchers %}
+    <div class="context-banner approved-banner">
+        <i class="bi bi-patch-check"></i>
+        <span class="banner-text">These documents have completed the full approval workflow.</span>
+    </div>
+    {% elif "Progress" in title and vouchers %}
+    <div class="context-banner in-progress-banner">
+        <i class="bi bi-arrow-repeat"></i>
+        <span class="banner-text">These documents are currently moving through the approval chain.</span>
+    </div>
+    {% endif %}
+
+    <!-- ── Filter Tabs + Toolbar ── -->
+    <div class="vouchers-toolbar">
+        <div class="filter-tabs">
+            <button type="button" onclick="filterByDocType('all')"
+               class="filter-tab {% if not request.GET.doc_type or request.GET.doc_type == 'all' %}active{% endif %}" data-type="all">
+                All
+            </button>
+            <button type="button" onclick="filterByDocType('pv')"
+               class="filter-tab {% if request.GET.doc_type == 'pv' %}active{% endif %}" data-type="pv">
+                <i class="bi bi-receipt" style="font-size:.7rem"></i> PV Only
+            </button>
+            <button type="button" onclick="filterByDocType('pf')"
+               class="filter-tab {% if request.GET.doc_type == 'pf' %}active{% endif %}" data-type="pf">
+                <i class="bi bi-file-earmark-check" style="font-size:.7rem"></i> PF Only
+            </button>
+        </div>
+
+        <div class="toolbar-right">
+            <div class="multi-search-wrap" id="multiSearchWrap">
+                <div class="multi-search-box">
+                    <i class="bi bi-search multi-search-icon"></i>
+                    <input type="text" id="searchInput"
+                           class="multi-search-input"
+                           placeholder="Search number, payee, amount, date…"
+                           value="{{ request.GET.search|default:'' }}"
+                           onkeyup="liveSearch(this.value)"
+                           autocomplete="off">
+                    <button type="button" class="search-clear-btn" id="searchClearBtn"
+                            onclick="clearSearch()" title="Clear search" style="display:none;">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                <div class="search-field-pills">
+                    <span class="search-pill active" data-field="all"     onclick="setSearchField('all')">All</span>
+                    <span class="search-pill"         data-field="number" onclick="setSearchField('number')"># Number</span>
+                    <span class="search-pill"         data-field="payee"  onclick="setSearchField('payee')">Payee</span>
+                    <span class="search-pill"         data-field="amount" onclick="setSearchField('amount')">Amount</span>
+                    <span class="search-pill"         data-field="date"   onclick="setSearchField('date')">Date</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Table Card ── -->
+    <div class="vouchers-card">
+
+        <!-- ── Bulk Action Bar (only shown on Pending page when items are selected) ── -->
+        {% if "Pending" in title %}
+        <div class="bulk-action-bar" id="bulkActionBar">
+            <div class="bulk-count-info">
+                <i class="bi bi-check2-square" style="font-size:0.9rem;"></i>
+                <span class="bulk-count-pill"><span id="selectedCount">0</span> selected</span>
+            </div>
+            <div class="bulk-btns">
+                <button type="button" class="bulk-btn-approve" onclick="showBulkModal('approve')">
+                    <i class="bi bi-check-circle"></i> Approve Selected
+                </button>
+                <button type="button" class="bulk-btn-reject" onclick="showBulkModal('reject')">
+                    <i class="bi bi-x-circle"></i> Reject Selected
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="table-container">
+            <table class="pv-table" id="pvTable">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" class="pv-checkbox" id="selectAll"
+                                   onchange="toggleSelectAll(this)">
+                        </th>
+                        <th>Type</th>
+                        <th>
+                            <a href="?sort=number&dir={% if request.GET.sort == 'number' and request.GET.dir == 'asc' %}desc{% else %}asc{% endif %}"
+                               style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:4px;">
+                                Number <i class="bi bi-chevron-expand" style="font-size:.6rem;opacity:.5"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?sort=payee_name&dir={% if request.GET.sort == 'payee_name' and request.GET.dir == 'asc' %}desc{% else %}asc{% endif %}"
+                               style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:4px;">
+                                Payee <i class="bi bi-chevron-expand" style="font-size:.6rem;opacity:.5"></i>
+                            </a>
+                        </th>
+                        <th>Amount</th>
+                        <th>Currency</th>
+                        <th>
+                            <a href="?sort=created_at&dir={% if request.GET.sort == 'created_at' and request.GET.dir == 'asc' %}desc{% else %}asc{% endif %}"
+                               style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:4px;">
+                                Date <i class="bi bi-chevron-expand" style="font-size:.6rem;opacity:.5"></i>
+                            </a>
+                        </th>
+                        <th>Status</th>
+                        <th>Prepared By</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for voucher in vouchers %}
+                    {% with is_pf=voucher.pf_number %}
+                    <tr onclick="goToVoucher(event, '{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}')"
+                        data-id="{{ voucher.pk }}"
+                        data-doctype="{% if voucher.pf_number %}pf{% else %}pv{% endif %}">
+
+                        <td onclick="event.stopPropagation()">
+                            <input type="checkbox" class="pv-checkbox row-checkbox"
+                                   value="{{ voucher.pk }}"
+                                   data-doctype="{% if voucher.pf_number %}pf{% else %}pv{% endif %}"
+                                   onchange="updateBulkBar()">
+                        </td>
+
+                        <td>
+                            {% if voucher.pf_number %}
+                                <span class="doc-type-badge pf">PF</span>
+                            {% else %}
+                                <span class="doc-type-badge pv">PV</span>
                             {% endif %}
-                            <td>
-                                {% if voucher.pf_number %}
-                                    <span class="pv-number" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">PF {{ voucher.pf_number|default:"DRAFT" }}</span>
-                                {% else %}
-                                    <span class="pv-number">PV {{ voucher.pv_number|default:"DRAFT" }}</span>
-                                {% endif %}
-                            </td>
-                            <td><strong>{{ voucher.payee_name }}</strong></td>
-                            <td>{{ voucher.payment_date|date:"M d, Y" }}</td>
-                            <td>
-                                <span class="amount-display">{{ voucher.get_grand_total_display }}</span>
-                            </td>
-                            <td>
-                                {% if voucher.status == 'DRAFT' %}
-                                    <span class="status-badge draft">
-                                        <i class="bi bi-pencil"></i> {{ voucher.get_status_display }}
-                                    </span>
-                                {% elif voucher.status == 'APPROVED' %}
-                                    <span class="status-badge approved">
-                                        <i class="bi bi-check-circle"></i> {{ voucher.get_status_display }}
-                                    </span>
-                                {% elif voucher.status == 'REJECTED' %}
-                                    <span class="status-badge rejected">
-                                        <i class="bi bi-x-circle"></i> {{ voucher.get_status_display }}
-                                    </span>
-                                {% elif voucher.status == 'ON_REVISION' %}
-                                    <span class="status-badge revision">
-                                        <i class="bi bi-arrow-counterclockwise"></i> {{ voucher.get_status_display }}
-                                    </span>
-                                {% else %}
-                                    <span class="status-badge pending">
-                                        <i class="bi bi-clock"></i> {{ voucher.get_status_display }}
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="user-badge">
-                                    <i class="bi bi-person-circle"></i>
-                                    <span>{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</span>
+                        </td>
+
+                        <td>
+                            {% if voucher.pf_number %}
+                                <a href="{% url 'vouchers:pf_detail' voucher.pk %}"
+                                   class="pv-number-link pf-link" onclick="event.stopPropagation()">
+                                    {{ voucher.pf_number|default:"DRAFT" }}
+                                </a>
+                            {% else %}
+                                <a href="{% url 'vouchers:detail' voucher.pk %}"
+                                   class="pv-number-link" onclick="event.stopPropagation()">
+                                    {{ voucher.pv_number|default:"DRAFT" }}
+                                </a>
+                            {% endif %}
+                        </td>
+
+                        <td class="payee-cell">
+                            <strong>{{ voucher.payee_name }}</strong>
+                        </td>
+
+                        <td>
+                            <span class="amount-cell">{{ voucher.get_grand_total_display }}</span>
+                        </td>
+
+                        <td>
+                            {% with currency=voucher.line_items.first.currency|default:"USD" %}
+                            <span class="currency-chip {% if currency == 'KHR' %}khr{% elif currency == 'THB' %}thb{% else %}usd{% endif %}">
+                                {{ currency }}
+                            </span>
+                            {% endwith %}
+                        </td>
+
+                        <td>
+                            <span class="date-cell">{{ voucher.created_at|date:"M d, Y" }}</span>
+                        </td>
+
+                        <td>
+                            {% if voucher.status == 'APPROVED' %}
+                                <span class="status-badge approved">Approved</span>
+                            {% elif voucher.status == 'REJECTED' %}
+                                <span class="status-badge rejected">Rejected</span>
+                            {% elif voucher.status == 'DRAFT' %}
+                                <span class="status-badge draft">Draft</span>
+                            {% elif voucher.status == 'ON_REVISION' %}
+                                <span class="status-badge revision">Revision</span>
+                            {% else %}
+                                <span class="status-badge pending">{{ voucher.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td onclick="event.stopPropagation()">
+                            <div class="preparer-cell">
+                                <div class="preparer-avatar {% cycle 'av-teal' 'av-purple' 'av-green' 'av-orange' 'av-pink' 'av-blue' 'av-amber' %}">
+                                    {{ voucher.created_by.get_full_name|default:voucher.created_by.username|slice:":2"|upper }}
                                 </div>
-                            </td>
-                            <td>{{ voucher.created_at|date:"M d, Y" }}</td>
-                            <td>
-                                {% if voucher.status == 'DRAFT' %}
-                                    <div style="display: flex; gap: 3px; flex-wrap: wrap;">
-                                        {% if voucher.pf_number %}
-                                            <a href="{% url 'vouchers:pf_detail' voucher.pk %}" class="view-btn" title="View">
-                                                <i class="bi bi-eye"></i> View
-                                            </a>
-                                            <a href="{% url 'vouchers:pf_edit' voucher.pk %}" class="edit-btn" title="Edit">
-                                                <i class="bi bi-pencil-square"></i> Edit
-                                            </a>
-                                            <form method="post" action="{% url 'vouchers:pf_delete' voucher.pk %}" style="display: inline;" class="delete-form-{{ voucher.pk }}">
-                                                {% csrf_token %}
-                                                <button type="button" class="delete-btn" title="Delete" onclick="showDeleteModal({{ voucher.pk }}, '{{ voucher.pf_number|default:"DRAFT" }}')">
-                                                    <i class="bi bi-trash"></i> Delete
-                                                </button>
-                                            </form>
-                                        {% else %}
-                                            <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn" title="View">
-                                                <i class="bi bi-eye"></i> View
-                                            </a>
-                                            <a href="{% url 'vouchers:edit' voucher.pk %}" class="edit-btn" title="Edit">
-                                                <i class="bi bi-pencil-square"></i> Edit
-                                            </a>
-                                            <form method="post" action="{% url 'vouchers:delete' voucher.pk %}" style="display: inline;" class="delete-form-{{ voucher.pk }}">
-                                                {% csrf_token %}
-                                                <button type="button" class="delete-btn" title="Delete" onclick="showDeleteModal({{ voucher.pk }}, '{{ voucher.pv_number|default:"DRAFT" }}')">
-                                                    <i class="bi bi-trash"></i> Delete
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                    </div>
-                                {% else %}
-                                    {% if voucher.pf_number %}
-                                        <a href="{% url 'vouchers:pf_detail' voucher.pk %}" class="view-btn">
-                                            <i class="bi bi-eye"></i> View
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'vouchers:detail' voucher.pk %}" class="view-btn">
-                                            <i class="bi bi-eye"></i> View
-                                    {% endif %}
+                                <span class="preparer-name">
+                                    {{ voucher.created_by.get_full_name|default:voucher.created_by.username|truncatechars:14 }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td onclick="event.stopPropagation()" style="width:70px;">
+                            <div class="row-actions">
+                                {% if voucher.pf_number %}
+                                    <a href="{% url 'vouchers:pf_detail' voucher.pk %}"
+                                       class="action-icon-btn" title="View">
+                                        <i class="bi bi-eye"></i>
                                     </a>
+                                    {% if voucher.status in 'DRAFT,ON_REVISION' and voucher.created_by == user %}
+                                    <a href="{% url 'vouchers:pf_edit' voucher.pk %}"
+                                       class="action-icon-btn edit" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'vouchers:detail' voucher.pk %}"
+                                       class="action-icon-btn" title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if voucher.status in 'DRAFT,ON_REVISION' and voucher.created_by == user %}
+                                    <a href="{% url 'vouchers:edit' voucher.pk %}"
+                                       class="action-icon-btn edit" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
                                 {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endwith %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="10">
+                            <div class="empty-state">
+                                {% if "Pending" in title %}
+                                    <div class="empty-icon-box pending-empty"><i class="bi bi-check2-all"></i></div>
+                                    <h3>All caught up!</h3>
+                                    <p>No documents are currently waiting for your action.</p>
+                                {% elif "Approved" in title %}
+                                    <div class="empty-icon-box approved-empty"><i class="bi bi-check-circle"></i></div>
+                                    <h3>No approved documents yet</h3>
+                                    <p>Approved documents will appear here once they complete the workflow.</p>
+                                {% elif "Draft" in title %}
+                                    <div class="empty-icon-box draft-empty"><i class="bi bi-file-earmark-minus"></i></div>
+                                    <h3>No drafts saved</h3>
+                                    <p>Create a new voucher or payment form to get started.</p>
+                                    {% if user.role_level == 1 %}
+                                    <div class="empty-actions">
+                                        <a href="{% url 'vouchers:create' %}" class="btn-primary-action">
+                                            <i class="bi bi-plus-lg"></i> New Voucher
+                                        </a>
+                                        <a href="{% url 'vouchers:pf_create' %}" class="btn-export">
+                                            <i class="bi bi-plus-lg"></i> New PF
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                {% elif "Rejected" in title or "Cancelled" in title %}
+                                    <div class="empty-icon-box rejected-empty"><i class="bi bi-x-circle"></i></div>
+                                    <h3>No rejected documents</h3>
+                                    <p>Rejected documents will appear here.</p>
+                                {% elif "Progress" in title %}
+                                    <div class="empty-icon-box default-empty"><i class="bi bi-arrow-repeat"></i></div>
+                                    <h3>Nothing in progress</h3>
+                                    <p>Documents currently going through approvals will appear here.</p>
+                                {% else %}
+                                    <div class="empty-icon-box default-empty"><i class="bi bi-inbox"></i></div>
+                                    <h3>No documents found</h3>
+                                    <p>
+                                        {% if request.GET.search %}
+                                            No results for "{{ request.GET.search }}".
+                                        {% else %}
+                                            No payment documents have been created yet.
+                                        {% endif %}
+                                    </p>
+                                    {% if user.role_level == 1 %}
+                                    <div class="empty-actions">
+                                        <a href="{% url 'vouchers:create' %}" class="btn-primary-action">
+                                            <i class="bi bi-plus-lg"></i> Create First Voucher
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ── Table Footer / Pagination ── -->
+        {% if vouchers %}
+        <div class="table-footer">
+            <div class="showing-info">
+                {% if is_paginated %}
+                    Showing <span>{{ page_obj.start_index }}–{{ page_obj.end_index }}</span>
+                    of <span>{{ page_obj.paginator.count }}</span> entries
+                {% else %}
+                    Showing <span>{{ vouchers|length }}</span> entries
+                {% endif %}
             </div>
 
             {% if is_paginated %}
-            <div class="pagination-container">
-                <div class="modern-pagination">
-                    {% if page_obj.has_previous %}
-                    <a href="?{% if request.GET.doc_type %}doc_type={{ request.GET.doc_type }}&{% endif %}{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page=1" class="pagination-btn" title="First">
-                        <i class="bi bi-chevron-double-left"></i>
-                    </a>
-                    <a href="?{% if request.GET.doc_type %}doc_type={{ request.GET.doc_type }}&{% endif %}{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}" class="pagination-btn" title="Previous">
-                        <i class="bi bi-chevron-left"></i> Prev
-                    </a>
-                    {% else %}
-                    <button class="pagination-btn disabled" disabled><i class="bi bi-chevron-double-left"></i></button>
-                    <button class="pagination-btn disabled" disabled><i class="bi bi-chevron-left"></i> Prev</button>
-                    {% endif %}
+            <div class="pagination-wrap">
+                {% if page_obj.has_previous %}
+                    <button type="button" onclick="goToPage({{ page_obj.previous_page_number }})"
+                       class="page-btn page-btn-nav">
+                        <i class="bi bi-chevron-left" style="font-size:.7rem;"></i> Prev
+                    </button>
+                {% else %}
+                    <span class="page-btn page-btn-nav disabled">
+                        <i class="bi bi-chevron-left" style="font-size:.7rem;"></i> Prev
+                    </span>
+                {% endif %}
 
-                    <div class="pagination-info">
-                        <strong>{{ page_obj.number }}</strong> / <strong>{{ page_obj.paginator.num_pages }}</strong>
-                    </div>
-
-                    {% if page_obj.has_next %}
-                    <a href="?{% if request.GET.doc_type %}doc_type={{ request.GET.doc_type }}&{% endif %}{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}" class="pagination-btn" title="Next">
-                        Next <i class="bi bi-chevron-right"></i>
-                    </a>
-                    <a href="?{% if request.GET.doc_type %}doc_type={{ request.GET.doc_type }}&{% endif %}{% if request.GET.pv_number %}pv_number={{ request.GET.pv_number }}&{% endif %}{% if request.GET.payee_name %}payee_name={{ request.GET.payee_name }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="pagination-btn" title="Last">
-                        <i class="bi bi-chevron-double-right"></i>
-                    </a>
-                    {% else %}
-                    <button class="pagination-btn disabled" disabled>Next <i class="bi bi-chevron-right"></i></button>
-                    <button class="pagination-btn disabled" disabled><i class="bi bi-chevron-double-right"></i></button>
+                {% for num in page_obj.paginator.page_range %}
+                    {% if num == page_obj.number %}
+                        <span class="page-btn active">{{ num }}</span>
+                    {% elif num == 1 or num == page_obj.paginator.num_pages or num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                        <button type="button" onclick="goToPage({{ num }})"
+                           class="page-btn">{{ num }}</button>
+                    {% elif num == page_obj.number|add:"-3" or num == page_obj.number|add:"3" %}
+                        <span class="page-dots">···</span>
                     {% endif %}
-                </div>
-            </div>
-            {% endif %}
-            {% else %}
-            <div class="empty-state">
-                <div class="empty-state-icon">
-                    <i class="bi bi-inbox"></i>
-                </div>
-                <h3 class="empty-state-title">No Vouchers Found</h3>
-                <p class="empty-state-text">There are no vouchers in this category yet.</p>
-                {% if user.role_level == 1 %}
-                <a href="{% url 'vouchers:create' %}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Create New Voucher
-                </a>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <button type="button" onclick="goToPage({{ page_obj.next_page_number }})"
+                       class="page-btn page-btn-nav">
+                        Next <i class="bi bi-chevron-right" style="font-size:.7rem;"></i>
+                    </button>
+                {% else %}
+                    <span class="page-btn page-btn-nav disabled">
+                        Next <i class="bi bi-chevron-right" style="font-size:.7rem;"></i>
+                    </span>
                 {% endif %}
             </div>
             {% endif %}
         </div>
-    </div>
-</div>
+        {% endif %}
 
-<script>
-    function toggleFilters() {
-        const content = document.getElementById('filterContent');
-        const icon = document.getElementById('filterToggleIcon');
-        const header = document.querySelector('.filter-header');
-        content.classList.toggle('collapsed');
-        header.classList.toggle('collapsed');
-    }
+    </div><!-- /vouchers-card -->
 
-    // Instant filter function
-    function instantFilter() {
-        const docType = document.getElementById('doc_type').value;
-        const pvNumber = document.getElementById('pv_number').value.toLowerCase().trim();
-        const payeeName = document.getElementById('payee_name').value.toLowerCase().trim();
-        const dateFrom = document.getElementById('date_from').value;
-        const dateTo = document.getElementById('date_to').value;
-        const status = document.getElementById('status').value;
+</div><!-- /vouchers-container -->
+{% endwith %}
 
-        const rows = document.querySelectorAll('.voucher-row');
-        let visibleCount = 0;
+<!-- ═══════════════════════════════════════════════════
+     BULK APPROVAL MODALS — only rendered on Pending page
+═══════════════════════════════════════════════════ -->
+{% if "Pending" in title %}
 
-        rows.forEach(row => {
-            let show = true;
-
-            // Filter by document type
-            if (docType !== 'all') {
-                const rowDocType = row.getAttribute('data-doc-type');
-                if (rowDocType !== docType) {
-                    show = false;
-                }
-            }
-
-            // Filter by document number
-            if (show && pvNumber) {
-                const rowDocNumber = row.getAttribute('data-doc-number').toLowerCase();
-                if (!rowDocNumber.includes(pvNumber)) {
-                    show = false;
-                }
-            }
-
-            // Filter by payee name
-            if (show && payeeName) {
-                const rowPayeeName = row.getAttribute('data-payee-name');
-                if (!rowPayeeName.includes(payeeName)) {
-                    show = false;
-                }
-            }
-
-            // Filter by date from
-            if (show && dateFrom) {
-                const rowDate = row.getAttribute('data-payment-date');
-                if (rowDate < dateFrom) {
-                    show = false;
-                }
-            }
-
-            // Filter by date to
-            if (show && dateTo) {
-                const rowDate = row.getAttribute('data-payment-date');
-                if (rowDate > dateTo) {
-                    show = false;
-                }
-            }
-
-            // Filter by status
-            if (show && status) {
-                const rowStatus = row.getAttribute('data-status');
-                if (rowStatus !== status) {
-                    show = false;
-                }
-            }
-
-            // Show or hide the row
-            if (show) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        // Update voucher count
-        updateVoucherCount(visibleCount);
-    }
-
-    // Update voucher count display
-    function updateVoucherCount(count) {
-        const countElement = document.querySelector('.vouchers-count');
-        if (countElement) {
-            countElement.textContent = count + ' voucher' + (count !== 1 ? 's' : '');
-        }
-    }
-
-    // Clear all filters
-    function clearFilters() {
-        document.getElementById('doc_type').value = 'all';
-        document.getElementById('pv_number').value = '';
-        document.getElementById('payee_name').value = '';
-        document.getElementById('date_from').value = '';
-        document.getElementById('date_to').value = '';
-        document.getElementById('status').value = '';
-        instantFilter();
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Attach instant filter to all filter inputs
-        const filterInputs = document.querySelectorAll('.instant-filter');
-        filterInputs.forEach(input => {
-            input.addEventListener('input', instantFilter);
-            input.addEventListener('change', instantFilter);
-        });
-
-        // Collapse filters if no filters are applied
-        const urlParams = new URLSearchParams(window.location.search);
-        const hasFilters = urlParams.has('pv_number') || urlParams.has('payee_name') ||
-                          urlParams.has('date_from') || urlParams.has('date_to') || urlParams.has('status');
-        if (!hasFilters) {
-            const content = document.getElementById('filterContent');
-            const header = document.querySelector('.filter-header');
-            content.classList.add('collapsed');
-            header.classList.add('collapsed');
-        }
-    });
-
-    // Delete confirmation functions
-    let deleteVoucherId = null;
-
-    function showDeleteModal(voucherId, pvNumber) {
-        deleteVoucherId = voucherId;
-        document.getElementById('delete-pv-number').textContent = pvNumber;
-        document.getElementById('delete-modal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-
-    function hideDeleteModal() {
-        deleteVoucherId = null;
-        document.getElementById('delete-modal').style.display = 'none';
-        document.body.style.overflow = '';
-    }
-
-    function confirmDelete() {
-        if (deleteVoucherId) {
-            document.querySelector('.delete-form-' + deleteVoucherId).submit();
-        }
-    }
-
-    // Close modal on Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && deleteVoucherId) {
-            hideDeleteModal();
-        }
-    });
-
-    // Make table rows clickable
-    document.querySelectorAll('.clickable-row').forEach(row => {
-        row.addEventListener('click', function(e) {
-            // Don't navigate if clicking on a link or button
-            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' ||
-                e.target.closest('a') || e.target.closest('button') ||
-                e.target.closest('form')) {
-                return;
-            }
-
-            const href = this.getAttribute('data-href');
-            if (href) {
-                window.location.href = href;
-            }
-        });
-
-        // Add visual feedback
-        row.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-    });
-</script>
-
-<!-- Delete Confirmation Modal -->
-<div id="delete-modal" class="delete-modal" style="display: none;">
-    <div class="delete-overlay" onclick="hideDeleteModal()"></div>
-    <div class="delete-dialog">
-        <div class="delete-header">
-            <i class="bi bi-trash"></i>
-            <h3>Delete Voucher?</h3>
+<!-- Approve Modal -->
+<div id="approve-modal" class="bulk-modal-overlay">
+    <div class="bulk-modal">
+        <div class="bulk-modal-header">
+            <i class="bi bi-check-circle-fill" style="color:var(--success); font-size:1.1rem;"></i>
+            <h5>Approve Documents</h5>
         </div>
-        <div class="delete-body">
-            <p>Are you sure you want to delete voucher <strong id="delete-pv-number"></strong>?</p>
-            <p class="delete-hint">This action cannot be undone. All line items and attachments will be permanently deleted.</p>
+        <div class="bulk-modal-body">
+            <p>You are about to approve <strong id="approve-count">0</strong> document(s). This action cannot be undone.</p>
+            <label class="form-label">
+                Comments
+                <span style="color:var(--text-muted); font-weight:400; text-transform:none; letter-spacing:0;">(Optional)</span>
+            </label>
+            <textarea id="approve-comments" class="form-control" rows="3"
+                      placeholder="Enter any comments…"></textarea>
         </div>
-        <div class="delete-actions">
-            <button type="button" class="delete-confirm-btn cancel" onclick="hideDeleteModal()">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
-            <button type="button" class="delete-confirm-btn delete" onclick="confirmDelete()">
-                <i class="bi bi-trash"></i> Yes, Delete
+        <div class="bulk-modal-footer">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="hideBulkModal('approve')">Cancel</button>
+            <button type="button" class="btn btn-success btn-sm" onclick="confirmBulkAction('approve')">
+                <i class="bi bi-check-circle"></i> Confirm Approve
             </button>
         </div>
     </div>
 </div>
 
-<style>
-.delete-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s ease-in;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.delete-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-}
-
-.delete-dialog {
-    position: relative;
-    background: white;
-    border-radius: var(--radius-xl);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 480px;
-    width: 90%;
-    animation: slideUp 0.3s ease-out;
-    overflow: hidden;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.delete-header {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    padding: var(--spacing-lg);
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
-
-.delete-header i {
-    font-size: 2rem;
-}
-
-.delete-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.delete-body {
-    padding: var(--spacing-xl);
-}
-
-.delete-body p {
-    margin: 0 0 var(--spacing-md) 0;
-    font-size: 1rem;
-    color: var(--gray-900);
-    line-height: 1.6;
-}
-
-.delete-hint {
-    font-size: 0.875rem;
-    color: var(--gray-600);
-    background: var(--gray-50);
-    padding: var(--spacing-sm);
-    border-radius: var(--radius-md);
-    border-left: 3px solid var(--danger);
-}
-
-.delete-actions {
-    padding: var(--spacing-md) var(--spacing-xl);
-    background: var(--gray-50);
-    display: flex;
-    gap: var(--spacing-md);
-    justify-content: flex-end;
-}
-
-.delete-confirm-btn {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border: none;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: 0.9375rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    transition: all var(--transition-base);
-}
-
-.delete-confirm-btn.cancel {
-    background: white;
-    color: var(--gray-700);
-    border: 1px solid var(--gray-300);
-}
-
-.delete-confirm-btn.cancel:hover {
-    background: var(--gray-100);
-    border-color: var(--gray-400);
-}
-
-.delete-confirm-btn.delete {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    color: white;
-    box-shadow: var(--shadow-md);
-}
-
-.delete-confirm-btn.delete:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-@media (max-width: 576px) {
-    .delete-dialog {
-        width: 95%;
-        margin: 0 10px;
-    }
-
-    .delete-actions {
-        flex-direction: column;
-    }
-
-    .delete-confirm-btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
-</style>
-
-<!-- Bulk Approval Modals (Only on Pending Action Page) -->
-{% if title == "Pending My Action" %}
-<!-- Approve Confirmation Modal -->
-<div id="approve-modal" class="modal" onclick="if(event.target === this) hideApproveModal()">
-    <div class="modal-dialog" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Approve Documents</h3>
+<!-- Reject Modal -->
+<div id="reject-modal" class="bulk-modal-overlay">
+    <div class="bulk-modal">
+        <div class="bulk-modal-header">
+            <i class="bi bi-x-circle-fill" style="color:var(--danger); font-size:1.1rem;"></i>
+            <h5 style="color:var(--danger);">Reject Documents</h5>
         </div>
-        <div class="modal-body">
-            <p>Are you sure you want to approve <strong id="approve-count">0</strong> document(s)?</p>
-            <label for="approve-comments">Comments (Optional)</label>
-            <textarea id="approve-comments" rows="3" placeholder="Enter any comments..."></textarea>
+        <div class="bulk-modal-body">
+            <p>You are about to reject <strong id="reject-count">0</strong> document(s). This action cannot be undone.</p>
+            <label class="form-label">
+                Reason for Rejection
+                <span style="color:var(--danger); margin-left:3px;">*</span>
+            </label>
+            <textarea id="reject-comments" class="form-control" rows="3"
+                      placeholder="State the reason for rejection…"></textarea>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="modal-btn cancel" onclick="hideApproveModal(); return false;">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
-            <button type="button" class="modal-btn confirm" onclick="confirmApprove(); return false;">
-                <i class="bi bi-check-circle"></i> Approve
+        <div class="bulk-modal-footer">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="hideBulkModal('reject')">Cancel</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="confirmBulkAction('reject')">
+                <i class="bi bi-x-circle"></i> Confirm Reject
             </button>
         </div>
     </div>
 </div>
 
-<!-- Reject Confirmation Modal -->
-<div id="reject-modal" class="modal" onclick="if(event.target === this) hideRejectModal()">
-    <div class="modal-dialog" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <h3>Reject Documents</h3>
-        </div>
-        <div class="modal-body">
-            <p>Are you sure you want to reject <strong id="reject-count">0</strong> document(s)?</p>
-            <label for="reject-comments">Comments (Required) <span style="color: red;">*</span></label>
-            <textarea id="reject-comments" rows="3" placeholder="Enter reason for rejection..." required></textarea>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="modal-btn cancel" onclick="hideRejectModal(); return false;">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
-            <button type="button" class="modal-btn reject" onclick="confirmReject(); return false;">
-                <i class="bi bi-x-circle"></i> Reject
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Hidden Form for Bulk Submission -->
-<form id="bulk-action-form" method="post" action="{% url 'vouchers:bulk_approval_action' %}" style="display: none;">
+<!-- Hidden submission form -->
+<form id="bulk-action-form" method="post" action="{% url 'vouchers:bulk_approval_action' %}" style="display:none;">
     {% csrf_token %}
-    <input type="hidden" name="action" id="action-input">
+    <input type="hidden" name="action"   id="action-input">
     <input type="hidden" name="comments" id="comments-input">
     <div id="hidden-inputs"></div>
 </form>
 
-<script>
-// Bulk Approval JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    const selectAllCheckbox = document.getElementById('select-all');
-    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-    const approveBtn = document.getElementById('approve-btn');
-    const rejectBtn = document.getElementById('reject-btn');
-    const countValue = document.getElementById('count-value');
+{% endif %}
+{% endblock %}
 
-    // Exit if elements don't exist (not on pending action page or no documents)
-    if (!selectAllCheckbox || !approveBtn || !rejectBtn || !countValue) {
-        return;
+{% block extra_js %}
+<script>
+let currentFilters = {
+    doc_type: '{{ request.GET.doc_type|default:"all" }}',
+    search:   '{{ request.GET.search|default:"" }}',
+    page:     {{ page_obj.number|default:1 }}
+};
+
+/* ─── Row navigation ─── */
+function goToVoucher(e, url) {
+    if (e.target.tagName === 'A' || e.target.tagName === 'INPUT' ||
+        e.target.tagName === 'BUTTON' || e.target.closest('a') ||
+        e.target.closest('button') || e.target.closest('.row-actions')) return;
+    window.location.href = url;
+}
+
+/* ─── Checkbox helpers ─── */
+function toggleSelectAll(master) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+        cb.checked = master.checked;
+        cb.closest('tr').classList.toggle('row-selected', master.checked);
+    });
+    updateBulkBar();
+}
+
+function updateBulkBar() {
+    const checked = document.querySelectorAll('.row-checkbox:checked');
+    const all     = document.querySelectorAll('.row-checkbox');
+    const bar     = document.getElementById('bulkActionBar');
+    const countEl = document.getElementById('selectedCount');
+    const master  = document.getElementById('selectAll');
+
+    if (countEl) countEl.textContent = checked.length;
+    if (bar)     bar.classList.toggle('visible', checked.length > 0);
+
+    if (master) {
+        master.indeterminate = checked.length > 0 && checked.length < all.length;
+        master.checked       = checked.length === all.length && all.length > 0;
     }
 
-    // Update button states and count
-    function updateSelectionState() {
-        const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
-        const count = selectedCheckboxes.length;
+    /* Highlight selected rows */
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+        cb.closest('tr').classList.toggle('row-selected', cb.checked);
+    });
+}
 
-        countValue.textContent = count;
+/* ─── Filters ─── */
+function filterByDocType(type) {
+    currentFilters.doc_type = type;
+    currentFilters.page = 1;
+    applyFilters();
+}
 
-        if (count > 0) {
-            approveBtn.disabled = false;
-            rejectBtn.disabled = false;
-        } else {
-            approveBtn.disabled = true;
-            rejectBtn.disabled = true;
+function goToPage(pageNum) {
+    currentFilters.page = pageNum;
+    applyFilters();
+}
+
+/* ═══════════════════════════════════════════
+   MULTI-FIELD CLIENT-SIDE SEARCH
+═══════════════════════════════════════════ */
+let activeSearchField = 'all';
+
+function setSearchField(field) {
+    activeSearchField = field;
+    document.querySelectorAll('.search-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.field === field);
+    });
+    /* Update placeholder */
+    const placeholders = {
+        all:    'Search number, payee, amount, date…',
+        number: 'Search by doc number e.g. 2603-0004…',
+        payee:  'Search by payee name…',
+        amount: 'Search by amount e.g. 244.20…',
+        date:   'Search by date e.g. Mar 12 or 2026…'
+    };
+    const input = document.getElementById('searchInput');
+    input.placeholder = placeholders[field] || placeholders.all;
+    input.focus();
+    /* Re-run current search with new field */
+    clientSearch(input.value.trim());
+}
+
+function clearSearch() {
+    const input = document.getElementById('searchInput');
+    input.value = '';
+    document.getElementById('searchClearBtn').style.display = 'none';
+    clientSearch('');
+    input.focus();
+}
+
+let searchTimeout;
+function liveSearch(val) {
+    const clearBtn = document.getElementById('searchClearBtn');
+    if (clearBtn) clearBtn.style.display = val.trim() ? 'flex' : 'none';
+
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => clientSearch(val.trim()), 200);
+}
+
+function clientSearch(query) {
+    const rows      = document.querySelectorAll('.pv-table tbody tr');
+    const hasData   = rows.length && !rows[0].querySelector('td[colspan]');
+    if (!hasData) return;
+
+    const q = query.toLowerCase();
+
+    /* Column indices per field */
+    const fieldCols = {
+        number: [2],
+        payee:  [3],
+        amount: [4],
+        date:   [6],
+        all:    [2, 3, 4, 6]
+    };
+    const cols = fieldCols[activeSearchField] || fieldCols.all;
+
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        if (!q) {
+            row.style.display = '';
+            removeHighlights(row);
+            visibleCount++;
+            return;
         }
 
-        // Update row highlighting
-        document.querySelectorAll('.doc-row').forEach(row => {
-            const checkbox = row.querySelector('.row-checkbox');
-            if (checkbox && checkbox.checked) {
-                row.classList.add('selected');
-            } else {
-                row.classList.remove('selected');
+        /* Collect text from relevant columns */
+        const cells = row.querySelectorAll('td');
+        let matched = false;
+
+        cols.forEach(idx => {
+            if (cells[idx]) {
+                const text = cells[idx].textContent.toLowerCase();
+                if (text.includes(q)) matched = true;
             }
         });
+
+        row.style.display = matched ? '' : 'none';
+        if (matched) {
+            visibleCount++;
+            highlightRow(row, cols, q);
+        } else {
+            removeHighlights(row);
+        }
+    });
+
+    /* Update showing count */
+    const showingEl = document.querySelector('.showing-info');
+    if (showingEl && q) {
+        showingEl.innerHTML = `Showing <span>${visibleCount}</span> matching result${visibleCount !== 1 ? 's' : ''}`;
+    } else if (showingEl && !q) {
+        showingEl.innerHTML = `Showing <span>${rows.length}</span> entries`;
     }
+}
 
-    // Select all functionality
-    selectAllCheckbox.addEventListener('change', function() {
-        rowCheckboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
+function highlightRow(row, cols, q) {
+    removeHighlights(row);
+    const cells = row.querySelectorAll('td');
+
+    cols.forEach(idx => {
+        if (!cells[idx]) return;
+
+        /* Only highlight text nodes inside safe elements */
+        const targets = cells[idx].querySelectorAll(
+            '.pv-number-link, .payee-cell strong, .amount-cell, .date-cell'
+        );
+
+        targets.forEach(el => {
+            const original = el.dataset.originalText || el.textContent;
+            el.dataset.originalText = original;
+
+            const regex = new RegExp('(' + escapeRegex(q) + ')', 'gi');
+            el.innerHTML = original.replace(regex, '<mark class="search-highlight">$1</mark>');
         });
-        updateSelectionState();
     });
+}
 
-    // Individual checkbox change
-    rowCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function(e) {
-            e.stopPropagation(); // Prevent row click
-            updateSelectionState();
+function removeHighlights(row) {
+    row.querySelectorAll('[data-original-text]').forEach(el => {
+        el.textContent = el.dataset.originalText;
+        delete el.dataset.originalText;
+    });
+}
 
-            // Update "select all" checkbox state
-            const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
-            const someChecked = Array.from(rowCheckboxes).some(cb => cb.checked);
-            selectAllCheckbox.checked = allChecked;
-            selectAllCheckbox.indeterminate = someChecked && !allChecked;
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function applyFilters() {
+    const tableBody = document.querySelector('.pv-table tbody');
+    tableBody.style.opacity = '0.4';
+    tableBody.style.pointerEvents = 'none';
+
+    const params = new URLSearchParams();
+    if (currentFilters.doc_type && currentFilters.doc_type !== 'all')
+        params.set('doc_type', currentFilters.doc_type);
+    if (currentFilters.search)
+        params.set('search', currentFilters.search);
+    if (currentFilters.page > 1)
+        params.set('page', currentFilters.page);
+
+    const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    window.history.pushState({filters: currentFilters}, '', newUrl);
+
+    fetch(newUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.text())
+        .then(html => {
+            const parser  = new DOMParser();
+            const doc     = parser.parseFromString(html, 'text/html');
+
+            const newTbody = doc.querySelector('.pv-table tbody');
+            if (newTbody) {
+                tableBody.innerHTML = newTbody.innerHTML;
+                tableBody.style.opacity = '1';
+                tableBody.style.pointerEvents = 'auto';
+            }
+
+            const newFooter     = doc.querySelector('.table-footer');
+            const currentFooter = document.querySelector('.table-footer');
+            if (newFooter) {
+                if (currentFooter) currentFooter.innerHTML = newFooter.innerHTML;
+                else document.querySelector('.table-container').insertAdjacentHTML('afterend', newFooter.outerHTML);
+            } else if (currentFooter) {
+                currentFooter.remove();
+            }
+
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.toggle('active',
+                    tab.getAttribute('data-type') === currentFilters.doc_type ||
+                    (currentFilters.doc_type === 'all' && tab.getAttribute('data-type') === 'all')
+                );
+            });
+
+            const master = document.getElementById('selectAll');
+            if (master) master.checked = false;
+            updateBulkBar();
+
+            document.querySelector('.vouchers-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        })
+        .catch(() => {
+            tableBody.style.opacity = '1';
+            tableBody.style.pointerEvents = 'auto';
         });
-    });
+}
 
-    // Initial state
-    updateSelectionState();
+window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.filters) { currentFilters = e.state.filters; applyFilters(); }
+    else location.reload();
 });
 
-// Modal functions
-function showApproveModal() {
-    console.log('Opening approve modal');
-    const modal = document.getElementById('approve-modal');
-    if (!modal) {
-        console.error('Approve modal not found');
-        return;
+/* ═══════════════════════════════════════════
+   BULK APPROVAL — Modal + Form Submission
+═══════════════════════════════════════════ */
+function showBulkModal(type) {
+    const n = document.querySelectorAll('.row-checkbox:checked').length;
+    if (n === 0) return;
+
+    if (type === 'approve') {
+        document.getElementById('approve-count').textContent = n;
+        document.getElementById('approve-comments').value = '';
+    } else {
+        document.getElementById('reject-count').textContent = n;
+        document.getElementById('reject-comments').value = '';
     }
-    const count = document.querySelectorAll('.row-checkbox:checked').length;
-    document.getElementById('approve-count').textContent = count;
-    modal.classList.add('active');
+
+    document.getElementById(type + '-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
-function hideApproveModal() {
-    console.log('Closing approve modal');
-    const modal = document.getElementById('approve-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
+function hideBulkModal(type) {
+    const modal = document.getElementById(type + '-modal');
+    if (modal) modal.classList.remove('active');
     document.body.style.overflow = '';
 }
 
-function showRejectModal() {
-    console.log('Opening reject modal');
-    const modal = document.getElementById('reject-modal');
-    if (!modal) {
-        console.error('Reject modal not found');
-        return;
-    }
-    const count = document.querySelectorAll('.row-checkbox:checked').length;
-    const rejectCount = document.getElementById('reject-count');
-    if (rejectCount) {
-        rejectCount.textContent = count;
-    }
-    console.log('Reject modal element:', modal);
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
+function confirmBulkAction(action) {
+    const commentsEl = document.getElementById(action + '-comments');
+    const comments   = commentsEl ? commentsEl.value.trim() : '';
 
-function hideRejectModal() {
-    console.log('Closing reject modal');
-    const modal = document.getElementById('reject-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-// Confirm actions
-function confirmApprove() {
-    console.log('Approve confirmed');
-    const commentsField = document.getElementById('approve-comments');
-    if (!commentsField) {
-        console.error('Comments field not found');
-        return;
-    }
-    const comments = commentsField.value;
-    submitBulkAction('approve', comments);
-}
-
-function confirmReject() {
-    console.log('Reject confirmed');
-    const commentsField = document.getElementById('reject-comments');
-    if (!commentsField) {
-        console.error('Comments field not found');
-        return;
-    }
-    const comments = commentsField.value.trim();
-
-    if (!comments) {
-        alert('Please enter comments for rejection');
+    /* Reject requires a reason */
+    if (action === 'reject' && !comments) {
+        commentsEl.focus();
+        commentsEl.style.borderColor = 'var(--danger)';
+        commentsEl.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.15)';
+        setTimeout(() => {
+            commentsEl.style.borderColor = '';
+            commentsEl.style.boxShadow   = '';
+        }, 2000);
         return;
     }
 
-    submitBulkAction('reject', comments);
-}
+    const selected = document.querySelectorAll('.row-checkbox:checked');
+    if (!selected.length) return;
 
-// Submit bulk action
-function submitBulkAction(action, comments) {
-    console.log('Submitting bulk action:', action);
-    const form = document.getElementById('bulk-action-form');
-    const hiddenInputs = document.getElementById('hidden-inputs');
-    const actionInput = document.getElementById('action-input');
-    const commentsInput = document.getElementById('comments-input');
-
-    if (!form || !hiddenInputs || !actionInput || !commentsInput) {
-        console.error('Form elements not found');
-        alert('Error: Form elements not found. Please refresh the page.');
-        return;
-    }
-
-    // Clear previous inputs
+    const hiddenInputs  = document.getElementById('hidden-inputs');
     hiddenInputs.innerHTML = '';
+    document.getElementById('action-input').value   = action;
+    document.getElementById('comments-input').value = comments;
 
-    // Set action and comments
-    actionInput.value = action;
-    commentsInput.value = comments;
-
-    // Collect selected documents
-    const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
-    console.log('Selected checkboxes:', selectedCheckboxes.length);
-
-    if (selectedCheckboxes.length === 0) {
-        alert('No documents selected');
-        return;
-    }
-
-    selectedCheckboxes.forEach(checkbox => {
-        const docId = checkbox.dataset.id;
-        const docType = checkbox.dataset.type;
-
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = docType === 'pv' ? 'pv_ids[]' : 'pf_ids[]';
-        input.value = docId;
-        hiddenInputs.appendChild(input);
-        console.log('Added document:', docType, docId);
+    selected.forEach(cb => {
+        const inp  = document.createElement('input');
+        inp.type   = 'hidden';
+        inp.name   = cb.dataset.doctype === 'pf' ? 'pf_ids[]' : 'pv_ids[]';
+        inp.value  = cb.value;
+        hiddenInputs.appendChild(inp);
     });
 
-    // Submit form
-    console.log('Submitting form...');
-    form.submit();
+    document.getElementById('bulk-action-form').submit();
 }
 
-// Close modals on Escape key
-document.addEventListener('keydown', function(e) {
+/* Close on Escape */
+document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-        hideApproveModal();
-        hideRejectModal();
+        hideBulkModal('approve');
+        hideBulkModal('reject');
+    }
+});
+
+/* Close on overlay click */
+['approve-modal', 'reject-modal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('click', function(e) {
+            if (e.target === this) hideBulkModal(id.replace('-modal', ''));
+        });
     }
 });
 </script>
-{% endif %}
-
 {% endblock %}

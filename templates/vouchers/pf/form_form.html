@@ -5,1234 +5,985 @@
 
 {% block extra_css %}
 <style>
-    /* ==================== COMPACT Form Specific Styles ==================== */
-    .voucher-form-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 var(--spacing-md);
-        opacity: 0;
-        animation: fadeInPage 0.5s ease-in 0.1s forwards;
-    }
-
-    @keyframes fadeInPage {
-        to { opacity: 1; }
-    }
-
-    @keyframes fadeInUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (min-width: 1800px) {
-        .voucher-form-container {
-            max-width: 1200px;
-            padding: 0 var(--spacing-lg);
-        }
-    }
-
-    .page-header {
-        margin-bottom: var(--spacing-md); /* ✅ REDUCED from 2xl to md */
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: var(--spacing-sm); /* ✅ REDUCED from md to sm */
-    }
-
-    .page-title {
-        font-family: var(--font-heading);
-        font-size: 1.5rem; /* ✅ REDUCED from 2rem */
-        font-weight: 500;
-        color: var(--gray-900);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
-        margin-top: -20px; /* ✅ REDUCED from -30px */
-    }
-
-    .page-title i {
-        font-size: 1.75rem; /* ✅ REDUCED from 2.5rem */
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Green gradient for PF */
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .form-card {
-        background: white;
-        border-radius: var(--radius-lg); /* ✅ REDUCED from xl */
-        box-shadow: var(--shadow-sm); /* ✅ REDUCED from md */
-        overflow: hidden;
-        margin-bottom: var(--spacing-md); /* ✅ REDUCED from xl */
-        transition: all var(--transition-base);
-        opacity: 0;
-        transform: translateY(15px); /* ✅ REDUCED from 20px */
-        animation: fadeInUp 0.5s ease-out forwards;
-        margin-top: -20px; /* ✅ REDUCED from -40px */
-    }
-
-    .form-card:nth-of-type(1) { animation-delay: 0.15s; }
-    .form-card:nth-of-type(2) { animation-delay: 0.25s; }
-    .form-card:nth-of-type(3) { animation-delay: 0.35s; }
-
-    .form-card:hover {
-        box-shadow: var(--shadow-lg);
-    }
-
-    .form-card-header {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Green for PF */
-        padding: var(--spacing-sm) var(--spacing-md); /* ✅ REDUCED from lg/xl */
-        border-bottom: 2px solid #34d399; /* ✅ REDUCED from 3px */
-    }
-
-    .form-card-header.info {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        border-bottom-color: #60a5fa;
-    }
-
-    .form-card-title {
-        font-family: var(--font-heading);
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: white;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
-
-    .form-card-title i {
-        font-size: 1.5rem;
-    }
-
-    .form-card-body {
-        padding: var(--spacing-lg) var(--spacing-xl); /* ✅ COMPACT padding */
-    }
-
-    .form-group {
-        margin-bottom: var(--spacing-sm); /* ✅ REDUCED from lg */
-    }
-
-    /* ✅ 3-COLUMN GRID LAYOUT */
-    .form-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: var(--spacing-md);
-        margin-bottom: var(--spacing-md);
-    }
-
-    .form-row .form-group {
-        margin-bottom: 0;
-    }
-
-    /* ✅ 12-COLUMN GRID LAYOUT for 4 fields in one row */
-    .form-row-12col {
-        display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        gap: var(--spacing-sm);
-        margin-bottom: 0;
-    }
-
-    .form-row-12col .form-group {
-        margin-bottom: 0;
-    }
-
-    .form-row-full {
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .form-label {
-        font-family: var(--font-body);
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        margin-bottom: 4px; /* ✅ REDUCED from var(--spacing-sm) */
-        display: block;
-    }
-
-    .form-control,
-    .form-select {
-        font-family: var(--font-body);
-        font-size: 0.875rem; /* ✅ REDUCED from 0.9375rem */
-        padding: 0.375rem 0.625rem; /* ✅ REDUCED from sm/md */
-        border: 1px solid var(--gray-300); /* ✅ REDUCED from 2px */
-        border-radius: var(--radius-sm); /* ✅ REDUCED from md */
-        transition: all var(--transition-fast);
-        background: white;
-        height: 38px; /* ✅ Fixed height for consistency */
-    }
-
-    .form-control:focus,
-    .form-select:focus {
-        border-color: #10b981; /* Green for PF */
-        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1); /* ✅ REDUCED from 3px */
-        outline: none;
-    }
-
-    .form-control:hover,
-    .form-select:hover {
-        border-color: #34d399;
-    }
-
-    .line-items-table-container {
-        overflow-x: auto;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .line-items-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .line-items-table thead {
-        background: linear-gradient(135deg, var(--gray-50) 0%, #d1fae5 100%); /* Light green */
-    }
-
-    .line-items-table th {
-        font-family: var(--font-body);
-        font-size: 0.75rem; /* ✅ REDUCED from 0.8125rem */
-        font-weight: 600;
-        color: var(--gray-700);
-        text-transform: uppercase;
-        letter-spacing: 0.3px; /* ✅ REDUCED from 0.5px */
-        padding: var(--spacing-sm); /* ✅ REDUCED from md */
-        text-align: left;
-        border-bottom: 2px solid #34d399;
-        white-space: nowrap;
-    }
-
-    .line-items-table tbody tr {
-        transition: all var(--transition-base);
-    }
-
-    .line-items-table tbody tr:hover {
-        background: #d1fae5; /* Light green */
-    }
-
-    .line-item-row {
-        transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-    }
-
-    .line-items-table td {
-        padding: 6px var(--spacing-sm); /* ✅ REDUCED vertical padding */
-        border-bottom: 1px solid var(--gray-200);
-        vertical-align: middle;
-    }
-
-    .line-items-table td input,
-    .line-items-table td select,
-    .line-items-table td textarea {
-        width: 100%;
-        font-size: 0.8125rem; /* ✅ REDUCED from 0.875rem */
-        padding: 4px 8px; /* ✅ REDUCED from xs/sm */
-        border: 1px solid var(--gray-300); /* ✅ REDUCED from 2px */
-        border-radius: var(--radius-sm);
-        transition: all var(--transition-fast);
-    }
-
-    .line-items-table td input:focus,
-    .line-items-table td select:focus,
-    .line-items-table td textarea:focus {
-        border-color: #10b981;
-        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1); /* ✅ REDUCED from 3px */
-        outline: none;
-    }
-
-    .line-items-table td textarea {
-        min-height: 50px; /* ✅ REDUCED from 60px */
-        resize: vertical;
-    }
-
-    .line-items-table td input[type="hidden"] {
-        display: none;
-    }
-
-    /* ✅ COMPACT Line Number Badge */
-    .line-number-badge {
-        display: inline-block;
-        width: 28px; /* ✅ REDUCED from 32px */
-        height: 28px; /* ✅ REDUCED from 32px */
-        line-height: 28px;
-        text-align: center;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Green for PF */
-        color: white;
-        border-radius: var(--radius-sm); /* ✅ REDUCED from md */
-        font-weight: 700;
-        font-size: 0.8125rem; /* ✅ REDUCED from 0.875rem */
-    }
-
-    .vat-checkbox-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .vat-checkbox {
-        width: 20px; /* ✅ REDUCED from 24px */
-        height: 20px; /* ✅ REDUCED from 24px */
-        cursor: pointer;
-        accent-color: #10b981; /* Green for PF */
-    }
-
-    .line-total {
-        font-family: var(--font-heading);
-        font-weight: 700;
-        font-size: 1rem;
-        color: var(--gray-900);
-        text-align: right;
-        white-space: nowrap;
-    }
-
-    .line-items-table tfoot {
-        background: linear-gradient(135deg, #1666d8 0%, #1666d8 100%); /* Green for PF */
-    }
-
-    /* ✅ COMPACT Grand Total */
-    .line-items-table tfoot th {
-        color: white;
-        font-size: 0.875rem; /* ✅ REDUCED from 1rem */
-        padding: var(--spacing-sm); /* ✅ REDUCED from md */
-        border: none;
-    }
-
-    .grand-total-value {
-        font-family: var(--font-heading);
-        font-size: 1.5rem;
-        font-weight: 700;
-        text-align: right;
-    }
-
-    .add-line-btn {
-        background: white;
-        color: #059669;
-        border: 2px solid #10b981;
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-sm) var(--spacing-lg);
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 0.9375rem;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        transition: all var(--transition-base);
-        cursor: pointer;
-    }
-
-    .add-line-btn:hover {
-        background: #10b981;
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .add-line-btn i {
-        font-size: 1.25rem;
-    }
-
-    .delete-line-btn {
-        background: transparent;
-        color: var(--gray-500);
-        border: none;
-        padding: var(--spacing-xs);
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        transition: all var(--transition-fast);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .delete-line-btn:hover {
-        background: rgba(239, 68, 68, 0.1);
-        color: #dc2626;
-        transform: scale(1.1);
-    }
-
-    .delete-line-btn i {
-        font-size: 1.125rem;
-    }
-
-    .toast-notification {
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        min-width: 300px;
-        max-width: 400px;
-        background: white;
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-xl);
-        padding: var(--spacing-md) var(--spacing-lg);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        z-index: 9999;
-        animation: slideInRight 0.3s ease-out;
-        border-left: 4px solid #10b981;
-    }
-
-    .toast-notification.success {
-        border-left-color: var(--success);
-    }
-
-    .toast-notification.warning {
-        border-left-color: var(--warning);
-    }
-
-    .toast-notification.danger {
-        border-left-color: var(--danger);
-    }
-
-    .toast-notification i {
-        font-size: 1.25rem;
-        flex-shrink: 0;
-    }
-
-    .toast-notification.success i {
-        color: var(--success);
-    }
-
-    .toast-notification.warning i {
-        color: var(--warning);
-    }
-
-    .toast-notification.danger i {
-        color: var(--danger);
-    }
-
-    .toast-notification .toast-message {
-        flex: 1;
-        font-family: var(--font-body);
-        font-size: 0.9375rem;
-        font-weight: 500;
-        color: var(--gray-900);
-    }
-
-    .toast-notification.fadeOut {
-        animation: fadeOut 0.3s ease-out forwards;
-    }
-
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes fadeOut {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-    }
-
-    .attachment-upload-area {
-        margin-bottom: var(--spacing-md);
-    }
-
-    .attachment-upload-label {
-        display: block;
-        border: 2px dashed #34d399;
-        border-radius: var(--radius-md); /* ✅ REDUCED from lg */
-        padding: var(--spacing-md); /* ✅ REDUCED from 2xl */
-        text-align: center;
-        cursor: pointer;
-        transition: all var(--transition-base);
-        background: #d1fae5;
-    }
-
-    .attachment-upload-label:hover {
-        border-color: #10b981;
-        background: #a7f3d0;
-        transform: translateY(-2px);
-    }
-
-    .attachment-input {
-        display: none;
-    }
-
-    .upload-icon {
-        font-size: 2rem; /* ✅ REDUCED from 3rem */
-        color: #10b981;
-        margin-bottom: 4px; /* ✅ REDUCED */
-    }
-
-    .upload-text {
-        font-size: 0.875rem; /* ✅ REDUCED from 1rem */
-        color: var(--gray-700);
-        margin-bottom: 2px; /* ✅ REDUCED */
-    }
-
-    .upload-text strong {
-        color: #059669;
-    }
-
-    .upload-hint {
-        font-size: 0.75rem; /* ✅ REDUCED from 0.875rem */
-        color: var(--gray-600);
-    }
-
-    .selected-files-list {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);
-        border-radius: var(--radius-sm); /* ✅ REDUCED from md */
-        padding: var(--spacing-sm); /* ✅ REDUCED from md */
-        margin-top: var(--spacing-sm); /* ✅ REDUCED from md */
-    }
-
-    .files-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .files-list li {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 6px var(--spacing-sm); /* ✅ REDUCED padding */
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: var(--radius-sm);
-        margin-bottom: 4px; /* ✅ REDUCED from xs */
-        font-size: 0.8125rem; /* ✅ REDUCED from 0.875rem */
-    }
-
-    .files-list li:last-child {
-        margin-bottom: 0;
-    }
-
-    .file-info {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        flex: 1;
-    }
-
-    .file-icon {
-        color: #059669;
-        font-size: 1.25rem;
-    }
-
-    .file-name {
-        font-weight: 500;
-        color: var(--gray-900);
-    }
-
-    .file-size {
-        color: var(--gray-600);
-        font-size: 0.8125rem;
-        margin-left: var(--spacing-xs);
-    }
-
-    .remove-file-btn {
-        background: var(--danger);
-        color: white;
-        border: none;
-        border-radius: var(--radius-sm);
-        padding: 4px 8px;
-        font-size: 0.75rem;
-        cursor: pointer;
-        transition: all var(--transition-fast);
-    }
-
-    .remove-file-btn:hover {
-        background: #b91c1c;
-        transform: scale(1.05);
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: var(--spacing-md);
-        flex-wrap: wrap;
-    }
-
-    /* ⚡ INSTANT FEEDBACK: Loading overlay */
-    .loading-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 99999;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .loading-overlay.active {
-        display: flex;
-    }
-
-    .loading-spinner {
-        background: white;
-        padding: var(--spacing-2xl);
-        border-radius: var(--radius-xl);
-        box-shadow: var(--shadow-2xl);
-        text-align: center;
-        min-width: 200px;
-    }
-
-    .loading-spinner i {
-        font-size: 3rem;
-        color: #10b981; /* Green for PF */
-        animation: spin 0.8s linear infinite;
-        display: block;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .loading-spinner p {
-        margin: 0;
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--gray-700);
-    }
-
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-
-    .save-btn.submitting {
-        opacity: 0.7;
-        cursor: not-allowed;
-        position: relative;
-    }
-
-    .save-btn.submitting::after {
-        content: ' Saving...';
-    }
-
-    .save-btn {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        color: white;
-        border: none;
-        border-radius: var(--radius-md); /* ✅ REDUCED from lg */
-        padding: var(--spacing-sm) var(--spacing-lg); /* ✅ REDUCED from md/2xl */
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 0.9375rem; /* ✅ REDUCED from 1rem */
-        display: inline-flex;
-        align-items: center;
-        gap: 6px; /* ✅ REDUCED from sm */
-        transition: all var(--transition-base);
-        box-shadow: var(--shadow-sm); /* ✅ REDUCED from md */
-        cursor: pointer;
-    }
-
-    .save-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    }
-
-    .save-btn i {
-        font-size: 1.25rem;
-    }
-
-    .cancel-btn {
-        background: white;
-        color: var(--gray-700);
-        border: 2px solid var(--gray-300);
-        border-radius: var(--radius-md); /* ✅ REDUCED from lg */
-        padding: var(--spacing-sm) var(--spacing-lg); /* ✅ REDUCED from md/2xl */
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 0.9375rem; /* ✅ REDUCED from 1rem */
-        display: inline-flex;
-        align-items: center;
-        gap: 6px; /* ✅ REDUCED from sm */
-        text-decoration: none;
-        transition: all var(--transition-base);
-    }
-
-    .cancel-btn:hover {
-        background: var(--gray-50);
-        border-color: var(--gray-400);
-        color: var(--gray-900);
-        transform: translateY(-2px);
-    }
-
-    .cancel-btn i {
-        font-size: 1.25rem;
-    }
-
-    /* ✅ COMPACT Helper Text */
-    .helper-text {
-        font-size: 0.75rem; /* ✅ REDUCED from 0.8125rem */
-        color: var(--gray-600);
-        margin-top: 6px; /* ✅ REDUCED from var(--spacing-xs) */
-        display: flex;
-        align-items: center;
-        gap: 4px; /* ✅ REDUCED from var(--spacing-xs) */
-    }
-
-    .helper-text i {
-        color: #10b981;
-        font-size: 0.875rem; /* ✅ Slightly smaller icon */
-    }
-
-    /* RESPONSIVE DESIGN */
-    @media (max-width: 1200px) {
-        .form-row,
-        .form-row-12col {
-            grid-template-columns: repeat(2, 1fr); /* ✅ 2 columns on tablets */
-        }
-
-        /* Reset grid-column span on smaller screens */
-        .form-row-12col .form-group {
-            grid-column: span 1 !important;
-        }
-    }
-
-    @media (max-width: 991px) {
-        .voucher-form-container {
-            padding: 0 var(--spacing-md);
-        }
-
-        .page-title {
-            font-size: 1.5rem; /* ✅ Already compact */
-        }
-
-        .form-card-body {
-            padding: var(--spacing-md);
-        }
-
-        .form-row,
-        .form-row-12col {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        /* Reset grid-column span on smaller screens */
-        .form-row-12col .form-group {
-            grid-column: span 1 !important;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .voucher-form-container {
-            padding: 0 12px;
-        }
-
-        .page-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .page-title {
-            font-size: 1.25rem; /* ✅ Even smaller on mobile */
-        }
-
-        .page-title i {
-            font-size: 1.5rem;
-        }
-
-        .form-card-header,
-        .form-card-body {
-            padding: var(--spacing-sm) var(--spacing-md);
-        }
-
-        .form-row,
-        .form-row-12col {
-            grid-template-columns: 1fr !important; /* ✅ Single column on mobile */
-            gap: var(--spacing-sm);
-        }
-
-        /* Reset grid-column span on mobile */
-        .form-row-12col .form-group {
-            grid-column: span 1 !important;
-        }
-
-        .form-group {
-            margin-bottom: var(--spacing-md);
-        }
-
-        .line-items-table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 0 -12px;
-            padding: 0 12px;
-        }
-
-        .line-items-table {
-            min-width: 800px;
-            font-size: 0.8125rem;
-        }
-
-        .line-items-table th,
-        .line-items-table td {
-            padding: var(--spacing-xs) var(--spacing-sm);
-        }
-
-        .attachment-upload-label {
-            padding: var(--spacing-lg);
-        }
-
-        .upload-icon {
-            font-size: 2rem;
-        }
-
-        .upload-text {
-            font-size: 0.875rem;
-        }
-
-        .upload-hint {
-            font-size: 0.75rem;
-        }
-
-        .action-buttons {
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .save-btn,
-        .cancel-btn,
-        .add-line-btn,
-        .delete-line-btn {
-            width: 100%;
-            justify-content: center;
-            min-height: 44px;
-        }
-
-        .toast-notification {
-            right: 10px;
-            left: 10px;
-            top: 70px;
-            min-width: auto;
-            max-width: none;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .voucher-form-container {
-            padding: 0 8px;
-        }
-
-        .page-title {
-            font-size: 1.25rem;
-        }
-
-        .form-card-header h3 {
-            font-size: 1rem;
-        }
-
-        .line-items-table {
-            font-size: 0.75rem;
-            min-width: 700px;
-        }
-
-        .line-items-table th,
-        .line-items-table td {
-            padding: var(--spacing-xs);
-        }
-
-        .grand-total {
-            font-size: 1.25rem;
-        }
-    }
+/* ═══════════════════════════════════════════════════
+   PF FORM — FinVault Dark Enterprise Theme
+   Merged from voucher_form.html (doc3) + pf_form.html (doc4)
+═══════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap');
+
+:root {
+    --bg:          #0a0e1a;
+    --bg-card:     #0d1225;
+    --bg-card2:    #111827;
+    --bg-input:    #080d18;
+    --border:      rgba(255,255,255,.07);
+    --border-2:    rgba(255,255,255,.12);
+    --border-active: rgba(6,182,212,.35);
+    --text-1:      #f0f4ff;
+    --text-2:      #94a3b8;
+    --text-3:      #64748b;
+    --teal:        #06b6d4;
+    --teal-dim:    rgba(6,182,212,.12);
+    --teal-glow:   rgba(6,182,212,.25);
+    --green:       #10b981;
+    --green-dim:   rgba(16,185,129,.12);
+    --green-btn:   #059669;
+    --amber:       #f59e0b;
+    --red:         #ef4444;
+    --blue:        #3b82f6;
+    --violet:      #8b5cf6;
+    --font:        'IBM Plex Sans', sans-serif;
+    --mono:        'IBM Plex Mono', monospace;
+    --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 18px;
+}
+
+body { background: var(--bg) !important; font-family: var(--font) !important; color: var(--text-1) !important; }
+
+/* ── Wrap ── */
+.fv-wrap {
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+    opacity: 0;
+    animation: fvFadeIn .35s ease-out .05s forwards;
+}
+@keyframes fvFadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fvSlideUp { to{opacity:1;transform:translateY(0)} }
+
+/* ── Top bar ── */
+.fv-topbar {
+    margin-top: -25px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+.fv-title { font-size: 1.5rem; font-weight: 700; color: var(--text-1); margin: 0 0 4px; letter-spacing: -.4px; }
+.fv-subtitle { font-size: .75rem; color: var(--text-3); display: flex; align-items: center; gap: 6px; }
+.fv-topbar-btns { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.btn-cancel-top {
+    background: transparent; color: var(--text-2);
+    border: 1px solid var(--border-2); border-radius: var(--r-sm);
+    padding: 8px 16px; font-family: var(--font); font-size: .8375rem; font-weight: 500;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: all .15s; text-decoration: none;
+}
+.btn-cancel-top:hover { background: rgba(255,255,255,.04); color: var(--text-1); }
+
+.btn-submit-top {
+    background: var(--green); color: #fff; border: none; border-radius: var(--r-sm);
+    padding: 8px 18px; font-family: var(--font); font-size: .8375rem; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: all .15s;
+}
+.btn-submit-top:hover { background: var(--green-btn); box-shadow: 0 4px 14px rgba(16,185,129,.3); }
+
+/* ── Layout ── */
+.fv-layout { display: grid; grid-template-columns: 1fr 300px; gap: 18px; align-items: start; }
+.fv-main { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.fv-sidebar { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+/* ── Cards ── */
+.fv-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-xl);
+    overflow: hidden;
+    opacity: 0; transform: translateY(14px);
+    animation: fvSlideUp .4s ease forwards;
+}
+.fv-card:nth-of-type(1) { animation-delay: .1s }
+.fv-card:nth-of-type(2) { animation-delay: .18s }
+.fv-card:nth-of-type(3) { animation-delay: .26s }
+.fv-card:nth-of-type(4) { animation-delay: .34s }
+.fv-card:nth-of-type(5) { animation-delay: .4s }
+
+.fv-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,.012);
+}
+.fv-head-left { display: flex; align-items: center; gap: 12px; }
+.fv-badge {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .95rem; flex-shrink: 0;
+}
+.fv-badge.green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,.25); }
+.fv-badge.teal  { background: var(--teal-dim);  color: var(--teal);  border: 1px solid var(--border-active); }
+.fv-badge.amber { background: rgba(245,158,11,.12); color: var(--amber); border: 1px solid rgba(245,158,11,.25); }
+.fv-badge.blue  { background: rgba(59,130,246,.12); color: var(--blue);  border: 1px solid rgba(59,130,246,.25); }
+
+.fv-head-text h2 { font-size: .9375rem; font-weight: 700; color: var(--text-1); margin: 0 0 2px; }
+.fv-head-text p  { font-size: .7rem; color: var(--text-3); margin: 0; }
+
+.fv-card-body { padding: 20px 22px; }
+
+/* ── Labels ── */
+.fv-card-body label,
+.form-label {
+    display: block !important;
+    font-size: .68rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .7px !important;
+    color: var(--text-3) !important;
+    margin-bottom: 7px !important;
+    font-family: var(--mono) !important;
+}
+
+/* ── All inputs ── */
+.fv-card-body input[type=text],
+.fv-card-body input[type=number],
+.fv-card-body input[type=date],
+.fv-card-body input[type=email],
+.fv-card-body select,
+.fv-card-body textarea,
+.form-control,
+.form-select {
+    width: 100% !important;
+    background: var(--bg-input) !important;
+    border: 1px solid var(--border-2) !important;
+    border-radius: var(--r-sm) !important;
+    color: var(--text-1) !important;
+    font-family: var(--font) !important;
+    font-size: .875rem !important;
+    padding: 10px 13px !important;
+    height: 42px !important;
+    box-sizing: border-box !important;
+    transition: border-color .15s, box-shadow .15s !important;
+    outline: none !important;
+}
+.fv-card-body textarea { height: auto !important; min-height: 80px !important; resize: vertical !important; line-height: 1.5 !important; }
+.fv-card-body input::placeholder,
+.fv-card-body textarea::placeholder { color: var(--text-3) !important; }
+
+.fv-card-body input:focus,
+.fv-card-body select:focus,
+.fv-card-body textarea:focus,
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--teal) !important;
+    box-shadow: 0 0 0 3px var(--teal-glow) !important;
+    background: #060c18 !important;
+}
+
+.fv-card-body select,
+.form-select {
+    appearance: none !important; -webkit-appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    padding-right: 34px !important;
+    cursor: pointer !important;
+}
+.fv-card-body select option { background: var(--bg-card); color: var(--text-1); }
+
+/* ── Grids ── */
+.form-row-12col {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.form-row-full { margin-bottom: 14px; }
+.form-group { margin-bottom: 0; }
+
+/* ── Error / Helper ── */
+.fv-card-body small,
+.helper-text,
+.form-text {
+    font-size: .7rem !important;
+    color: var(--text-3) !important;
+    margin-top: 5px !important;
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font) !important;
+}
+.helper-text i { color: var(--teal) !important; }
+.fv-card-body small[style*="color: #dc"] { color: var(--red) !important; }
+
+/* ── Alert ── */
+.alert-danger, .alert.alert-danger {
+    background: rgba(239,68,68,.07) !important;
+    border: 1px solid rgba(239,68,68,.2) !important;
+    border-left: 3px solid var(--red) !important;
+    border-radius: var(--r-md) !important;
+    color: var(--text-1) !important;
+    padding: 13px 16px !important;
+    margin-bottom: 14px !important;
+}
+
+/* ── Collapsible details ── */
+details {
+    border: 1px solid var(--border-2) !important;
+    border-radius: var(--r-md) !important;
+    overflow: hidden !important;
+    background: transparent !important;
+}
+details summary {
+    padding: 9px 14px !important;
+    font-size: .8rem !important;
+    font-weight: 600 !important;
+    color: var(--text-2) !important;
+    background: rgba(255,255,255,.02) !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    list-style: none !important;
+    font-family: var(--font) !important;
+    transition: background .15s !important;
+}
+details summary:hover { background: rgba(255,255,255,.045) !important; }
+details > div {
+    padding: 16px !important;
+    border-top: 1px solid var(--border) !important;
+}
+
+/* ══════════════════════════
+   LINE ITEMS TABLE
+══════════════════════════ */
+.line-items-table-container {
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow-x: auto;
+    margin-bottom: 14px;
+}
+
+.line-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 680px;
+}
+
+.line-items-table thead {
+    background: rgba(255,255,255,.025);
+    border-bottom: 1px solid var(--border);
+}
+
+.line-items-table th {
+    font-family: var(--mono);
+    font-size: .625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    color: var(--text-3);
+    padding: 11px 12px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.line-items-table td {
+    padding: 6px 9px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+.line-items-table tbody tr:last-child td { border-bottom: none; }
+.line-items-table tbody tr:hover { background: rgba(255,255,255,.015); }
+
+.line-items-table td input[type=text],
+.line-items-table td input[type=number],
+.line-items-table td select {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: var(--text-1) !important;
+    font-size: .8375rem !important;
+    padding: 5px 8px !important;
+    height: 32px !important;
+    width: 100% !important;
+    border-radius: 5px !important;
+    font-family: var(--font) !important;
+    transition: border-color .15s, background .15s !important;
+}
+.line-items-table td input:focus,
+.line-items-table td select:focus {
+    border-color: var(--teal) !important;
+    background: var(--bg-input) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px var(--teal-glow) !important;
+}
+.line-items-table td input::placeholder { color: var(--text-3) !important; }
+.line-items-table td select {
+    appearance: none !important; -webkit-appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 7px center !important;
+    padding-right: 22px !important;
+    cursor: pointer !important;
+    background-color: transparent !important;
+}
+.line-items-table td select option { background: var(--bg-card); }
+
+.line-number-badge {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: var(--teal-dim); color: var(--teal);
+    border: 1px solid var(--border-active);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .72rem; font-family: var(--mono);
+}
+
+.vat-checkbox-container { display: flex; align-items: center; justify-content: center; }
+.vat-checkbox,
+.line-items-table td input[type=checkbox] {
+    width: 18px !important; height: 18px !important;
+    accent-color: var(--teal) !important;
+    cursor: pointer !important; margin: 0 !important;
+    opacity: 1 !important; position: relative !important;
+    appearance: auto !important;
+    -webkit-appearance: checkbox !important;
+    -moz-appearance: checkbox !important;
+}
+
+.line-total {
+    font-family: var(--mono); font-weight: 600;
+    font-size: .875rem; color: var(--teal);
+    text-align: right; white-space: nowrap;
+}
+
+.line-items-table tfoot {
+    background: rgba(6,182,212,.06);
+    border-top: 1px solid var(--border);
+}
+.line-items-table tfoot th {
+    font-family: var(--mono);
+    font-size: .7rem; font-weight: 700;
+    color: var(--text-2); padding: 11px 12px;
+    text-transform: uppercase; letter-spacing: .5px;
+}
+.grand-total-value {
+    font-family: var(--mono); font-weight: 700;
+    font-size: .9375rem; color: var(--teal); text-align: right;
+}
+
+/* ── Add / Delete line buttons ── */
+.add-line-btn {
+    background: var(--teal-dim); color: var(--teal);
+    border: 1px dashed var(--border-active); border-radius: var(--r-sm);
+    padding: 8px 16px; font-family: var(--font); font-weight: 600; font-size: .8125rem;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .15s;
+}
+.add-line-btn:hover { background: rgba(6,182,212,.2); border-style: solid; }
+
+.delete-line-btn {
+    width: 26px; height: 26px;
+    background: rgba(239,68,68,.1); color: var(--red);
+    border: 1px solid rgba(239,68,68,.2); border-radius: 6px;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    font-size: .8rem; transition: all .15s; padding: 0;
+}
+.delete-line-btn:hover { background: rgba(239,68,68,.22); }
+
+/* ══════════════════════════
+   ATTACHMENTS
+══════════════════════════ */
+.attachment-upload-label {
+    display: block;
+    border: 2px dashed var(--border-2) !important;
+    border-radius: var(--r-md) !important;
+    padding: 20px !important;
+    text-align: center; cursor: pointer;
+    background: var(--bg-input) !important;
+    transition: all .2s;
+}
+.attachment-upload-label:hover {
+    border-color: var(--teal) !important;
+    background: rgba(6,182,212,.03) !important;
+}
+.attachment-input { display: none; }
+.upload-icon { font-size: 1.4rem; color: var(--teal); margin-bottom: 5px; display: block; }
+.upload-text { font-size: .8125rem; color: var(--text-2); margin-bottom: 2px; }
+.upload-text strong { color: var(--teal); font-weight: 600; }
+.upload-hint { font-size: .7rem; color: var(--text-3); }
+
+.selected-files-list {
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: 10px; margin-top: 10px;
+}
+.files-list { list-style: none; padding: 0; margin: 0; }
+.files-list li {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 10px;
+    background: rgba(255,255,255,.03); border: 1px solid var(--border);
+    border-radius: 6px; margin-bottom: 5px; font-size: .78rem; color: var(--text-1);
+}
+.files-list li:last-child { margin-bottom: 0; }
+.file-info { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.file-icon { color: var(--teal); font-size: 1rem; flex-shrink: 0; }
+.file-name { font-weight: 500; color: var(--teal); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; }
+.file-size { color: var(--text-3); font-size: .68rem; white-space: nowrap; }
+.remove-file-btn {
+    background: rgba(239,68,68,.1); color: var(--red);
+    border: 1px solid rgba(239,68,68,.2); border-radius: 4px;
+    padding: 3px 8px; font-size: .68rem; cursor: pointer; transition: all .15s;
+}
+.remove-file-btn:hover { background: rgba(239,68,68,.2); }
+
+#existing-attachments-container {
+    background: var(--bg-input) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--r-md) !important;
+    padding: 12px !important; margin-bottom: 12px !important;
+}
+
+/* ══════════════════════════
+   BOTTOM ACTION BAR
+══════════════════════════ */
+.fv-action-bar {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--r-xl); padding: 16px 22px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.fv-action-bar .spacer { flex: 1; }
+
+.save-btn, .btn-green {
+    background: var(--green); color: #fff; border: none; border-radius: var(--r-sm);
+    padding: 10px 20px; font-family: var(--font); font-weight: 600; font-size: .8375rem;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: all .15s;
+}
+.save-btn:hover, .btn-green:hover { background: var(--green-btn); box-shadow: 0 4px 14px rgba(16,185,129,.25); }
+.save-btn.submitting { opacity: .65; cursor: not-allowed; }
+.save-btn.submitting::after { content: ' Saving...'; }
+
+.btn-amber-ghost {
+    background: rgba(245,158,11,.1); color: var(--amber);
+    border: 1px solid rgba(245,158,11,.25); border-radius: var(--r-sm);
+    padding: 10px 18px; font-family: var(--font); font-weight: 600; font-size: .8375rem;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: all .15s;
+}
+.btn-amber-ghost:hover { background: rgba(245,158,11,.18); }
+
+.cancel-btn, .btn-gray-ghost {
+    background: transparent; color: var(--text-2);
+    border: 1px solid var(--border-2); border-radius: var(--r-sm);
+    padding: 10px 18px; font-family: var(--font); font-weight: 600; font-size: .8375rem;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    text-decoration: none; transition: all .15s;
+}
+.cancel-btn:hover, .btn-gray-ghost:hover { background: rgba(255,255,255,.04); color: var(--text-1); }
+
+.btn-red-ghost {
+    background: transparent; color: var(--red);
+    border: 1px solid rgba(239,68,68,.25); border-radius: var(--r-sm);
+    padding: 10px 18px; font-family: var(--font); font-weight: 600; font-size: .8375rem;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    text-decoration: none; transition: all .15s;
+}
+.btn-red-ghost:hover { background: rgba(239,68,68,.07); }
+
+/* ══════════════════════════
+   SIDEBAR
+══════════════════════════ */
+.fv-sb-card {
+    background: var(--bg-card2); border: 1px solid var(--border); border-radius: var(--r-xl); overflow: hidden;
+}
+.fv-sb-head { padding: 14px 18px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.012); }
+.fv-sb-head h3 { font-size: .9375rem; font-weight: 700; color: var(--text-1); margin: 0 0 2px; }
+.fv-sb-head .sub { font-size: .72rem; color: var(--text-3); }
+.fv-sb-body { padding: 18px; }
+
+.fv-grand-wrap { text-align: center; padding: 10px 0 18px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.fv-grand-lbl { font-family: var(--mono); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-3); margin-bottom: 5px; }
+.fv-grand-num { font-family: var(--mono); font-size: 2.4rem; font-weight: 700; color: var(--teal); line-height: 1; letter-spacing: -1px; }
+
+.fv-sr { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: .8125rem; }
+.fv-sr:last-child { border-bottom: none; }
+.fv-sr-label { display: flex; align-items: center; gap: 7px; color: var(--text-2); font-size: .8125rem; }
+.fv-sr-label i { color: var(--text-3); font-size: .8rem; }
+.fv-sr-val { font-family: var(--mono); font-weight: 600; color: var(--text-1); font-size: .8125rem; }
+.fv-sr-val.teal { color: var(--teal); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-blue  { background: var(--blue); }
+.dot-amber { background: var(--amber); }
+.dot-teal  { background: var(--teal); }
+
+.fv-draft-badge {
+    background: rgba(245,158,11,.1); color: var(--amber);
+    border: 1px solid rgba(245,158,11,.25); border-radius: 20px;
+    padding: 2px 10px; font-size: .68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .4px;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+.fv-draft-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--amber); display: inline-block; }
+
+/* Approval Workflow */
+.fv-wf-section { padding-top: 14px; margin-top: 4px; border-top: 1px solid var(--border); }
+.fv-wf-title { font-family: var(--mono); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--text-3); margin: 0 0 12px; }
+.fv-wf-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.fv-wf-item:last-child { border-bottom: none; }
+.fv-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; flex-shrink: 0; }
+.fv-avatar.done     { background: var(--green-dim); border: 1.5px solid rgba(16,185,129,.4); color: var(--green); }
+.fv-avatar.progress { background: rgba(59,130,246,.15); border: 1.5px solid rgba(59,130,246,.4); color: var(--blue); }
+.fv-avatar.waiting  { background: rgba(30,45,66,.8); border: 1.5px solid var(--border-2); color: var(--text-3); }
+.fv-wf-info { flex: 1; min-width: 0; }
+.fv-wf-name { font-size: .8125rem; font-weight: 600; color: var(--text-1); margin-bottom: 1px; }
+.fv-wf-role { font-size: .68rem; color: var(--text-3); }
+.fv-wf-status { font-size: .72rem; font-weight: 600; white-space: nowrap; }
+.fv-wf-status.now     { color: var(--green); }
+.fv-wf-status.pending { color: var(--text-3); }
+
+/* Attachment sidebar section */
+.fv-att-section { padding-top: 14px; margin-top: 4px; border-top: 1px solid var(--border); }
+.fv-att-title { font-family: var(--mono); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--text-3); margin: 0 0 12px; }
+.fv-att-upload {
+    background: var(--bg-input); border: 2px dashed var(--border-2);
+    border-radius: var(--r-md); padding: 20px 16px; text-align: center;
+    cursor: pointer; transition: all .2s;
+}
+.fv-att-upload:hover { border-color: var(--teal); background: rgba(6,182,212,.03); }
+.fv-att-upload i { font-size: 1.35rem; color: var(--teal); display: block; margin-bottom: 5px; }
+.fv-att-upload .t1 { font-size: .8125rem; font-weight: 600; color: var(--text-2); display: block; margin-bottom: 2px; }
+.fv-att-upload .t1 a { color: var(--teal); text-decoration: none; }
+.fv-att-upload .t2 { font-size: .68rem; color: var(--text-3); }
+
+/* ── Toast ── */
+.toast-notification {
+    position: fixed; top: 80px; right: 20px;
+    min-width: 270px; max-width: 370px;
+    background: var(--bg-card2); border: 1px solid var(--border);
+    border-left: 3px solid var(--teal); border-radius: var(--r-md);
+    box-shadow: 0 8px 30px rgba(0,0,0,.5);
+    padding: 12px 15px; display: flex; align-items: center; gap: 9px;
+    z-index: 9999; animation: tsIn .22s ease-out;
+}
+.toast-notification.success { border-left-color: var(--green); }
+.toast-notification.warning { border-left-color: var(--amber); }
+.toast-notification.danger  { border-left-color: var(--red); }
+.toast-notification i { font-size: .9rem; flex-shrink: 0; }
+.toast-notification.success i { color: var(--green); }
+.toast-notification.warning i { color: var(--amber); }
+.toast-notification.danger  i { color: var(--red); }
+.toast-notification .toast-message { flex: 1; font-size: .8125rem; font-weight: 500; color: var(--text-1); }
+.toast-notification.fadeOut { animation: tsOut .22s ease-out forwards; }
+@keyframes tsIn  { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes tsOut { to{transform:translateX(110%);opacity:0} }
+
+/* ── Loading overlay ── */
+.loading-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 99999;
+    align-items: center; justify-content: center;
+}
+.loading-overlay.active { display: flex; }
+.loading-spinner {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--r-xl); padding: 32px 44px; text-align: center;
+}
+.loading-spinner i { font-size: 2.4rem; color: var(--teal); animation: spin .8s linear infinite; display: block; margin-bottom: 12px; }
+.loading-spinner p { margin: 0; font-size: .875rem; font-weight: 600; color: var(--text-2); }
+@keyframes spin { to{ transform: rotate(360deg) } }
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+    .fv-layout { grid-template-columns: 1fr; }
+    .fv-sidebar { position: static; }
+    .form-row-12col .form-group[style*="span 3"] { grid-column: span 6 !important; }
+}
+@media (max-width: 768px) {
+    .fv-wrap { padding: 14px 14px 48px; }
+    .fv-title { font-size: 1.3rem; }
+    .form-row, .form-row-12col { grid-template-columns: 1fr !important; }
+    .form-row-12col .form-group { grid-column: span 1 !important; }
+    .fv-action-bar { flex-direction: column; }
+    .save-btn, .cancel-btn, .btn-gray-ghost, .btn-amber-ghost, .btn-red-ghost {
+        width: 100%; justify-content: center; min-height: 44px;
+    }
+    .toast-notification { right: 10px; left: 10px; min-width: auto; max-width: none; }
+}
+@media (max-width: 576px) {
+    .fv-wrap { padding: 10px 10px 40px; }
+    .fv-title { font-size: 1.1rem; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="voucher-form-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1 class="page-title">
-            <i class="bi bi-file-earmark-text"></i>
-            <span>{{ title }}</span>
-        </h1>
+<div class="fv-wrap">
+
+    <!-- ── TOP BAR ── -->
+    <div class="fv-topbar">
+        <div>
+            <h1 class="fv-title">{{ title }}</h1>
+            <div class="fv-subtitle">
+                <span>បង្កើតបណ្ណបង់ប្រាក់</span>
+                <span style="opacity:.4">·</span>
+                <span style="color:var(--text-2)">Draft auto-saved</span>
+            </div>
+        </div>
+        <div class="fv-topbar-btns">
+            {% if object %}
+            <div style="background:rgba(139,92,246,.12);color:#a78bfa;border:1px solid rgba(139,92,246,.25);border-radius:20px;padding:6px 13px;font-size:.75rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+                <i class="bi bi-check2"></i> Draft saved
+            </div>
+            {% endif %}
+            <a href="{% if object %}{% url 'vouchers:pf_detail' object.pk %}{% else %}{% url 'dashboard:home' %}{% endif %}" class="btn-cancel-top">
+                <i class="bi bi-x"></i> Cancel
+            </a>
+            <button type="submit" form="form-form" class="btn-submit-top">
+                <i class="bi bi-check-lg"></i> Submit Form
+            </button>
+        </div>
     </div>
 
-    <!-- Debug: Show all errors -->
+    <!-- ── Validation Errors ── -->
     {% if form.errors or formset.errors or formset.non_form_errors %}
-    <div class="alert alert-danger" style="margin-bottom: var(--spacing-xl);">
-        <h4><i class="bi bi-exclamation-triangle-fill"></i> Form Validation Errors:</h4>
+    <div class="alert alert-danger" style="margin-bottom:16px;">
+        <strong><i class="bi bi-exclamation-triangle-fill"></i> Validation Errors:</strong>
         {% if form.errors %}
-            <strong>Header Form Errors:</strong>
-            <ul>
+        <ul style="margin:8px 0 0;padding-left:18px;">
             {% for field, errors in form.errors.items %}
-                <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+            <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
             {% endfor %}
-            </ul>
+        </ul>
         {% endif %}
         {% if formset.non_form_errors %}
-            <strong>Line Items General Errors:</strong>
-            <ul>
-                <li>{{ formset.non_form_errors }}</li>
-            </ul>
+        <ul style="margin:8px 0 0;padding-left:18px;"><li>{{ formset.non_form_errors }}</li></ul>
         {% endif %}
         {% if formset.errors %}
-            <strong>Line Item Errors:</strong>
-            <ul>
-            {% for line_form in formset %}
-                {% if line_form.errors %}
-                    <li>Line {{ forloop.counter }}: {{ line_form.errors }}</li>
-                {% endif %}
-            {% endfor %}
-            </ul>
+        <ul style="margin:8px 0 0;padding-left:18px;">
+            {% for lf in formset %}{% if lf.errors %}<li>Line {{ forloop.counter }}: {{ lf.errors }}</li>{% endif %}{% endfor %}
+        </ul>
         {% endif %}
     </div>
     {% endif %}
 
     <form method="post" id="form-form" enctype="multipart/form-data">
         {% csrf_token %}
-        <!-- ✅ CRITICAL: Hidden input for tracking deleted attachments (placed at top for reliability) -->
         <input type="hidden" name="deleted_attachments" id="deleted-attachments" value="">
 
-        <!-- Payment Form Information Card -->
-        <div class="form-card">
-            <div class="form-card-header">
-                <h2 class="form-card-title">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Payment Form Information</span>
-                </h2>
-            </div>
-            <div class="form-card-body">
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {{ form.non_field_errors }}
-                    </div>
-                {% endif %}
+        <div class="fv-layout">
+            <!-- ════ MAIN ════ -->
+            <div class="fv-main">
 
-                <!-- ✅ 4 Fields in One Row: PF Number (3), Payee Name (3), Payment Date (3), Transfer Account (3) -->
-                <div class="form-row-12col">
-                    <div class="form-group" style="grid-column: span 3;">
-                        <label for="{{ form.pf_number.id_for_label }}" class="form-label">
-                            {{ form.pf_number.label }}
-                        </label>
-                        {{ form.pf_number }}
-                        {% if form.pf_number.errors %}
-                            <small style="color: #dc3545;">{{ form.pf_number.errors|first }}</small>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group" style="grid-column: span 3;">
-                        <label for="{{ form.payee_name.id_for_label }}" class="form-label">
-                            {{ form.payee_name.label }} <span style="color: #dc2626;">*</span>
-                        </label>
-                        {{ form.payee_name }}
-                        {% if form.payee_name.errors %}
-                            <small style="color: #dc3545;">{{ form.payee_name.errors|first }}</small>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group" style="grid-column: span 3;">
-                        <label for="{{ form.payment_date.id_for_label }}" class="form-label">
-                            {{ form.payment_date.label }} <span style="color: #dc2626;">*</span>
-                        </label>
-                        {{ form.payment_date }}
-                        {% if form.payment_date.errors %}
-                            <small style="color: #dc3545;">{{ form.payment_date.errors|first }}</small>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group" style="grid-column: span 3;">
-                        <label class="form-label" for="{{ form.company_bank_account.id_for_label }}">
-                            {{ form.company_bank_account.label }}
-                        </label>
-                        {{ form.company_bank_account }}
-                        {% if form.company_bank_account.errors %}
-                            <small style="color: var(--danger);">{{ form.company_bank_account.errors|first }}</small>
-                        {% endif %}
-                        <small class="form-text text-muted" style="font-size: 0.75rem; display: block; margin-top: 4px;">
-                            <i class="bi bi-info-circle"></i> Select a pre-configured company account (recommended)
-                        </small>
-                    </div>
-                </div>
-
-                <!-- Row 3: Manual Bank Entry (Optional) - Collapsible -->
-                <div class="form-row-full" style="margin-top: var(--spacing-md);">
-                    <details style="border: 1px solid var(--gray-300); border-radius: var(--radius-md); padding: var(--spacing-sm);">
-                        <summary style="cursor: pointer; font-weight: 600; color: var(--gray-700); font-size: 0.875rem; user-select: none;">
-                            <i class="bi bi-pencil-square"></i> Manual Bank Entry (Optional - for backward compatibility)
-                        </summary>
-                        <div style="margin-top: var(--spacing-sm); padding-top: var(--spacing-sm); border-top: 1px solid var(--gray-200);">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="{{ form.bank_address.id_for_label }}" class="form-label">
-                                        {{ form.bank_address.label }}
-                                    </label>
-                                    {{ form.bank_address }}
-                                    {% if form.bank_address.errors %}
-                                        <small style="color: #dc3545;">{{ form.bank_address.errors|first }}</small>
-                                    {% endif %}
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="{{ form.bank_name.id_for_label }}" class="form-label">
-                                        {{ form.bank_name.label }}
-                                    </label>
-                                    {{ form.bank_name }}
-                                    {% if form.bank_name.errors %}
-                                        <small style="color: #dc3545;">{{ form.bank_name.errors|first }}</small>
-                                    {% endif %}
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="{{ form.bank_account_number.id_for_label }}" class="form-label">
-                                        {{ form.bank_account_number.label }}
-                                    </label>
-                                    {{ form.bank_account_number }}
-                                    {% if form.bank_account_number.errors %}
-                                        <small style="color: #dc3545;">{{ form.bank_account_number.errors|first }}</small>
-                                    {% endif %}
-                                </div>
+                <!-- Card 1: Payment Form Information -->
+                <div class="fv-card">
+                    <div class="fv-card-head">
+                        <div class="fv-head-left">
+                            <div class="fv-badge green"><i class="bi bi-info-circle-fill"></i></div>
+                            <div class="fv-head-text">
+                                <h2>Payment Form Information</h2>
+                                <p>ព័ត៌មានទូទាត់</p>
                             </div>
-                            <small class="form-text text-muted" style="font-size: 0.75rem; display: block; margin-top: var(--spacing-xs);">
-                                <i class="bi bi-exclamation-triangle"></i> Only use manual entry if the account is not in the dropdown above
-                            </small>
                         </div>
-                    </details>
-                </div>
-
-                <!-- Hidden Status Field -->
-                {{ form.status }}
-
-                <div class="helper-text" style="margin-top: var(--spacing-sm);">
-                    <i class="bi bi-lightbulb"></i>
-                    <span>Fill in all required fields before proceeding to line items.</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Line Items Card -->
-        <div class="form-card">
-            <div class="form-card-header info">
-                <h2 class="form-card-title">
-                    <i class="bi bi-list-check"></i>
-                    <span>Line Items</span>
-                </h2>
-            </div>
-            <div class="form-card-body">
-                {% if formset.non_form_errors %}
-                    <div class="alert alert-danger">
-                        <strong>Line Items Error:</strong>
-                        {{ formset.non_form_errors }}
                     </div>
-                {% endif %}
+                    <div class="fv-card-body">
+                        {% if form.non_field_errors %}
+                        <div class="alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
 
-                <div class="helper-text" style="margin-bottom: var(--spacing-md);">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Fill in the table below with your payment form line items. At least one line item is required. Click "Add Line Item" button below to add more rows (up to 50).</span>
-                </div>
+                        <!-- 4 fields in one row -->
+                        <div class="form-row-12col">
+                            <div class="form-group" style="grid-column: span 3;">
+                                <label for="{{ form.pf_number.id_for_label }}">{{ form.pf_number.label }}</label>
+                                {{ form.pf_number }}
+                                {% if form.pf_number.errors %}<small style="color:var(--red)">{{ form.pf_number.errors|first }}</small>{% endif %}
+                                <small><i class="bi bi-magic"></i> Generated on save</small>
+                            </div>
+                            <div class="form-group" style="grid-column: span 3;">
+                                <label for="{{ form.payee_name.id_for_label }}">{{ form.payee_name.label }} <span style="color:var(--red)">*</span></label>
+                                {{ form.payee_name }}
+                                {% if form.payee_name.errors %}<small style="color:var(--red)">{{ form.payee_name.errors|first }}</small>{% endif %}
+                            </div>
+                            <div class="form-group" style="grid-column: span 3;">
+                                <label for="{{ form.payment_date.id_for_label }}">{{ form.payment_date.label }} <span style="color:var(--red)">*</span></label>
+                                {{ form.payment_date }}
+                                {% if form.payment_date.errors %}<small style="color:var(--red)">{{ form.payment_date.errors|first }}</small>{% endif %}
+                            </div>
+                            <div class="form-group" style="grid-column: span 3;">
+                                <label for="{{ form.company_bank_account.id_for_label }}">{{ form.company_bank_account.label }}</label>
+                                {{ form.company_bank_account }}
+                                {% if form.company_bank_account.errors %}<small style="color:var(--red)">{{ form.company_bank_account.errors|first }}</small>{% endif %}
+                                <small><i class="bi bi-info-circle"></i> Select a pre-configured company account</small>
+                            </div>
+                        </div>
 
-                {{ formset.management_form }}
-
-                <div class="line-items-table-container">
-                    <table class="line-items-table" id="line-items-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 5%;">#</th>
-                                <th style="width: 24%;">Description</th>
-                                <th style="width: 12%;">Department</th>
-                                <th style="width: 12%;">Program</th>
-                                <th style="width: 10%;">Amount</th>
-                                <th style="width: 8%;">Currency</th>
-                                <th style="width: 9%;">VAT (10%)</th>
-                                <th style="width: 11%;">Total</th>
-                                <th style="width: 5%;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="line-items-body">
-                            {% for form in formset %}
-                            <tr class="line-item-row" data-form-index="{{ forloop.counter0 }}">
-                                <td class="text-center">
-                                    <span class="line-number-badge">{{ forloop.counter }}</span>
-                                    <!-- Hidden fields -->
-                                    {{ form.line_number }}
-                                    {{ form.id }}
-                                    <div style="display: none;">{{ form.DELETE }}</div>
-                                </td>
-                                <td>
-                                    {{ form.description }}
-                                    {% if form.description.errors %}
-                                        <small style="color: #dc3545;">{{ form.description.errors|first }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {{ form.department }}
-                                    {% if form.department.errors %}
-                                        <small style="color: #dc3545;">{{ form.department.errors|first }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {{ form.program }}
-                                    {% if form.program.errors %}
-                                        <small style="color: #dc3545;">{{ form.program.errors|first }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {{ form.amount }}
-                                    {% if form.amount.errors %}
-                                        <small style="color: #dc3545;">{{ form.amount.errors|first }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {{ form.currency }}
-                                    {% if form.currency.errors %}
-                                        <small style="color: #dc3545;">{{ form.currency.errors|first }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="vat-checkbox-container">
-                                        {{ form.vat_applicable }}
+                        <!-- Manual Bank Entry (collapsible) -->
+                        <div class="form-row-full" style="margin-top:14px;">
+                            <details>
+                                <summary><i class="bi bi-pencil-square"></i> Manual Bank Entry (Optional)</summary>
+                                <div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="{{ form.bank_address.id_for_label }}">{{ form.bank_address.label }}</label>
+                                            {{ form.bank_address }}
+                                            {% if form.bank_address.errors %}<small style="color:var(--red)">{{ form.bank_address.errors|first }}</small>{% endif %}
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="{{ form.bank_name.id_for_label }}">{{ form.bank_name.label }}</label>
+                                            {{ form.bank_name }}
+                                            {% if form.bank_name.errors %}<small style="color:var(--red)">{{ form.bank_name.errors|first }}</small>{% endif %}
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="{{ form.bank_account_number.id_for_label }}">{{ form.bank_account_number.label }}</label>
+                                            {{ form.bank_account_number }}
+                                            {% if form.bank_account_number.errors %}<small style="color:var(--red)">{{ form.bank_account_number.errors|first }}</small>{% endif %}
+                                        </div>
                                     </div>
-                                </td>
-                                <td class="line-total">$0.00</td>
-                                <td class="text-center">
-                                    <button type="button" class="delete-line-btn" onclick="removeLineItem(this)" title="Remove this line">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="7" style="text-align: right;">GRAND TOTAL:</th>
-                                <th>
-                                    <div class="grand-total-value" id="grand-total">$0.00</div>
-                                </th>
-                                <th></th>
-                            </tr>
-                        </tfoot>
-                    </table>
+                                    <small><i class="bi bi-exclamation-triangle"></i> Only use manual entry if account is not in the dropdown above</small>
+                                </div>
+                            </details>
+                        </div>
+
+                        <!-- Hidden status field -->
+                        {{ form.status }}
+
+                        <small style="margin-top:10px;"><i class="bi bi-lightbulb"></i> Fill in all required fields before proceeding to line items.</small>
+                    </div>
                 </div>
 
-                <button type="button" class="add-line-btn" onclick="addLineItem()">
-                    <i class="bi bi-plus-circle"></i>
-                    <span>Add Line Item</span>
-                </button>
+                <!-- Card 2: Line Items -->
+                <div class="fv-card">
+                    <div class="fv-card-head">
+                        <div class="fv-head-left">
+                            <div class="fv-badge teal"><i class="bi bi-list-check"></i></div>
+                            <div class="fv-head-text">
+                                <h2>Line Items</h2>
+                                <p>ចំនួនទឹកប្រាក់ និងទំនិញ/សេវាកម្ម</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fv-card-body">
+                        {% if formset.non_form_errors %}
+                        <div class="alert-danger" style="margin-bottom:12px;"><strong>Line Items Error:</strong> {{ formset.non_form_errors }}</div>
+                        {% endif %}
 
-                <div class="helper-text" style="margin-top: var(--spacing-md);">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Check the VAT box to add 10% tax to the line item amount. Click "Add Line Item" to add more rows.</span>
+                        <small style="margin-bottom:14px;display:flex;"><i class="bi bi-info-circle"></i>&nbsp;At least one line item is required. Click "+ Add Line Item" to add more rows (up to 50).</small>
+
+                        {{ formset.management_form }}
+
+                        <div class="line-items-table-container">
+                            <table class="line-items-table" id="line-items-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:5%">#</th>
+                                        <th style="width:24%">Description</th>
+                                        <th style="width:12%">Department</th>
+                                        <th style="width:12%">Program</th>
+                                        <th style="width:10%">Amount</th>
+                                        <th style="width:8%">Currency</th>
+                                        <th style="width:9%">VAT 10%</th>
+                                        <th style="width:11%">Total</th>
+                                        <th style="width:5%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="line-items-body">
+                                    {% for form in formset %}
+                                    <tr class="line-item-row" data-form-index="{{ forloop.counter0 }}">
+                                        <td style="text-align:center;">
+                                            <span class="line-number-badge">{{ forloop.counter }}</span>
+                                            {{ form.line_number }}
+                                            {{ form.id }}
+                                            <div style="display:none;">{{ form.DELETE }}</div>
+                                        </td>
+                                        <td>{{ form.description }}{% if form.description.errors %}<small style="color:var(--red)">{{ form.description.errors|first }}</small>{% endif %}</td>
+                                        <td>{{ form.department }}{% if form.department.errors %}<small style="color:var(--red)">{{ form.department.errors|first }}</small>{% endif %}</td>
+                                        <td>{{ form.program }}{% if form.program.errors %}<small style="color:var(--red)">{{ form.program.errors|first }}</small>{% endif %}</td>
+                                        <td>{{ form.amount }}{% if form.amount.errors %}<small style="color:var(--red)">{{ form.amount.errors|first }}</small>{% endif %}</td>
+                                        <td>{{ form.currency }}</td>
+                                        <td>
+                                            <div class="vat-checkbox-container">{{ form.vat_applicable }}</div>
+                                        </td>
+                                        <td class="line-total">$0.00</td>
+                                        <td style="text-align:center;">
+                                            <button type="button" class="delete-line-btn" onclick="removeLineItem(this)" title="Remove"><i class="bi bi-x-lg"></i></button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="7" style="text-align:right;">Grand Total</th>
+                                        <th><div class="grand-total-value" id="grand-total">$0.00</div></th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                            <button type="button" class="add-line-btn" onclick="addLineItem()">
+                                <i class="bi bi-plus"></i> Add Line Item / បន្ថែមបន្ទាត់
+                            </button>
+                            <small style="display:flex;"><i class="bi bi-info-circle"></i>&nbsp;VAT checkbox adds 10% to line total</small>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Attachments Card -->
-        <div class="form-card">
-            <div class="form-card-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-bottom-color: #fbbf24;">
-                <h2 class="form-card-title">
-                    <i class="bi bi-paperclip"></i>
-                    <span>Attachments (Optional)</span>
-                </h2>
-            </div>
-            <div class="form-card-body">
-                {% if object and object.pf_number %}
-                <div style="background: #d1fae5; border-left: 3px solid #10b981; padding: var(--spacing-sm); border-radius: var(--radius-sm); margin-bottom: var(--spacing-md); font-size: 0.8125rem; color: var(--gray-700);">
-                    <i class="bi bi-folder2-open"></i> <strong>Storage Location:</strong> form_attachments/{{ object.pf_number }}/
-                </div>
-                {% endif %}
+                <!-- Card 3: Attachments -->
+                <div class="fv-card">
+                    <div class="fv-card-head">
+                        <div class="fv-head-left">
+                            <div class="fv-badge amber"><i class="bi bi-paperclip"></i></div>
+                            <div class="fv-head-text">
+                                <h2>Attachments</h2>
+                                <p>ឯកសារភ្ជាប់ (Optional)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fv-card-body">
 
-                <!-- Existing Attachments (for edit mode) -->
-                {% if object %}
-                    {% if object.attachments.exists %}
-                        <div id="existing-attachments-container" style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                            <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--gray-700); margin-bottom: var(--spacing-sm); display: flex; align-items: center; gap: var(--spacing-xs);">
-                                <i class="bi bi-folder-check"></i>
-                                <span>Existing Attachments ({{ object.attachments.count }})</span>
-                            </h4>
-                            <ul class="files-list" id="existing-files-list">
-                                {% for attachment in object.attachments.all %}
+                        {% if object and object.pf_number %}
+                        <div style="background:rgba(6,182,212,.06);border-left:3px solid var(--teal);padding:7px 12px;border-radius:var(--r-sm);margin-bottom:12px;font-size:.72rem;color:var(--text-2);">
+                            <i class="bi bi-folder2-open"></i> <strong>Storage:</strong> form_attachments/{{ object.pf_number }}/
+                        </div>
+                        {% endif %}
+
+                        {% if object %}
+                            {% if object.attachments.exists %}
+                            <div id="existing-attachments-container" style="margin-bottom:14px;">
+                                <p style="font-size:.75rem;font-weight:600;color:var(--text-2);margin:0 0 8px;display:flex;align-items:center;gap:6px;">
+                                    <i class="bi bi-folder-check" style="color:var(--teal);"></i> Existing Attachments ({{ object.attachments.count }})
+                                </p>
+                                <ul class="files-list" id="existing-files-list">
+                                    {% for attachment in object.attachments.all %}
                                     <li data-attachment-id="{{ attachment.id }}">
                                         <div class="file-info">
-                                            {% if '.pdf' in attachment.file.name|lower or '.PDF' in attachment.file.name %}
-                                                <i class="bi bi-file-earmark-pdf file-icon"></i>
-                                            {% elif '.jpg' in attachment.file.name|lower or '.jpeg' in attachment.file.name|lower or '.png' in attachment.file.name|lower %}
-                                                <i class="bi bi-file-earmark-image file-icon"></i>
-                                            {% else %}
-                                                <i class="bi bi-file-earmark file-icon"></i>
-                                            {% endif %}
-                                            <a href="{{ attachment.file.url }}" target="_blank" class="file-name" style="text-decoration: none; color: var(--primary-600);">
-                                                {{ attachment.filename }}
-                                            </a>
+                                            {% if '.pdf' in attachment.file.name|lower %}<i class="bi bi-file-earmark-pdf file-icon"></i>
+                                            {% elif '.jpg' in attachment.file.name|lower or '.png' in attachment.file.name|lower %}<i class="bi bi-file-earmark-image file-icon"></i>
+                                            {% else %}<i class="bi bi-file-earmark file-icon"></i>{% endif %}
+                                            <a href="{{ attachment.file.url }}" target="_blank" class="file-name">{{ attachment.filename }}</a>
                                             <span class="file-size">({{ attachment.file_size|filesizeformat }})</span>
                                         </div>
                                         <button type="button" class="remove-file-btn" onclick="removeExistingAttachment({{ attachment.id }}, '{{ attachment.filename|escapejs }}')">
                                             <i class="bi bi-x"></i> Remove
                                         </button>
                                     </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% else %}
-                        <div id="existing-attachments-container" style="background: var(--gray-50); border: 1px dashed var(--gray-300); border-radius: var(--radius-md); padding: var(--spacing-md); margin-bottom: var(--spacing-lg); text-align: center; color: var(--gray-600); font-size: 0.875rem;">
-                            <i class="bi bi-inbox"></i> No attachments found for this payment form.
-                        </div>
-                    {% endif %}
-                {% endif %}
-
-                <div class="helper-text" style="margin-bottom: var(--spacing-md);">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Upload supporting documents such as invoices, receipts, or contracts. You can select multiple files at once.
-                    {% if not object %}Files will be organized using a PF number that will be generated when you save this payment form.{% endif %}</span>
-                </div>
-
-                <!-- Upload Area - COMPACT -->
-                <div class="attachment-upload-area">
-                    <label for="id_attachments" class="attachment-upload-label" style="padding: var(--spacing-md); min-height: auto;">
-                        <div style="display: flex; align-items: center; justify-content: center; gap: var(--spacing-sm);">
-                            <i class="bi bi-cloud-upload" style="font-size: 1.5rem; color: #10b981;"></i>
-                            <div style="text-align: left;">
-                                <div class="upload-text" style="font-size: 0.875rem; margin-bottom: 2px;">
-                                    <strong>Click to upload</strong> or drag and drop
-                                </div>
-                                <div class="upload-hint" style="font-size: 0.75rem;">
-                                    PDF, JPG, PNG (Max 10MB per file)
-                                </div>
+                                    {% endfor %}
+                                </ul>
                             </div>
+                            {% else %}
+                            <div id="existing-attachments-container" style="border:1px dashed var(--border-2);border-radius:var(--r-md);padding:14px;margin-bottom:14px;text-align:center;color:var(--text-3);font-size:.8rem;">
+                                <i class="bi bi-inbox"></i> No attachments found for this payment form.
+                            </div>
+                            {% endif %}
+                        {% endif %}
+
+                        <div class="attachment-upload-area">
+                            <label for="id_attachments" class="attachment-upload-label">
+                                <i class="bi bi-cloud-upload upload-icon"></i>
+                                <div class="upload-text"><strong>Click to upload</strong> or drag and drop</div>
+                                <div class="upload-hint">PDF, JPG, PNG · Max 10MB per file</div>
+                            </label>
+                            <input type="file" name="attachments" id="id_attachments" class="attachment-input" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="displaySelectedFiles(this)">
                         </div>
-                    </label>
-                    <input type="file" name="attachments" id="id_attachments" class="attachment-input" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="displaySelectedFiles(this)">
+
+                        <div id="selected-files-list" class="selected-files-list" style="display:none;margin-top:10px;">
+                            <p style="font-size:.72rem;font-weight:700;color:var(--text-2);margin:0 0 7px;"><i class="bi bi-files"></i> New Files:</p>
+                            <ul id="files-list" class="files-list"></ul>
+                        </div>
+
+                        <small style="margin-top:10px;"><i class="bi bi-shield-check"></i> Files are securely stored and only accessible to authorized users.</small>
+                    </div>
                 </div>
 
-                <!-- Selected New Files List -->
-                <div id="selected-files-list" class="selected-files-list" style="display: none; padding: var(--spacing-sm); margin-top: var(--spacing-sm);">
-                    <h4 style="font-size: 0.8125rem; font-weight: 600; color: var(--gray-700); margin-bottom: var(--spacing-xs);">
-                        <i class="bi bi-files"></i> New Files:
-                    </h4>
-                    <ul id="files-list" class="files-list" style="gap: 4px;"></ul>
-                </div>
-
-                <div class="helper-text" style="margin-top: var(--spacing-sm);">
-                    <i class="bi bi-shield-check"></i>
-                    <span>Files are securely stored and only accessible to authorized users.</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Action Buttons Card -->
-        <div class="form-card">
-            <div class="form-card-body">
-                <div class="action-buttons">
-                    <button type="submit" class="save-btn">
-                        <i class="bi bi-check-circle"></i>
-                        <span>Save Payment Form</span>
-                    </button>
-                    <a href="{% if object %}{% url 'vouchers:pf_detail' object.pk %}{% else %}{% url 'dashboard:home' %}{% endif %}" class="cancel-btn">
-                        <i class="bi bi-x-circle"></i>
-                        <span>Cancel</span>
+                <!-- Bottom Action Bar -->
+                <div class="fv-action-bar">
+                    <button type="submit" class="save-btn"><i class="bi bi-check-lg"></i> Submit for Approval</button>
+                    <button type="button" onclick="saveDraft()" class="btn-amber-ghost"><i class="bi bi-floppy"></i> Save Draft</button>
+                    <button type="button" class="btn-gray-ghost"><i class="bi bi-printer"></i> Print Preview</button>
+                    <div class="spacer"></div>
+                    <a href="{% if object %}{% url 'vouchers:pf_detail' object.pk %}{% else %}{% url 'dashboard:home' %}{% endif %}" class="btn-red-ghost">
+                        <i class="bi bi-x-circle"></i> Cancel
                     </a>
                 </div>
-            </div>
+
+            </div><!-- /fv-main -->
+
+            <!-- ════ SIDEBAR ════ -->
+            <div class="fv-sidebar">
+                <div class="fv-sb-card">
+                    <div class="fv-sb-head">
+                        <h3>Summary / សង្ខេប</h3>
+                        <div class="sub">Live calculation</div>
+                    </div>
+                    <div class="fv-sb-body">
+
+                        <div class="fv-grand-wrap">
+                            <div class="fv-grand-lbl">Grand Total</div>
+                            <div class="fv-grand-num" id="sidebar-total">$0.00</div>
+                        </div>
+
+                        <div class="fv-sr"><div class="fv-sr-label"><span class="dot dot-blue"></span> Subtotal</div><div class="fv-sr-val" id="sidebar-amount">$0.00</div></div>
+                        <div class="fv-sr"><div class="fv-sr-label"><span class="dot dot-amber"></span> VAT (10%)</div><div class="fv-sr-val" id="sidebar-vat">$0.00</div></div>
+                        <div class="fv-sr" style="border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:8px;">
+                            <div class="fv-sr-label"><span class="dot dot-teal"></span> Total</div>
+                            <div class="fv-sr-val teal" id="sidebar-grand-total">$0.00</div>
+                        </div>
+
+                        <div class="fv-sr"><div class="fv-sr-label"><i class="bi bi-person-fill"></i> Payee</div><div class="fv-sr-val" id="sidebar-payee" style="color:var(--text-3);">—</div></div>
+                        <div class="fv-sr"><div class="fv-sr-label"><i class="bi bi-calendar3"></i> Date</div><div class="fv-sr-val" id="sidebar-date" style="color:var(--text-2);">—</div></div>
+                        <div class="fv-sr"><div class="fv-sr-label"><i class="bi bi-bank"></i> Method</div><div class="fv-sr-val" id="sidebar-bank" style="color:var(--text-2);font-size:.72rem;">—</div></div>
+                        <div class="fv-sr"><div class="fv-sr-label"><i class="bi bi-circle-fill" style="font-size:.4rem;"></i> Status</div><div class="fv-sr-val"><span class="fv-draft-badge">Draft</span></div></div>
+
+                        <!-- Approval Workflow -->
+                        <div class="fv-wf-section">
+                            <p class="fv-wf-title">Approval Workflow / លំហូរអនុម័ត</p>
+                            {% for step in workflow_steps %}
+                            <div class="fv-wf-item">
+                                {% if step.status == 'done' %}
+                                    <div class="fv-avatar done"><i class="bi bi-check-lg"></i></div>
+                                {% elif step.status == 'current' %}
+                                    <div class="fv-avatar progress"><i class="bi bi-dash-lg"></i></div>
+                                {% else %}
+                                    <div class="fv-avatar waiting">{{ step.step_number }}</div>
+                                {% endif %}
+                                <div class="fv-wf-info">
+                                    <div class="fv-wf-name">
+                                        {% if step.user %}{{ step.user.get_full_name|default:step.user.username }}
+                                        {% else %}<span style="color:var(--text-3);font-style:italic;">No user assigned</span>{% endif %}
+                                    </div>
+                                    <div class="fv-wf-role">{{ step.role_name }}</div>
+                                </div>
+                                {% if step.status == 'done' %}<div class="fv-wf-status now">✓ Done</div>
+                                {% elif step.status == 'current' %}<div class="fv-wf-status now">● Now</div>
+                                {% else %}<div class="fv-wf-status pending">—</div>{% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Sidebar attachment upload -->
+                        <div class="fv-att-section">
+                            <p class="fv-att-title">Attachments / ឯកសារភ្ជាប់</p>
+
+                            {% if object and object.attachments.exists %}
+                            <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-md);padding:10px;margin-bottom:10px;">
+                                <p style="font-size:.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin:0 0 8px;">Existing ({{ object.attachments.count }})</p>
+                                <ul class="files-list">
+                                    {% for attachment in object.attachments.all %}
+                                    <li data-attachment-id="{{ attachment.id }}" style="font-size:.72rem;">
+                                        <div class="file-info">
+                                            {% if '.pdf' in attachment.file.name|lower %}<i class="bi bi-file-earmark-pdf file-icon"></i>
+                                            {% elif '.jpg' in attachment.file.name|lower or '.png' in attachment.file.name|lower %}<i class="bi bi-file-earmark-image file-icon"></i>
+                                            {% else %}<i class="bi bi-file-earmark file-icon"></i>{% endif %}
+                                            <a href="{{ attachment.file.url }}" target="_blank" class="file-name">{{ attachment.filename }}</a>
+                                        </div>
+                                        <button type="button" class="remove-file-btn" onclick="removeExistingAttachment({{ attachment.id }}, '{{ attachment.filename|escapejs }}')" style="padding:2px 6px;"><i class="bi bi-x-circle"></i></button>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            <div class="fv-att-upload" onclick="document.getElementById('id_attachments').click();">
+                                <i class="bi bi-cloud-upload"></i>
+                                <span class="t1">Drop files or <a>click to upload</a></span>
+                                <span class="t2">PDF, JPG, PNG · Max 10MB each</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div><!-- /fv-sidebar -->
+
         </div>
     </form>
 </div>
 
-<!-- ⚡ Loading Overlay for instant feedback -->
 <div class="loading-overlay" id="loading-overlay">
     <div class="loading-spinner">
         <i class="bi bi-arrow-repeat"></i>
@@ -1243,477 +994,239 @@
 
 {% block extra_js %}
 <script>
-// ✅ DECLARE THIS AT THE TOP - BEFORE ANY FUNCTIONS
+/* ─────────────────────────────────────────
+   All JS preserved exactly from doc 4
+──────────────────────────────────────────*/
 let deletedAttachments = [];
 
-// Same JavaScript as voucher_form.html but with 'line_items' formset prefix
 function showNotification(message, type = 'info') {
     const iconMap = {
         success: 'bi-check-circle-fill',
         warning: 'bi-exclamation-triangle-fill',
-        danger: 'bi-x-circle-fill',
-        info: 'bi-info-circle-fill'
+        danger:  'bi-x-circle-fill',
+        info:    'bi-info-circle-fill'
     };
-
     const toast = document.createElement('div');
     toast.className = `toast-notification ${type}`;
-    toast.innerHTML = `
-        <i class="bi ${iconMap[type] || iconMap.info}"></i>
-        <span class="toast-message">${message}</span>
-    `;
-
+    toast.innerHTML = `<i class="bi ${iconMap[type]||iconMap.info}"></i><span class="toast-message">${message}</span>`;
     document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.classList.add('fadeOut');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    setTimeout(() => { toast.classList.add('fadeOut'); setTimeout(() => toast.remove(), 280); }, 3000);
 }
 
 function calculateLineTotals() {
-    const currencySymbols = {
-        'USD': '$',
-        'KHR': '៛',
-        'THB': '฿'
-    };
-
-    // Track totals by currency
+    const sym = { 'USD':'$', 'KHR':'៛', 'THB':'฿' };
     const grandTotals = {};
 
     document.querySelectorAll('.line-item-row').forEach(row => {
-        const amountInput = row.querySelector('[name$="-amount"]');
+        const amountInput    = row.querySelector('[name$="-amount"]');
         const currencySelect = row.querySelector('[name$="-currency"]');
-        const vatCheckbox = row.querySelector('[name$="-vat_applicable"]');
-        const totalCell = row.querySelector('.line-total');
+        const vatCheckbox    = row.querySelector('[name$="-vat_applicable"]');
+        const totalCell      = row.querySelector('.line-total');
 
         if (amountInput && amountInput.value && currencySelect) {
-            let amount = parseFloat(amountInput.value) || 0;
-            let total = vatCheckbox && vatCheckbox.checked ? amount * 1.1 : amount;
-            let currency = currencySelect.value || 'USD';
-            let symbol = currencySymbols[currency] || '$';
-
-            totalCell.textContent = symbol + total.toFixed(2);
-
-            // Add to grand total for this currency
-            if (!grandTotals[currency]) {
-                grandTotals[currency] = 0;
-            }
-            grandTotals[currency] += total;
-        } else {
-            totalCell.textContent = '$0.00';
-        }
+            const amt      = parseFloat(amountInput.value) || 0;
+            const total    = vatCheckbox && vatCheckbox.checked ? amt * 1.1 : amt;
+            const currency = currencySelect.value || 'USD';
+            totalCell.textContent = (sym[currency]||'$') + total.toFixed(2);
+            grandTotals[currency] = (grandTotals[currency] || 0) + total;
+        } else { totalCell.textContent = '$0.00'; }
     });
 
-    // Display multi-currency grand total
-    const grandTotalElement = document.getElementById('grand-total');
-    const parts = [];
+    const gtEl = document.getElementById('grand-total');
+    const curs = Object.keys(grandTotals).sort();
+    gtEl.textContent = curs.length ? curs.map(c => `${sym[c]||c}${grandTotals[c].toFixed(2)}`).join(' + ') : '$0.00';
 
-    // Sort currencies for consistent display
-    const currencies = Object.keys(grandTotals).sort();
-
-    if (currencies.length === 0) {
-        grandTotalElement.textContent = '$0.00';
-    } else {
-        currencies.forEach(currency => {
-            const symbol = currencySymbols[currency] || currency;
-            const amount = grandTotals[currency];
-            parts.push(`${symbol}${amount.toFixed(2)}`);
-        });
-        grandTotalElement.textContent = parts.join(' + ');
-    }
+    updateSidebar(grandTotals, sym);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+function updateSidebar(totals, sym) {
+    let usdAmt = 0, usdVat = 0;
+    document.querySelectorAll('.line-item-row').forEach(row => {
+        const a = row.querySelector('[name$="-amount"]');
+        const c = row.querySelector('[name$="-currency"]');
+        const v = row.querySelector('[name$="-vat_applicable"]');
+        if (a && a.value && c && c.value === 'USD') {
+            const amt = parseFloat(a.value) || 0;
+            usdAmt += amt;
+            if (v && v.checked) usdVat += amt * 0.1;
+        }
+    });
+    document.getElementById('sidebar-amount').textContent = '$' + usdAmt.toFixed(2);
+    document.getElementById('sidebar-vat').textContent    = '$' + usdVat.toFixed(2);
+    document.getElementById('sidebar-grand-total').textContent = '$' + (usdAmt + usdVat).toFixed(2);
+    const curs = Object.keys(totals).sort();
+    document.getElementById('sidebar-total').textContent = curs.length ? curs.map(c => `${sym[c]||c}${totals[c].toFixed(2)}`).join(' + ') : '$0.00';
+
+    const payeeEl = document.querySelector('[name="payee_name"]');
+    const dateEl  = document.querySelector('[name="payment_date"]');
+    const bankEl  = document.querySelector('[name="company_bank_account"]');
+    if (payeeEl && payeeEl.value) document.getElementById('sidebar-payee').textContent = payeeEl.value;
+    if (dateEl && dateEl.value)   document.getElementById('sidebar-date').textContent  = new Date(dateEl.value).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+    if (bankEl && bankEl.selectedOptions[0]) document.getElementById('sidebar-bank').textContent = bankEl.selectedOptions[0].text || '—';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
     calculateLineTotals();
 
-    document.querySelectorAll('[name$="-amount"], [name$="-currency"], [name$="-vat_applicable"]').forEach(el => {
+    document.querySelectorAll('[name$="-amount"],[name$="-currency"],[name$="-vat_applicable"]').forEach(el => {
         el.addEventListener('change', calculateLineTotals);
-        el.addEventListener('input', calculateLineTotals);
+        el.addEventListener('input',  calculateLineTotals);
     });
 
-    document.querySelectorAll('[name$="-vat_applicable"]').forEach(checkbox => {
-        checkbox.classList.add('vat-checkbox');
-    });
+    const payeeEl = document.querySelector('[name="payee_name"]');
+    const dateEl  = document.querySelector('[name="payment_date"]');
+    const bankEl  = document.querySelector('[name="company_bank_account"]');
+    if (payeeEl) { payeeEl.addEventListener('input', calculateLineTotals); payeeEl.addEventListener('change', calculateLineTotals); }
+    if (dateEl)  dateEl.addEventListener('change', calculateLineTotals);
+    if (bankEl)  bankEl.addEventListener('change', calculateLineTotals);
 
-    const form = document.getElementById('form-form');
+    document.querySelectorAll('[name$="-vat_applicable"]').forEach(cb => cb.classList.add('vat-checkbox'));
+
+    const form      = document.getElementById('form-form');
     const submitBtn = form.querySelector('.save-btn');
-
-    form.addEventListener('submit', function(e) {
-        // ⚡ OPTIMIZED: Quick validation only, no heavy processing
-        const hiddenInput = document.getElementById('deleted-attachments');
-
-        // Critical validation - must exist
-        if (!hiddenInput) {
-            e.preventDefault();
-            alert('Form error: Please refresh and try again.');
-            return false;
-        }
-
-        // Show loading overlay INSTANTLY for immediate feedback
-        const loadingOverlay = document.getElementById('loading-overlay');
-        if (loadingOverlay) {
-            loadingOverlay.classList.add('active');
-        }
-
-        // Show submitting state on button
+    form.addEventListener('submit', function (e) {
+        const hi = document.getElementById('deleted-attachments');
+        if (!hi) { e.preventDefault(); alert('Form error: Please refresh and try again.'); return false; }
+        document.getElementById('loading-overlay').classList.add('active');
         submitBtn.classList.add('submitting');
         submitBtn.disabled = true;
-
-        // Optional: Log for debugging (doesn't block submission)
-        console.log('Form submitting...');
     });
+
+    // Drag-drop upload
+    const lbl = document.querySelector('.attachment-upload-label');
+    const fi  = document.getElementById('id_attachments');
+    if (lbl && fi) {
+        ['dragenter','dragover','dragleave','drop'].forEach(ev => lbl.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }));
+        ['dragenter','dragover'].forEach(ev => lbl.addEventListener(ev, () => { lbl.style.borderColor='var(--teal)'; lbl.style.background='rgba(6,182,212,.04)'; }));
+        ['dragleave','drop'].forEach(ev => lbl.addEventListener(ev, () => { lbl.style.borderColor=''; lbl.style.background=''; }));
+        lbl.addEventListener('drop', e => { fi.files = e.dataTransfer.files; displaySelectedFiles(fi); if(fi.files.length) showNotification(`${fi.files.length} file(s) selected.`,'success'); });
+    }
 });
 
 function addLineItem() {
-    const tbody = document.getElementById('line-items-body');
+    const tbody          = document.getElementById('line-items-body');
     const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
-    const maxFormsInput = document.querySelector('input[name$="MAX_NUM_FORMS"]');
-
+    const maxFormsInput  = document.querySelector('input[name$="MAX_NUM_FORMS"]');
     let totalForms = parseInt(totalFormsInput.value);
-    const maxForms = parseInt(maxFormsInput.value);
-
-    if (totalForms >= maxForms) {
-        showNotification('Maximum number of line items reached (50).', 'warning');
-        return;
-    }
+    if (totalForms >= parseInt(maxFormsInput.value)) { showNotification('Maximum 50 line items reached.','warning'); return; }
 
     const firstRow = tbody.querySelector('.line-item-row');
-    if (!firstRow) {
-        showNotification('Error: No template row found.', 'danger');
-        return;
-    }
+    if (!firstRow) { showNotification('Error: No template row.','danger'); return; }
 
     const newRow = firstRow.cloneNode(true);
-    const newIndex = totalForms;
-
-    const badge = newRow.querySelector('.line-number-badge');
-    badge.textContent = newIndex + 1;
-
-    const fields = newRow.querySelectorAll('input, select, textarea');
-    fields.forEach(field => {
-        if (field.name) {
-            field.name = field.name.replace(/line_items-\d+-/, `line_items-${newIndex}-`);
-        }
-        if (field.id) {
-            field.id = field.id.replace(/id_line_items-\d+-/, `id_line_items-${newIndex}-`);
-        }
-
-        if (field.type !== 'hidden') {
-            if (field.type === 'checkbox') {
-                field.checked = false;
-            } else {
-                field.value = '';
-            }
-        }
-
-        if (field.name && field.name.includes('line_number')) {
-            field.value = '';
-        }
+    newRow.querySelector('.line-number-badge').textContent = totalForms + 1;
+    newRow.querySelectorAll('input,select,textarea').forEach(f => {
+        if (f.name) f.name = f.name.replace(/line_items-\d+-/, `line_items-${totalForms}-`);
+        if (f.id)   f.id   = f.id.replace(/id_line_items-\d+-/, `id_line_items-${totalForms}-`);
+        if (f.type !== 'hidden') { if (f.type === 'checkbox') f.checked = false; else f.value = ''; }
+        if (f.name && f.name.includes('line_number')) f.value = '';
     });
-
-    const errorMessages = newRow.querySelectorAll('small[style*="color"]');
-    errorMessages.forEach(msg => msg.remove());
-
-    const totalCell = newRow.querySelector('.line-total');
-    if (totalCell) {
-        totalCell.textContent = '$0.00';
-    }
+    newRow.querySelectorAll('small').forEach(e => e.remove());
+    const tc = newRow.querySelector('.line-total');
+    if (tc) tc.textContent = '$0.00';
 
     tbody.appendChild(newRow);
     totalFormsInput.value = totalForms + 1;
 
-    const newAmountInput = newRow.querySelector('[name$="-amount"]');
-    const newCurrencySelect = newRow.querySelector('[name$="-currency"]');
-    const newVatCheckbox = newRow.querySelector('[name$="-vat_applicable"]');
-    if (newAmountInput) {
-        newAmountInput.addEventListener('change', calculateLineTotals);
-        newAmountInput.addEventListener('input', calculateLineTotals);
-    }
-    if (newCurrencySelect) {
-        newCurrencySelect.addEventListener('change', calculateLineTotals);
-    }
-    if (newVatCheckbox) {
-        newVatCheckbox.addEventListener('change', calculateLineTotals);
-        newVatCheckbox.classList.add('vat-checkbox');
-    }
+    newRow.querySelectorAll('[name$="-amount"],[name$="-currency"],[name$="-vat_applicable"]').forEach(el => {
+        el.addEventListener('change', calculateLineTotals);
+        el.addEventListener('input',  calculateLineTotals);
+        if (el.type === 'checkbox') el.classList.add('vat-checkbox');
+    });
 
-    newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    const descField = newRow.querySelector('[name$="-description"]');
-    if (descField) {
-        setTimeout(() => descField.focus(), 300);
-    }
-
-    showNotification(`Line item ${newIndex + 1} added successfully!`, 'success');
-    console.log(`Added line item ${newIndex + 1}. Total forms: ${totalForms + 1}`);
+    newRow.scrollIntoView({ behavior:'smooth', block:'center' });
+    const desc = newRow.querySelector('[name$="-description"]');
+    if (desc) setTimeout(() => desc.focus(), 300);
+    showNotification(`Line item ${totalForms + 1} added.`, 'success');
 }
 
 function removeLineItem(button) {
-    const tbody = document.getElementById('line-items-body');
-    const rows = tbody.querySelectorAll('.line-item-row:not([data-deleted="true"])');
+    const tbody   = document.getElementById('line-items-body');
+    const visible = tbody.querySelectorAll('.line-item-row:not([data-deleted="true"])');
+    if (visible.length <= 1) { showNotification('You must have at least one line item.','warning'); return; }
 
-    // Don't allow removing if only one visible row left
-    if (rows.length <= 1) {
-        showNotification('You must have at least one line item.', 'warning');
-        return;
-    }
-
-    // Get the row to remove
-    const row = button.closest('.line-item-row');
-
-    // ✅ FIX: Check if this is an EXISTING item (has an ID) or NEW item
+    const row     = button.closest('.line-item-row');
     const idInput = row.querySelector('input[name$="-id"]');
-    const hasId = idInput && idInput.value;
 
-    if (hasId) {
-        // EXISTING item: Mark for deletion and hide (keep in DOM for Django formset)
-        const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
-        if (deleteCheckbox) {
-            deleteCheckbox.checked = true;
-        }
-
-        // Mark as deleted and hide
-        row.setAttribute('data-deleted', 'true');
-        row.style.opacity = '0';
-        row.style.transform = 'translateX(-20px)';
-
-        setTimeout(() => {
-            row.style.display = 'none';
-
-            // Renumber remaining visible rows
-            renumberRows();
-
-            // Recalculate totals
-            calculateLineTotals();
-
-            showNotification('Line item marked for deletion.', 'success');
-            console.log(`Existing line item (ID: ${idInput.value}) marked for deletion`);
-        }, 200);
+    if (idInput && idInput.value) {
+        const del = row.querySelector('input[name$="-DELETE"]');
+        if (del) del.checked = true;
+        row.setAttribute('data-deleted','true');
+        row.style.cssText += 'opacity:0;transform:translateX(-16px);transition:all .18s;';
+        setTimeout(() => { row.style.display='none'; renumberRows(); calculateLineTotals(); showNotification('Line marked for deletion.','success'); }, 200);
     } else {
-        // NEW item: Safe to remove from DOM completely
-        row.style.opacity = '0';
-        row.style.transform = 'translateX(-20px)';
-
+        row.style.cssText += 'opacity:0;transform:translateX(-16px);transition:all .18s;';
         setTimeout(() => {
             row.remove();
-
-            // Update TOTAL_FORMS count (only for new items being removed)
-            const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
-            totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
-
-            // Renumber remaining rows
-            renumberRows();
-
-            // Recalculate totals
-            calculateLineTotals();
-
-            showNotification('Line item removed successfully.', 'success');
-            console.log('New line item removed from DOM. Total forms:', totalFormsInput.value);
+            const tf = document.querySelector('input[name$="TOTAL_FORMS"]');
+            tf.value = parseInt(tf.value) - 1;
+            renumberRows(); calculateLineTotals();
+            showNotification('Line item removed.','success');
         }, 200);
     }
 }
 
 function renumberRows() {
-    // ✅ FIX: Only renumber visible rows (skip deleted rows)
-    const allRows = document.querySelectorAll('.line-item-row');
-    const visibleRows = Array.from(allRows).filter(row => !row.hasAttribute('data-deleted'));
-
-    // Renumber only visible rows
-    visibleRows.forEach((row, index) => {
-        // Update the badge number (1-based for display)
-        const badge = row.querySelector('.line-number-badge');
-        if (badge) {
-            badge.textContent = index + 1;
-        }
-    });
-
-    // Renumber ALL rows (including deleted) for proper formset indexing
-    allRows.forEach((row, index) => {
-        // Update form field names and IDs
-        const fields = row.querySelectorAll('input, select, textarea');
-        fields.forEach(field => {
-            if (field.name) {
-                field.name = field.name.replace(/line_items-\d+-/, `line_items-${index}-`);
-            }
-            if (field.id) {
-                field.id = field.id.replace(/id_line_items-\d+-/, `id_line_items-${index}-`);
-            }
+    const all = document.querySelectorAll('.line-item-row');
+    const vis = Array.from(all).filter(r => !r.hasAttribute('data-deleted'));
+    vis.forEach((r,i) => { const b = r.querySelector('.line-number-badge'); if(b) b.textContent = i+1; });
+    all.forEach((r,i) => {
+        r.querySelectorAll('input,select,textarea').forEach(f => {
+            if (f.name) f.name = f.name.replace(/line_items-\d+-/, `line_items-${i}-`);
+            if (f.id)   f.id   = f.id.replace(/id_line_items-\d+-/, `id_line_items-${i}-`);
         });
     });
-
-    console.log(`Renumbered: ${visibleRows.length} visible rows, ${allRows.length} total rows (including deleted)`);
 }
 
 function displaySelectedFiles(input) {
-    const filesList = document.getElementById('files-list');
-    const selectedFilesDiv = document.getElementById('selected-files-list');
-
-    filesList.innerHTML = '';
-
-    if (input.files.length === 0) {
-        selectedFilesDiv.style.display = 'none';
-        return;
-    }
-
-    selectedFilesDiv.style.display = 'block';
-
-    const dataTransfer = new DataTransfer();
-
-    Array.from(input.files).forEach((file, index) => {
-        dataTransfer.items.add(file);
-
+    const list = document.getElementById('files-list');
+    const wrap = document.getElementById('selected-files-list');
+    list.innerHTML = '';
+    if (!input.files.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    const dt = new DataTransfer();
+    Array.from(input.files).forEach((file, idx) => {
+        dt.items.add(file);
         const li = document.createElement('li');
-
-        const fileInfo = document.createElement('div');
-        fileInfo.className = 'file-info';
-
-        const icon = document.createElement('i');
-        icon.className = 'bi bi-file-earmark-pdf file-icon';
-        if (file.type.startsWith('image/')) {
-            icon.className = 'bi bi-file-earmark-image file-icon';
-        }
-
-        const fileName = document.createElement('span');
-        fileName.className = 'file-name';
-        fileName.textContent = file.name;
-
-        const fileSize = document.createElement('span');
-        fileSize.className = 'file-size';
-        fileSize.textContent = `(${(file.size / 1024).toFixed(1)} KB)`;
-
-        fileInfo.appendChild(icon);
-        fileInfo.appendChild(fileName);
-        fileInfo.appendChild(fileSize);
-
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'remove-file-btn';
-        removeBtn.innerHTML = '<i class="bi bi-x"></i> Remove';
-        removeBtn.onclick = function() {
-            removeFile(index, input);
-        };
-
-        li.appendChild(fileInfo);
-        li.appendChild(removeBtn);
-        filesList.appendChild(li);
+        li.innerHTML = `<div class="file-info"><i class="bi ${file.type.startsWith('image/') ? 'bi-file-earmark-image' : 'bi-file-earmark-pdf'} file-icon"></i><span class="file-name" style="color:var(--text-1);">${file.name}</span><span class="file-size">(${(file.size/1024).toFixed(1)} KB)</span></div><button type="button" class="remove-file-btn" onclick="removeFile(${idx},document.getElementById('id_attachments'))"><i class="bi bi-x"></i> Remove</button>`;
+        list.appendChild(li);
     });
-
-    input.files = dataTransfer.files;
+    input.files = dt.files;
 }
 
 function removeFile(index, input) {
-    const dataTransfer = new DataTransfer();
-
-    Array.from(input.files).forEach((file, i) => {
-        if (i !== index) {
-            dataTransfer.items.add(file);
-        }
-    });
-
-    input.files = dataTransfer.files;
+    const dt = new DataTransfer();
+    Array.from(input.files).forEach((f,i) => { if(i!==index) dt.items.add(f); });
+    input.files = dt.files;
     displaySelectedFiles(input);
-
-    showNotification('File removed successfully.', 'success');
+    showNotification('File removed.','success');
 }
 
-// ✅ FIXED: Remove existing attachment with defensive validation
-function removeExistingAttachment(attachmentId, fileName) {
-    // ✅ FIX: Defensive check - ensure hidden input exists
-    const hiddenInput = document.getElementById('deleted-attachments');
-    if (!hiddenInput) {
-        console.error('❌ CRITICAL: Hidden input disappeared! Cannot track deletions.');
-        alert('Critical error: Unable to track deleted attachments. Please refresh the page and try again.');
-        return;
-    }
-
-    console.log('=== REMOVING ATTACHMENT ===');
-    console.log('Attachment ID:', attachmentId);
-    console.log('Before - deletedAttachments array:', deletedAttachments);
-
-    // Add to deleted list
-    deletedAttachments.push(attachmentId);
-
-    // Update hidden input with comma-separated IDs
-    hiddenInput.value = deletedAttachments.join(',');
-
-    // Verify update succeeded
-    if (hiddenInput.value === deletedAttachments.join(',')) {
-        console.log('✅ After - deletedAttachments array:', deletedAttachments);
-        console.log('✅ Hidden input value:', hiddenInput.value);
-    } else {
-        console.error('❌ Hidden input value mismatch!');
-        console.error('Expected:', deletedAttachments.join(','));
-        console.error('Actual:', hiddenInput.value);
-    }
-    console.log('============================');
-
-    // Remove from UI
-    const listItem = document.querySelector(`li[data-attachment-id="${attachmentId}"]`);
-    if (listItem) {
-        listItem.style.opacity = '0';
-        listItem.style.transform = 'translateX(-20px)';
-
+function removeExistingAttachment(id, name) {
+    const hi = document.getElementById('deleted-attachments');
+    if (!hi) { alert('Critical error: refresh and try again.'); return; }
+    deletedAttachments.push(id);
+    hi.value = deletedAttachments.join(',');
+    const li = document.querySelector(`li[data-attachment-id="${id}"]`);
+    if (li) {
+        li.style.cssText += 'opacity:0;transform:translateX(-14px);transition:all .18s;';
         setTimeout(() => {
-            listItem.remove();
-
-            // Check if list is empty
-            const existingFilesList = document.getElementById('existing-files-list');
-            if (existingFilesList && existingFilesList.children.length === 0) {
-                const container = document.getElementById('existing-attachments-container');
-                if (container) {
-                    container.innerHTML = `
-                        <div style="background: var(--gray-50); border: 1px dashed var(--gray-300); border-radius: var(--radius-md); padding: var(--spacing-md); text-align: center; color: var(--gray-600); font-size: 0.875rem;">
-                            <i class="bi bi-inbox"></i> All attachments removed. They will be deleted when you save.
-                        </div>
-                    `;
-                }
+            li.remove();
+            const ul = document.getElementById('existing-files-list');
+            if (ul && !ul.children.length) {
+                const c = document.getElementById('existing-attachments-container');
+                if (c) c.innerHTML = `<div style="text-align:center;color:var(--text-3);font-size:.8rem;padding:10px;"><i class="bi bi-inbox"></i> All attachments removed.</div>`;
             }
-
-            showNotification(`"${fileName}" will be deleted when you save the payment form.`, 'warning');
+            showNotification(`"${name}" will be deleted on save.`,'warning');
         }, 200);
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadLabel = document.querySelector('.attachment-upload-label');
-    const fileInput = document.getElementById('id_attachments');
-
-    if (!uploadLabel || !fileInput) return;
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadLabel.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        uploadLabel.addEventListener(eventName, () => {
-            uploadLabel.style.borderColor = '#10b981';
-            uploadLabel.style.background = '#a7f3d0';
-        }, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        uploadLabel.addEventListener(eventName, () => {
-            uploadLabel.style.borderColor = '#34d399';
-            uploadLabel.style.background = '#d1fae5';
-        }, false);
-    });
-
-    uploadLabel.addEventListener('drop', function(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-
-        fileInput.files = files;
-        displaySelectedFiles(fileInput);
-
-        if (files.length > 0) {
-            showNotification(`${files.length} file(s) selected successfully.`, 'success');
-        }
-    }, false);
-});
+function saveDraft() {
+    const sf = document.querySelector('[name="status"]');
+    if (sf) sf.value = 'DRAFT';
+    showNotification('Saving draft...','info');
+    setTimeout(() => document.getElementById('form-form').submit(), 400);
+}
 </script>
 {% endblock %}

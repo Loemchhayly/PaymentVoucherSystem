@@ -1,341 +1,470 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}My Signature Batches{% endblock %}
+{% block title %}My Batches{% endblock %}
 
-{% block content %}
-<div class="container-fluid" style="max-width: 1400px; margin-top: -2rem;">
-    <!-- Page Header -->
-    <div class="page-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h1 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0;">
-                <i class="bi bi-folder2-open" style="color: #667eea; font-size: 1.75rem;"></i>
-                My Signature Batches
-            </h1>
-            <p style="color: #6b7280; margin-top: 0.25rem; font-size: 0.9rem;">Track status of batches you sent to MD</p>
-        </div>
-        <div>
-            <a href="{% url 'vouchers:batch_select' %}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-circle"></i> Create New Batch
-            </a>
-            <a href="{% url 'dashboard:home' %}" class="btn btn-secondary btn-sm">
-                <i class="bi bi-arrow-left"></i> Back
-            </a>
-        </div>
-    </div>
-
-    <!-- Stats Summary -->
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <div class="card" style="border-left: 4px solid #f59e0b;">
-                <div class="card-body" style="padding: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <small style="color: #6b7280; text-transform: uppercase; font-weight: 600;">Pending</small>
-                            <h3 style="margin: 0.25rem 0 0 0; color: #f59e0b;">{{ pending_count }}</h3>
-                        </div>
-                        <i class="bi bi-hourglass-split" style="font-size: 2rem; color: #f59e0b; opacity: 0.3;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card" style="border-left: 4px solid #10b981;">
-                <div class="card-body" style="padding: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <small style="color: #6b7280; text-transform: uppercase; font-weight: 600;">Signed</small>
-                            <h3 style="margin: 0.25rem 0 0 0; color: #10b981;">{{ signed_count }}</h3>
-                        </div>
-                        <i class="bi bi-check-circle" style="font-size: 2rem; color: #10b981; opacity: 0.3;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card" style="border-left: 4px solid #ef4444;">
-                <div class="card-body" style="padding: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <small style="color: #6b7280; text-transform: uppercase; font-weight: 600;">Rejected</small>
-                            <h3 style="margin: 0.25rem 0 0 0; color: #ef4444;">{{ rejected_count }}</h3>
-                        </div>
-                        <i class="bi bi-x-circle" style="font-size: 2rem; color: #ef4444; opacity: 0.3;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pending Batches -->
-    {% if pending_batches %}
-    <div class="card mb-3">
-        <div class="card-header" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; border: none;">
-            <h5 style="margin: 0;">
-                <i class="bi bi-hourglass-split"></i>
-                Pending MD Signature ({{ pending_count }})
-            </h5>
-        </div>
-        <div class="card-body" style="padding: 0;">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead style="background: #f9fafb;">
-                        <tr>
-                            <th>Batch Number</th>
-                            <th>Created</th>
-                            <th>Documents</th>
-                            <th>Total Amount</th>
-                            <th>Notes</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for batch in pending_batches %}
-                        <tr class="clickable-row" data-href="{% url 'vouchers:batch_detail' batch.id %}">
-                            <td>
-                                <strong style="color: #667eea;">{{ batch.batch_number }}</strong>
-                            </td>
-                            <td>{{ batch.created_at|date:"M d, Y H:i" }}</td>
-                            <td>
-                                <span class="badge bg-primary">{{ batch.get_document_count }}</span>
-                            </td>
-                            <td>
-                                <strong style="color: #10b981;">{{ batch.get_total_amount_display }}</strong>
-                            </td>
-                            <td>
-                                {% if batch.fm_notes %}
-                                <small>{{ batch.fm_notes|truncatewords:8 }}</small>
-                                {% else %}
-                                <small class="text-muted">No notes</small>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i> View
-                                </a>
-                                <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-file-earmark-excel"></i> Excel
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Signed Batches -->
-    {% if signed_batches %}
-    <div class="card mb-3">
-        <div class="card-header" style="background: #f9fafb; border-bottom: 2px solid #10b981;">
-            <h5 style="margin: 0; color: #10b981;">
-                <i class="bi bi-check-circle"></i>
-                Signed by MD ({{ signed_count }})
-            </h5>
-        </div>
-        <div class="card-body" style="padding: 0;">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead style="background: #f9fafb;">
-                        <tr>
-                            <th>Batch Number</th>
-                            <th>Created</th>
-                            <th>Signed</th>
-                            <th>Documents</th>
-                            <th>Total Amount</th>
-                            <th>Signed By</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for batch in signed_batches %}
-                        <tr class="clickable-row" data-href="{% url 'vouchers:batch_detail' batch.id %}">
-                            <td>
-                                <strong style="color: #667eea;">{{ batch.batch_number }}</strong>
-                            </td>
-                            <td>
-                                <small>{{ batch.created_at|date:"M d, Y" }}</small>
-                            </td>
-                            <td>
-                                <small style="color: #10b981; font-weight: 600;">
-                                    {{ batch.signed_at|date:"M d, Y H:i" }}
-                                </small>
-                            </td>
-                            <td>
-                                <span class="badge bg-primary">{{ batch.get_document_count }}</span>
-                            </td>
-                            <td>
-                                <strong style="color: #10b981;">{{ batch.get_total_amount_display }}</strong>
-                            </td>
-                            <td>
-                                {% if batch.signed_by.get_full_name %}
-                                    {{ batch.signed_by.get_full_name }}
-                                {% else %}
-                                    {{ batch.signed_by.username }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-eye"></i> View
-                                </a>
-                                <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="btn btn-sm btn-success">
-                                    <i class="bi bi-file-earmark-excel"></i> Excel
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Rejected Batches -->
-    {% if rejected_batches %}
-    <div class="card mb-3">
-        <div class="card-header" style="background: #f9fafb; border-bottom: 2px solid #ef4444;">
-            <h5 style="margin: 0; color: #ef4444;">
-                <i class="bi bi-x-circle"></i>
-                Rejected by MD ({{ rejected_count }})
-            </h5>
-        </div>
-        <div class="card-body" style="padding: 0;">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead style="background: #f9fafb;">
-                        <tr>
-                            <th>Batch Number</th>
-                            <th>Created</th>
-                            <th>Rejected</th>
-                            <th>Documents</th>
-                            <th>Total Amount</th>
-                            <th>MD Comments</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for batch in rejected_batches %}
-                        <tr class="clickable-row" data-href="{% url 'vouchers:batch_detail' batch.id %}">
-                            <td>
-                                <strong style="color: #667eea;">{{ batch.batch_number }}</strong>
-                            </td>
-                            <td>
-                                <small>{{ batch.created_at|date:"M d, Y" }}</small>
-                            </td>
-                            <td>
-                                <small style="color: #ef4444; font-weight: 600;">
-                                    {{ batch.signed_at|date:"M d, Y H:i" }}
-                                </small>
-                            </td>
-                            <td>
-                                <span class="badge bg-primary">{{ batch.get_document_count }}</span>
-                            </td>
-                            <td>
-                                <strong style="color: #6b7280;">{{ batch.get_total_amount_display }}</strong>
-                            </td>
-                            <td>
-                                {% if batch.md_comments %}
-                                <small style="color: #ef4444;">{{ batch.md_comments|truncatewords:10 }}</small>
-                                {% else %}
-                                <small class="text-muted">No reason given</small>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-danger">
-                                    <i class="bi bi-eye"></i> View
-                                </a>
-                                <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-file-earmark-excel"></i> Excel
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Empty State -->
-    {% if not pending_batches and not signed_batches and not rejected_batches %}
-    <div class="card">
-        <div class="card-body text-center" style="padding: 3rem;">
-            <i class="bi bi-inbox" style="font-size: 4rem; color: #d1d5db;"></i>
-            <h5 style="color: #6b7280; margin-top: 1rem;">No batches created yet</h5>
-            <p style="color: #9ca3af;">Create your first signature batch to get started</p>
-            <a href="{% url 'vouchers:batch_select' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Create Signature Batch
-            </a>
-        </div>
-    </div>
-    {% endif %}
-</div>
-
-<script>
-// Make table rows clickable
-document.addEventListener('DOMContentLoaded', function() {
-    const clickableRows = document.querySelectorAll('.clickable-row');
-
-    clickableRows.forEach(row => {
-        row.addEventListener('click', function(e) {
-            // Don't navigate if clicking on a link or button
-            if (e.target.closest('a, button')) {
-                return;
-            }
-
-            // Get the href from data attribute
-            const href = this.dataset.href;
-            if (href) {
-                window.location.href = href;
-            }
-        });
-    });
-});
-</script>
-
+{% block extra_css %}
 <style>
-.clickable-row {
+/* ── Animations ── */
+@keyframes mbFadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.mb-fade { animation: mbFadeUp 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+.mb-fade:nth-child(1) { animation-delay: 0.04s; }
+.mb-fade:nth-child(2) { animation-delay: 0.10s; }
+.mb-fade:nth-child(3) { animation-delay: 0.16s; }
+.mb-fade:nth-child(4) { animation-delay: 0.22s; }
+.mb-fade:nth-child(5) { animation-delay: 0.28s; }
+
+/* ── Stats row ── */
+.mb-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.mb-stat {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all var(--transition-base);
+}
+.mb-stat:hover {
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+}
+
+.mb-stat-icon {
+    width: 42px; height: 42px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.mb-stat-icon.amber { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
+.mb-stat-icon.green { background: var(--success-light); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+.mb-stat-icon.red   { background: var(--danger-light);  color: var(--danger);  border: 1px solid rgba(239,68,68,0.25); }
+
+.mb-stat-val {
+    font-size: 1.875rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--text-primary);
+    letter-spacing: -1.5px;
+}
+.mb-stat-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-top: 3px;
+}
+
+/* ── Section panel ── */
+.mb-section {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    margin-bottom: 16px;
+    transition: all var(--transition-base);
+}
+.mb-section:hover { box-shadow: var(--shadow-md); }
+
+.mb-section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+}
+
+.mb-section-icon {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+}
+.mb-section-icon.amber { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
+.mb-section-icon.green { background: var(--success-light); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+.mb-section-icon.red   { background: var(--danger-light);  color: var(--danger);  border: 1px solid rgba(239,68,68,0.25); }
+
+.mb-section-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.mb-section-count {
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 2px 9px;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.mb-section-count.amber { background: var(--warning-light); color: var(--warning);  border: 1px solid rgba(245,158,11,0.25); }
+.mb-section-count.green { background: var(--success-light); color: var(--success);  border: 1px solid rgba(34,197,94,0.25); }
+.mb-section-count.red   { background: var(--danger-light);  color: var(--danger);   border: 1px solid rgba(239,68,68,0.25); }
+
+/* ── Custom table inside sections ── */
+.mb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.7875rem;
+}
+.mb-table thead th {
+    padding: 9px 16px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+.mb-table tbody tr {
+    border-bottom: 1px solid var(--border);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background var(--transition-fast);
+}
+.mb-table tbody tr:last-child { border-bottom: none; }
+.mb-table tbody tr:hover td  { background: rgba(6,182,212,0.04); color: var(--text-primary); }
+.mb-table td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    color: var(--text-secondary);
 }
 
-.clickable-row:hover {
-    background: #f3f4f6 !important;
-    transform: scale(1.005);
+/* ── Cell helpers ── */
+.mb-batch-num {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 0.8125rem; font-weight: 700;
+    color: var(--text-primary);
+}
+.mb-batch-num i { font-size: 0.72rem; color: var(--text-muted); }
+
+.mb-date { font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
+.mb-date.accent-green { color: var(--success); font-weight: 600; }
+.mb-date.accent-red   { color: var(--danger);  font-weight: 600; }
+
+.mb-doc-count {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--info-light);
+    border: 1px solid rgba(59,130,246,0.25);
+    color: #60a5fa;
+    font-size: 0.62rem; font-weight: 800;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
 }
 
-.clickable-row:active {
-    background: #e5e7eb !important;
-}
+.mb-amount { font-size: 0.8rem; font-weight: 700; color: var(--success); }
+.mb-amount.muted { color: var(--text-muted); }
 
-.badge {
-    pointer-events: none;
-}
+.mb-note { font-size: 0.7rem; color: var(--text-muted); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mb-note.red-note { color: var(--danger); }
+.mb-note.none { color: var(--text-muted); font-style: italic; opacity: 0.6; }
 
+.mb-signed-by { display: flex; align-items: center; gap: 7px; }
+.mb-mini-avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cyan-500), #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.52rem; font-weight: 800; color: white;
+    flex-shrink: 0; text-transform: uppercase;
+}
+.mb-signed-name { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); }
+
+/* ── Row action buttons ── */
+.mb-row-actions { display: flex; gap: 5px; align-items: center; }
+
+.mb-tbl-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.65rem; font-weight: 700;
+    font-family: var(--font-body);
+    cursor: pointer; text-decoration: none;
+    transition: all var(--transition-fast);
+    border: 1px solid; white-space: nowrap;
+}
+.mb-tbl-btn.view-amber { background: var(--warning-light); border-color: rgba(245,158,11,0.3); color: var(--warning); }
+.mb-tbl-btn.view-amber:hover { background: var(--warning); color: white; border-color: var(--warning); }
+.mb-tbl-btn.view-green { background: var(--success-light); border-color: rgba(34,197,94,0.3); color: var(--success); }
+.mb-tbl-btn.view-green:hover { background: var(--success); color: white; border-color: var(--success); }
+.mb-tbl-btn.view-red   { background: var(--danger-light);  border-color: rgba(239,68,68,0.3);  color: var(--danger); }
+.mb-tbl-btn.view-red:hover   { background: var(--danger);  color: white; border-color: var(--danger); }
+.mb-tbl-btn.excel { background: var(--success-light); border-color: rgba(34,197,94,0.3); color: var(--success); }
+.mb-tbl-btn.excel:hover { background: var(--success); color: white; border-color: var(--success); }
+
+/* ── Empty state ── */
+.mb-empty {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 56px 24px;
+    text-align: center;
+}
+.mb-empty-icon {
+    width: 60px; height: 60px;
+    background: rgba(6,182,212,0.08);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-lg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: var(--cyan-400);
+    margin: 0 auto 16px;
+}
+.mb-empty h5 { font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
+.mb-empty p  { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 20px; }
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 0.75rem;
-    }
-
-    .page-header > div:last-child {
-        display: flex;
-        gap: 0.5rem;
-        width: 100%;
-    }
-
-    .page-header .btn {
-        flex: 1;
-    }
-
-    .table {
-        font-size: 0.875rem;
-    }
+    .mb-stats { grid-template-columns: 1fr; }
+    .mb-table { font-size: 0.72rem; }
+    .mb-table td, .mb-table th { padding: 8px 10px; }
 }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="content-container-wide" style="padding-top: 0.25rem;">
+
+    <!-- ── Page Header ── -->
+    <div class="page-header mb-fade">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-folder2-open"></i>
+                My Signature Batches
+            </h1>
+            <p class="page-subtitle">Track status of batches submitted for MD approval</p>
+        </div>
+        <div class="page-actions">
+            <a href="{% url 'vouchers:batch_select' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg"></i> New Batch
+            </a>
+            <a href="{% url 'dashboard:home' %}" class="btn btn-ghost btn-sm">
+                <i class="bi bi-arrow-left"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- ── Stats ── -->
+    <div class="mb-stats mb-fade">
+        <div class="mb-stat">
+            <div class="mb-stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+            <div>
+                <div class="mb-stat-val">{{ pending_count }}</div>
+                <div class="mb-stat-label">Awaiting Signature</div>
+            </div>
+        </div>
+        <div class="mb-stat">
+            <div class="mb-stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+            <div>
+                <div class="mb-stat-val">{{ signed_count }}</div>
+                <div class="mb-stat-label">Signed by MD</div>
+            </div>
+        </div>
+        <div class="mb-stat">
+            <div class="mb-stat-icon red"><i class="bi bi-x-circle-fill"></i></div>
+            <div>
+                <div class="mb-stat-val">{{ rejected_count }}</div>
+                <div class="mb-stat-label">Rejected</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Pending ── -->
+    {% if pending_batches %}
+    <div class="mb-section mb-fade">
+        <div class="mb-section-head">
+            <div class="mb-section-icon amber"><i class="bi bi-hourglass-split"></i></div>
+            <span class="mb-section-title">Awaiting MD Signature</span>
+            <span class="mb-section-count amber">{{ pending_count }}</span>
+        </div>
+        <table class="mb-table">
+            <thead>
+                <tr>
+                    <th>Batch</th>
+                    <th>Created</th>
+                    <th>Docs</th>
+                    <th>Total</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch in pending_batches %}
+                <tr onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
+                    <td>
+                        <div class="mb-batch-num">
+                            <i class="bi bi-folder"></i>
+                            {{ batch.batch_number }}
+                        </div>
+                    </td>
+                    <td><span class="mb-date">{{ batch.created_at|date:"d M Y · H:i" }}</span></td>
+                    <td><span class="mb-doc-count"><i class="bi bi-files"></i> {{ batch.get_document_count }}</span></td>
+                    <td><span class="mb-amount">{{ batch.get_total_amount_display }}</span></td>
+                    <td>
+                        {% if batch.fm_notes %}
+                            <span class="mb-note">{{ batch.fm_notes|truncatewords:8 }}</span>
+                        {% else %}
+                            <span class="mb-note none">No notes</span>
+                        {% endif %}
+                    </td>
+                    <td onclick="event.stopPropagation()">
+                        <div class="mb-row-actions">
+                            <a href="{% url 'vouchers:batch_detail' batch.id %}" class="mb-tbl-btn view-amber">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="mb-tbl-btn excel">
+                                <i class="bi bi-file-earmark-excel"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ── Signed ── -->
+    {% if signed_batches %}
+    <div class="mb-section mb-fade">
+        <div class="mb-section-head">
+            <div class="mb-section-icon green"><i class="bi bi-patch-check-fill"></i></div>
+            <span class="mb-section-title">Signed by MD</span>
+            <span class="mb-section-count green">{{ signed_count }}</span>
+        </div>
+        <table class="mb-table">
+            <thead>
+                <tr>
+                    <th>Batch</th>
+                    <th>Created</th>
+                    <th>Signed</th>
+                    <th>Docs</th>
+                    <th>Total</th>
+                    <th>Signed By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch in signed_batches %}
+                <tr onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
+                    <td>
+                        <div class="mb-batch-num">
+                            <i class="bi bi-folder-check"></i>
+                            {{ batch.batch_number }}
+                        </div>
+                    </td>
+                    <td><span class="mb-date">{{ batch.created_at|date:"d M Y" }}</span></td>
+                    <td><span class="mb-date accent-green">{{ batch.signed_at|date:"d M Y · H:i" }}</span></td>
+                    <td><span class="mb-doc-count"><i class="bi bi-files"></i> {{ batch.get_document_count }}</span></td>
+                    <td><span class="mb-amount">{{ batch.get_total_amount_display }}</span></td>
+                    <td>
+                        <div class="mb-signed-by">
+                            <div class="mb-mini-avatar">{{ batch.signed_by.get_full_name|default:batch.signed_by.username|slice:":2" }}</div>
+                            <span class="mb-signed-name">{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}</span>
+                        </div>
+                    </td>
+                    <td onclick="event.stopPropagation()">
+                        <div class="mb-row-actions">
+                            <a href="{% url 'vouchers:batch_detail' batch.id %}" class="mb-tbl-btn view-green">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="mb-tbl-btn excel">
+                                <i class="bi bi-file-earmark-excel"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ── Rejected ── -->
+    {% if rejected_batches %}
+    <div class="mb-section mb-fade">
+        <div class="mb-section-head">
+            <div class="mb-section-icon red"><i class="bi bi-x-octagon-fill"></i></div>
+            <span class="mb-section-title">Rejected by MD</span>
+            <span class="mb-section-count red">{{ rejected_count }}</span>
+        </div>
+        <table class="mb-table">
+            <thead>
+                <tr>
+                    <th>Batch</th>
+                    <th>Created</th>
+                    <th>Rejected</th>
+                    <th>Docs</th>
+                    <th>Total</th>
+                    <th>MD Reason</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch in rejected_batches %}
+                <tr onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
+                    <td>
+                        <div class="mb-batch-num">
+                            <i class="bi bi-folder-x"></i>
+                            {{ batch.batch_number }}
+                        </div>
+                    </td>
+                    <td><span class="mb-date">{{ batch.created_at|date:"d M Y" }}</span></td>
+                    <td><span class="mb-date accent-red">{{ batch.signed_at|date:"d M Y · H:i" }}</span></td>
+                    <td><span class="mb-doc-count"><i class="bi bi-files"></i> {{ batch.get_document_count }}</span></td>
+                    <td><span class="mb-amount muted">{{ batch.get_total_amount_display }}</span></td>
+                    <td>
+                        {% if batch.md_comments %}
+                            <span class="mb-note red-note">{{ batch.md_comments|truncatewords:10 }}</span>
+                        {% else %}
+                            <span class="mb-note none">No reason given</span>
+                        {% endif %}
+                    </td>
+                    <td onclick="event.stopPropagation()">
+                        <div class="mb-row-actions">
+                            <a href="{% url 'vouchers:batch_detail' batch.id %}" class="mb-tbl-btn view-red">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="mb-tbl-btn excel">
+                                <i class="bi bi-file-earmark-excel"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ── Empty ── -->
+    {% if not pending_batches and not signed_batches and not rejected_batches %}
+    <div class="mb-empty mb-fade">
+        <div class="mb-empty-icon"><i class="bi bi-folder2-open"></i></div>
+        <h5>No batches yet</h5>
+        <p>Create your first signature batch to submit documents to MD</p>
+        <a href="{% url 'vouchers:batch_select' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> Create Signature Batch
+        </a>
+    </div>
+    {% endif %}
+
+</div>
 {% endblock %}

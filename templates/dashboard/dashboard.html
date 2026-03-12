@@ -1,1255 +1,823 @@
 {% extends 'base.html' %}
-
-{% block title %}Dashboard - Payment Voucher System{% endblock %}
+{% block title %}Dashboard — Payment Voucher System{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* ==================== Dashboard Specific Styles ==================== */
-    .dashboard-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 var(--spacing-xl);
-        opacity: 0;
-        animation: fadeInPage 0.5s ease-in 0.1s forwards;
-    }
-
-    @keyframes fadeInPage {
-        to { opacity: 1; }
-    }
-
-    @keyframes fadeInUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Pulse animation for pending status */
-    @keyframes pulse {
-        0%, 100% {
-            box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
-        }
-        50% {
-            box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
-        }
-    }
-
-    @keyframes iconPulse {
-        0%, 100% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.1);
-        }
-    }
-
-    /* Pending card special effects */
-    .stat-card.warning.pending-action {
-        animation: fadeInUp 0.5s ease-out 0.15s forwards, pulse 2s ease-in-out infinite;
-        border: 2px solid #fbbf24;
-    }
-
-    .stat-card.warning.pending-action::before {
-        background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24);
-        background-size: 200% 100%;
-        animation: shimmer 3s linear infinite;
-    }
-
-    @keyframes shimmer {
-        0% {
-            background-position: -200% 0;
-        }
-        100% {
-            background-position: 200% 0;
-        }
-    }
-
-    .stat-card.warning.pending-action .stat-card-icon {
-        animation: iconPulse 2s ease-in-out infinite;
-        box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
-    }
-
-    .stat-card.warning.pending-action:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
-        border-color: #f59e0b;
-    }
-
-    /* In Progress card special effects */
-    .stat-card.info.in-progress-action {
-        animation: fadeInUp 0.5s ease-out 0.45s forwards, pulseBlue 2s ease-in-out infinite;
-        border: 2px solid #60a5fa;
-    }
-
-    @keyframes pulseBlue {
-        0%, 100% {
-            box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.7);
-        }
-        50% {
-            box-shadow: 0 0 0 10px rgba(96, 165, 250, 0);
-        }
-    }
-
-    .stat-card.info.in-progress-action::before {
-        background: linear-gradient(90deg, #60a5fa, #3b82f6, #60a5fa);
-        background-size: 200% 100%;
-        animation: shimmer 3s linear infinite;
-    }
-
-    .stat-card.info.in-progress-action .stat-card-icon {
-        animation: iconRotate 3s linear infinite;
-        box-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
-    }
-
-    @keyframes iconRotate {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    .stat-card.info.in-progress-action:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 10px 30px rgba(96, 165, 250, 0.3);
-        border-color: #3b82f6;
-    }
-
-    /* Extra Large Screens */
-    @media (min-width: 1800px) {
-        .dashboard-container {
-            max-width: 1400px;
-        }
-    }
-
-    .page-header {
-        margin-bottom: var(--spacing-2xl);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: var(--spacing-md);
-    }
-
-    .page-title {
-        font-family: var(--font-heading);
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--gray-900);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
-        margin: 0;
-    }
-
-    .page-title i {
-        font-size: 2.5rem;
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    /* Stats Cards Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: var(--spacing-lg);
-        margin-bottom: var(--spacing-2xl);
-    }
-
-    /* Force 5 columns on large screens */
-    @media (min-width: 1200px) {
-        .stats-grid {
-            grid-template-columns: repeat(5, 1fr);
-        }
-    }
-
-    .stat-card {
-        background: white;
-        border-radius: var(--radius-xl);
-        padding: var(--spacing-lg);
-        box-shadow: var(--shadow-md);
-        transition: all var(--transition-base);
-        position: relative;
-        overflow: hidden;
-        border: 2px solid transparent;
-        opacity: 0;
-        transform: translateY(20px);
-        animation: fadeInUp 0.5s ease-out forwards;
-    }
-
-    /* Staggered animation for stat cards */
-    .stat-card:nth-child(1) { animation-delay: 0.15s; }
-    .stat-card:nth-child(2) { animation-delay: 0.25s; }
-    .stat-card:nth-child(3) { animation-delay: 0.35s; }
-    .stat-card:nth-child(4) { animation-delay: 0.45s; }
-    .stat-card:nth-child(5) { animation-delay: 0.55s; }
-    .stat-card:nth-child(6) { animation-delay: 0.65s; }
-
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-400), var(--primary-600));
-        transition: height var(--transition-base);
-    }
-
-    .stat-card:hover {
-        transform: translateY(-8px);
-        box-shadow: var(--shadow-xl);
-        border-color: var(--primary-200);
-    }
-
-    .stat-card:hover::before {
-        height: 6px;
-    }
-
-    .stat-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: var(--spacing-lg);
-    }
-
-    .stat-card-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: var(--radius-lg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        box-shadow: var(--shadow-md);
-        transition: all var(--transition-base);
-    }
-
-    .stat-card:hover .stat-card-icon {
-        transform: scale(1.1) rotate(5deg);
-    }
-
-    .stat-card.warning .stat-card-icon {
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        color: white;
-    }
-
-    .stat-card.primary .stat-card-icon {
-        background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
-        color: white;
-    }
-
-    .stat-card.info .stat-card-icon {
-        background: linear-gradient(135deg, #60a5fa, #3b82f6);
-        color: white;
-    }
-
-    .stat-card.success .stat-card-icon {
-        background: linear-gradient(135deg, #34d399, #10b981);
-        color: white;
-    }
-
-    .stat-card-title {
-        font-family: var(--font-body);
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--gray-600);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .stat-card-value {
-        font-family: var(--font-heading);
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--gray-900);
-        line-height: 1;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .stat-card-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: var(--spacing-md);
-        border-top: 1px solid var(--gray-200);
-    }
-
-    .stat-card-link {
-        font-family: var(--font-body);
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--primary-600);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-xs);
-        transition: all var(--transition-fast);
-    }
-
-    .stat-card-link:hover {
-        color: var(--primary-700);
-        gap: var(--spacing-sm);
-    }
-
-    .stat-card-link i {
-        font-size: 1rem;
-        transition: transform var(--transition-fast);
-    }
-
-    .stat-card-link:hover i {
-        transform: translateX(3px);
-    }
-
-    /* Quick Actions Section with Animation */
-    .quick-actions-card {
-        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-        border-radius: var(--radius-xl);
-        padding: var(--spacing-2xl);
-        margin-bottom: var(--spacing-2xl);
-        box-shadow: var(--shadow-lg);
-        position: relative;
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(20px);
-        animation: fadeInUp 0.5s ease-out 0.55s forwards;
-    }
-
-    .quick-actions-card::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-        border-radius: 50%;
-    }
-
-    .quick-actions-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: var(--spacing-lg);
-        position: relative;
-        z-index: 1;
-    }
-
-    .quick-actions-title {
-        font-family: var(--font-heading);
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: white;
-        margin: 0;
-    }
-
-    .quick-actions-buttons {
-        display: flex;
-        gap: var(--spacing-md);
-        flex-wrap: wrap;
-        position: relative;
-        z-index: 1;
-    }
-
-    .action-btn {
-        background: white;
-        color: var(--primary-700);
-        border: none;
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-md) var(--spacing-xl);
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 1rem;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        text-decoration: none;
-        box-shadow: var(--shadow-md);
-        transition: all var(--transition-base);
-    }
-
-    .action-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-xl);
-        background: var(--gray-50);
-        color: var(--primary-800);
-    }
-
-    .action-btn i {
-        font-size: 1.25rem;
-    }
-
-    /* Recent Vouchers Table with Animation */
-    .vouchers-card {
-        background: white;
-        border-radius: var(--radius-xl);
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(20px);
-        animation: fadeInUp 0.5s ease-out 0.65s forwards;
-    }
-
-    .vouchers-card-header {
-        background: linear-gradient(135deg, var(--gray-50) 0%, var(--primary-50) 100%);
-        padding: var(--spacing-xl);
-        border-bottom: 2px solid var(--gray-200);
-    }
-
-    .vouchers-card-title {
-        font-family: var(--font-heading);
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--gray-900);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
-
-    .vouchers-card-title i {
-        font-size: 1.75rem;
-        color: var(--primary-600);
-    }
-
-    .vouchers-card-body {
-        padding: 0;
-    }
-
-    /* Modern Table */
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .modern-table thead {
-        background: var(--gray-50);
-    }
-
-    .modern-table th {
-        font-family: var(--font-body);
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: var(--spacing-md) var(--spacing-lg);
-        text-align: left;
-        border-bottom: 2px solid var(--gray-200);
-    }
-
-    .modern-table td {
-        font-family: var(--font-body);
-        font-size: 0.9375rem;
-        color: var(--gray-800);
-        padding: var(--spacing-lg);
-        border-bottom: 1px solid var(--gray-100);
-    }
-
-    .modern-table tbody tr {
-        transition: all var(--transition-fast);
-        opacity: 0;
-        transform: translateY(10px);
-        animation: fadeInUp 0.4s ease-out forwards;
-    }
-
-    /* Staggered animation for table rows */
-    .modern-table tbody tr:nth-child(1) { animation-delay: 0.75s; }
-    .modern-table tbody tr:nth-child(2) { animation-delay: 0.8s; }
-    .modern-table tbody tr:nth-child(3) { animation-delay: 0.85s; }
-    .modern-table tbody tr:nth-child(4) { animation-delay: 0.9s; }
-    .modern-table tbody tr:nth-child(5) { animation-delay: 0.95s; }
-    .modern-table tbody tr:nth-child(n+6) { animation-delay: 1s; }
-
-    .modern-table tbody tr:hover {
-        background: var(--primary-50);
-    }
-
-    .modern-table tbody tr.clickable-row {
-        cursor: pointer;
-    }
-
-    .modern-table tbody tr.clickable-row:hover {
-        background: var(--primary-100);
-        transform: scale(1.01);
-    }
-
-    .modern-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    /* PV Number Badge */
-    .pv-number {
-        font-family: var(--font-heading);
-        font-weight: 700;
-        color: var(--primary-700);
-        background: var(--primary-50);
-        padding: var(--spacing-xs) var(--spacing-md);
-        border-radius: var(--radius-md);
-        display: inline-block;
-        white-space: nowrap;
-        transition: all 0.2s ease;
-    }
-
-    /* ✅ Clickable PV/PF Numbers */
-    .clickable-number {
-        display: inline-block;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .clickable-number:hover .pv-number {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        filter: brightness(1.05);
-    }
-
-    .clickable-number:active .pv-number {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Status Badges */
-    .status-badge {
-        padding: var(--spacing-xs) var(--spacing-md);
-        border-radius: var(--radius-full);
-        font-size: 0.8125rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-xs);
-    }
-
-    .status-badge i {
-        font-size: 0.875rem;
-    }
-
-    .status-badge.draft {
-        background: var(--gray-200);
-        color: var(--gray-700);
-    }
-
-    .status-badge.pending {
-        background: var(--warning-light);
-        color: #92400e;
-        animation: badgePulse 2s ease-in-out infinite;
-        border: 2px solid #fbbf24;
-    }
-
-    @keyframes badgePulse {
-        0%, 100% {
-            background: #fef3c7;
-            box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
-        }
-        50% {
-            background: #fde68a;
-            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0);
-        }
-    }
-
-    .status-badge.pending i {
-        animation: iconSpin 2s linear infinite;
-    }
-
-    @keyframes iconSpin {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    .status-badge.approved {
-        background: var(--success-light);
-        color: #065f46;
-    }
-
-    .status-badge.rejected {
-        background: var(--danger-light);
-        color: #991b1b;
-    }
-
-    .status-badge.revision {
-        background: var(--info-light);
-        color: #1e40af;
-    }
-
-    /* Document Type Badges */
-    .doc-type-badge {
-        padding: 0.375rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .doc-type-badge.pv-badge {
-        background: linear-gradient(135deg, #698ab8 0%, #698ab8 100%);
-        color: white;
-    }
-
-    .doc-type-badge.pf-badge {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-    }
-
-    .doc-type-badge i {
-        font-size: 0.875rem;
-    }
-
-    /* Filter Buttons */
-    .doc-filter-btn {
-        background: white;
-        border: 2px solid var(--gray-300);
-        color: var(--gray-700);
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .doc-filter-btn:hover {
-        border-color: var(--primary-500);
-        color: var(--primary-600);
-        background: var(--primary-50);
-    }
-
-    .doc-filter-btn.active {
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        border-color: var(--primary-600);
-        color: white;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    }
-
-    /* Pagination Buttons */
-    .pagination-btn {
-        background: white;
-        border: 2px solid var(--gray-300);
-        color: var(--gray-700);
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.875rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: all 0.2s ease;
-    }
-
-    .pagination-btn:hover {
-        border-color: var(--primary-500);
-        color: var(--primary-600);
-        background: var(--primary-50);
-        transform: translateY(-1px);
-    }
-
-    /* Action Button */
-    .view-btn {
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        color: white;
-        border: none;
-        border-radius: var(--radius-md);
-        padding: var(--spacing-sm) var(--spacing-md);
-        font-family: var(--font-body);
-        font-weight: 500;
-        font-size: 0.875rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-xs);
-        transition: all var(--transition-base);
-    }
-
-    .view-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-        color: white;
-    }
-
-    /* Empty State */
-    .empty-state {
-        padding: var(--spacing-3xl);
-        text-align: center;
-        color: var(--gray-500);
-    }
-
-    .empty-state i {
-        font-size: 4rem;
-        color: var(--gray-300);
-        margin-bottom: var(--spacing-lg);
-    }
-
-    .empty-state p {
-        font-size: 1.125rem;
-        margin: 0;
-    }
-
-    /* ==================== RESPONSIVE DESIGN ==================== */
-
-    /* Tablet (768-991px) */
-    @media (max-width: 991px) {
-        .dashboard-container {
-            padding: 0 var(--spacing-md);
-        }
-
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .stat-card {
-            padding: var(--spacing-lg);
-        }
-
-        .stat-card-icon {
-            width: 50px;
-            height: 50px;
-            font-size: 1.5rem;
-        }
-
-        .stat-card-value {
-            font-size: 1.75rem;
-        }
-
-        .quick-actions-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    /* Mobile (<768px) */
-    @media (max-width: 768px) {
-        .dashboard-container {
-            padding: 0 12px;
-        }
-
-        .page-header {
-            flex-direction: column;
-            align-items: flex-start;
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .page-title {
-            font-size: 1.5rem;
-        }
-
-        .page-title i {
-            font-size: 1.75rem;
-        }
-
-        .stats-grid {
-            grid-template-columns: 1fr;
-            gap: var(--spacing-md);
-        }
-
-        .stat-card {
-            padding: var(--spacing-md);
-        }
-
-        .stat-card:hover {
-            transform: none;
-        }
-
-        .quick-actions-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .action-card {
-            padding: var(--spacing-md);
-        }
-
-        .action-btn {
-            width: 100%;
-            min-height: 44px;
-        }
-
-        .quick-actions-card {
-            padding: var(--spacing-md);
-        }
-
-        /* Tables: horizontal scroll */
-        .table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 0 -12px;
-            padding: 0 12px;
-        }
-
-        .modern-table {
-            min-width: 700px;
-            font-size: 0.875rem;
-        }
-
-        .modern-table th,
-        .modern-table td {
-            padding: var(--spacing-sm) var(--spacing-md);
-        }
-
-        .vouchers-card-header {
-            padding: var(--spacing-md);
-        }
-    }
-
-    /* Small Mobile (<576px) */
-    @media (max-width: 576px) {
-        .dashboard-container {
-            padding: 0 8px;
-        }
-
-        .page-title {
-            font-size: 1.25rem;
-        }
-
-        .stat-card-value {
-            font-size: 1.5rem;
-        }
-
-        .stat-card-label {
-            font-size: 0.8125rem;
-        }
-
-        .modern-table {
-            font-size: 0.8125rem;
-        }
-    }
+/* ════════════════════════════════════════════════════
+   FINVAULT DASHBOARD  ·  Bloomberg Terminal Dark
+   ════════════════════════════════════════════════════ */
+
+:root {
+  --ink-950: #06101a;  --ink-900: #0b1828;  --ink-800: #101f34;
+  --ink-750: #142540;  --ink-700: #192d4c;  --ink-600: #1e3660;
+  --ink-500: #253f70;  --ink-400: #2d5080;
+
+  --cyan-700: #0e7490; --cyan-600: #0891b2; --cyan-500: #06b6d4;
+  --cyan-400: #22d3ee; --cyan-300: #67e8f9; --cyan-100: #cffafe;
+
+  --green-600:#16a34a; --green-500:#22c55e; --green-400:#4ade80;
+  --amber-600:#d97706; --amber-500:#f59e0b; --amber-400:#fbbf24;
+  --red-600:  #dc2626; --red-500:  #ef4444; --red-400:  #f87171;
+  --blue-500: #3b82f6; --blue-400: #60a5fa;
+  --violet-500:#8b5cf6;
+
+  --text-primary:  #e2eaf4; --text-secondary:#8fa8c0;
+  --text-muted:    #4a6480; --text-accent:   #22d3ee;
+  --border:        rgba(255,255,255,0.07);
+  --border-accent: rgba(6,182,212,0.3);
+
+  --surface-card:   #0f1e30;
+  --surface-raised: #131f2e;
+  --surface-inset:  #090f18;
+
+  --shadow-sm:   0 1px 4px rgba(0,0,0,0.45);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.55);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.65);
+  --shadow-glow: 0 0 24px rgba(6,182,212,0.18);
+
+  --r-sm:3px; --r-md:8px; --r-lg:12px; --r-xl:16px; --r-2xl:20px;
+  --ease: cubic-bezier(.4,0,.2,1);
+  --t-fast:0.15s; --t-base:0.25s;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+@keyframes fadeUp        { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeInPage    { to{opacity:1} }
+@keyframes livePulse     { 0%,100%{opacity:1}50%{opacity:0.3} }
+@keyframes dotPulse      { 0%,100%{opacity:1}50%{opacity:0.4} }
+@keyframes pulseBorderAmber { 0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.35)} 50%{box-shadow:0 0 0 6px rgba(251,191,36,0)} }
+@keyframes pulseBorderBlue  { 0%,100%{box-shadow:0 0 0 0 rgba(96,165,250,.35)}  50%{box-shadow:0 0 0 6px rgba(96,165,250,0)} }
+@keyframes iconBounce    { 0%,100%{transform:scale(1)}50%{transform:scale(1.12)} }
+@keyframes spinIcon      { to{transform:rotate(360deg)} }
+@keyframes pendingPulse  { 0%,100%{background:rgba(245,158,11,.10)} 50%{background:rgba(245,158,11,.20)} }
+@keyframes statBarGrow   { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+
+.dash {
+  max-width: 1440px; margin: 0 auto;
+  padding: 0 28px 48px;
+  opacity: 0;
+  animation: fadeInPage .4s var(--ease) .05s forwards;
+  font-family: 'Montserrat', 'Battambang', sans-serif;
+}
+
+/* ── PAGE HEADER ── */
+.dash-header {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px;
+  padding: 22px 0 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 22px; margin-top: -25px;
+}
+.dash-title {
+  font-size: 1.375rem; font-weight: 700; color: var(--text-primary);
+  margin: 0; letter-spacing: -.4px;
+  display: flex; align-items: center; gap: 11px;
+}
+.dash-title-icon {
+  width:38px; height:38px; background:rgba(6,182,212,.12);
+  border:1px solid var(--border-accent); border-radius:var(--r-md);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.1rem; color:var(--cyan-400);
+}
+.dash-title-sub { font-size:.7rem; color:var(--text-muted); letter-spacing:.8px; text-transform:uppercase; margin-top:3px; }
+.dash-header-right { display:flex; align-items:center; gap:8px; }
+.live-pill {
+  display:flex; align-items:center; gap:6px;
+  font-size:.75rem; font-weight:600; color:var(--text-muted);
+  background:var(--surface-card); border:1px solid var(--border); padding:5px 11px; border-radius:99px;
+}
+.live-dot { width:7px; height:7px; border-radius:50%; background:var(--green-500); box-shadow:0 0 6px var(--green-500); animation:livePulse 2s ease-in-out infinite; }
+
+.section-label {
+  font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+  color:var(--text-muted); margin:20px 0 10px;
+  display:flex; align-items:center; gap:8px;
+}
+.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* ── STATS GRID ── */
+.stats-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:13px; margin-bottom:18px; }
+.stat-card {
+  background:var(--surface-card); border:1px solid var(--border); border-radius:var(--r-xl);
+  padding:17px 17px 13px; position:relative; overflow:hidden;
+  opacity:0; transform:translateY(14px);
+  animation:fadeUp .45s var(--ease) forwards;
+  transition:transform var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
+  cursor:default;
+}
+.stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:var(--r-xl) var(--r-xl) 0 0; transition:height var(--t-base) var(--ease); }
+.stat-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:rgba(255,255,255,.12); }
+.stat-card:hover::before { height:4px; }
+.stat-card:nth-child(1){animation-delay:.10s} .stat-card:nth-child(2){animation-delay:.17s}
+.stat-card:nth-child(3){animation-delay:.24s} .stat-card:nth-child(4){animation-delay:.31s}
+.stat-card:nth-child(5){animation-delay:.38s}
+.stat-card.warning::before  { background:linear-gradient(90deg,var(--amber-500),var(--amber-400)); }
+.stat-card.primary::before  { background:linear-gradient(90deg,var(--cyan-600),var(--cyan-400)); }
+.stat-card.secondary::before{ background:linear-gradient(90deg,#6366f1,var(--violet-500)); }
+.stat-card.info::before     { background:linear-gradient(90deg,var(--blue-500),var(--blue-400)); }
+.stat-card.success::before  { background:linear-gradient(90deg,var(--green-600),var(--green-400)); }
+.stat-card.warning:hover  { border-color:rgba(251,191,36,.3);  box-shadow:0 8px 28px rgba(245,158,11,.18); }
+.stat-card.primary:hover  { border-color:var(--border-accent); box-shadow:var(--shadow-glow); }
+.stat-card.secondary:hover{ border-color:rgba(139,92,246,.3);  box-shadow:0 8px 28px rgba(139,92,246,.15); }
+.stat-card.info:hover     { border-color:rgba(96,165,250,.3);  box-shadow:0 8px 28px rgba(59,130,246,.15); }
+.stat-card.success:hover  { border-color:rgba(74,222,128,.3);  box-shadow:0 8px 28px rgba(34,197,94,.15); }
+.stat-card.warning.is-active { border-color:rgba(251,191,36,.45); animation:fadeUp .45s var(--ease) .10s forwards, pulseBorderAmber 2.5s ease-in-out infinite; }
+.stat-card.info.is-active    { border-color:rgba(96,165,250,.45); animation:fadeUp .45s var(--ease) .31s forwards, pulseBorderBlue 2.5s ease-in-out infinite; }
+.stat-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:11px; }
+.stat-icon { width:40px; height:40px; border-radius:var(--r-md); display:flex; align-items:center; justify-content:center; font-size:1.15rem; flex-shrink:0; transition:transform var(--t-base) var(--ease); }
+.stat-card:hover .stat-icon { transform:scale(1.08); }
+.stat-card.warning   .stat-icon { background:rgba(245,158,11,.15); color:var(--amber-400); }
+.stat-card.primary   .stat-icon { background:rgba(6,182,212,.15);  color:var(--cyan-400); }
+.stat-card.secondary .stat-icon { background:rgba(139,92,246,.15); color:#a78bfa; }
+.stat-card.info      .stat-icon { background:rgba(59,130,246,.15); color:var(--blue-400); }
+.stat-card.success   .stat-icon { background:rgba(34,197,94,.15);  color:var(--green-400); }
+.stat-card.warning.is-active .stat-icon { animation:iconBounce 2s ease-in-out infinite; }
+.stat-card.info.is-active    .stat-icon { animation:spinIcon 2.5s linear infinite; }
+.stat-change { font-size:.67rem; font-weight:700; padding:2px 7px; border-radius:99px; }
+.stat-change.up      { background:rgba(34,197,94,.12); color:var(--green-400); }
+.stat-change.neutral { background:rgba(100,116,139,.12); color:#94a3b8; }
+.stat-label  { font-size:.68rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.8px; margin-bottom:5px; }
+.stat-value  { font-family:'Montserrat',monospace; font-size:2.1rem; font-weight:700; color:var(--text-primary); line-height:1; letter-spacing:-1px; margin-bottom:3px; }
+.stat-extra  { font-size:.7rem; font-weight:600; color:var(--cyan-400); display:flex; align-items:center; gap:4px; margin-top:3px; }
+.stat-bar-wrap { height:3px; background:var(--ink-700); border-radius:99px; margin-top:11px; overflow:hidden; }
+.stat-bar    { height:100%; border-radius:99px; transform-origin:left; animation:statBarGrow .9s var(--ease) .6s both; }
+.bar-cyan    { background:var(--cyan-500); }
+.bar-green   { background:var(--green-500); }
+.bar-amber   { background:var(--amber-500); }
+.bar-blue    { background:var(--blue-500); }
+.bar-violet  { background:var(--violet-500); }
+.stat-footer { display:flex; justify-content:space-between; align-items:center; padding-top:9px; border-top:1px solid var(--border); margin-top:4px; }
+.stat-link   { font-size:.78rem; font-weight:600; color:var(--cyan-500); text-decoration:none; display:inline-flex; align-items:center; gap:5px; transition:color var(--t-fast), gap var(--t-fast); }
+.stat-link:hover { color:var(--cyan-300); gap:8px; }
+.stat-link i { font-size:.85rem; transition:transform var(--t-fast); }
+.stat-link:hover i { transform:translateX(3px); }
+
+/* ── CHARTS ROW ── */
+.charts-row { display:grid; grid-template-columns:2fr 1fr; gap:14px; margin-bottom:18px; }
+.panel {
+  background:var(--surface-card); border:1px solid var(--border); border-radius:var(--r-xl); overflow:hidden;
+  opacity:0; animation:fadeUp .45s var(--ease) .42s forwards;
+}
+.panel-head { padding:12px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.018); display:flex; justify-content:space-between; align-items:center; }
+.panel-title     { font-size:13px; font-weight:700; color:var(--text-primary); }
+.panel-title-sub { font-size:10px; color:var(--text-muted); margin-top:2px; }
+.panel-body      { padding:16px; }
+
+/* Donut */
+.donut-wrap   { display:flex; align-items:center; gap:16px; }
+.donut-legend { flex:1; display:flex; flex-direction:column; gap:8px; }
+.legend-item  { display:flex; align-items:center; gap:8px; }
+.legend-dot   { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+.legend-label { font-size:11px; color:var(--text-secondary); flex:1; }
+.legend-value { font-family:'Montserrat',monospace; font-size:11px; color:var(--text-primary); font-weight:600; }
+.legend-pct   { font-size:10px; color:var(--text-muted); margin-left:3px; }
+
+/* ── ACTIVITY ROW ── */
+.activity-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+
+/* ── ACTION BTN ── */
+.action-btn {
+  background:var(--ink-700); color:var(--text-secondary); border:1px solid var(--border); border-radius:var(--r-md);
+  padding:7px 15px; font-family:'Montserrat',sans-serif; font-weight:600; font-size:.8rem;
+  display:inline-flex; align-items:center; gap:7px; text-decoration:none; white-space:nowrap;
+  transition:all var(--t-base) var(--ease);
+}
+.action-btn:hover { background:var(--ink-600); color:var(--text-primary); border-color:var(--border-accent); transform:translateY(-2px); box-shadow:0 4px 14px rgba(6,182,212,.12); }
+.action-btn i { font-size:.88rem; color:var(--cyan-400); }
+.action-btn.action-primary { background:var(--cyan-700); color:white; border-color:var(--cyan-600); }
+.action-btn.action-primary:hover { background:var(--cyan-600); border-color:var(--cyan-500); box-shadow:0 4px 14px rgba(6,182,212,.3); }
+.action-btn.action-primary i { color:white; }
+
+/* ── PENDING APPROVAL ITEMS ── */
+.apv-item {
+  background:var(--ink-750); border:1px solid var(--border); border-radius:var(--r-lg);
+  padding:10px 12px; cursor:pointer;
+  transition:border-color var(--t-fast), background var(--t-fast);
+  margin-bottom:8px; text-decoration:none; display:block;
+}
+.apv-item:hover { border-color:var(--border-accent); background:rgba(6,182,212,.03); }
+.apv-top  { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; }
+.apv-name { font-size:.8rem; font-weight:600; color:var(--text-primary); margin-bottom:2px; }
+.apv-meta { display:flex; justify-content:space-between; align-items:center; }
+.apv-sub  { font-size:.72rem; color:var(--text-muted); }
+.apv-amt  { font-family:'Montserrat',monospace; font-size:.85rem; font-weight:700; }
+
+/* ── BADGES ── */
+.pv-num {
+  font-family:'Montserrat',monospace; font-size:.77rem; font-weight:600;
+  background:rgba(6,182,212,.1); color:var(--cyan-400);
+  padding:3px 8px; border-radius:var(--r-sm); display:inline-block;
+  border:1px solid rgba(6,182,212,.18); white-space:nowrap;
+}
+.pv-num.pf { background:rgba(34,197,94,.1); color:var(--green-400); border-color:rgba(34,197,94,.18); }
+.doc-badge { padding:2px 8px; border-radius:var(--r-sm); font-size:.67rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px; display:inline-flex; align-items:center; gap:4px; }
+.doc-badge.pv { background:rgba(6,182,212,.12); color:var(--cyan-300); border:1px solid rgba(6,182,212,.2); }
+.doc-badge.pf { background:rgba(34,197,94,.12); color:var(--green-400); border:1px solid rgba(34,197,94,.2); }
+.sbadge { padding:2px 9px; border-radius:var(--r-sm); font-size:.67rem; font-weight:700; text-transform:uppercase; letter-spacing:.4px; display:inline-flex; align-items:center; gap:5px; }
+.sbadge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.sbadge.draft    { background:rgba(100,116,139,.12); color:#94a3b8; border:1px solid rgba(100,116,139,.2); }
+.sbadge.draft::before { background:#94a3b8; }
+.sbadge.pending  { background:rgba(245,158,11,.1); color:var(--amber-400); border:1px solid rgba(245,158,11,.2); animation:pendingPulse 2.5s ease-in-out infinite; }
+.sbadge.pending::before { background:var(--amber-400); animation:dotPulse 2s ease-in-out infinite; }
+.sbadge.approved { background:rgba(34,197,94,.1); color:var(--green-400); border:1px solid rgba(34,197,94,.2); }
+.sbadge.approved::before { background:var(--green-400); }
+.sbadge.rejected { background:rgba(239,68,68,.1); color:var(--red-400); border:1px solid rgba(239,68,68,.2); }
+.sbadge.rejected::before { background:var(--red-400); }
+.sbadge.revision { background:rgba(96,165,250,.1); color:var(--blue-400); border:1px solid rgba(96,165,250,.2); }
+.sbadge.revision::before { background:var(--blue-400); }
+
+/* ── DATA TABLE ── */
+.vouchers-panel { background:var(--surface-card); border:1px solid var(--border); border-radius:var(--r-xl); overflow:hidden; opacity:0; animation:fadeUp .45s var(--ease) .58s forwards; }
+.vp-header { padding:14px 18px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.018); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.vp-title  { font-size:.9375rem; font-weight:700; color:var(--text-primary); margin:0; display:flex; align-items:center; gap:8px; }
+.vp-title i { color:var(--cyan-400); }
+.vp-sub    { font-size:.71rem; color:var(--text-muted); margin-top:2px; }
+.filter-chips { display:flex; gap:6px; }
+.filter-chip { background:var(--ink-750); border:1px solid var(--border); color:var(--text-secondary); padding:4px 12px; border-radius:99px; font-family:'Montserrat',sans-serif; font-weight:600; font-size:.73rem; cursor:pointer; transition:all var(--t-base) var(--ease); }
+.filter-chip:hover { border-color:var(--border-accent); color:var(--text-primary); }
+.filter-chip.active { background:rgba(6,182,212,.14); border-color:var(--cyan-600); color:var(--cyan-400); }
+.table-wrap { overflow-x:auto; }
+.dt { width:100%; border-collapse:collapse; font-family:'Montserrat',sans-serif; }
+.dt thead tr { background:var(--ink-800); border-bottom:1px solid var(--border); }
+.dt th { font-size:.67rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.8px; padding:9px 15px; text-align:left; white-space:nowrap; }
+.dt td { font-size:.8rem; color:var(--text-secondary); padding:10px 15px; border-bottom:1px solid rgba(255,255,255,.035); vertical-align:middle; }
+.dt tbody tr { cursor:pointer; opacity:0; animation:fadeUp .35s var(--ease) forwards; transition:background var(--t-fast); }
+.dt tbody tr:nth-child(1){animation-delay:.65s} .dt tbody tr:nth-child(2){animation-delay:.70s}
+.dt tbody tr:nth-child(3){animation-delay:.75s} .dt tbody tr:nth-child(4){animation-delay:.80s}
+.dt tbody tr:nth-child(5){animation-delay:.85s} .dt tbody tr:nth-child(n+6){animation-delay:.90s}
+.dt tbody tr:hover td { background:rgba(6,182,212,.05); color:var(--text-primary); }
+.dt tbody tr:last-child td { border-bottom:none; }
+.payee-name { font-weight:600; color:var(--text-primary); font-size:.8rem; }
+.amount-val { font-family:'Montserrat',monospace; font-weight:600; color:var(--text-primary); font-size:.83rem; }
+.date-val   { font-size:.73rem; color:var(--text-muted); font-family:'Montserrat',monospace; }
+.view-btn { background:rgba(6,182,212,.1); color:var(--cyan-400); border:1px solid rgba(6,182,212,.2); border-radius:var(--r-sm); padding:4px 10px; font-family:'Montserrat',sans-serif; font-weight:600; font-size:.73rem; text-decoration:none; display:inline-flex; align-items:center; gap:5px; transition:all var(--t-base) var(--ease); white-space:nowrap; }
+.view-btn:hover { background:rgba(6,182,212,.18); color:var(--cyan-300); border-color:var(--cyan-500); transform:translateY(-1px); box-shadow:0 3px 10px rgba(6,182,212,.18); }
+.view-btn.repeat { background:rgba(34,197,94,.1); color:var(--green-400); border-color:rgba(34,197,94,.2); }
+.view-btn.repeat:hover { background:rgba(34,197,94,.18); border-color:var(--green-500); box-shadow:0 3px 10px rgba(34,197,94,.15); }
+.btn-cell { display:flex; gap:5px; }
+
+/* pagination */
+.pagination-bar { padding:10px 16px; background:var(--ink-800); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+.pagination-info { font-size:.73rem; color:var(--text-muted); }
+.pagination-info span { font-family:'Montserrat',monospace; color:var(--text-secondary); }
+.pagination-btns { display:flex; gap:4px; }
+.pg-btn { background:var(--ink-700); border:1px solid var(--border); color:var(--text-secondary); padding:4px 11px; border-radius:var(--r-sm); font-family:'Montserrat',sans-serif; font-weight:600; font-size:.73rem; text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:all var(--t-base) var(--ease); }
+.pg-btn:hover { border-color:var(--border-accent); color:var(--cyan-400); background:rgba(6,182,212,.08); transform:translateY(-1px); }
+
+/* empty state */
+.empty-state { padding:52px 24px; text-align:center; color:var(--text-muted); }
+.empty-state i { font-size:2.5rem; display:block; margin-bottom:12px; opacity:.3; }
+.empty-state p { font-size:.9375rem; margin:0 0 16px; color:var(--text-secondary); }
+
+/* chart canvas containers */
+.chart-canvas-wrap { position:relative; width:100%; height:160px; }
+
+/* responsive */
+@media(max-width:1200px){ .stats-grid{grid-template-columns:repeat(3,1fr)} .charts-row{grid-template-columns:1fr} .activity-row{grid-template-columns:1fr} }
+@media(max-width:900px) { .stats-grid{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:680px) { .stats-grid{grid-template-columns:1fr} .dash{padding:0 12px 32px} }
+@media(max-width:768px) { .dt{min-width:640px} }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
+<div class="dash">
 
+  <!-- ══════════════ PAGE HEADER ══════════════ -->
+  <div class="dash-header">
+    <div>
+      <h1 class="dash-title">
+        <div class="dash-title-icon"><i class="bi bi-grid-1x2"></i></div>
+        Dashboard
+      </h1>
+      <div class="dash-title-sub">Payment Voucher System · Garden City WP</div>
+    </div>
+    <div class="dash-header-right">
+      <div class="live-pill"><span class="live-dot"></span> Live</div>
+      {% if user.role_level == 1 %}
+      <a href="{% url 'vouchers:create' %}" class="action-btn action-primary">
+        <i class="bi bi-plus-lg"></i> New Voucher
+      </a>
+      {% endif %}
+    </div>
+  </div>
 
-    <!-- Stats Cards Grid -->
-    <div class="stats-grid">
-        <!-- Pending My Action -->
-        <div class="stat-card warning {% if pending_my_action > 0 %}pending-action{% endif %}">
-            <div class="stat-card-header">
-                <div>
-                    <div class="stat-card-title">Pending My Action</div>
-                    <div class="stat-card-value">{{ pending_my_action }}</div>
-                    {% if user.role_level == 5 and pending_batches > 0 %}
-                    <small style="color: #667eea; font-weight: 600; margin-top: 0.25rem; display: block;">
-                        <i class="bi bi-pen"></i> {{ pending_batches }} batch{{ pending_batches|pluralize:"es" }} to sign
-                    </small>
-                    {% endif %}
-                </div>
-                <div class="stat-card-icon">
-                    <i class="bi bi-clock-history"></i>
-                </div>
-            </div>
-            <div class="stat-card-footer">
-                <a href="{% url 'dashboard:pending' %}" class="stat-card-link">
-                    <span>View Details</span>
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
+  <!-- ══════════════ STATS GRID ══════════════ -->
+  <div class="section-label">Overview</div>
+  <div class="stats-grid">
+
+    <div class="stat-card warning {% if pending_my_action > 0 %}is-active{% endif %}">
+      <div class="stat-top">
+        <div>
+          <div class="stat-label">Pending My Action</div>
+          <div class="stat-value">{{ pending_my_action }}</div>
+          {% if user.role_level == 5 and pending_batches > 0 %}
+          <div class="stat-extra"><i class="bi bi-pen"></i> {{ pending_batches }} batch{{ pending_batches|pluralize:"es" }} to sign</div>
+          {% endif %}
         </div>
-
-        <!-- My Created Vouchers -->
-        <div class="stat-card primary">
-            <div class="stat-card-header">
-                <div>
-                    <div class="stat-card-title">My Created</div>
-                    <div class="stat-card-value">{{ my_created_count }}</div>
-                </div>
-                <div class="stat-card-icon">
-                    <i class="bi bi-file-earmark-text"></i>
-                </div>
-            </div>
-            <div class="stat-card-footer">
-                <a href="{% url 'dashboard:my_vouchers' %}" class="stat-card-link">
-                    <span>View Details</span>
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-
-        <!-- My Drafts -->
-        <div class="stat-card secondary">
-            <div class="stat-card-header">
-                <div>
-                    <div class="stat-card-title">My Drafts</div>
-                    <div class="stat-card-value">{{ draft_count|default:0 }}</div>
-                </div>
-                <div class="stat-card-icon">
-                    <i class="bi bi-file-earmark-minus"></i>
-                </div>
-            </div>
-            <div class="stat-card-footer">
-                <a href="{% url 'dashboard:my_drafts' %}" class="stat-card-link">
-                    <span>View Drafts</span>
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-
-        <!-- In Progress -->
-        <div class="stat-card info {% if in_progress > 0 %}in-progress-action{% endif %}">
-            <div class="stat-card-header">
-                <div>
-                    <div class="stat-card-title">In Progress</div>
-                    <div class="stat-card-value">{{ in_progress }}</div>
-                </div>
-                <div class="stat-card-icon">
-                    <i class="bi bi-arrow-repeat"></i>
-                </div>
-            </div>
-            <div class="stat-card-footer">
-                <a href="{% url 'dashboard:in_progress' %}" class="stat-card-link">
-                    <span>View Details</span>
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-
-        <!-- Approved -->
-        <div class="stat-card success">
-            <div class="stat-card-header">
-                <div>
-                    <div class="stat-card-title">Approved</div>
-                    <div class="stat-card-value">{{ approved_count }}</div>
-                </div>
-                <div class="stat-card-icon">
-                    <i class="bi bi-check-circle"></i>
-                </div>
-            </div>
-            <div class="stat-card-footer">
-                <a href="{% url 'dashboard:approved' %}" class="stat-card-link">
-                    <span>View Details</span>
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
-        </div>
+        <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+      </div>
+      <div class="stat-bar-wrap"><div class="stat-bar bar-amber" style="width:{% if pending_my_action > 0 %}{% widthratio pending_my_action 30 100 %}{% else %}5{% endif %}%"></div></div>
+      <div class="stat-footer">
+        <a href="{% url 'dashboard:pending' %}" class="stat-link">View Details <i class="bi bi-arrow-right"></i></a>
+        <span class="stat-change {% if pending_my_action > 0 %}up{% else %}neutral{% endif %}">
+          {% if pending_my_action > 0 %}{{ pending_my_action }} pending{% else %}Clear{% endif %}
+        </span>
+      </div>
     </div>
 
-    <!-- Quick Actions -->
-    {% if user.role_level == 1 %}
-    <div class="quick-actions-card">
-        <div class="quick-actions-header">
-            <h3 class="quick-actions-title">
-                <i class="bi bi-lightning-charge"></i> Quick Actions
-            </h3>
+    <div class="stat-card primary">
+      <div class="stat-top">
+        <div>
+          <div class="stat-label">My Created</div>
+          <div class="stat-value">{{ my_created_count }}</div>
         </div>
-        <div class="quick-actions-buttons">
-            <a href="{% url 'vouchers:create' %}" class="action-btn">
-                <i class="bi bi-plus-circle"></i>
-                <span>Create Voucher</span>
-            </a>
-            <a href="{% url 'vouchers:batch_select' %}" class="action-btn">
-                <i class="bi bi-file-earmark-check"></i>
-                <span>Create Batch</span>
-            </a>
-            <a href="{% url 'dashboard:my_drafts' %}" class="action-btn">
-                <i class="bi bi-file-earmark-minus"></i>
-                <span>My Drafts</span>
-            </a>
-            <a href="{% url 'vouchers:fm_batch_list' %}" class="action-btn">
-                <i class="bi bi-folder2-open"></i>
-                <span>My Batches</span>
-            </a>
-            <a href="{% url 'vouchers:all_batches_list' %}" class="action-btn">
-                <i class="bi bi-card-list"></i>
-                <span>All Batches</span>
-            </a>
-            <a href="{% url 'vouchers:reports' %}" class="action-btn">
-                <i class="bi bi-graph-up"></i>
-                <span>Reports</span>
-            </a>
-        </div>
+        <div class="stat-icon"><i class="bi bi-file-earmark-text"></i></div>
+      </div>
+      <div class="stat-bar-wrap"><div class="stat-bar bar-cyan" style="width:{% widthratio my_created_count 100 100 %}%"></div></div>
+      <div class="stat-footer">
+        <a href="{% url 'dashboard:my_vouchers' %}" class="stat-link">View Details <i class="bi bi-arrow-right"></i></a>
+      </div>
     </div>
-    {% endif %}
 
-    {% if user.role_level == 3 %}
-    <!-- Finance Manager Quick Actions -->
-    <div class="quick-actions-card">
-        <div class="quick-actions-header">
-            <h3 class="quick-actions-title">
-                <i class="bi bi-lightning-charge"></i> Quick Actions
-            </h3>
+    <div class="stat-card secondary">
+      <div class="stat-top">
+        <div>
+          <div class="stat-label">My Drafts</div>
+          <div class="stat-value">{{ draft_count|default:0 }}</div>
         </div>
-        <div class="quick-actions-buttons">
-            <a href="{% url 'vouchers:batch_select' %}" class="action-btn">
-                <i class="bi bi-file-earmark-check"></i>
-                <span>Create Batch</span>
-            </a>
-            <a href="{% url 'vouchers:fm_batch_list' %}" class="action-btn">
-                <i class="bi bi-folder2-open"></i>
-                <span>My Batches</span>
-            </a>
-            <a href="{% url 'vouchers:all_batches_list' %}" class="action-btn">
-                <i class="bi bi-card-list"></i>
-                <span>All Batches</span>
-            </a>
-            <a href="{% url 'vouchers:reports' %}" class="action-btn">
-                <i class="bi bi-graph-up"></i>
-                <span>Reports</span>
-            </a>
-        </div>
+        <div class="stat-icon"><i class="bi bi-file-earmark-minus"></i></div>
+      </div>
+      <div class="stat-bar-wrap"><div class="stat-bar bar-violet" style="width:{% if draft_count %}{% widthratio draft_count 20 100 %}{% else %}5{% endif %}%"></div></div>
+      <div class="stat-footer">
+        <a href="{% url 'dashboard:my_drafts' %}" class="stat-link">View Drafts <i class="bi bi-arrow-right"></i></a>
+      </div>
     </div>
-    {% endif %}
 
-    {% if user.role_level == 2 or user.role_level == 4 %}
-    <!-- Approver Quick Actions -->
-    <div class="quick-actions-card">
-        <div class="quick-actions-header">
-            <h3 class="quick-actions-title">
-                <i class="bi bi-lightning-charge"></i> Quick Actions
-            </h3>
+    <div class="stat-card info {% if in_progress > 0 %}is-active{% endif %}">
+      <div class="stat-top">
+        <div>
+          <div class="stat-label">In Progress</div>
+          <div class="stat-value">{{ in_progress }}</div>
         </div>
-        <div class="quick-actions-buttons">
-            <a href="{% url 'dashboard:pending' %}" class="action-btn">
-                <i class="bi bi-clock-history"></i>
-                <span>Pending Approvals</span>
-            </a>
-            <a href="{% url 'vouchers:all_batches_list' %}" class="action-btn">
-                <i class="bi bi-card-list"></i>
-                <span>View All Batches</span>
-            </a>
-            <a href="{% url 'vouchers:reports' %}" class="action-btn">
-                <i class="bi bi-graph-up"></i>
-                <span>View Reports</span>
-            </a>
-        </div>
+        <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
+      </div>
+      <div class="stat-bar-wrap"><div class="stat-bar bar-blue" style="width:{% widthratio in_progress 50 100 %}%"></div></div>
+      <div class="stat-footer">
+        <a href="{% url 'dashboard:in_progress' %}" class="stat-link">View Details <i class="bi bi-arrow-right"></i></a>
+      </div>
     </div>
-    {% endif %}
 
-    {% if user.role_level == 5 %}
-    <!-- Managing Director Quick Actions -->
-    <div class="quick-actions-card">
-        <div class="quick-actions-header">
-            <h3 class="quick-actions-title">
-                <i class="bi bi-lightning-charge"></i> Managing Director Actions
-            </h3>
+    <div class="stat-card success">
+      <div class="stat-top">
+        <div>
+          <div class="stat-label">Approved</div>
+          <div class="stat-value">{{ approved_count }}</div>
         </div>
-        <div class="quick-actions-buttons">
-            <a href="{% url 'vouchers:md_dashboard' %}" class="action-btn">
-                <i class="bi bi-pen"></i>
-                <span>Batch Signature Dashboard</span>
-            </a>
-            <a href="{% url 'vouchers:all_batches_list' %}" class="action-btn">
-                <i class="bi bi-card-list"></i>
-                <span>View All Batches</span>
-            </a>
-            <a href="{% url 'vouchers:reports' %}" class="action-btn">
-                <i class="bi bi-graph-up"></i>
-                <span>View Reports</span>
-            </a>
-        </div>
+        <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+      </div>
+      <div class="stat-bar-wrap"><div class="stat-bar bar-green" style="width:{% widthratio approved_count 200 100 %}%"></div></div>
+      <div class="stat-footer">
+        <a href="{% url 'dashboard:approved' %}" class="stat-link">View Details <i class="bi bi-arrow-right"></i></a>
+      </div>
     </div>
-    {% endif %}
 
-    <!-- Recent Documents (PV & PF) -->
-    <div class="vouchers-card">
-        <div class="vouchers-card-header">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                <div>
-                    <h2 class="vouchers-card-title">
-                        <i class="bi bi-clock-history"></i>
-                        <span>Recent Documents</span>
-                    </h2>
-                    <p style="margin: 0.5rem 0 0 2.5rem; font-size: 0.875rem; color: var(--gray-600);">
-                        Payment Vouchers & Payment Forms
-                    </p>
-                </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <!-- Filter Buttons -->
-                    <button class="doc-filter-btn active" data-filter="all" onclick="filterDocuments('all')">
-                        All
-                    </button>
-                    <button class="doc-filter-btn" data-filter="pv" onclick="filterDocuments('pv')">
-                        PV Only
-                    </button>
-                    <button class="doc-filter-btn" data-filter="pf" onclick="filterDocuments('pf')">
-                        PF Only
-                    </button>
-                </div>
+  </div>
+
+  <!-- ══════════════ CHARTS ROW ══════════════ -->
+  <div class="section-label">Analytics</div>
+  <div class="charts-row">
+
+    <!-- Monthly Disbursement — real Canvas chart -->
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Monthly Disbursement</div>
+          <div class="panel-title-sub">ការទូទាត់ប្រចាំខែ · USD only</div>
+        </div>
+        <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:5px">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--green-500);display:inline-block;box-shadow:0 0 5px var(--green-500)"></span>
+          Live Data
+        </span>
+      </div>
+      <div class="panel-body" style="padding:12px 16px 8px">
+        <div class="chart-canvas-wrap">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- By Department Donut — real data -->
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">By Department</div>
+          <div class="panel-title-sub">តាមនាយកដ្ឋាន · Approved docs</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        {% if donut_grand_usd > 0 %}
+        <div class="donut-wrap">
+          <canvas id="donutChart" width="100" height="100" style="flex-shrink:0;width:100px;height:100px"></canvas>
+          <div class="donut-legend" id="donutLegend"></div>
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:32px 0;color:var(--text-muted)">
+          <i class="bi bi-pie-chart" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.25"></i>
+          <div style="font-size:.8rem">No approved data yet</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════ ACTIVITY ROW ══════════════ -->
+  <div class="section-label">Activity</div>
+  <div class="activity-row">
+
+    <!-- Pending Approvals — real pending_docs -->
+    <div class="panel" style="animation-delay:.50s">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title"><i class="bi bi-hourglass-split" style="color:var(--amber-400);margin-right:6px"></i>Pending Approvals</div>
+          <div class="panel-title-sub">រង់ចាំការអនុម័ត</div>
+        </div>
+        {% if pending_my_action > 0 %}
+        <span style="background:rgba(245,158,11,.12);color:var(--amber-400);font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid rgba(245,158,11,.2)">
+          {{ pending_my_action }} item{{ pending_my_action|pluralize }}
+        </span>
+        {% endif %}
+      </div>
+      <div class="panel-body" style="padding:12px">
+
+        {% if user.role_level == 5 %}
+          {# MD sees batches, not individual docs #}
+          {% if pending_batches > 0 %}
+          <a class="apv-item" href="{% url 'vouchers:md_dashboard' %}">
+            <div class="apv-top">
+              <span class="pv-num">BATCHES</span>
+              <span class="sbadge pending"><i class="bi bi-clock"></i> Pending</span>
             </div>
-        </div>
-        <div class="vouchers-card-body">
-            {% if vouchers %}
-            <div class="table-container">
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Number</th>
-                            <th>Payee</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for voucher in vouchers %}
-                        <tr class="clickable-row {% if voucher.pf_number %}doc-pf{% else %}doc-pv{% endif %}"
-                            data-href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}"
-                            data-type="{% if voucher.pf_number %}pf{% else %}pv{% endif %}">
-                            <td>
-                                {% if voucher.pf_number %}
-                                    <span class="doc-type-badge pf-badge">
-                                        <i class="bi bi-file-earmark-check"></i> PF
-                                    </span>
-                                {% else %}
-                                    <span class="doc-type-badge pv-badge">
-                                        <i class="bi bi-receipt"></i> PV
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if voucher.pf_number %}
-                                    <span class="pv-number" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46;">
-                                        {{ voucher.pf_number|default:"DRAFT" }}
-                                    </span>
-                                {% else %}
-                                    <span class="pv-number">
-                                        {{ voucher.pv_number|default:"DRAFT" }}
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <strong>{{ voucher.payee_name }}</strong>
-                            </td>
-                            <td>
-                                <strong style="color: var(--gray-900);">{{ voucher.get_grand_total_display }}</strong>
-                            </td>
-                            <td>
-                                {% if voucher.status == 'DRAFT' %}
-                                    <span class="status-badge draft">
-                                        <i class="bi bi-pencil"></i> {{ voucher.get_status_display }}
-                                    </span>
-                                {% elif voucher.status == 'APPROVED' %}
-                                    <span class="status-badge approved">
-                                        <i class="bi bi-check-circle"></i> {{ voucher.get_status_display }}
-                                    </span>
-                                {% elif voucher.status == 'REJECTED' %}
-                                    <span class="status-badge rejected">
-                                        <i class="bi bi-x-circle"></i> {{ voucher.get_status_display }}
-                                    </span>
-                                {% elif voucher.status == 'ON_REVISION' %}
-                                    <span class="status-badge revision">
-                                        <i class="bi bi-arrow-counterclockwise"></i> {{ voucher.get_status_display }}
-                                    </span>
-                                {% else %}
-                                    <span class="status-badge pending">
-                                        <i class="bi bi-clock"></i> {{ voucher.get_status_display }}
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>{{ voucher.created_at|date:"M d, Y" }}</td>
-                            <td>
-                                <div style="display: flex; gap: 8px;">
-                                    <a href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}" class="view-btn" style="text-decoration: none;">
-                                        <i class="bi bi-eye"></i>
-                                        <span>View</span>
-                                    </a>
-                                    <a href="{% if voucher.pf_number %}{% url 'vouchers:pf_repeat' voucher.pk %}{% else %}{% url 'vouchers:repeat' voucher.pk %}{% endif %}" class="view-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); text-decoration: none;">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                        <span>Repeat</span>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="apv-name">{{ pending_batches }} Signature Batch{{ pending_batches|pluralize:"es" }} Awaiting</div>
+            <div class="apv-meta">
+              <span class="apv-sub">Requires MD signature</span>
+              <span class="apv-amt" style="color:var(--amber-400)">→ Sign Now</span>
             </div>
+          </a>
+          {% else %}
+          <div style="text-align:center;padding:28px 0;color:var(--text-muted)">
+            <i class="bi bi-check-circle" style="font-size:2rem;color:var(--green-500);display:block;margin-bottom:8px;opacity:.7"></i>
+            <div style="font-size:.82rem">No pending batches.</div>
+          </div>
+          {% endif %}
 
-            <!-- Pagination info -->
-            {% if is_paginated %}
-            <div style="padding: 1rem 1.5rem; background: var(--gray-50); border-top: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 0.875rem; color: var(--gray-600);">
-                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} documents
-                </span>
-                <div style="display: flex; gap: 0.5rem;">
-                    {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn">
-                            <i class="bi bi-chevron-left"></i> Previous
-                        </a>
-                    {% endif %}
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}" class="pagination-btn">
-                            Next <i class="bi bi-chevron-right"></i>
-                        </a>
-                    {% endif %}
-                </div>
+        {% elif pending_docs %}
+          {% for doc in pending_docs %}
+          <a class="apv-item" href="{% if doc.pf_number %}{% url 'vouchers:pf_detail' doc.pk %}{% else %}{% url 'vouchers:detail' doc.pk %}{% endif %}">
+            <div class="apv-top">
+              <span class="pv-num {% if doc.pf_number %}pf{% endif %}">
+                {% if doc.pf_number %}{{ doc.pf_number|default:"DRAFT" }}{% else %}{{ doc.pv_number|default:"DRAFT" }}{% endif %}
+              </span>
+              <span class="sbadge pending">{{ doc.get_status_display }}</span>
             </div>
+            <div class="apv-name">{{ doc.payee_name }}</div>
+            <div class="apv-meta">
+              <span class="apv-sub">{{ doc.created_at|date:"M d, Y" }}</span>
+              <span class="apv-amt" style="color:var(--amber-400)">{{ doc.get_grand_total_display }}</span>
+            </div>
+          </a>
+          {% endfor %}
+
+        {% else %}
+          <div style="text-align:center;padding:28px 0;color:var(--text-muted)">
+            <i class="bi bi-check-circle" style="font-size:2rem;color:var(--green-500);display:block;margin-bottom:8px;opacity:.7"></i>
+            <div style="font-size:.82rem">All caught up! No pending items.</div>
+          </div>
+        {% endif %}
+
+        <a href="{% url 'dashboard:pending' %}" class="action-btn" style="width:100%;justify-content:center;margin-top:6px">
+          View All Pending <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div class="panel" style="animation-delay:.56s">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title"><i class="bi bi-lightning-charge-fill" style="color:var(--cyan-400);margin-right:6px"></i>Quick Actions</div>
+          <div class="panel-title-sub">
+            {% if user.role_level == 1 %}Staff Actions
+            {% elif user.role_level == 2 %}Checker Actions
+            {% elif user.role_level == 3 %}Finance Manager Actions
+            {% elif user.role_level == 4 %}Director Actions
+            {% elif user.role_level == 5 %}Managing Director Actions
             {% endif %}
-            {% else %}
-            <div class="empty-state">
-                <i class="bi bi-inbox"></i>
-                <p>No documents found. {% if user.role_level == 1 %}Create your first voucher or payment form to get started!{% endif %}</p>
-                {% if user.role_level == 1 %}
-                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
-                    <a href="{% url 'vouchers:create' %}" class="action-btn">
-                        <i class="bi bi-plus-circle"></i>
-                        <span>Create PV</span>
-                    </a>
-                    <a href="{% url 'vouchers:pf_create' %}" class="action-btn">
-                        <i class="bi bi-plus-circle"></i>
-                        <span>Create PF</span>
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
+          </div>
         </div>
+      </div>
+      <div class="panel-body" style="display:flex;flex-direction:column;gap:8px;padding:14px">
+
+        {% if user.role_level == 1 %}
+        <a href="{% url 'vouchers:create' %}" class="action-btn action-primary"><i class="bi bi-plus-circle"></i> Create Payment Voucher</a>
+        <a href="{% url 'vouchers:pf_create' %}" class="action-btn"><i class="bi bi-file-earmark-check"></i> Create Payment Form</a>
+        <a href="{% url 'vouchers:batch_select' %}" class="action-btn"><i class="bi bi-folder-plus"></i> Create New Batch</a>
+        <a href="{% url 'dashboard:my_drafts' %}" class="action-btn"><i class="bi bi-file-earmark-minus"></i> My Drafts</a>
+        <a href="{% url 'vouchers:fm_batch_list' %}" class="action-btn"><i class="bi bi-folder2-open"></i> My Batches</a>
+        {% endif %}
+
+        {% if user.role_level == 3 %}
+        <a href="{% url 'vouchers:batch_select' %}" class="action-btn action-primary"><i class="bi bi-file-earmark-check"></i> Create New Batch</a>
+        <a href="{% url 'vouchers:fm_batch_list' %}" class="action-btn"><i class="bi bi-folder2-open"></i> My Batches</a>
+        <a href="{% url 'dashboard:pending' %}" class="action-btn"><i class="bi bi-clock-history"></i> Pending Approvals</a>
+        {% endif %}
+
+        {% if user.role_level == 2 or user.role_level == 4 %}
+        <a href="{% url 'dashboard:pending' %}" class="action-btn action-primary"><i class="bi bi-clock-history"></i> Pending Approvals</a>
+        {% endif %}
+
+        {% if user.role_level == 5 %}
+        <a href="{% url 'vouchers:md_dashboard' %}" class="action-btn action-primary"><i class="bi bi-pen"></i> Batch Signature Dashboard</a>
+        {% endif %}
+
+        <a href="{% url 'vouchers:all_batches_list' %}" class="action-btn"><i class="bi bi-card-list"></i> View All Batches</a>
+        <a href="{% url 'vouchers:reports' %}" class="action-btn"><i class="bi bi-graph-up"></i> Reports</a>
+        <a href="{% url 'accounts:profile' %}" class="action-btn"><i class="bi bi-person-circle"></i> My Profile</a>
+      </div>
     </div>
+
+  </div>
+
+  <!-- ══════════════ RECENT DOCUMENTS TABLE ══════════════ -->
+  <div class="section-label">Recent Documents</div>
+
+  <div class="vouchers-panel">
+    <div class="vp-header">
+      <div>
+        <h2 class="vp-title"><i class="bi bi-clock-history"></i> Recent Documents</h2>
+        <div class="vp-sub">Payment Vouchers &amp; Payment Forms</div>
+      </div>
+      <div class="filter-chips">
+        <button class="filter-chip active" data-f="all" onclick="filterDocs('all')">All</button>
+        <button class="filter-chip"        data-f="pv"  onclick="filterDocs('pv')">PV Only</button>
+        <button class="filter-chip"        data-f="pf"  onclick="filterDocs('pf')">PF Only</button>
+      </div>
+    </div>
+
+    {% if vouchers %}
+    <div class="table-wrap">
+      <table class="dt">
+        <thead>
+          <tr>
+            <th>Type</th><th>Number</th><th>Payee</th><th>Amount</th>
+            <th>Status</th><th>Date</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for voucher in vouchers %}
+          <tr class="doc-row"
+              data-type="{% if voucher.pf_number %}pf{% else %}pv{% endif %}"
+              data-href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}">
+            <td>{% if voucher.pf_number %}<span class="doc-badge pf"><i class="bi bi-file-earmark-check"></i> PF</span>{% else %}<span class="doc-badge pv"><i class="bi bi-receipt"></i> PV</span>{% endif %}</td>
+            <td>{% if voucher.pf_number %}<span class="pv-num pf">{{ voucher.pf_number|default:"DRAFT" }}</span>{% else %}<span class="pv-num">{{ voucher.pv_number|default:"DRAFT" }}</span>{% endif %}</td>
+            <td><span class="payee-name">{{ voucher.payee_name }}</span></td>
+            <td><span class="amount-val">{{ voucher.get_grand_total_display }}</span></td>
+            <td>
+              {% if voucher.status == 'DRAFT' %}<span class="sbadge draft"><i class="bi bi-pencil"></i> {{ voucher.get_status_display }}</span>
+              {% elif voucher.status == 'APPROVED' %}<span class="sbadge approved"><i class="bi bi-check-circle"></i> {{ voucher.get_status_display }}</span>
+              {% elif voucher.status == 'REJECTED' %}<span class="sbadge rejected"><i class="bi bi-x-circle"></i> {{ voucher.get_status_display }}</span>
+              {% elif voucher.status == 'ON_REVISION' %}<span class="sbadge revision"><i class="bi bi-arrow-counterclockwise"></i> {{ voucher.get_status_display }}</span>
+              {% else %}<span class="sbadge pending"><i class="bi bi-clock"></i> {{ voucher.get_status_display }}</span>{% endif %}
+            </td>
+            <td><span class="date-val">{{ voucher.created_at|date:"M d, Y" }}</span></td>
+            <td>
+              <div class="btn-cell">
+                <a href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}" class="view-btn"><i class="bi bi-eye"></i> View</a>
+                <a href="{% if voucher.pf_number %}{% url 'vouchers:pf_repeat' voucher.pk %}{% else %}{% url 'vouchers:repeat' voucher.pk %}{% endif %}" class="view-btn repeat"><i class="bi bi-arrow-repeat"></i> Repeat</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if is_paginated %}
+    <div class="pagination-bar">
+      <div class="pagination-info">Showing <span>{{ page_obj.start_index }}–{{ page_obj.end_index }}</span> of <span>{{ page_obj.paginator.count }}</span> documents</div>
+      <div class="pagination-btns">
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="pg-btn"><i class="bi bi-chevron-left"></i> Prev</a>{% endif %}
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pg-btn">Next <i class="bi bi-chevron-right"></i></a>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>No documents found.{% if user.role_level == 1 %} Create your first voucher to get started!{% endif %}</p>
+      {% if user.role_level == 1 %}
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <a href="{% url 'vouchers:create' %}" class="action-btn action-primary"><i class="bi bi-plus-circle"></i> Create PV</a>
+        <a href="{% url 'vouchers:pf_create' %}" class="action-btn"><i class="bi bi-plus-circle"></i> Create PF</a>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-    // Make table rows clickable
-    document.querySelectorAll('.clickable-row').forEach(row => {
-        row.addEventListener('click', function(e) {
-            // Don't navigate if clicking on a link or button
-            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
-                return;
-            }
+// ── Data from Django ──
+const chartLabels  = {{ chart_labels|safe }};
+const chartData    = {{ chart_data|safe }};
+const currentMonth = "{{ chart_current_month }}";
+const donutData    = {{ donut_data|safe }};
 
-            const href = this.getAttribute('data-href');
-            if (href) {
-                window.location.href = href;
-            }
-        });
-    });
+// ════════════════════════════════════════
+// BAR CHART — Monthly Disbursement
+// ════════════════════════════════════════
+(function() {
+  const ctx = document.getElementById('barChart');
+  if (!ctx) return;
 
-    // Filter documents by type (PV/PF/All)
-    function filterDocuments(type) {
-        // Update button states
-        document.querySelectorAll('.doc-filter-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-filter') === type) {
-                btn.classList.add('active');
-            }
-        });
+  const maxVal = Math.max(...chartData, 1);
 
-        // Show/hide rows based on filter
-        const rows = document.querySelectorAll('.modern-table tbody tr');
-        rows.forEach(row => {
-            const docType = row.getAttribute('data-type');
-            if (type === 'all' || docType === type) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
+  // Highlight current month bar
+  const barColors = chartLabels.map(label =>
+    label.toUpperCase() === currentMonth.toUpperCase()
+      ? 'rgba(34,211,238,0.9)'
+      : 'rgba(6,182,212,0.45)'
+  );
+  const borderColors = chartLabels.map(label =>
+    label.toUpperCase() === currentMonth.toUpperCase()
+      ? 'rgba(34,211,238,1)'
+      : 'rgba(6,182,212,0.7)'
+  );
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        data: chartData,
+        backgroundColor: barColors,
+        borderColor: borderColors,
+        borderWidth: 1,
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0891b2',
+          titleColor: '#fff',
+          bodyColor: '#cffafe',
+          padding: 8,
+          cornerRadius: 4,
+          callbacks: {
+            label: ctx => '$' + ctx.parsed.y.toLocaleString(undefined, {maximumFractionDigits:0})
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: ctx => {
+              const label = ctx.chart.data.labels[ctx.index];
+              return label && label.toUpperCase() === currentMonth.toUpperCase()
+                ? '#22d3ee' : '#4a6480';
+            },
+            font: { family: 'Montserrat', size: 9, weight: '700' }
+          },
+          border: { display: false }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+          ticks: {
+            color: '#4a6480',
+            font: { family: 'Montserrat', size: 9 },
+            callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)
+          },
+          border: { display: false }
+        }
+      },
+      animation: { duration: 900, easing: 'easeInOutQuart' }
     }
+  });
+})();
+
+// ════════════════════════════════════════
+// DONUT CHART — By Department
+// ════════════════════════════════════════
+(function() {
+  const ctx = document.getElementById('donutChart');
+  if (!ctx || !donutData.length) return;
+
+  const labels = donutData.map(d => d.name);
+  const values = donutData.map(d => d.pct);
+  const colors = donutData.map(d => d.color);
+
+  // Build total label
+  const grandTotal = donutData.reduce((s, d) => s + d.total, 0);
+  const totalStr = grandTotal >= 1000
+    ? '$' + (grandTotal/1000).toFixed(0) + 'K'
+    : '$' + grandTotal.toFixed(0);
+
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: {
+      responsive: false,
+      cutout: '68%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0f1e30',
+          borderColor: 'rgba(6,182,212,0.3)',
+          borderWidth: 1,
+          callbacks: { label: c => c.label + ': ' + c.parsed.toFixed(1) + '%' }
+        }
+      },
+      animation: { duration: 900, easing: 'easeInOutQuart' }
+    },
+    plugins: [{
+      id: 'centerText',
+      afterDraw(chart) {
+        const { ctx, chartArea: { left, right, top, bottom } } = chart;
+        const cx = (left + right) / 2, cy = (top + bottom) / 2;
+        ctx.save();
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#e2eaf4';
+        ctx.font = 'bold 11px Montserrat';
+        ctx.fillText(totalStr, cx, cy - 6);
+        ctx.fillStyle = '#4a6480';
+        ctx.font = '8px Montserrat';
+        ctx.fillText('Total', cx, cy + 7);
+        ctx.restore();
+      }
+    }]
+  });
+
+  // Build legend
+  const legendEl = document.getElementById('donutLegend');
+  if (legendEl) {
+    legendEl.innerHTML = donutData.map(d => `
+      <div class="legend-item">
+        <span class="legend-dot" style="background:${d.color}"></span>
+        <span class="legend-label">${d.name}</span>
+        <span class="legend-value">
+          $${d.total >= 1000 ? (d.total/1000).toFixed(0)+'K' : d.total}
+          <span class="legend-pct">${d.pct}%</span>
+        </span>
+      </div>
+    `).join('');
+  }
+})();
+
+// ── Clickable rows ──
+document.querySelectorAll('.doc-row').forEach(row => {
+  row.addEventListener('click', function(e) {
+    if (e.target.closest('a') || e.target.closest('button')) return;
+    const href = this.getAttribute('data-href');
+    if (href) window.location.href = href;
+  });
+});
+
+// ── PV/PF filter chips ──
+function filterDocs(type) {
+  document.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-f') === type);
+  });
+  document.querySelectorAll('.doc-row').forEach(row => {
+    row.style.display = (type === 'all' || row.getAttribute('data-type') === type) ? '' : 'none';
+  });
+}
+
+// ── Animate stat bars ──
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.stat-bar').forEach(bar => {
+    const w = bar.style.width;
+    bar.style.width = '0%';
+    setTimeout(() => {
+      bar.style.transition = 'width .9s cubic-bezier(.4,0,.2,1)';
+      bar.style.width = w;
+    }, 400);
+  });
+});
 </script>
 {% endblock %}

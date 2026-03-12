@@ -1,242 +1,712 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}MD Signature Dashboard{% endblock %}
+{% block title %}MD Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Animations ── */
+@keyframes mdUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes mdPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.3); }
+    50%      { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
+}
+
+.md-fade { animation: mdUp 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+.md-fade:nth-child(1) { animation-delay:.04s }
+.md-fade:nth-child(2) { animation-delay:.09s }
+.md-fade:nth-child(3) { animation-delay:.14s }
+.md-fade:nth-child(4) { animation-delay:.19s }
+.md-fade:nth-child(5) { animation-delay:.24s }
+
+/* ── Velocity stats ── */
+.md-vel-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.md-vel-card {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+.md-vel-card:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+}
+.md-vel-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+}
+.md-vel-card.pending::before  { background: linear-gradient(90deg, var(--warning), transparent); }
+.md-vel-card.signed::before   { background: linear-gradient(90deg, var(--success), transparent); }
+.md-vel-card.rejected::before { background: linear-gradient(90deg, var(--danger),  transparent); }
+.md-vel-card.week::before     { background: linear-gradient(90deg, var(--info),    transparent); }
+.md-vel-card.amount::before   { background: linear-gradient(90deg, var(--cyan-500),transparent); }
+
+.md-vel-num {
+    font-size: 1.875rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--text-primary);
+    letter-spacing: -1.5px;
+}
+.md-vel-num.urgent { color: var(--warning); animation: mdPulse 2.5s ease infinite; display: inline-block; border-radius: 4px; }
+.md-vel-label {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-muted); margin-top: 4px;
+}
+.md-vel-delta {
+    font-size: 0.62rem; font-weight: 700; margin-top: 6px;
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 7px; border-radius: var(--radius-full);
+}
+.md-vel-delta.up   { background: var(--success-light); color: var(--success); }
+.md-vel-delta.warn { background: var(--warning-light); color: var(--warning); }
+.md-vel-delta.neu  { background: rgba(255,255,255,0.04); color: var(--text-muted); }
+
+
+
+/* ── Main grid ── */
+.md-grid {
+    display: grid;
+    grid-template-columns: 1fr 310px;
+    gap: 16px;
+    align-items: start;
+}
+
+/* ── Queue panel ── */
+.md-queue {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+.md-queue-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    flex-wrap: wrap;
+}
+.md-queue-title { font-size: 0.8125rem; font-weight: 700; color: var(--text-primary); flex: 1; }
+
+/* Filter tabs */
+.md-filter-tabs {
+    display: flex; gap: 2px;
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+}
+.md-filter-tab {
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; cursor: pointer;
+    border: none; background: transparent;
+    color: var(--text-muted); font-family: var(--font-body);
+    transition: all var(--transition-fast);
+}
+.md-filter-tab.active {
+    background: var(--ink-600);
+    color: var(--cyan-400);
+    border: 1px solid var(--border-accent);
+}
+
+/* Search */
+.md-queue-search { position: relative; width: 195px; }
+.md-queue-search input {
+    width: 100%;
+    padding: 5px 10px 5px 28px;
+    background: var(--ink-700);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.72rem; font-family: var(--font-body);
+    color: var(--text-primary); outline: none;
+    transition: all var(--transition-fast);
+}
+.md-queue-search input:focus { border-color: var(--cyan-600); box-shadow: 0 0 0 3px rgba(6,182,212,0.12); background: var(--ink-600); }
+.md-queue-search input::placeholder { color: var(--text-muted); }
+.md-queue-search i { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 0.65rem; color: var(--text-muted); pointer-events: none; }
+
+/* ── Queue rows ── */
+.md-q-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    position: relative;
+}
+.md-q-row:last-child { border-bottom: none; }
+.md-q-row:hover td, .md-q-row:hover { background: rgba(6,182,212,0.04); }
+
+
+.md-q-num {
+    font-size: 0.8125rem; font-weight: 700; color: var(--text-primary);
+    display: flex; align-items: center; gap: 6px;
+}
+.md-q-meta {
+    font-size: 0.67rem; color: var(--text-muted); margin-top: 2px;
+    display: flex; align-items: center; gap: 6px;
+}
+
+/* Aging badge */
+.md-age {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 1px 7px; border-radius: var(--radius-full);
+    font-size: 0.58rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.4px;
+}
+.md-age.fresh { background: var(--success-light); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+.md-age.warm  { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
+.md-age.hot   { background: var(--danger-light);  color: var(--danger);  border: 1px solid rgba(239,68,68,0.25); }
+
+.md-q-docs { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+.md-q-amount { font-size: 0.8rem; font-weight: 800; color: var(--success); white-space: nowrap; text-align: right; }
+
+.md-q-idx { font-size: 0.58rem; font-weight: 800; color: var(--text-muted); text-align: center; }
+
+/* Row quick-action buttons */
+.md-q-actions { display: flex; gap: 4px; flex-shrink: 0; opacity: 0; transition: opacity var(--transition-fast); }
+.md-q-row:hover .md-q-actions { opacity: 1; }
+
+.md-qbtn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: var(--radius-sm); border: 1px solid;
+    font-size: 0.68rem; cursor: pointer; transition: all var(--transition-fast);
+    font-family: var(--font-body);
+}
+.md-qbtn.sign   { background: var(--success-light); border-color: rgba(34,197,94,0.3);  color: var(--success); }
+.md-qbtn.sign:hover   { background: var(--success); color: white; border-color: var(--success); }
+.md-qbtn.reject { background: var(--danger-light);  border-color: rgba(239,68,68,0.3);  color: var(--danger); }
+.md-qbtn.reject:hover { background: var(--danger);  color: white; border-color: var(--danger); }
+.md-qbtn.view   { background: rgba(255,255,255,0.04); border-color: var(--border); color: var(--text-muted); }
+.md-qbtn.view:hover   { background: var(--ink-600); color: var(--cyan-400); border-color: var(--border-accent); }
+
+/* Queue empty */
+.md-q-empty { padding: 44px 24px; text-align: center; color: var(--text-muted); }
+.md-q-empty-icon {
+    width: 52px; height: 52px;
+    background: rgba(6,182,212,0.08); border: 1px solid var(--border-accent);
+    border-radius: var(--radius-lg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; color: var(--cyan-400);
+    margin: 0 auto 12px;
+}
+.md-q-empty h5 { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+.md-q-empty p  { font-size: 0.75rem; color: var(--text-muted); margin: 0; }
+
+/* ── Side column ── */
+.md-side { display: flex; flex-direction: column; gap: 16px; }
+
+/* Activity feed */
+.md-feed {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+.md-feed-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    font-size: 0.75rem; font-weight: 700; color: var(--text-primary);
+    display: flex; align-items: center; gap: 8px;
+}
+.md-feed-head i { color: var(--cyan-400); }
+.md-feed-list { padding: 4px 0; }
+
+.md-feed-item {
+    display: grid; grid-template-columns: 30px 1fr;
+    gap: 10px; padding: 9px 16px; align-items: flex-start;
+    transition: background var(--transition-fast);
+}
+.md-feed-item:hover { background: rgba(6,182,212,0.04); }
+
+.md-feed-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; flex-shrink: 0; margin-top: 1px;
+}
+.md-feed-dot.signed   { background: var(--success-light); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+.md-feed-dot.rejected { background: var(--danger-light);  color: var(--danger);  border: 1px solid rgba(239,68,68,0.25); }
+.md-feed-dot.created  { background: var(--info-light);    color: var(--info);    border: 1px solid rgba(59,130,246,0.25); }
+
+.md-feed-text { font-size: 0.7rem; color: var(--text-secondary); line-height: 1.5; }
+.md-feed-text strong { font-weight: 700; color: var(--text-primary); }
+.md-feed-time { font-size: 0.6rem; color: var(--text-muted); margin-top: 2px; display: block; }
+
+
+
+/* ── Preview Drawer ── */
+.md-drawer-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(3px);
+    z-index: 1040;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+}
+.md-drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+.md-drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 460px; max-width: 95vw;
+    background: var(--surface-800);
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-2xl);
+    z-index: 1050;
+    transform: translateX(100%);
+    transition: transform .28s cubic-bezier(0.22,1,0.36,1);
+    display: flex; flex-direction: column;
+    font-family: var(--font-body);
+    overflow: hidden;
+}
+.md-drawer.open { transform: translateX(0); }
+
+.md-drawer-top {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    flex-shrink: 0;
+}
+.md-drawer-batch-num { font-size: 0.9375rem; font-weight: 800; color: var(--text-primary); flex: 1; }
+.md-drawer-close {
+    width: 28px; height: 28px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.7rem; color: var(--text-muted);
+    transition: all var(--transition-fast);
+}
+.md-drawer-close:hover { background: var(--ink-600); color: var(--cyan-400); border-color: var(--border-accent); }
+
+.md-drawer-body {
+    flex: 1; overflow-y: auto; padding: 16px 18px;
+}
+.md-drawer-body::-webkit-scrollbar { width: 3px; }
+.md-drawer-body::-webkit-scrollbar-thumb { background: var(--ink-500); border-radius: 99px; }
+
+/* Drawer sections */
+.md-dw-section { margin-bottom: 20px; }
+.md-dw-sec-label {
+    font-size: 0.57rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+}
+.md-dw-sec-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.md-dw-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.md-dw-info-cell {
+    background: var(--ink-700); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: 10px 12px;
+}
+.md-dw-info-key { font-size: 0.58rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+.md-dw-info-val { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-top: 3px; }
+.md-dw-info-val.green { color: var(--success); }
+
+.md-dw-doc-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border: 1px solid var(--border);
+    border-radius: var(--radius-md); margin-bottom: 6px;
+    background: var(--ink-700);
+    transition: border-color var(--transition-fast);
+}
+.md-dw-doc-row:hover { border-color: var(--border-accent); }
+.md-dw-doc-type {
+    width: 26px; height: 26px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.52rem; font-weight: 900; flex-shrink: 0;
+}
+.md-dw-doc-type.pv { background: var(--info-light);    color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+.md-dw-doc-type.pf { background: var(--success-light); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+.md-dw-doc-info { flex: 1; min-width: 0; }
+.md-dw-doc-num   { font-size: 0.72rem; font-weight: 700; color: var(--text-primary); }
+.md-dw-doc-payee { font-size: 0.64rem; color: var(--text-muted); }
+.md-dw-doc-amt   { font-size: 0.72rem; font-weight: 800; color: var(--success); flex-shrink: 0; }
+
+.md-dw-note {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-left: 3px solid var(--warning);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    font-size: 0.72rem; color: var(--text-secondary); line-height: 1.55;
+}
+
+/* Drawer footer */
+.md-drawer-foot {
+    display: flex; gap: 8px; padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    flex-shrink: 0;
+}
+.md-dw-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px; border-radius: var(--radius-md);
+    font-size: 0.75rem; font-weight: 700; font-family: var(--font-body);
+    cursor: pointer; border: 1px solid; text-decoration: none;
+    transition: all var(--transition-base);
+}
+.md-dw-btn.sign   { background: var(--success-light); border-color: rgba(34,197,94,0.3);  color: var(--success); }
+.md-dw-btn.sign:hover   { background: var(--success); color: white; border-color: var(--success); transform: translateY(-1px); }
+.md-dw-btn.reject { background: var(--danger-light);  border-color: rgba(239,68,68,0.3);  color: var(--danger); }
+.md-dw-btn.reject:hover { background: var(--danger);  color: white; border-color: var(--danger); transform: translateY(-1px); }
+.md-dw-btn.full   { background: transparent; border-color: var(--border); color: var(--text-muted); flex: 0.6; }
+.md-dw-btn.full:hover   { background: var(--ink-600); color: var(--cyan-400); border-color: var(--border-accent); }
+
+/* ── Recent history table ── */
+.md-hist {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    margin-top: 16px;
+}
+.md-hist-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+}
+.md-hist-title { font-size: 0.8125rem; font-weight: 700; color: var(--text-primary); }
+.md-hist-link {
+    font-size: 0.62rem; font-weight: 700; color: var(--text-muted);
+    text-decoration: none; display: flex; align-items: center; gap: 4px;
+    transition: color var(--transition-fast);
+}
+.md-hist-link:hover { color: var(--cyan-400); }
+
+.md-hist-table { width: 100%; border-collapse: collapse; font-size: 0.775rem; }
+.md-hist-table thead th {
+    padding: 8px 16px; font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+}
+.md-hist-table tbody tr {
+    border-bottom: 1px solid var(--border); cursor: pointer;
+    transition: background var(--transition-fast);
+}
+.md-hist-table tbody tr:last-child { border-bottom: none; }
+.md-hist-table tbody tr:hover td { background: rgba(6,182,212,0.04); }
+.md-hist-table td { padding: 9px 16px; color: var(--text-secondary); vertical-align: middle; }
+
+/* ── Modals ── */
+.modal-content {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    color: var(--text-primary);
+}
+.modal-header { border-bottom: 1px solid var(--border); padding: 14px 18px; }
+.modal-header .modal-title { font-size: 0.9rem; font-weight: 700; }
+.modal-header .btn-close { filter: invert(1); opacity: 0.4; }
+.modal-body  { padding: 16px 18px; }
+.modal-footer { border-top: 1px solid var(--border); padding: 12px 18px; gap: 8px; }
+
+.md-reject-textarea {
+    width: 100%; padding: 9px 12px;
+    background: var(--ink-700); border: 1px solid var(--border);
+    border-radius: var(--radius-md); resize: vertical;
+    font-family: var(--font-body); font-size: 0.8rem;
+    color: var(--text-primary); outline: none;
+    transition: all var(--transition-fast);
+}
+.md-reject-textarea:focus { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+.md-reject-textarea::placeholder { color: var(--text-muted); }
+
+/* ── Responsive ── */
+@media (max-width: 1000px) {
+    .md-grid     { grid-template-columns: 1fr; }
+    .md-vel-row  { grid-template-columns: repeat(3,1fr); }
+}
+@media (max-width: 640px) {
+    .md-vel-row  { grid-template-columns: 1fr 1fr; }
+    .md-drawer   { width: 100%; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid" style="max-width: 1400px; margin-top: -2.5rem;">
-    <!-- Page Header -->
-    <div class="page-header" style="margin-bottom: 2rem;">
+<div class="content-container-wide" style="padding-top: 0.25rem;">
+
+    <!-- ── Page Header ── -->
+    <div class="page-header md-fade">
         <div>
-            <h1 style="font-size: 2rem; font-weight: 700; color: #1f2937; margin: 0;">
-                <i class="bi bi-pen" style="color: #667eea;"></i>
-                MD Signature Dashboard
+            <h1 class="page-title">
+                <i class="bi bi-pen-fill"></i>
+                Approval Dashboard
             </h1>
-            <p style="color: #6b7280; margin-top: 0.5rem;">Review and approve signature batches</p>
+            <p class="page-subtitle">Review and sign batches submitted by Finance</p>
         </div>
-        <div>
+
+    </div>
+
+    <!-- ── Velocity Stats ── -->
+    <div class="md-vel-row md-fade">
+        <div class="md-vel-card pending">
+            <div class="md-vel-num {% if pending_count > 0 %}urgent{% endif %}">{{ pending_count }}</div>
+            <div class="md-vel-label">Awaiting Signature</div>
             {% if pending_count > 0 %}
-            <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-size: 1rem; padding: 0.5rem 1rem; margin-right: 1rem;">
-                {{ pending_count }} Pending
-            </span>
+            <div class="md-vel-delta warn"><i class="bi bi-clock"></i> Needs action</div>
+            {% else %}
+            <div class="md-vel-delta up"><i class="bi bi-check2"></i> All clear</div>
             {% endif %}
-            <a href="{% url 'dashboard:home' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
+        </div>
+        <div class="md-vel-card signed">
+            <div class="md-vel-num">{{ signed_count }}</div>
+            <div class="md-vel-label">Signed Total</div>
+            <div class="md-vel-delta up"><i class="bi bi-arrow-up"></i> All time</div>
+        </div>
+        <div class="md-vel-card rejected">
+            <div class="md-vel-num">{{ rejected_count }}</div>
+            <div class="md-vel-label">Rejected Total</div>
+            <div class="md-vel-delta neu"><i class="bi bi-dash"></i> All time</div>
+        </div>
+        <div class="md-vel-card week">
+            <div class="md-vel-num">{{ signed_this_week|default:"—" }}</div>
+            <div class="md-vel-label">Signed This Week</div>
+            <div class="md-vel-delta up"><i class="bi bi-calendar3-week"></i> 7 days</div>
+        </div>
+        <div class="md-vel-card amount">
+            <div class="md-vel-num" style="font-size:1.2rem;letter-spacing:-0.5px;">{{ total_signed_amount|default:"—" }}</div>
+            <div class="md-vel-label">Total Approved Value</div>
+            <div class="md-vel-delta up"><i class="bi bi-currency-dollar"></i> Cumulative</div>
         </div>
     </div>
 
-    <!-- Pending Batches -->
-    <div class="card" style="margin-bottom: 2rem;">
-        <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-            <h5 style="margin: 0;">
-                <i class="bi bi-hourglass-split"></i>
-                Pending Batches ({{ pending_count }})
-            </h5>
-        </div>
-        <div class="card-body">
-            {% if pending_batches %}
-            <div class="row">
-                {% for batch in pending_batches %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card batch-card" style="border: 2px solid #e5e7eb; transition: all 0.3s; height: 100%;">
-                        <div class="card-header" style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <h6 style="margin: 0; font-weight: 700; color: #667eea;">
-                                    <i class="bi bi-folder2-open"></i>
-                                    {{ batch.batch_number }}
-                                </h6>
-                                <span class="badge bg-warning text-dark">PENDING</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <small class="text-muted">Created by</small>
-                                <p style="margin: 0; font-weight: 600;">
-                                    {% if batch.created_by.get_full_name %}
-                                        {{ batch.created_by.get_full_name }}
-                                    {% else %}
-                                        {{ batch.created_by.username }}
-                                    {% endif %}
-                                </p>
-                            </div>
-                            <div class="mb-3">
-                                <small class="text-muted">Created at</small>
-                                <p style="margin: 0;">{{ batch.created_at|date:"M d, Y H:i" }}</p>
-                            </div>
-                            <div class="mb-3">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                    <span style="font-weight: 600;">Documents:</span>
-                                    <span class="badge bg-primary">{{ batch.get_document_count }}</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                    <span style="font-weight: 600;">Total Amount:</span>
-                                    <span style="color: #10b981; font-weight: 700;">{{ batch.get_total_amount_display }}</span>
-                                </div>
-                                <div>
-                                    <span style="font-weight: 600; font-size: 0.85rem;">Transfer Banks:</span>
-                                    <div style="margin-top: 0.25rem;">
-{% with banks=batch.voucher_items.all %}
-{% with form_banks=batch.form_items.all %}
-                                        {% if banks or form_banks %}
-                                            {% for item in banks %}
-                                                {% if item.voucher.company_bank_account %}
-                                                    <span class="badge" style="background: #667eea; margin: 0.1rem; font-size: 0.75rem;">{{ item.voucher.company_bank_account.bank }}</span>
-                                                {% endif %}
-                                            {% endfor %}
-                                            {% for item in form_banks %}
-                                                {% if item.payment_form.company_bank_account %}
-                                                    <span class="badge" style="background: #667eea; margin: 0.1rem; font-size: 0.75rem;">{{ item.payment_form.company_bank_account.bank }}</span>
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% else %}
-                                            <small class="text-muted">Not specified</small>
-                                        {% endif %}
-                                        {% endwith %}
-                                        {% endwith %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% if batch.fm_notes %}
-                            <div class="mb-3">
-                                <small class="text-muted">Finance Manager Notes</small>
-                                <p style="margin: 0; padding: 0.75rem; background: #fef3c7; border-left: 3px solid #f59e0b; font-size: 0.9rem; border-radius: 0.25rem;">
-                                    {{ batch.fm_notes }}
-                                </p>
-                            </div>
-                            {% endif %}
-                        </div>
-                        <div class="card-footer" style="background: white; border-top: 2px solid #e5e7eb;">
-                            <div class="d-grid gap-2">
-                                <div class="btn-group" role="group">
-                                    <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-outline-primary">
-                                        <i class="bi bi-eye"></i> View
-                                    </a>
-                                    <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="btn btn-outline-success">
-                                        <i class="bi bi-file-earmark-excel"></i> Excel
-                                    </a>
-                                </div>
-                                <button type="button" class="btn btn-success" onclick="showSignModal({{ batch.id }}, '{{ batch.batch_number }}', {{ batch.get_document_count }})">
-                                    <i class="bi bi-check-circle"></i> Sign All
-                                </button>
-                                <button type="button" class="btn btn-outline-danger" onclick="showRejectModal({{ batch.id }}, '{{ batch.batch_number }}')">
-                                    <i class="bi bi-x-circle"></i> Reject
-                                </button>
-                            </div>
-                        </div>
+    <!-- ── Main Grid ── -->
+    <div class="md-grid">
+
+        <!-- Left: Queue + History -->
+        <div>
+
+            <!-- SIGNATURE QUEUE -->
+            <div class="md-queue md-fade">
+                <div class="md-queue-head">
+                    <span class="md-queue-title">
+                        Signature Queue
+                        {% if pending_count > 0 %}
+                        <span class="badge badge-warning ms-2" style="font-size:0.6rem;">{{ pending_count }}</span>
+                        {% endif %}
+                    </span>
+                    <div class="md-filter-tabs">
+                        <button class="md-filter-tab active" onclick="setFilter('all',this)">All</button>
+                        <button class="md-filter-tab" onclick="setFilter('oldest',this)">Oldest</button>
+                        <button class="md-filter-tab" onclick="setFilter('largest',this)">Largest</button>
+                    </div>
+                    <div class="md-queue-search">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Search batch…" id="q-search" oninput="searchQueue()">
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div style="text-align: center; padding: 3rem; color: #6b7280;">
-                <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.3;"></i>
-                <p style="margin-top: 1rem; font-size: 1.1rem;">No pending batches</p>
-            </div>
-            {% endif %}
-        </div>
-    </div>
 
-    <!-- Recently Signed Batches -->
-    {% if signed_batches %}
-    <div class="card">
-        <div class="card-header" style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
-            <h5 style="margin: 0; color: #1f2937;">
-                <i class="bi bi-check2-circle"></i>
-                Recently Signed Batches
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead style="background: #f9fafb;">
+                <div id="queue-body">
+                    {% if pending_batches %}
+                        {% for batch in pending_batches %}
+                        <div class="md-q-row q-item"
+                             data-id="{{ batch.id }}"
+                             data-num="{{ batch.batch_number }}"
+                             data-docs="{{ batch.get_document_count }}"
+                             data-amount="{{ batch.get_total_amount_display }}"
+                             data-created="{{ batch.created_at|date:'U' }}"
+                             data-notes="{{ batch.fm_notes|default:'' }}"
+                             data-created-str="{{ batch.created_at|date:'d M Y · H:i' }}"
+                             data-fm="{{ batch.created_by.get_full_name|default:batch.created_by.username }}"
+                             onclick="openPreview(this)"
+                             tabindex="0">
+
+                            <div class="md-q-idx">{{ forloop.counter }}</div>
+
+                            <div>
+                                <div class="md-q-num">
+                                    <i class="bi bi-folder" style="font-size:0.65rem;color:var(--text-muted);"></i>
+                                    {{ batch.batch_number }}
+                                    <span class="md-age" data-created="{{ batch.created_at|date:'U' }}"></span>
+                                </div>
+                                <div class="md-q-meta">
+                                    <i class="bi bi-person" style="font-size:0.6rem;"></i>
+                                    {{ batch.created_by.get_full_name|default:batch.created_by.username }}
+                                    &nbsp;·&nbsp;
+                                    {{ batch.created_at|date:"d M Y" }}
+                                </div>
+                            </div>
+
+                            <div class="md-q-docs">
+                                <i class="bi bi-files" style="font-size:0.6rem;margin-right:2px;"></i>
+                                {{ batch.get_document_count }} docs
+                            </div>
+
+                            <div class="md-q-amount">{{ batch.get_total_amount_display }}</div>
+
+                            <div class="md-q-actions" onclick="event.stopPropagation()">
+                                <button class="md-qbtn sign" title="Sign (S)" onclick="quickSign({{ batch.id }}, '{{ batch.batch_number }}')">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button class="md-qbtn reject" title="Reject (R)" onclick="quickReject({{ batch.id }}, '{{ batch.batch_number }}')">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                <a href="{% url 'vouchers:batch_detail' batch.id %}" class="md-qbtn view" title="Full detail">
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="md-q-empty">
+                            <div class="md-q-empty-icon"><i class="bi bi-inbox"></i></div>
+                            <h5>Queue is clear</h5>
+                            <p>No batches are awaiting your signature</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- RECENT DECISIONS -->
+            {% if recent_batches %}
+            <div class="md-hist md-fade">
+                <div class="md-hist-head">
+                    <span class="md-hist-title">Recent Decisions</span>
+                    <a href="{% url 'vouchers:all_batches_list' %}" class="md-hist-link">
+                        View all <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <table class="md-hist-table">
+                    <thead>
                         <tr>
-                            <th>Batch Number</th>
-                            <th>Created By</th>
-                            <th>Documents</th>
-                            <th>Total Amount</th>
-                            <th>Signed At</th>
-                            <th>Actions</th>
+                            <th>Batch</th>
+                            <th>Submitted By</th>
+                            <th>Decided</th>
+                            <th>Amount</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for batch in signed_batches %}
-                        <tr>
+                        {% for batch in recent_batches %}
+                        <tr onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
+                            <td style="font-weight:700;color:var(--text-primary);">{{ batch.batch_number }}</td>
+                            <td style="font-size:0.72rem;">{{ batch.created_by.get_full_name|default:batch.created_by.username }}</td>
+                            <td style="font-size:0.68rem;">{{ batch.signed_at|date:"d M Y · H:i" }}</td>
+                            <td style="font-weight:700;color:var(--success);">{{ batch.get_total_amount_display }}</td>
                             <td>
-                                <strong>{{ batch.batch_number }}</strong>
-                                <br><small class="text-muted">{{ batch.created_at|date:"M d, Y" }}</small>
-                            </td>
-                            <td>
-                                {% if batch.created_by.get_full_name %}
-                                    {{ batch.created_by.get_full_name }}
+                                {% if batch.status == 'signed' %}
+                                <span class="badge badge-success"><i class="bi bi-check-circle-fill me-1"></i>Signed</span>
                                 {% else %}
-                                    {{ batch.created_by.username }}
+                                <span class="badge badge-danger"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
                                 {% endif %}
-                            </td>
-                            <td>
-                                <span class="badge bg-primary">{{ batch.get_document_count }}</span>
-                            </td>
-                            <td>
-                                <strong style="color: #10b981;">{{ batch.get_total_amount_display }}</strong>
-                            </td>
-                            <td>
-                                {{ batch.signed_at|date:"M d, Y H:i" }}
-                                <br><small class="text-muted">by
-                                    {% if batch.signed_by.get_full_name %}
-                                        {{ batch.signed_by.get_full_name }}
-                                    {% else %}
-                                        {{ batch.signed_by.username }}
-                                    {% endif %}
-                                </small>
-                            </td>
-                            <td>
-                                <a href="{% url 'vouchers:batch_detail' batch.id %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i> View
-                                </a>
-                                <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-file-earmark-excel"></i> Excel
-                                </a>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Right: Activity + Shortcuts -->
+        <div class="md-side">
+
+            <!-- Activity Feed -->
+            <div class="md-feed md-fade">
+                <div class="md-feed-head">
+                    <i class="bi bi-activity"></i>
+                    Live Activity
+                </div>
+                <div class="md-feed-list" id="activity-feed">
+                    {% for event in activity_feed %}
+                    <div class="md-feed-item">
+                        <div class="md-feed-dot {{ event.type }}">
+                            {% if event.type == 'signed' %}<i class="bi bi-check-lg"></i>
+                            {% elif event.type == 'rejected' %}<i class="bi bi-x-lg"></i>
+                            {% else %}<i class="bi bi-plus-lg"></i>{% endif %}
+                        </div>
+                        <div class="md-feed-text">
+                            {{ event.description }}
+                            <span class="md-feed-time">{{ event.timestamp|timesince }} ago</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="padding:20px 16px;text-align:center;color:var(--text-muted);font-size:0.7rem;">
+                        No recent activity
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+
+
         </div>
     </div>
-    {% endif %}
+
 </div>
 
-<!-- Sign Confirmation Modal -->
+<!-- ── Preview Drawer ── -->
+<div class="md-drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="md-drawer" id="batch-drawer">
+    <div class="md-drawer-top">
+        <div class="md-drawer-batch-num" id="dw-batch-num">—</div>
+        <a href="#" id="dw-full-link" class="md-dw-btn full" style="flex:0;padding:6px 12px;font-size:0.65rem;text-decoration:none;">
+            <i class="bi bi-box-arrow-up-right"></i> Full View
+        </a>
+        <button class="md-drawer-close" onclick="closeDrawer()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="md-drawer-body" id="dw-body">
+        <div style="text-align:center;padding:40px;color:var(--text-muted);">
+            <div style="font-size:1.5rem;margin-bottom:8px;opacity:0.25;color:var(--cyan-400);"><i class="bi bi-folder2"></i></div>
+            <div style="font-size:0.75rem;">Loading batch…</div>
+        </div>
+    </div>
+    <div class="md-drawer-foot">
+        <button class="md-dw-btn sign" id="dw-sign-btn" onclick="drawerSign()">
+            <i class="bi bi-pen"></i> Sign Batch
+        </button>
+        <button class="md-dw-btn reject" id="dw-reject-btn" onclick="drawerReject()">
+            <i class="bi bi-x-circle"></i> Reject
+        </button>
+    </div>
+</div>
+
+<!-- Sign Modal -->
 <div class="modal fade" id="signModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
         <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
-                <h5 class="modal-title">
-                    <i class="bi bi-check-circle"></i>
-                    Sign Batch
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pen me-2" style="color:var(--success);"></i>Confirm Signature</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>
-                    You are about to sign <strong id="sign-doc-count"></strong> documents in batch <strong id="sign-batch-number"></strong>.
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" style="font-weight: 600;">Comments (Optional)</label>
-                    <textarea class="form-control" id="sign-comments" rows="3" placeholder="Add any comments or instructions..."></textarea>
-                </div>
-                <div class="alert alert-warning mb-0">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <strong>This action cannot be undone.</strong> All documents in this batch will be marked as MD-approved.
-                </div>
+                <p style="font-size:0.8rem;color:var(--text-secondary);margin:0;">
+                    Sign batch <strong id="sign-modal-num" style="color:var(--text-primary);"></strong>?
+                    Your digital signature will be applied and Finance will be notified.
+                </p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="confirmSign()" id="sign-confirm-btn">
-                    <i class="bi bi-pen"></i> Sign All Documents
-                </button>
+                <button class="btn btn-ghost btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <form id="sign-form" method="POST" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">
+                        <i class="bi bi-pen"></i> Sign
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -244,196 +714,145 @@
 
 <!-- Reject Modal -->
 <div class="modal fade" id="rejectModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
         <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none;">
-                <h5 class="modal-title">
-                    <i class="bi bi-x-circle"></i>
-                    Reject Batch
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title" style="color:var(--danger);"><i class="bi bi-x-circle me-2"></i>Reject Batch</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    You are about to reject batch <strong id="reject-batch-number"></strong>.
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" style="font-weight: 600;">Rejection Reason <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="reject-comments" rows="4" placeholder="Please provide a reason for rejection..." required></textarea>
-                    <div class="invalid-feedback">
-                        Please provide a rejection reason
-                    </div>
-                </div>
+                <p style="font-size:0.78rem;color:var(--text-muted);margin:0 0 12px;">
+                    Rejecting <strong id="reject-modal-num" style="color:var(--text-primary);"></strong>. Provide a reason for Finance:
+                </p>
+                <textarea id="reject-reason" class="md-reject-textarea" rows="3" placeholder="State reason for rejection…"></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="confirmReject()" id="reject-confirm-btn">
-                    <i class="bi bi-x-circle"></i> Reject Batch
-                </button>
+                <button class="btn btn-ghost btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <form id="reject-form" method="POST" style="margin:0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="md_comments" id="reject-comments-input">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="captureRejectReason()">
+                        <i class="bi bi-x-circle"></i> Reject
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
-let currentBatchId = null;
-
-function showSignModal(batchId, batchNumber, docCount) {
-    currentBatchId = batchId;
-    document.getElementById('sign-batch-number').textContent = batchNumber;
-    document.getElementById('sign-doc-count').textContent = docCount;
-    document.getElementById('sign-comments').value = '';
-    const modal = new bootstrap.Modal(document.getElementById('signModal'));
-    modal.show();
-}
-
-function showRejectModal(batchId, batchNumber) {
-    currentBatchId = batchId;
-    document.getElementById('reject-batch-number').textContent = batchNumber;
-    document.getElementById('reject-comments').value = '';
-    const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
-    modal.show();
-}
-
-function confirmSign() {
-    const btn = document.getElementById('sign-confirm-btn');
-    const comments = document.getElementById('sign-comments').value;
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Signing...';
-
-    const formData = new FormData();
-    formData.append('comments', comments);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-    fetch(`/vouchers/batch/${currentBatchId}/sign/`, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('signModal')).hide();
-            // Redirect - Django message will show
-            window.location.reload();
-        } else {
-            showToast('Error', data.error || 'Failed to sign batch', 'error');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents';
-        }
-    })
-    .catch(error => {
-        showToast('Error', 'Network error: ' + error, 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-pen"></i> Sign All Documents';
-    });
-}
-
-function confirmReject() {
-    const btn = document.getElementById('reject-confirm-btn');
-    const comments = document.getElementById('reject-comments').value.trim();
-
-    if (!comments) {
-        document.getElementById('reject-comments').classList.add('is-invalid');
-        return;
-    }
-
-    document.getElementById('reject-comments').classList.remove('is-invalid');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Rejecting...';
-
-    const formData = new FormData();
-    formData.append('comments', comments);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-    fetch(`/vouchers/batch/${currentBatchId}/reject/`, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
-            // Redirect - Django message will show
-            window.location.reload();
-        } else {
-            showToast('Error', data.error || 'Failed to reject batch', 'error');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch';
-        }
-    })
-    .catch(error => {
-        showToast('Error', 'Network error: ' + error, 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-x-circle"></i> Reject Batch';
-    });
-}
-
-function showToast(title, message, type = 'info') {
-    // Check if Bootstrap Toast is available
-    if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
-        // Create toast element
-        const toastHtml = `
-            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'primary'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <strong>${title}</strong>
-                        <br>${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
-        `;
-
-        // Get or create toast container
-        let toastContainer = document.querySelector('.toast-container');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-            document.body.appendChild(toastContainer);
-        }
-
-        // Add toast to container
-        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-        const toastElement = toastContainer.lastElementChild;
-        const toast = new bootstrap.Toast(toastElement);
-        toast.show();
-
-        // Remove toast element after it's hidden
-        toastElement.addEventListener('hidden.bs.toast', () => {
-            toastElement.remove();
-        });
+/* ── Age badges ── */
+document.querySelectorAll('.md-age[data-created]').forEach(el => {
+    const ageH = (Date.now() - parseInt(el.dataset.created) * 1000) / 3600000;
+    if (ageH < 24) {
+        el.textContent = 'Today'; el.className = 'md-age fresh';
+    } else if (ageH < 72) {
+        el.textContent = Math.floor(ageH/24) + 'd ago'; el.className = 'md-age warm';
     } else {
-        // Fallback to alert
-        const icon = type === 'success' ? '✓' : type === 'warning' ? '⚠' : type === 'error' ? '✗' : 'ℹ';
-        alert(`${icon} ${title}\n${message}`);
+        el.textContent = Math.floor(ageH/24) + 'd — Urgent'; el.className = 'md-age hot';
     }
+});
+
+
+
+/* ── Search ── */
+function searchQueue() {
+    const q = document.getElementById('q-search').value.toLowerCase().trim();
+    rows().forEach(el => {
+        const match = !q || el.dataset.num.toLowerCase().includes(q) || (el.dataset.fm||'').toLowerCase().includes(q);
+        el.style.display = match ? '' : 'none';
+    });
+    focusedIdx = -1;
 }
+
+/* ── Sort/Filter ── */
+function setFilter(type, btn) {
+    document.querySelectorAll('.md-filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const body = document.getElementById('queue-body');
+    const items = Array.from(body.querySelectorAll('.q-item'));
+    if (type === 'oldest') items.sort((a,b) => parseInt(a.dataset.created) - parseInt(b.dataset.created));
+    else if (type === 'largest') items.sort((a,b) => (parseFloat(b.dataset.amount.replace(/[^0-9.]/g,''))||0) - (parseFloat(a.dataset.amount.replace(/[^0-9.]/g,''))||0));
+    else items.sort((a,b) => parseInt(b.dataset.created) - parseInt(a.dataset.created));
+    items.forEach((item, i) => { body.appendChild(item); item.querySelector('.md-q-idx').textContent = i + 1; });
+    focusedIdx = -1;
+}
+
+/* ── Preview Drawer ── */
+let drawerBatchId = null;
+
+function openPreview(el) {
+    drawerBatchId = el.dataset.id;
+    document.getElementById('dw-batch-num').textContent = el.dataset.num;
+    document.getElementById('dw-full-link').href = `/vouchers/batch/${drawerBatchId}/`;
+    document.getElementById('drawer-overlay').classList.add('open');
+    document.getElementById('batch-drawer').classList.add('open');
+    fetch(`/vouchers/${drawerBatchId}/api/details/`)
+        .then(r => r.json())
+        .then(data => renderDrawer(data, el.dataset))
+        .catch(() => renderDrawerFallback(el.dataset));
+}
+
+function renderDrawer(data, ds) {
+    let html = `<div class="md-dw-section">
+        <div class="md-dw-sec-label">Overview</div>
+        <div class="md-dw-info-grid">
+            <div class="md-dw-info-cell"><div class="md-dw-info-key">Submitted By</div><div class="md-dw-info-val">${ds.fm||'—'}</div></div>
+            <div class="md-dw-info-cell"><div class="md-dw-info-key">Created</div><div class="md-dw-info-val">${ds.createdStr||'—'}</div></div>
+            <div class="md-dw-info-cell"><div class="md-dw-info-key">Documents</div><div class="md-dw-info-val">${ds.docs}</div></div>
+            <div class="md-dw-info-cell"><div class="md-dw-info-key">Total Amount</div><div class="md-dw-info-val green">${ds.amount}</div></div>
+        </div></div>`;
+    if (ds.notes) html += `<div class="md-dw-section"><div class="md-dw-sec-label">FM Notes</div><div class="md-dw-note">${ds.notes}</div></div>`;
+    if (data.documents?.length) {
+        html += `<div class="md-dw-section"><div class="md-dw-sec-label">Documents (${data.documents.length})</div>`;
+        data.documents.forEach(doc => {
+            html += `<div class="md-dw-doc-row">
+                <div class="md-dw-doc-type ${doc.type}">${doc.type.toUpperCase()}</div>
+                <div class="md-dw-doc-info"><div class="md-dw-doc-num">${doc.number}</div><div class="md-dw-doc-payee">${doc.payee_name}</div></div>
+                <div class="md-dw-doc-amt">${doc.amount_display}</div></div>`;
+        });
+        html += '</div>';
+    }
+    document.getElementById('dw-body').innerHTML = html;
+}
+
+function renderDrawerFallback(ds) {
+    document.getElementById('dw-body').innerHTML = `
+        <div class="md-dw-section">
+            <div class="md-dw-sec-label">Overview</div>
+            <div class="md-dw-info-grid">
+                <div class="md-dw-info-cell"><div class="md-dw-info-key">Submitted By</div><div class="md-dw-info-val">${ds.fm||'—'}</div></div>
+                <div class="md-dw-info-cell"><div class="md-dw-info-key">Created</div><div class="md-dw-info-val">${ds.createdStr||'—'}</div></div>
+                <div class="md-dw-info-cell"><div class="md-dw-info-key">Documents</div><div class="md-dw-info-val">${ds.docs}</div></div>
+                <div class="md-dw-info-cell"><div class="md-dw-info-key">Total Amount</div><div class="md-dw-info-val green">${ds.amount}</div></div>
+            </div>
+            ${ds.notes ? `<div style="margin-top:12px;"><div class="md-dw-sec-label">FM Notes</div><div class="md-dw-note">${ds.notes}</div></div>` : ''}
+        </div>
+        <p style="font-size:0.7rem;color:var(--text-muted);text-align:center;margin-top:16px;">Open full view for document details</p>`;
+}
+
+function closeDrawer() {
+    document.getElementById('drawer-overlay').classList.remove('open');
+    document.getElementById('batch-drawer').classList.remove('open');
+    drawerBatchId = null;
+}
+
+/* ── Sign / Reject ── */
+function quickSign(id, num) {
+    document.getElementById('sign-modal-num').textContent = num;
+    document.getElementById('sign-form').action = `/vouchers/batch/${id}/sign/`;
+    new bootstrap.Modal(document.getElementById('signModal')).show();
+}
+function quickReject(id, num) {
+    document.getElementById('reject-modal-num').textContent = num;
+    document.getElementById('reject-form').action = `/vouchers/batch/${id}/reject/`;
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+function drawerSign()   { if (drawerBatchId) { const r = document.querySelector(`.q-item[data-id="${drawerBatchId}"]`); closeDrawer(); quickSign(drawerBatchId, r?.dataset.num || drawerBatchId); } }
+function drawerReject() { if (drawerBatchId) { const r = document.querySelector(`.q-item[data-id="${drawerBatchId}"]`); closeDrawer(); quickReject(drawerBatchId, r?.dataset.num || drawerBatchId); } }
+function captureRejectReason() { document.getElementById('reject-comments-input').value = document.getElementById('reject-reason').value; }
 </script>
-
-<style>
-.batch-card:hover {
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
-    transform: translateY(-2px);
-    border-color: #667eea !important;
-}
-
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-@media (max-width: 768px) {
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .page-header > div:last-child {
-        margin-top: 1rem;
-    }
-}
-</style>
 {% endblock %}

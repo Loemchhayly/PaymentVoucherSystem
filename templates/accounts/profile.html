@@ -1,384 +1,717 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}My Profile - Payment Voucher System{% endblock %}
+{% block title %}My Profile — Payment Voucher System{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* ==================== Profile Page Specific Styles ==================== */
-    .profile-container {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 0 var(--spacing-xl);
-    }
+/* ══════════════════════════════════════════════════════════
+   PROFILE PAGE — Enterprise Dark Edition
+   Matches FinVault Design System
+══════════════════════════════════════════════════════════ */
 
-    .page-header {
-        margin-bottom: var(--spacing-2xl);
-        text-align: center;
-    }
+/* ── Page layout ── */
+.profile-root {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
 
-    .page-title {
-        font-family: var(--font-heading);
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--gray-900);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--spacing-md);
-        margin: 0;
-    }
+/* ── Hero banner ── */
+.profile-hero {
+    position: relative;
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    padding: var(--spacing-2xl) var(--spacing-2xl) var(--spacing-xl);
+}
 
-    .page-title i {
-        font-size: 2.5rem;
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
+.profile-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 60% 60% at 90% -10%, rgba(6,182,212,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 10% 110%, rgba(139,92,246,0.07) 0%, transparent 70%);
+    pointer-events: none;
+}
 
-    /* Profile Cards */
-    .profile-card {
-        background: white;
-        border-radius: var(--radius-xl);
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-        margin-bottom: var(--spacing-xl);
-        transition: all var(--transition-base);
-    }
+/* Scanline texture */
+.profile-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.06) 3px,
+        rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none;
+    opacity: 0.4;
+}
 
-    .profile-card:hover {
-        box-shadow: var(--shadow-lg);
-    }
+.hero-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
 
-    .profile-card-header {
-        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-        padding: var(--spacing-lg) var(--spacing-xl);
-        border-bottom: 3px solid var(--primary-500);
-    }
+/* Big avatar */
+.hero-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cyan-500), #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(6,182,212,0.2), 0 0 24px rgba(6,182,212,0.2);
+    position: relative;
+}
 
-    .profile-card-header.info {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        border-bottom-color: #60a5fa;
-    }
+/* Online pulse ring */
+.hero-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--cyan-500);
+    opacity: 0.5;
+    animation: avatarPulse 3s ease-in-out infinite;
+}
+@keyframes avatarPulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:0.15;transform:scale(1.06)} }
 
-    .profile-card-header.success {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        border-bottom-color: #34d399;
-    }
+.hero-info {
+    flex: 1;
+    min-width: 200px;
+}
 
-    .profile-card-title {
-        font-family: var(--font-heading);
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: white;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
+.hero-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+}
 
-    .profile-card-title i {
-        font-size: 1.5rem;
-    }
+.hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
 
-    .profile-card-body {
-        padding: var(--spacing-xl);
-    }
+.hero-username {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
 
-    /* Info Table */
-    .info-table {
-        width: 100%;
-    }
+.hero-role-pill {
+    background: rgba(6,182,212,0.12);
+    border: 1px solid var(--border-accent);
+    color: var(--cyan-400);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 9px;
+    border-radius: var(--radius-full);
+}
 
-    .info-table dt {
-        font-family: var(--font-body);
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--gray-600);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: var(--spacing-sm) 0;
-    }
+.hero-join {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+}
+.hero-join i { color: var(--cyan-600); }
 
-    .info-table dd {
-        font-family: var(--font-body);
-        font-size: 1rem;
-        color: var(--gray-900);
-        font-weight: 500;
-        padding: var(--spacing-sm) 0;
-        margin-bottom: var(--spacing-md);
-        border-bottom: 1px solid var(--gray-200);
-    }
+/* Stats strip */
+.hero-stats {
+    display: flex;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-top: var(--spacing-xl);
+    position: relative;
+    z-index: 1;
+}
 
-    /* Signature Display */
-    .signature-display {
-        background: var(--gray-50);
-        border: 2px solid var(--gray-200);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-xl);
-        text-align: center;
-        margin-bottom: var(--spacing-lg);
-    }
+.hero-stat {
+    flex: 1;
+    background: var(--ink-800);
+    padding: 14px 20px;
+    text-align: center;
+    transition: background var(--transition-fast);
+}
+.hero-stat:hover { background: var(--ink-700); }
 
-    .signature-label {
-        font-weight: 600;
-        color: var(--gray-700);
-        margin-bottom: var(--spacing-md);
-        display: block;
-    }
+.hero-stat-value {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--cyan-400);
+    line-height: 1;
+}
+.hero-stat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
 
-    .signature-image {
-        max-width: 300px;
-        border: 2px solid var(--gray-300);
-        border-radius: var(--radius-md);
-        padding: var(--spacing-sm);
-        background: white;
-        box-shadow: var(--shadow-sm);
-    }
+/* ── Two-column grid ── */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+}
 
-    /* Status Badge */
-    .status-badge-profile {
-        padding: var(--spacing-xs) var(--spacing-md);
-        border-radius: var(--radius-full);
-        font-size: 0.875rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-xs);
-    }
+/* ── Panel card ── */
+.pv-panel {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+.pv-panel:hover {
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-glow);
+}
 
-    .status-badge-profile i {
-        font-size: 1rem;
-    }
+.pv-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+}
 
-    .status-badge-profile.verified {
-        background: var(--success-light);
-        color: #065f46;
-    }
+.panel-icon-wrap {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+.panel-icon-wrap.cyan   { background: rgba(6,182,212,0.12);  color: var(--cyan-400);  border: 1px solid var(--border-accent); }
+.panel-icon-wrap.blue   { background: rgba(59,130,246,0.12); color: #60a5fa;          border: 1px solid rgba(59,130,246,0.3); }
+.panel-icon-wrap.green  { background: var(--success-light);  color: var(--success);   border: 1px solid rgba(34,197,94,0.25); }
 
-    .status-badge-profile.not-verified {
-        background: var(--warning-light);
-        color: #92400e;
-    }
+.pv-panel-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.2px;
+}
 
-    .status-badge-profile.role {
-        background: var(--primary-light);
-        color: var(--primary-700);
-    }
+.pv-panel-body {
+    padding: 20px 18px;
+}
 
-    .status-badge-profile.no-role {
-        background: var(--gray-200);
-        color: var(--gray-700);
-    }
+/* ── Form overrides inside panel ── */
+.pv-panel-body .form-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
 
-    /* Warning Box */
-    .warning-box {
-        background: var(--warning-light);
-        border-left: 4px solid var(--warning);
-        border-radius: var(--radius-md);
-        padding: var(--spacing-lg);
-        margin-bottom: var(--spacing-lg);
-    }
+.pv-panel-body .form-control,
+.pv-panel-body .form-select {
+    background: var(--ink-750);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    padding: 9px 12px;
+    transition: all var(--transition-fast);
+}
 
-    .warning-box-title {
-        font-weight: 600;
-        color: #92400e;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        margin-bottom: var(--spacing-sm);
-    }
+.pv-panel-body .form-control:focus,
+.pv-panel-body .form-select:focus {
+    background: var(--ink-700);
+    border-color: var(--cyan-600);
+    box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+    color: var(--text-primary);
+}
 
-    .warning-box-title i {
-        font-size: 1.25rem;
-    }
+.pv-panel-body .form-control::placeholder { color: var(--text-muted); }
 
-    .warning-box-text {
-        color: #92400e;
-        margin: 0;
-    }
+/* ── Account detail rows ── */
+.detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+}
+.detail-row:last-child { border-bottom: none; padding-bottom: 0; }
+.detail-row:first-child { padding-top: 0; }
 
-    /* Action Buttons */
-    .action-btn {
-        padding: var(--spacing-md) var(--spacing-2xl);
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 1rem;
-        border-radius: var(--radius-lg);
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        transition: all var(--transition-base);
-        text-decoration: none;
-        border: none;
-        cursor: pointer;
-        box-shadow: var(--shadow-md);
-    }
+.detail-key {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
 
-    .action-btn i {
-        font-size: 1.25rem;
-    }
+.detail-val {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: right;
+    font-family: var(--font-mono);
+}
 
-    .action-btn.primary {
-        background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-        color: white;
-    }
+/* Status chips */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.chip i { font-size: 0.75rem; }
+.chip.verified   { background: var(--success-light); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+.chip.unverified { background: var(--warning-light); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+.chip.role       { background: rgba(6,182,212,0.12); color: var(--cyan-400); border: 1px solid var(--border-accent); }
+.chip.no-role    { background: var(--ink-700); color: var(--text-muted); border: 1px solid var(--border); }
 
-    .action-btn.primary:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-        color: white;
-    }
+/* ── Signature panel (full width) ── */
+.sig-panel { grid-column: 1 / -1; }
 
-    .action-btn.success {
-        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-        color: white;
-    }
+.sig-body {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2xl);
+    flex-wrap: wrap;
+}
 
-    .action-btn.success:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
-        color: white;
-    }
+.sig-preview-area {
+    flex: 1;
+    min-width: 260px;
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+    position: relative;
+    overflow: hidden;
+}
 
-    /* Responsive Design */
-    @media (max-width: 991px) {
-        .profile-container {
-            padding: 0 var(--spacing-md);
-        }
+/* Corner deco */
+.sig-preview-area::before,
+.sig-preview-area::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--border-accent);
+    border-style: solid;
+    opacity: 0.5;
+}
+.sig-preview-area::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+.sig-preview-area::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
 
-        .page-title {
-            font-size: 1.75rem;
-        }
-    }
+.sig-preview-area img {
+    max-width: 260px;
+    max-height: 120px;
+    object-fit: contain;
+    filter: brightness(1.1) contrast(1.05);
+}
 
-    @media (max-width: 768px) {
-        .profile-card-body {
-            padding: var(--spacing-lg);
-        }
+.sig-empty {
+    text-align: center;
+    color: var(--text-muted);
+}
+.sig-empty i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 6px;
+    color: var(--ink-500);
+}
+.sig-empty span {
+    font-size: 0.8rem;
+}
 
-        .signature-image {
-            max-width: 100%;
-        }
-    }
+.sig-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-top: 10px;
+}
+
+.sig-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 220px;
+}
+
+.sig-info-line {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    padding: 12px;
+    background: var(--ink-800);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+.sig-info-line i { color: var(--cyan-500); flex-shrink: 0; margin-top: 1px; }
+
+/* ── Alert / warning box ── */
+.pv-alert {
+    display: flex;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+.pv-alert i { flex-shrink: 0; margin-top: 1px; font-size: 1rem; }
+.pv-alert.warning {
+    background: var(--warning-light);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: #fbbf24;
+    border-left: 3px solid var(--warning);
+}
+.pv-alert.warning i { color: var(--warning); }
+
+/* ── Buttons ── */
+.pv-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 20px;
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    border: none;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.pv-btn i { font-size: 0.9rem; }
+
+.pv-btn.primary {
+    background: linear-gradient(135deg, var(--cyan-600), var(--cyan-700));
+    color: white;
+    box-shadow: 0 2px 10px rgba(6,182,212,0.3);
+}
+.pv-btn.primary:hover {
+    background: linear-gradient(135deg, var(--cyan-500), var(--cyan-600));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 18px rgba(6,182,212,0.4);
+    color: white;
+}
+
+.pv-btn.success {
+    background: linear-gradient(135deg, var(--success), #15803d);
+    color: white;
+    box-shadow: 0 2px 10px rgba(34,197,94,0.25);
+}
+.pv-btn.success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 18px rgba(34,197,94,0.35);
+    color: white;
+    filter: brightness(1.05);
+}
+
+.pv-btn.ghost {
+    background: var(--ink-700);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+.pv-btn.ghost:hover {
+    border-color: var(--border-accent);
+    color: var(--cyan-400);
+    background: var(--ink-600);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .profile-grid { grid-template-columns: 1fr; }
+    .sig-panel { grid-column: auto; }
+    .hero-stats { flex-wrap: wrap; }
+    .hero-stat { min-width: 33%; }
+    .sig-body { flex-direction: column; }
+}
+
+@media (max-width: 576px) {
+    .profile-root { padding: 0 12px; }
+    .profile-hero { padding: var(--spacing-xl) var(--spacing-md) var(--spacing-md); }
+    .hero-inner { gap: var(--spacing-md); }
+    .hero-avatar { width: 64px; height: 64px; font-size: 1.4rem; }
+    .hero-name { font-size: 1.2rem; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1 class="page-title">
-            <i class="bi bi-person-circle"></i>
-            <span>My Profile</span>
-        </h1>
-    </div>
+<div class="profile-root">
 
-    <!-- Profile Information Form -->
-    <div class="profile-card">
-        <div class="profile-card-header">
-            <h2 class="profile-card-title">
-                <i class="bi bi-info-circle"></i>
-                <span>Profile Information</span>
-            </h2>
-        </div>
-        <div class="profile-card-body">
-            <form method="post" novalidate>
-                {% csrf_token %}
-                {{ form|crispy }}
-                <button type="submit" class="action-btn primary">
-                    <i class="bi bi-check-circle"></i>
-                    <span>Update Profile</span>
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Account Details -->
-    <div class="profile-card">
-        <div class="profile-card-header info">
-            <h2 class="profile-card-title">
-                <i class="bi bi-shield-check"></i>
-                <span>Account Details</span>
-            </h2>
-        </div>
-        <div class="profile-card-body">
-            <dl class="info-table">
-                <dt>Username</dt>
-                <dd>{{ user.username }}</dd>
-
-                <dt>Role</dt>
-                <dd>
+    <!-- ══════════════ HERO BANNER ══════════════ -->
+    <div class="profile-hero">
+        <div class="hero-inner">
+            <div class="hero-avatar">
+                {{ user.get_full_name|default:user.username|slice:":2"|upper }}
+            </div>
+            <div class="hero-info">
+                <div class="hero-name">{{ user.get_full_name|default:user.username }}</div>
+                <div class="hero-meta">
+                    <span class="hero-username">@{{ user.username }}</span>
                     {% if user.role_level %}
-                        <span class="status-badge-profile role">
+                    <span class="hero-role-pill">{{ user.get_role_level_display }}</span>
+                    {% endif %}
+                    {% if user.email_verified %}
+                    <span class="chip verified" style="font-size:0.6rem;padding:1px 7px;">
+                        <i class="bi bi-patch-check-fill"></i> Verified
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="hero-join">
+                    <i class="bi bi-calendar3"></i>
+                    Member since {{ user.date_joined|date:"F Y" }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats strip -->
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-value">
+                    {% if user.role_level %}{{ user.get_role_level_display|slice:":3"|upper }}{% else %}—{% endif %}
+                </div>
+                <div class="hero-stat-label">Access Level</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">
+                    {% if user.email_verified %}
+                        <i class="bi bi-check-circle-fill" style="font-size:1.1rem;"></i>
+                    {% else %}
+                        <i class="bi bi-x-circle-fill" style="color:var(--warning);font-size:1.1rem;"></i>
+                    {% endif %}
+                </div>
+                <div class="hero-stat-label">Email Status</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">
+                    {% if user.signature_image %}
+                        <i class="bi bi-pen-fill" style="font-size:1.1rem;color:var(--success);"></i>
+                    {% else %}
+                        <i class="bi bi-dash-circle" style="font-size:1.1rem;color:var(--text-muted);"></i>
+                    {% endif %}
+                </div>
+                <div class="hero-stat-label">Signature</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value" style="font-size:0.9rem;">
+                    {{ user.date_joined|date:"Y" }}
+                </div>
+                <div class="hero-stat-label">Joined</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════ MAIN GRID ══════════════ -->
+    <div class="profile-grid">
+
+        <!-- ── Edit Profile ── -->
+        <div class="pv-panel">
+            <div class="pv-panel-header">
+                <div class="panel-icon-wrap cyan"><i class="bi bi-pencil-square"></i></div>
+                <span class="pv-panel-title">Edit Profile</span>
+            </div>
+            <div class="pv-panel-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div style="margin-top: var(--spacing-lg);">
+                        <button type="submit" class="pv-btn primary w-100">
+                            <i class="bi bi-check2-circle"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── Account Details ── -->
+        <div class="pv-panel">
+            <div class="pv-panel-header">
+                <div class="panel-icon-wrap blue"><i class="bi bi-shield-check"></i></div>
+                <span class="pv-panel-title">Account Details</span>
+            </div>
+            <div class="pv-panel-body">
+
+                <div class="detail-row">
+                    <span class="detail-key">Username</span>
+                    <span class="detail-val">{{ user.username }}</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-key">Email</span>
+                    <span class="detail-val" style="font-size:0.78rem;">{{ user.email|default:"—" }}</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-key">Role</span>
+                    <span>
+                        {% if user.role_level %}
+                        <span class="chip role">
                             <i class="bi bi-star-fill"></i>
                             {{ user.get_role_level_display }}
                         </span>
-                    {% else %}
-                        <span class="status-badge-profile no-role">
+                        {% else %}
+                        <span class="chip no-role">
                             <i class="bi bi-dash-circle"></i>
-                            No Role Assigned
+                            No Role
                         </span>
-                    {% endif %}
-                </dd>
-
-                <dt>Email Verification Status</dt>
-                <dd>
-                    {% if user.email_verified %}
-                        <span class="status-badge-profile verified">
-                            <i class="bi bi-check-circle-fill"></i>
-                            Verified
-                        </span>
-                    {% else %}
-                        <span class="status-badge-profile not-verified">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
-                            Not Verified
-                        </span>
-                    {% endif %}
-                </dd>
-
-                <dt>Date Joined</dt>
-                <dd>{{ user.date_joined|date:"F d, Y" }}</dd>
-            </dl>
-        </div>
-    </div>
-
-    <!-- Digital Signature -->
-    <div class="profile-card">
-        <div class="profile-card-header success">
-            <h2 class="profile-card-title">
-                <i class="bi bi-pen-fill"></i>
-                <span>Digital Signature</span>
-            </h2>
-        </div>
-        <div class="profile-card-body">
-            {% if user.signature_image %}
-                <div class="signature-display">
-                    <span class="signature-label">Current Signature:</span>
-                    <img src="{{ user.signature_image.url }}" alt="Signature" class="signature-image">
+                        {% endif %}
+                    </span>
                 </div>
-            {% else %}
-                <div class="warning-box">
-                    <div class="warning-box-title">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        <span>No Signature Uploaded</span>
+
+                <div class="detail-row">
+                    <span class="detail-key">Verification</span>
+                    <span>
+                        {% if user.email_verified %}
+                        <span class="chip verified">
+                            <i class="bi bi-check-circle-fill"></i> Verified
+                        </span>
+                        {% else %}
+                        <span class="chip unverified">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Not Verified
+                        </span>
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-key">Date Joined</span>
+                    <span class="detail-val">{{ user.date_joined|date:"d M Y" }}</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-key">Last Login</span>
+                    <span class="detail-val">{{ user.last_login|date:"d M Y, H:i"|default:"—" }}</span>
+                </div>
+
+                <!-- Quick actions -->
+                <div style="margin-top: var(--spacing-lg); display:flex; flex-direction:column; gap:8px;">
+                    <a href="{% url 'accounts:upload_signature' %}" class="pv-btn ghost w-100">
+                        <i class="bi bi-pen"></i> Upload Signature
+                    </a>
+                    <a href="{% url 'accounts:logout' %}" class="pv-btn ghost w-100" style="color:var(--danger);border-color:rgba(239,68,68,0.25);">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ── Digital Signature (full width) ── -->
+        <div class="pv-panel sig-panel">
+            <div class="pv-panel-header">
+                <div class="panel-icon-wrap green"><i class="bi bi-pen-fill"></i></div>
+                <span class="pv-panel-title">Digital Signature</span>
+                {% if user.signature_image %}
+                <span class="chip verified" style="margin-left:auto;font-size:0.6rem;">
+                    <i class="bi bi-check-circle-fill"></i> On File
+                </span>
+                {% else %}
+                <span class="chip unverified" style="margin-left:auto;font-size:0.6rem;">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Missing
+                </span>
+                {% endif %}
+            </div>
+            <div class="pv-panel-body">
+                <div class="sig-body">
+
+                    <!-- Preview -->
+                    <div class="sig-preview-area">
+                        {% if user.signature_image %}
+                            <img src="{{ user.signature_image.url }}" alt="Your digital signature">
+                            <span class="sig-label">Current Signature</span>
+                        {% else %}
+                            <div class="sig-empty">
+                                <i class="bi bi-pen-fill"></i>
+                                <span>No signature on file</span>
+                            </div>
+                        {% endif %}
                     </div>
-                    <p class="warning-box-text">
-                        Your digital signature will be used on approved vouchers. Please upload a clear image of your signature.
-                    </p>
-                </div>
-            {% endif %}
 
-            <a href="{% url 'accounts:upload_signature' %}" class="action-btn success">
-                <i class="bi bi-cloud-upload"></i>
-                <span>{% if user.signature_image %}Update Signature{% else %}Upload Signature{% endif %}</span>
-            </a>
+                    <!-- Actions & info -->
+                    <div class="sig-actions">
+                        {% if not user.signature_image %}
+                        <div class="pv-alert warning">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span>Your signature is required to approve and sign payment vouchers. Please upload a clear image.</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="sig-info-line">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <span>Your digital signature will appear on all approved vouchers and printed documents.</span>
+                        </div>
+
+                        <a href="{% url 'accounts:upload_signature' %}" class="pv-btn success">
+                            <i class="bi bi-cloud-upload"></i>
+                            {% if user.signature_image %}Update Signature{% else %}Upload Signature{% endif %}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
         </div>
-    </div>
-</div>
+
+    </div><!-- /profile-grid -->
+</div><!-- /profile-root -->
 {% endblock %}

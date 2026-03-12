@@ -1,0 +1,1187 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - Payment Voucher System{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-900: #064e3b;
+    --green-800: #065f46;
+    --green-700: #047857;
+    --green-600: #059669;
+    --green-500: #10b981;
+    --green-400: #34d399;
+    --green-300: #6ee7b7;
+    --green-100: #d1fae5;
+    --green-50: #ecfdf5;
+  }
+
+  body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+  .khmer-font { font-family: 'Hanuman', serif; }
+
+  /* ─── PAGE HEADER ─── */
+  .voucher-form-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+    opacity: 0;
+    animation: fadeInPage 0.5s ease-in 0.1s forwards;
+  }
+
+  @keyframes fadeInPage {
+    to { opacity: 1; }
+  }
+
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .page-header {
+    margin-bottom: var(--spacing-md);
+    margin-top: -15px;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--green-400) 0%, var(--green-600) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  /* ─── LAYOUT ─── */
+  .page-content {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+  }
+
+  .form-column { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    animation: slideUp 0.4s ease-out forwards;
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.12s; }
+  .card:nth-child(3) { animation-delay: 0.19s; }
+  .card:nth-child(4) { animation-delay: 0.26s; }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--gray-100);
+    background: linear-gradient(135deg, var(--green-50) 0%, white 100%);
+  }
+
+  .card-header .header-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--green-400), var(--green-600));
+    color: white;
+  }
+
+  .card-header-title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    line-height: 1.2;
+  }
+
+  .card-header-title-kh {
+    font-family: 'Hanuman', serif;
+    font-size: 0.8125rem;
+    color: var(--gray-500);
+    margin-top: 1px;
+  }
+
+  .card-body { padding: 20px; }
+
+  /* ─── FORM FIELDS ─── */
+  .form-grid { display: grid; gap: 14px; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.span-2 { grid-column: span 2; }
+  .form-group.span-3 { grid-column: span 3; }
+  .form-group.span-4 { grid-column: span 4; }
+
+  .form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .label-kh {
+    font-family: 'Hanuman', serif;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--gray-400);
+    line-height: 1.2;
+  }
+
+  .label-required { color: var(--red); margin-left: 2px; }
+
+  .form-control,
+  .form-select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    padding: 9px 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    background: white;
+    color: var(--gray-800);
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    outline: none;
+    width: 100%;
+  }
+
+  .form-control::placeholder { color: var(--gray-300); }
+
+  .form-control:focus, .form-select:focus {
+    border-color: var(--green-400);
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
+    background: var(--green-50);
+  }
+
+  .form-control:hover:not(:focus), .form-select:hover:not(:focus) {
+    border-color: var(--gray-300);
+  }
+
+  .form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 34px;
+    cursor: pointer;
+  }
+
+  textarea.form-control { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+  .field-hint {
+    font-size: 0.72rem;
+    color: var(--gray-400);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ─── LINE ITEMS TABLE ─── */
+  .table-wrap { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--gray-200); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+
+  thead tr { background: linear-gradient(135deg, var(--gray-50), var(--green-50)); }
+
+  th {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--green-100);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--green-50); }
+
+  td input, td select, td textarea {
+    padding: 6px 9px;
+    font-size: 0.8125rem;
+    border-radius: var(--radius-sm);
+    min-height: 34px;
+  }
+
+  .line-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--green-500), var(--green-700));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .line-total {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  tfoot tr { background: linear-gradient(135deg, var(--green-700), var(--green-900)); }
+  tfoot td, tfoot th {
+    color: white;
+    padding: 12px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border: none;
+  }
+
+  .grand-total-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: right;
+  }
+
+  .vat-cb { width: 18px; height: 18px; accent-color: var(--green-500); cursor: pointer; }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--green-500), var(--green-700));
+    color: white;
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+    color: white;
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, var(--green-500), #059669);
+    color: white;
+    box-shadow: 0 3px 10px rgba(16,185,129,0.3);
+  }
+
+  .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(16,185,129,0.4);
+    color: white;
+  }
+
+  .btn-outline {
+    background: white;
+    color: var(--gray-600);
+    border: 1.5px solid var(--gray-200);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--gray-400);
+    background: var(--gray-50);
+    transform: translateY(-1px);
+    color: var(--gray-900);
+  }
+
+  .btn-add {
+    background: white;
+    color: var(--green-600);
+    border: 1.5px dashed var(--green-400);
+    font-size: 0.8125rem;
+    padding: 8px 16px;
+  }
+
+  .btn-add:hover { background: var(--green-50); border-style: solid; }
+
+  .btn-danger-ghost {
+    background: transparent;
+    color: var(--gray-400);
+    border: none;
+    padding: 5px;
+    border-radius: 6px;
+  }
+
+  .btn-danger-ghost:hover { background: rgba(239,68,68,0.08); color: var(--red); }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+  .summary-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    animation: slideUp 0.4s ease-out 0.1s forwards;
+    opacity: 0;
+    transform: translateY(16px);
+    position: sticky;
+    top: 76px;
+  }
+
+  .summary-header {
+    background: linear-gradient(135deg, var(--green-700), var(--green-900));
+    padding: 16px 20px;
+    color: white;
+  }
+
+  .summary-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .summary-header p {
+    font-family: 'Hanuman', serif;
+    font-size: 0.8rem;
+    opacity: 0.65;
+    margin-top: 2px;
+  }
+
+  .summary-body { padding: 16px; }
+
+  .total-amount-display {
+    text-align: center;
+    padding: 16px 0 12px;
+    border-bottom: 1px solid var(--gray-100);
+    margin-bottom: 14px;
+  }
+
+  .total-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .total-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--green-600);
+    margin-top: 4px;
+    line-height: 1;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 0.8125rem;
+  }
+
+  .summary-row:last-child { border-bottom: none; }
+
+  .summary-row .s-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--gray-600);
+    font-weight: 500;
+  }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: var(--green-500); }
+  .dot-red { background: var(--red); }
+  .dot-blue { background: #3b82f6; }
+
+  .summary-row .s-val {
+    font-family: 'DM Mono', monospace;
+    font-weight: 600;
+    color: var(--gray-800);
+    font-size: 0.875rem;
+  }
+
+  /* File Upload */
+  .file-upload-box {
+    border: 2px dashed var(--green-300);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    text-align: center;
+    background: var(--green-50);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .file-upload-box:hover { border-color: var(--green-500); background: var(--green-100); }
+  .file-upload-box input { display: none; }
+  .file-upload-title { font-size: 0.8125rem; font-weight: 600; color: var(--green-700); }
+  .file-upload-hint { font-size: 0.7rem; color: var(--gray-400); margin-top: 3px; }
+
+  .file-list { list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
+  }
+
+  .file-item .fi-icon { color: var(--green-500); font-size: 1rem; }
+  .file-item .fi-name {
+    flex: 1;
+    color: var(--gray-700);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .file-item .fi-size { color: var(--gray-400); white-space: nowrap; }
+
+  /* Existing attachments */
+  .existing-attachment-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 10px;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    font-size: 0.8125rem;
+  }
+
+  .existing-attachment-item .file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .existing-attachment-item .remove-btn {
+    background: var(--red);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .existing-attachment-item .remove-btn:hover {
+    background: #b91c1c;
+    transform: scale(1.05);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 72px;
+    right: 20px;
+    padding: 12px 18px;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--green-500);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    z-index: 999;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    min-width: 240px;
+  }
+
+  .toast.show { transform: translateX(0); }
+  .toast.warn { border-left-color: var(--orange); }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .page-content { grid-template-columns: 1fr; }
+    .summary-card { position: static; }
+    .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    .voucher-form-container { padding: 0 1rem; }
+    .grid-3, .grid-2, .grid-4 { grid-template-columns: 1fr; }
+  }
+
+  /* Info box */
+  .info-box {
+    background: var(--green-50);
+    border-left: 3px solid var(--green-500);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-md);
+    font-size: 0.8125rem;
+    color: var(--gray-700);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Collapsible section */
+  details {
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+  }
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: 0.875rem;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details[open] summary {
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--gray-200);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="voucher-form-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">{{ title }}</h1>
+  </div>
+
+  <!-- Error Display -->
+  {% if form.errors or formset.errors or formset.non_form_errors %}
+  <div class="alert alert-danger" style="margin-bottom: var(--spacing-xl); background: #fee2e2; border-left: 4px solid #dc2626; padding: var(--spacing-md); border-radius: var(--radius-md);">
+    <h4 style="margin-bottom: var(--spacing-sm);"><i class="bi bi-exclamation-triangle-fill"></i> Form Validation Errors:</h4>
+    {% if form.errors %}
+      <strong>Header Form Errors:</strong>
+      <ul style="margin-left: var(--spacing-lg); margin-top: var(--spacing-xs);">
+      {% for field, errors in form.errors.items %}
+        <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+    {% if formset.non_form_errors %}
+      <strong>Line Items General Errors:</strong>
+      <ul style="margin-left: var(--spacing-lg); margin-top: var(--spacing-xs);">
+        <li>{{ formset.non_form_errors }}</li>
+      </ul>
+    {% endif %}
+    {% if formset.errors %}
+      <strong>Line Item Errors:</strong>
+      <ul style="margin-left: var(--spacing-lg); margin-top: var(--spacing-xs);">
+      {% for line_form in formset %}
+        {% if line_form.errors %}
+          <li>Line {{ forloop.counter }}: {{ line_form.errors }}</li>
+        {% endif %}
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" id="pf-form">
+    {% csrf_token %}
+    <input type="hidden" name="deleted_attachments" id="deleted-attachments" value="">
+
+    <div class="page-content">
+      <!-- LEFT: FORM COLUMN -->
+      <div class="form-column">
+
+        <!-- PAYEE INFO CARD -->
+        <div class="card">
+          <div class="card-header">
+            <div class="header-icon"><i class="bi bi-person-check"></i></div>
+            <div>
+              <div class="card-header-title">Payment Form Information</div>
+              
+            </div>
+          </div>
+          <div class="card-body">
+            {% if object and object.pf_number %}
+            <div class="info-box">
+              <i class="bi bi-folder2-open"></i>
+              <strong>Storage Location:</strong> form_attachments/{{ object.pf_number }}/
+            </div>
+            {% endif %}
+
+            <div class="form-grid grid-4">
+              <div class="form-group">
+                <label class="form-label">
+                  {{ form.pf_number.label }}
+                  
+                </label>
+                {{ form.pf_number }}
+                {% if form.pf_number.errors %}
+                  <small style="color: #dc2626;">{{ form.pf_number.errors|first }}</small>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  {{ form.payee_name.label }} <span class="label-required">*</span>
+                  
+                </label>
+                {{ form.payee_name }}
+                {% if form.payee_name.errors %}
+                  <small style="color: #dc2626;">{{ form.payee_name.errors|first }}</small>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  {{ form.payment_date.label }} <span class="label-required">*</span>
+                  
+                </label>
+                {{ form.payment_date }}
+                {% if form.payment_date.errors %}
+                  <small style="color: #dc2626;">{{ form.payment_date.errors|first }}</small>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  {{ form.company_bank_account.label }}
+                  
+                </label>
+                {{ form.company_bank_account }}
+                {% if form.company_bank_account.errors %}
+                  <small style="color: #dc2626;">{{ form.company_bank_account.errors|first }}</small>
+                {% endif %}
+                <span class="field-hint">
+                  <i class="bi bi-info-circle"></i> Select a pre-configured company account
+                </span>
+              </div>
+            </div>
+
+            <!-- Manual Bank Entry (Collapsible) -->
+            <details>
+              <summary>
+                <i class="bi bi-pencil-square"></i> Manual Bank Entry (Optional)
+              </summary>
+              <div class="form-grid grid-3" style="margin-top: var(--spacing-sm);">
+                <div class="form-group">
+                  <label class="form-label">
+                    {{ form.bank_address.label }}
+                    
+                  </label>
+                  {{ form.bank_address }}
+                </div>
+                <div class="form-group">
+                  <label class="form-label">
+                    {{ form.bank_name.label }}
+                    
+                  </label>
+                  {{ form.bank_name }}
+                </div>
+                <div class="form-group">
+                  <label class="form-label">
+                    {{ form.bank_account_number.label }}
+                    
+                  </label>
+                  {{ form.bank_account_number }}
+                </div>
+              </div>
+              <span class="field-hint" style="margin-top: var(--spacing-xs);">
+                <i class="bi bi-exclamation-triangle"></i> Only use if account is not in dropdown above
+              </span>
+            </details>
+
+            <!-- Hidden Fields -->
+            {{ form.status }}
+          </div>
+        </div>
+
+        <!-- LINE ITEMS CARD -->
+        <div class="card">
+          <div class="card-header">
+            <div class="header-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);"><i class="bi bi-list-check"></i></div>
+            <div>
+              <div class="card-header-title">Line Items</div>
+              
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="field-hint" style="margin-bottom: var(--spacing-md);">
+              <i class="bi bi-info-circle"></i>
+              <span>Fill in the table below. At least one line item is required. You can add up to 50 items.</span>
+            </div>
+
+            {{ formset.management_form }}
+
+            <div class="table-wrap">
+              <table id="line-items-table">
+                <thead>
+                  <tr>
+                    <th style="width:4%">#</th>
+                    <th style="width:28%">Description / ការពិពណ៌នា</th>
+                    <th style="width:14%">Department</th>
+                    <th style="width:14%">Program</th>
+                    <th style="width:12%">Amount</th>
+                    <th style="width:9%">Currency</th>
+                    <th style="width:8%">VAT 10%</th>
+                    <th style="width:9%">Total</th>
+                    <th style="width:4%"></th>
+                  </tr>
+                </thead>
+                <tbody id="line-body">
+                  {% for line_form in formset %}
+                  <tr class="line-row" data-form-index="{{ forloop.counter0 }}">
+                    <td><div class="line-badge">{{ forloop.counter }}</div></td>
+                    <td>
+                      {{ line_form.description }}
+                      {{ line_form.line_number }}
+                      {{ line_form.id }}
+                      <div style="display: none;">{{ line_form.DELETE }}</div>
+                    </td>
+                    <td>{{ line_form.department }}</td>
+                    <td>{{ line_form.program }}</td>
+                    <td>{{ line_form.amount }}</td>
+                    <td>{{ line_form.currency }}</td>
+                    <td style="text-align:center">{{ line_form.vat_applicable }}</td>
+                    <td class="line-total">$0.00</td>
+                    <td>
+                      <button type="button" class="btn-danger-ghost" onclick="removeLine(this)" title="Remove">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="7" style="text-align:right; font-size:0.8125rem; text-transform:uppercase; letter-spacing:0.5px; opacity:0.8;">Grand Total:</td>
+                    <td class="grand-total-val" id="grand-total">$0.00</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <div style="margin-top:12px">
+              <button type="button" class="btn btn-add" onclick="addLine()">
+                <i class="bi bi-plus-circle"></i> Add Line Item / បន្ថែមបន្ទាត់
+              </button>
+            </div>
+
+            <div class="field-hint" style="margin-top:10px;">
+              <i class="bi bi-info-circle"></i>
+              <span>Check VAT box to apply 10% tax. Supports multi-currency totaling.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTION BUTTONS CARD -->
+        <div class="card">
+          <div class="card-body">
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Save Payment Form / រក្សាទុកទម្រង់
+              </button>
+              <a href="{% if object %}{% url 'vouchers:pf_detail' object.pk %}{% else %}{% url 'dashboard:home' %}{% endif %}" class="btn btn-outline">
+                <i class="bi bi-x-circle"></i> Cancel / បោះបង់
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /form-column -->
+
+      <!-- RIGHT: SIDEBAR -->
+      <div class="sidebar">
+        <div class="summary-card">
+          <div class="summary-header">
+            <h3>Summary & Attachments</h3>
+            
+          </div>
+          <div class="summary-body">
+
+            <div class="total-amount-display">
+              <div class="total-label">Total Amount</div>
+              <div class="total-value" id="sidebar-total">$0.00</div>
+            </div>
+
+            <div class="summary-row">
+              <div class="s-label"><span class="dot dot-green"></span> Amount:</div>
+              <div class="s-val" id="sum-amount">$0.00</div>
+            </div>
+            <div class="summary-row">
+              <div class="s-label"><span class="dot dot-red"></span> VAT (10%):</div>
+              <div class="s-val" id="sum-vat">$0.00</div>
+            </div>
+            <div class="summary-row">
+              <div class="s-label"><span class="dot dot-blue"></span> Total:</div>
+              <div class="s-val" id="sum-total">$0.00</div>
+            </div>
+
+            <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--gray-100);">
+              <h4 style="font-size: 0.8125rem; font-weight: 700; color: var(--gray-700); margin-bottom: var(--spacing-sm); display: flex; align-items: center; gap: 6px;">
+                <i class="bi bi-paperclip"></i> Attachments 
+              </h4>
+
+              <!-- Existing Attachments -->
+              {% if object and object.attachments.exists %}
+              <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: var(--spacing-sm); margin-bottom: var(--spacing-md);">
+                <h5 style="font-size: 0.75rem; font-weight: 600; color: var(--gray-700); margin-bottom: var(--spacing-xs);">
+                  <i class="bi bi-folder-check"></i> Existing ({{ object.attachments.count }})
+                </h5>
+                <ul class="file-list" id="existing-files-list">
+                  {% for attachment in object.attachments.all %}
+                  <li class="existing-attachment-item" data-attachment-id="{{ attachment.id }}">
+                    <div class="file-info">
+                      {% if '.pdf' in attachment.file.name|lower %}
+                        <i class="bi bi-file-earmark-pdf fi-icon"></i>
+                      {% elif '.jpg' in attachment.file.name|lower or '.jpeg' in attachment.file.name|lower or '.png' in attachment.file.name|lower %}
+                        <i class="bi bi-file-earmark-image fi-icon"></i>
+                      {% else %}
+                        <i class="bi bi-file-earmark fi-icon"></i>
+                      {% endif %}
+                      <a href="{{ attachment.file.url }}" target="_blank" class="fi-name" style="text-decoration: none; color: var(--green-600);">
+                        {{ attachment.filename }}
+                      </a>
+                      <span class="fi-size">({{ attachment.file_size|filesizeformat }})</span>
+                    </div>
+                    <button type="button" class="remove-btn" onclick="removeExistingAttachment({{ attachment.id }}, '{{ attachment.filename|escapejs }}')">
+                      <i class="bi bi-x"></i> Remove
+                    </button>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+
+              <div class="file-upload-box" onclick="document.getElementById('file-input').click()">
+                <input type="file" id="file-input" name="attachments" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="handleFiles(this)">
+                <label>
+                  <div style="font-size:1.5rem; margin-bottom:4px"><i class="bi bi-cloud-upload"></i></div>
+                  <div class="file-upload-title">Choose Files / ជ្រើសរើសឯកសារ</div>
+                  <div class="file-upload-hint">PDF, JPG, PNG · Max 10MB</div>
+                </label>
+              </div>
+              <ul class="file-list" id="file-list"></ul>
+            </div>
+
+            <div style="margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid var(--gray-100);">
+              <button type="submit" class="btn btn-success" style="width:100%; justify-content:center">
+                <i class="bi bi-check-circle"></i> Save Payment Form
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </form>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast">✔ Payment Form saved successfully!</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const SYMBOLS = { USD: '$', KHR: '៛', THB: '฿' };
+  let deletedAttachments = [];
+
+  function recalc() {
+    const rows = document.querySelectorAll('.line-row');
+    let grandTotals = {};
+    let totalAmt = 0, totalVat = 0;
+
+    rows.forEach((row, i) => {
+      const amtInput = row.querySelector('[name$="-amount"]');
+      const curSelect = row.querySelector('[name$="-currency"]');
+      const vatCheck = row.querySelector('[name$="-vat_applicable"]');
+
+      const amt = parseFloat(amtInput?.value) || 0;
+      const cur = curSelect?.value || 'USD';
+      const vat = vatCheck?.checked || false;
+      const vatAmt = vat ? amt * 0.1 : 0;
+      const total = amt + vatAmt;
+      const sym = SYMBOLS[cur] || '$';
+
+      const totalCell = row.querySelector('.line-total');
+      if (totalCell) {
+        totalCell.textContent = sym + total.toFixed(2);
+      }
+
+      if (!grandTotals[cur]) grandTotals[cur] = 0;
+      grandTotals[cur] += total;
+
+      if (cur === 'USD') {
+        totalAmt += amt;
+        totalVat += vatAmt;
+      }
+    });
+
+    const parts = Object.entries(grandTotals).map(([c, v]) => (SYMBOLS[c]||c) + v.toFixed(2));
+    const totalText = parts.join(' + ') || '$0.00';
+
+    document.getElementById('grand-total').textContent = totalText;
+    document.getElementById('sidebar-total').textContent = totalText;
+    document.getElementById('sum-amount').textContent = '$' + totalAmt.toFixed(2);
+    document.getElementById('sum-vat').textContent = '$' + totalVat.toFixed(2);
+    document.getElementById('sum-total').textContent = '$' + (totalAmt + totalVat).toFixed(2);
+  }
+
+  function addLine() {
+    const tbody = document.getElementById('line-body');
+    const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
+    const maxForms = parseInt(document.querySelector('input[name$="MAX_NUM_FORMS"]')?.value || 50);
+
+    let totalForms = parseInt(totalFormsInput.value);
+
+    if (totalForms >= maxForms) {
+      toast('Maximum number of line items reached (50).', 'warn');
+      return;
+    }
+
+    const firstRow = tbody.querySelector('.line-row');
+    if (!firstRow) {
+      toast('Error: No template row found.', 'warn');
+      return;
+    }
+
+    const newRow = firstRow.cloneNode(true);
+    const newIndex = totalForms;
+
+    const badge = newRow.querySelector('.line-badge');
+    badge.textContent = newIndex + 1;
+
+    const fields = newRow.querySelectorAll('input, select, textarea');
+    fields.forEach(field => {
+      if (field.name) {
+        field.name = field.name.replace(/line_items-\d+-/, `line_items-${newIndex}-`);
+      }
+      if (field.id) {
+        field.id = field.id.replace(/id_line_items-\d+-/, `id_line_items-${newIndex}-`);
+      }
+
+      if (field.type !== 'hidden') {
+        if (field.type === 'checkbox') {
+          field.checked = false;
+        } else {
+          field.value = '';
+        }
+      }
+    });
+
+    const errors = newRow.querySelectorAll('small[style*="color"]');
+    errors.forEach(msg => msg.remove());
+
+    const totalCell = newRow.querySelector('.line-total');
+    if (totalCell) totalCell.textContent = '$0.00';
+
+    tbody.appendChild(newRow);
+    totalFormsInput.value = totalForms + 1;
+
+    const amtInput = newRow.querySelector('[name$="-amount"]');
+    const curSelect = newRow.querySelector('[name$="-currency"]');
+    const vatCheck = newRow.querySelector('[name$="-vat_applicable"]');
+
+    if (amtInput) {
+      amtInput.addEventListener('input', recalc);
+      amtInput.addEventListener('change', recalc);
+    }
+    if (curSelect) curSelect.addEventListener('change', recalc);
+    if (vatCheck) {
+      vatCheck.addEventListener('change', recalc);
+      vatCheck.classList.add('vat-cb');
+    }
+
+    newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    toast('Line item added!', 'success');
+  }
+
+  function removeLine(btn) {
+    const rows = document.querySelectorAll('.line-row');
+    if (rows.length <= 1) {
+      toast('At least one line required.', 'warn');
+      return;
+    }
+
+    const row = btn.closest('.line-row');
+    const idInput = row.querySelector('input[name$="-id"]');
+    const hasId = idInput && idInput.value;
+
+    if (hasId) {
+      const deleteCheck = row.querySelector('input[name$="-DELETE"]');
+      if (deleteCheck) deleteCheck.checked = true;
+
+      row.style.opacity = '0';
+      row.style.transform = 'translateX(-12px)';
+
+      setTimeout(() => {
+        row.style.display = 'none';
+        renumber();
+        recalc();
+      }, 200);
+    } else {
+      row.style.opacity = '0';
+      row.style.transform = 'translateX(-12px)';
+
+      setTimeout(() => {
+        row.remove();
+        const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
+        totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+        renumber();
+        recalc();
+      }, 200);
+    }
+  }
+
+  function renumber() {
+    const allRows = document.querySelectorAll('.line-row');
+    const visibleRows = Array.from(allRows).filter(row => row.style.display !== 'none');
+
+    visibleRows.forEach((row, index) => {
+      const badge = row.querySelector('.line-badge');
+      if (badge) badge.textContent = index + 1;
+    });
+
+    allRows.forEach((row, index) => {
+      const fields = row.querySelectorAll('input, select, textarea');
+      fields.forEach(field => {
+        if (field.name) {
+          field.name = field.name.replace(/line_items-\d+-/, `line_items-${index}-`);
+        }
+        if (field.id) {
+          field.id = field.id.replace(/id_line_items-\d+-/, `id_line_items-${index}-`);
+        }
+      });
+    });
+  }
+
+  function handleFiles(input) {
+    const list = document.getElementById('file-list');
+    list.innerHTML = '';
+
+    Array.from(input.files).forEach(file => {
+      const li = document.createElement('li');
+      li.className = 'file-item';
+      const ext = file.name.split('.').pop().toLowerCase();
+      const icon = ext === 'pdf' ? '📄' : ['jpg','jpeg','png'].includes(ext) ? '🖼️' : '📎';
+      li.innerHTML = `
+        <span class="fi-icon">${icon}</span>
+        <span class="fi-name" title="${file.name}">${file.name}</span>
+        <span class="fi-size">${(file.size/1024).toFixed(0)}KB</span>
+      `;
+      list.appendChild(li);
+    });
+
+    if (input.files.length > 0) {
+      toast(`${input.files.length} file(s) attached.`, 'success');
+    }
+  }
+
+  function removeExistingAttachment(attachmentId, fileName) {
+    const hiddenInput = document.getElementById('deleted-attachments');
+    if (!hiddenInput) {
+      alert('Critical error: Unable to track deleted attachments. Please refresh the page.');
+      return;
+    }
+
+    deletedAttachments.push(attachmentId);
+    hiddenInput.value = deletedAttachments.join(',');
+
+    const listItem = document.querySelector(`li[data-attachment-id="${attachmentId}"]`);
+    if (listItem) {
+      listItem.style.opacity = '0';
+      listItem.style.transform = 'translateX(-20px)';
+
+      setTimeout(() => {
+        listItem.remove();
+
+        const existingFilesList = document.getElementById('existing-files-list');
+        if (existingFilesList && existingFilesList.children.length === 0) {
+          existingFilesList.parentElement.innerHTML = `
+            <div style="background: var(--gray-50); border: 1px dashed var(--gray-300); border-radius: var(--radius-md); padding: var(--spacing-md); text-align: center; color: var(--gray-600); font-size: 0.875rem;">
+              <i class="bi bi-inbox"></i> All attachments removed. They will be deleted when you save.
+            </div>
+          `;
+        }
+
+        toast(`"${fileName}" will be deleted when you save.`, 'warn');
+      }, 200);
+    }
+  }
+
+  function toast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.className = 'toast show ' + type;
+    t.textContent = (type === 'success' ? '✔ ' : type === 'warn' ? '⚠ ' : 'ℹ ') + msg;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    recalc();
+
+    document.querySelectorAll('[name$="-amount"], [name$="-currency"], [name$="-vat_applicable"]').forEach(el => {
+      el.addEventListener('change', recalc);
+      el.addEventListener('input', recalc);
+    });
+
+    document.querySelectorAll('[name$="-vat_applicable"]').forEach(cb => {
+      cb.classList.add('vat-cb');
+    });
+  });
+</script>
+{% endblock %}

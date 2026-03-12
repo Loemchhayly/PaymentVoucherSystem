@@ -1,0 +1,992 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - Payment Voucher System{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-900: #0a2a35;
+    --teal-800: #0d3545;
+    --teal-700: #0f4055;
+    --teal-600: #136275;
+    --teal-500: #1991b5;
+    --teal-400: #22b8e0;
+    --teal-300: #6dd4ee;
+    --teal-100: #d0f0f8;
+    --teal-50: #eaf8fd;
+  }
+
+  body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+  /* ─── PAGE HEADER ─── */
+  .voucher-form-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+    opacity: 0;
+    animation: fadeInPage 0.4s ease-in 0.05s forwards;
+  }
+
+  @keyframes fadeInPage {
+    to { opacity: 1; }
+  }
+
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .page-header {
+    margin-bottom: var(--spacing-md);
+    margin-top: -15px;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--teal-400) 0%, var(--teal-600) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  /* ─── LAYOUT ─── */
+  .page-content {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 16px;
+  }
+
+  .form-column { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out forwards;
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.2s; }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-header {
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--gray-100);
+    background: linear-gradient(135deg, var(--teal-50) 0%, white 100%);
+  }
+
+  .card-header .header-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--teal-400), var(--teal-600));
+    color: white;
+  }
+
+  .card-header-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--gray-800);
+  }
+
+  .card-body { padding: 18px; }
+
+  /* ─── FORM FIELDS ─── */
+  .form-grid { display: grid; gap: 12px; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.span-2 { grid-column: span 2; }
+  .form-group.span-3 { grid-column: span 3; }
+
+  .form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--gray-700);
+  }
+
+  .label-required { color: var(--red); margin-left: 2px; }
+
+  .form-control,
+  .form-select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    padding: 8px 11px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    background: white;
+    color: var(--gray-800);
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    outline: none;
+    width: 100%;
+  }
+
+  .form-control::placeholder { color: var(--gray-300); }
+
+  .form-control:focus, .form-select:focus {
+    border-color: var(--teal-400);
+    box-shadow: 0 0 0 3px rgba(25,145,181,0.1);
+    background: var(--teal-50);
+  }
+
+  .form-control:hover:not(:focus), .form-select:hover:not(:focus) {
+    border-color: var(--gray-300);
+  }
+
+  .form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 11px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  textarea.form-control { resize: vertical; min-height: 70px; line-height: 1.5; }
+
+  .field-hint {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ─── LINE ITEMS TABLE ─── */
+  .table-wrap { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--gray-200); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+
+  thead tr { background: linear-gradient(135deg, var(--gray-50), var(--teal-50)); }
+
+  th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 9px 10px;
+    text-align: left;
+    border-bottom: 2px solid var(--teal-100);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 6px 9px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--teal-50); }
+
+  td input, td select, td textarea {
+    padding: 6px 9px;
+    font-size: 0.8125rem;
+    border-radius: var(--radius-sm);
+    min-height: 32px;
+  }
+
+  .line-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--teal-500), var(--teal-700));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .line-total {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  tfoot tr { background: linear-gradient(135deg, var(--teal-700), var(--teal-900)); }
+  tfoot td, tfoot th {
+    color: white;
+    padding: 10px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border: none;
+  }
+
+  .grand-total-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.125rem;
+    font-weight: 700;
+    text-align: right;
+  }
+
+  .vat-cb { width: 16px; height: 16px; accent-color: var(--teal-500); cursor: pointer; }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--teal-500), var(--teal-700));
+    color: white;
+    box-shadow: 0 2px 8px rgba(25, 145, 181, 0.25);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 145, 181, 0.35);
+    color: white;
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, var(--green), #059669);
+    color: white;
+    box-shadow: 0 2px 8px rgba(16,185,129,0.25);
+  }
+
+  .btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16,185,129,0.35);
+    color: white;
+  }
+
+  .btn-outline {
+    background: white;
+    color: var(--gray-700);
+    border: 1.5px solid var(--gray-300);
+  }
+
+  .btn-outline:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-400);
+    color: var(--gray-900);
+  }
+
+  .btn-add {
+    background: white;
+    color: var(--teal-600);
+    border: 1.5px dashed var(--teal-300);
+    font-size: 0.8125rem;
+    padding: 7px 14px;
+  }
+
+  .btn-add:hover {
+    background: var(--teal-50);
+    border-color: var(--teal-400);
+    border-style: solid;
+  }
+
+  .btn-danger {
+    background: var(--red);
+    color: white;
+    padding: 5px 8px;
+    border-radius: 5px;
+    font-size: 0.8125rem;
+  }
+
+  .btn-danger:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar { display: flex; flex-direction: column; gap: 14px; }
+
+  .summary-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out 0.1s forwards;
+    opacity: 0;
+    transform: translateY(12px);
+    position: sticky;
+    top: 70px;
+  }
+
+  .summary-header {
+    background: linear-gradient(135deg, var(--teal-700), var(--teal-900));
+    padding: 14px 18px;
+    color: white;
+  }
+
+  .summary-header h3 {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .summary-body { padding: 14px; }
+
+  .total-amount-display {
+    text-align: center;
+    padding: 14px 0 10px;
+    border-bottom: 1px solid var(--gray-100);
+    margin-bottom: 12px;
+  }
+
+  .total-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .total-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--teal-600);
+    margin-top: 4px;
+    line-height: 1;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 0.8125rem;
+  }
+
+  .summary-row:last-child { border-bottom: none; }
+
+  .summary-row .s-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--gray-600);
+    font-weight: 500;
+  }
+
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-teal { background: var(--teal-500); }
+  .dot-red { background: var(--red); }
+  .dot-green { background: var(--green); }
+
+  .summary-row .s-val {
+    font-family: 'DM Mono', monospace;
+    font-weight: 600;
+    color: var(--gray-800);
+    font-size: 0.875rem;
+  }
+
+  /* File Upload */
+  .file-upload-box {
+    border: 2px dashed var(--teal-300);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    text-align: center;
+    background: var(--teal-50);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .file-upload-box:hover { border-color: var(--teal-500); background: var(--teal-100); }
+  .file-upload-box input { display: none; }
+  .file-upload-title { font-size: 0.8125rem; font-weight: 600; color: var(--teal-700); }
+  .file-upload-hint { font-size: 0.72rem; color: var(--gray-500); margin-top: 3px; }
+
+  .file-list { list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 9px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+  }
+
+  .file-item .fi-icon { color: var(--teal-500); font-size: 0.95rem; }
+  .file-item .fi-name {
+    flex: 1;
+    color: var(--gray-700);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .file-item .fi-size { color: var(--gray-400); white-space: nowrap; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    padding: 10px 16px;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border-left: 3px solid var(--green);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    z-index: 999;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    min-width: 220px;
+  }
+
+  .toast.show { transform: translateX(0); }
+
+  /* Collapsible */
+  details {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+  }
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: 0.8125rem;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  summary::-webkit-details-marker { display: none; }
+
+  details[open] summary {
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .page-content { grid-template-columns: 1fr; }
+    .summary-card { position: static; }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    .voucher-form-container { padding: 0 1rem; }
+    .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="voucher-form-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">{{ title }}</h1>
+  </div>
+
+  <!-- Error Display -->
+  {% if form.errors or formset.errors or formset.non_form_errors %}
+  <div class="alert alert-danger" style="margin-bottom: var(--spacing-md); background: #fee2e2; border-left: 3px solid #dc2626; padding: var(--spacing-sm); border-radius: var(--radius-md);">
+    <h4 style="margin-bottom: var(--spacing-xs); font-size: 0.9375rem;"><i class="bi bi-exclamation-triangle-fill"></i> Form Validation Errors</h4>
+    {% if form.errors %}
+      <strong>Header Form Errors:</strong>
+      <ul style="margin-left: var(--spacing-md); margin-top: 4px; font-size: 0.875rem;">
+      {% for field, errors in form.errors.items %}
+        <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+    {% if formset.non_form_errors %}
+      <strong>Line Items Errors:</strong>
+      <ul style="margin-left: var(--spacing-md); margin-top: 4px; font-size: 0.875rem;">
+        <li>{{ formset.non_form_errors }}</li>
+      </ul>
+    {% endif %}
+    {% if formset.errors %}
+      <strong>Line Item Errors:</strong>
+      <ul style="margin-left: var(--spacing-md); margin-top: 4px; font-size: 0.875rem;">
+      {% for line_form in formset %}
+        {% if line_form.errors %}
+          <li>Line {{ forloop.counter }}: {{ line_form.errors }}</li>
+        {% endif %}
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" id="voucher-form">
+    {% csrf_token %}
+
+    <div class="page-content">
+      <!-- LEFT: FORM COLUMN -->
+      <div class="form-column">
+
+        <!-- PAYEE INFO CARD -->
+        <div class="card">
+          <div class="card-header">
+            <div class="header-icon"><i class="bi bi-person"></i></div>
+            <div class="card-header-title">Payee Information</div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid grid-3">
+              <div class="form-group span-2">
+                <label class="form-label">
+                  {{ form.payee_name.label }} <span class="label-required">*</span>
+                </label>
+                {{ form.payee_name }}
+                {% if form.payee_name.errors %}
+                  <small style="color: #dc2626;">{{ form.payee_name.errors|first }}</small>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  {{ form.payment_date.label }} <span class="label-required">*</span>
+                </label>
+                {{ form.payment_date }}
+                {% if form.payment_date.errors %}
+                  <small style="color: #dc2626;">{{ form.payment_date.errors|first }}</small>
+                {% endif %}
+              </div>
+
+              <div class="form-group span-3">
+                <label class="form-label">{{ form.company_bank_account.label }}</label>
+                {{ form.company_bank_account }}
+                {% if form.company_bank_account.errors %}
+                  <small style="color: #dc2626;">{{ form.company_bank_account.errors|first }}</small>
+                {% endif %}
+                <span class="field-hint">
+                  <i class="bi bi-info-circle"></i> Select a pre-configured company account
+                </span>
+              </div>
+            </div>
+
+            <!-- Manual Bank Entry -->
+            <details>
+              <summary><i class="bi bi-pencil-square"></i> Manual Bank Entry (Optional)</summary>
+              <div class="form-grid grid-3" style="margin-top: var(--spacing-sm);">
+                <div class="form-group">
+                  <label class="form-label">{{ form.bank_address.label }}</label>
+                  {{ form.bank_address }}
+                </div>
+                <div class="form-group">
+                  <label class="form-label">{{ form.bank_name.label }}</label>
+                  {{ form.bank_name }}
+                </div>
+                <div class="form-group">
+                  <label class="form-label">{{ form.bank_account_number.label }}</label>
+                  {{ form.bank_account_number }}
+                </div>
+              </div>
+            </details>
+
+            <!-- Hidden Fields -->
+            {{ form.pv_number }}
+            {{ form.status }}
+          </div>
+        </div>
+
+        <!-- LINE ITEMS CARD -->
+        <div class="card">
+          <div class="card-header">
+            <div class="header-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);"><i class="bi bi-cash-stack"></i></div>
+            <div class="card-header-title">Line Items</div>
+          </div>
+          <div class="card-body">
+            {{ formset.management_form }}
+
+            <div class="table-wrap">
+              <table id="line-items-table">
+                <thead>
+                  <tr>
+                    <th style="width:4%">#</th>
+                    <th style="width:30%">Description</th>
+                    <th style="width:14%">Department</th>
+                    <th style="width:14%">Program</th>
+                    <th style="width:12%">Amount</th>
+                    <th style="width:9%">Currency</th>
+                    <th style="width:7%">VAT</th>
+                    <th style="width:10%">Total</th>
+                    <th style="width:4%"></th>
+                  </tr>
+                </thead>
+                <tbody id="line-body">
+                  {% for line_form in formset %}
+                  <tr class="line-row" data-form-index="{{ forloop.counter0 }}">
+                    <td><div class="line-badge">{{ forloop.counter }}</div></td>
+                    <td>
+                      {{ line_form.description }}
+                      {{ line_form.line_number }}
+                      {{ line_form.id }}
+                      <div style="display: none;">{{ line_form.DELETE }}</div>
+                    </td>
+                    <td>{{ line_form.department }}</td>
+                    <td>{{ line_form.program }}</td>
+                    <td>{{ line_form.amount }}</td>
+                    <td>{{ line_form.currency }}</td>
+                    <td style="text-align:center">{{ line_form.vat_applicable }}</td>
+                    <td class="line-total">$0.00</td>
+                    <td style="text-align:center">
+                      <button type="button" class="btn-danger" onclick="removeLine(this)" title="Remove">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="7" style="text-align:right; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.4px;">Grand Total:</td>
+                    <td class="grand-total-val" id="grand-total">$0.00</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <div style="margin-top:10px">
+              <button type="button" class="btn btn-add" onclick="addLine()">
+                <i class="bi bi-plus-circle"></i> Add Line Item
+              </button>
+            </div>
+
+            <div class="field-hint" style="margin-top:8px;">
+              <i class="bi bi-info-circle"></i>
+              <span>Check VAT box to apply 10% tax. Supports multi-currency.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTION BUTTONS CARD -->
+        <div class="card">
+          <div class="card-body">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Save & Submit
+              </button>
+              <a href="{% url 'dashboard:home' %}" class="btn btn-outline">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /form-column -->
+
+      <!-- RIGHT: SIDEBAR -->
+      <div class="sidebar">
+        <div class="summary-card">
+          <div class="summary-header">
+            <h3>Summary & Attachments</h3>
+          </div>
+          <div class="summary-body">
+
+            <div class="total-amount-display">
+              <div class="total-label">Total Amount</div>
+              <div class="total-value" id="sidebar-total">$0.00</div>
+            </div>
+
+            <div class="summary-row">
+              <div class="s-label"><span class="dot dot-teal"></span> Amount:</div>
+              <div class="s-val" id="sum-amount">$0.00</div>
+            </div>
+            <div class="summary-row">
+              <div class="s-label"><span class="dot dot-red"></span> VAT (10%):</div>
+              <div class="s-val" id="sum-vat">$0.00</div>
+            </div>
+            <div class="summary-row">
+              <div class="s-label"><span class="dot dot-green"></span> Total:</div>
+              <div class="s-val" id="sum-total">$0.00</div>
+            </div>
+
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--gray-100);">
+              <h4 style="font-size: 0.8125rem; font-weight: 700; color: var(--gray-700); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <i class="bi bi-paperclip"></i> Attachments
+              </h4>
+
+              <div class="file-upload-box" onclick="document.getElementById('file-input').click()">
+                <input type="file" id="file-input" name="attachments" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="handleFiles(this)">
+                <label>
+                  <div style="font-size:1.3rem; margin-bottom:3px"><i class="bi bi-cloud-upload"></i></div>
+                  <div class="file-upload-title">Choose Files</div>
+                  <div class="file-upload-hint">PDF, JPG, PNG · Max 10MB</div>
+                </label>
+              </div>
+              <ul class="file-list" id="file-list"></ul>
+            </div>
+
+            <div style="margin-top: var(--spacing-sm); padding-top: var(--spacing-sm); border-top: 1px solid var(--gray-100);">
+              <button type="submit" class="btn btn-success" style="width:100%; justify-content:center">
+                <i class="bi bi-check-circle"></i> Save & Submit
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </form>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast">✔ Saved successfully!</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const SYMBOLS = { USD: '$', KHR: '៛', THB: '฿' };
+
+  function recalc() {
+    const rows = document.querySelectorAll('.line-row');
+    let grandTotals = {};
+    let totalAmt = 0, totalVat = 0;
+
+    rows.forEach((row, i) => {
+      const amtInput = row.querySelector('[name$="-amount"]');
+      const curSelect = row.querySelector('[name$="-currency"]');
+      const vatCheck = row.querySelector('[name$="-vat_applicable"]');
+
+      const amt = parseFloat(amtInput?.value) || 0;
+      const cur = curSelect?.value || 'USD';
+      const vat = vatCheck?.checked || false;
+      const vatAmt = vat ? amt * 0.1 : 0;
+      const total = amt + vatAmt;
+      const sym = SYMBOLS[cur] || '$';
+
+      const totalCell = row.querySelector('.line-total');
+      if (totalCell) {
+        totalCell.textContent = sym + total.toFixed(2);
+      }
+
+      if (!grandTotals[cur]) grandTotals[cur] = 0;
+      grandTotals[cur] += total;
+
+      if (cur === 'USD') {
+        totalAmt += amt;
+        totalVat += vatAmt;
+      }
+    });
+
+    const parts = Object.entries(grandTotals).map(([c, v]) => (SYMBOLS[c]||c) + v.toFixed(2));
+    const totalText = parts.join(' + ') || '$0.00';
+
+    document.getElementById('grand-total').textContent = totalText;
+    document.getElementById('sidebar-total').textContent = totalText;
+    document.getElementById('sum-amount').textContent = '$' + totalAmt.toFixed(2);
+    document.getElementById('sum-vat').textContent = '$' + totalVat.toFixed(2);
+    document.getElementById('sum-total').textContent = '$' + (totalAmt + totalVat).toFixed(2);
+  }
+
+  function addLine() {
+    const tbody = document.getElementById('line-body');
+    const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
+    const maxForms = parseInt(document.querySelector('input[name$="MAX_NUM_FORMS"]')?.value || 50);
+
+    let totalForms = parseInt(totalFormsInput.value);
+
+    if (totalForms >= maxForms) {
+      toast('Maximum 50 line items reached', 'warn');
+      return;
+    }
+
+    const firstRow = tbody.querySelector('.line-row');
+    if (!firstRow) return;
+
+    const newRow = firstRow.cloneNode(true);
+    const newIndex = totalForms;
+
+    const badge = newRow.querySelector('.line-badge');
+    badge.textContent = newIndex + 1;
+
+    const fields = newRow.querySelectorAll('input, select, textarea');
+    fields.forEach(field => {
+      if (field.name) {
+        field.name = field.name.replace(/line_items-\d+-/, `line_items-${newIndex}-`);
+      }
+      if (field.id) {
+        field.id = field.id.replace(/id_line_items-\d+-/, `id_line_items-${newIndex}-`);
+      }
+
+      if (field.type !== 'hidden') {
+        if (field.type === 'checkbox') {
+          field.checked = false;
+        } else {
+          field.value = '';
+        }
+      }
+    });
+
+    const errors = newRow.querySelectorAll('small[style*="color"]');
+    errors.forEach(msg => msg.remove());
+
+    const totalCell = newRow.querySelector('.line-total');
+    if (totalCell) totalCell.textContent = '$0.00';
+
+    tbody.appendChild(newRow);
+    totalFormsInput.value = totalForms + 1;
+
+    const amtInput = newRow.querySelector('[name$="-amount"]');
+    const curSelect = newRow.querySelector('[name$="-currency"]');
+    const vatCheck = newRow.querySelector('[name$="-vat_applicable"]');
+
+    if (amtInput) {
+      amtInput.addEventListener('input', recalc);
+      amtInput.addEventListener('change', recalc);
+    }
+    if (curSelect) curSelect.addEventListener('change', recalc);
+    if (vatCheck) {
+      vatCheck.addEventListener('change', recalc);
+      vatCheck.classList.add('vat-cb');
+    }
+
+    newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    toast('Line item added');
+  }
+
+  function removeLine(btn) {
+    const rows = document.querySelectorAll('.line-row');
+    if (rows.length <= 1) {
+      toast('At least one line required', 'warn');
+      return;
+    }
+
+    const row = btn.closest('.line-row');
+    const idInput = row.querySelector('input[name$="-id"]');
+    const hasId = idInput && idInput.value;
+
+    if (hasId) {
+      const deleteCheck = row.querySelector('input[name$="-DELETE"]');
+      if (deleteCheck) deleteCheck.checked = true;
+
+      row.style.opacity = '0';
+      setTimeout(() => {
+        row.style.display = 'none';
+        renumber();
+        recalc();
+      }, 150);
+    } else {
+      row.style.opacity = '0';
+      setTimeout(() => {
+        row.remove();
+        const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
+        totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+        renumber();
+        recalc();
+      }, 150);
+    }
+  }
+
+  function renumber() {
+    const allRows = document.querySelectorAll('.line-row');
+    const visibleRows = Array.from(allRows).filter(row => row.style.display !== 'none');
+
+    visibleRows.forEach((row, index) => {
+      const badge = row.querySelector('.line-badge');
+      if (badge) badge.textContent = index + 1;
+    });
+
+    allRows.forEach((row, index) => {
+      const fields = row.querySelectorAll('input, select, textarea');
+      fields.forEach(field => {
+        if (field.name) {
+          field.name = field.name.replace(/line_items-\d+-/, `line_items-${index}-`);
+        }
+        if (field.id) {
+          field.id = field.id.replace(/id_line_items-\d+-/, `id_line_items-${index}-`);
+        }
+      });
+    });
+  }
+
+  function handleFiles(input) {
+    const list = document.getElementById('file-list');
+    list.innerHTML = '';
+
+    Array.from(input.files).forEach(file => {
+      const li = document.createElement('li');
+      li.className = 'file-item';
+      const ext = file.name.split('.').pop().toLowerCase();
+      const icon = ext === 'pdf' ? '📄' : ['jpg','jpeg','png'].includes(ext) ? '🖼️' : '📎';
+      li.innerHTML = `
+        <span class="fi-icon">${icon}</span>
+        <span class="fi-name" title="${file.name}">${file.name}</span>
+        <span class="fi-size">${(file.size/1024).toFixed(0)}KB</span>
+      `;
+      list.appendChild(li);
+    });
+
+    if (input.files.length > 0) {
+      toast(`${input.files.length} file(s) attached`);
+    }
+  }
+
+  function toast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.style.borderLeftColor = type === 'warn' ? '#f59e0b' : '#10b981';
+    t.textContent = (type === 'warn' ? '⚠ ' : '✔ ') + msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    recalc();
+
+    document.querySelectorAll('[name$="-amount"], [name$="-currency"], [name$="-vat_applicable"]').forEach(el => {
+      el.addEventListener('change', recalc);
+      el.addEventListener('input', recalc);
+    });
+
+    document.querySelectorAll('[name$="-vat_applicable"]').forEach(cb => {
+      cb.classList.add('vat-cb');
+    });
+  });
+</script>
+{% endblock %}

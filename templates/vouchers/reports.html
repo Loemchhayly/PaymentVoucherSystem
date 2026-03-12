@@ -5,69 +5,99 @@
 
 {% block extra_css %}
 <style>
-    /* ==================== REPORT PAGE STYLES ==================== */
+    /* ══════════════════════════════════════════════════════════
+       REPORT PAGE — FinVault Dark Design System
+    ══════════════════════════════════════════════════════════ */
+
     .report-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 1rem;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0 0.75rem;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        opacity: 0;
+        animation: fadeInUp 0.35s ease-out 0.05s both;
+    }
+
+    /* Prevent any child from blowing out the layout */
+    .report-container *,
+    .report-container *::before,
+    .report-container *::after {
+        box-sizing: border-box;
+        min-width: 0;
     }
 
     /* ── Page Header ── */
     .report-page-header {
-        margin-top: -45px;
-        margin-bottom: 1.5rem;
-        padding: 1rem 0 0.75rem;
+        margin-bottom: var(--spacing-sm);
+        padding-top: 0;
     }
 
-    .report-page-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1f2937;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0;
+    .report-page-header .page-title {
+        font-size: 1.1rem;
     }
 
-    .report-page-title i { color: #667eea; font-size: 1.75rem; }
+    .report-page-header .page-subtitle {
+        font-size: 0.75rem;
+        margin-top: 1px;
+    }
 
     /* ── Filter Card ── */
     .filter-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        background: var(--surface-800);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
         overflow: hidden;
-        margin-bottom: 1.25rem;
-        border: 1px solid rgba(0,0,0,0.04);
-        opacity: 0;
-        transform: translateY(15px);
-        animation: fadeInUp 0.5s ease-out 0.1s forwards;
+        margin-bottom: var(--spacing-lg);
+        box-shadow: var(--shadow-md);
+        
     }
 
     .filter-card-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 0.75rem 1.25rem;
+        background: linear-gradient(135deg, var(--ink-700) 0%, var(--ink-600) 100%);
+        border-bottom: 1px solid var(--border-accent);
+        padding: 0.6rem 1rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 0.5rem;
+        position: relative;
+    }
+
+    .filter-card-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, var(--cyan-600), transparent 70%);
     }
 
     .filter-card-header h5 {
-        color: white;
-        font-size: 1rem;
-        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        font-weight: 700;
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .filter-card-body { padding: 1rem 1.25rem; }
+    .filter-card-header h5 i { color: var(--cyan-400); }
+
+    .filter-card-body {
+        padding: var(--spacing-md) 1.25rem;
+        background: var(--surface-800);
+    }
 
     .filter-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
     .btn-filter {
         padding: 0.4rem 1rem;
-        border-radius: 8px;
+        border-radius: var(--radius-md);
         font-size: 0.8125rem;
         font-weight: 600;
         border: none;
@@ -75,271 +105,303 @@
         display: inline-flex;
         align-items: center;
         gap: 0.375rem;
-        transition: all 0.2s ease;
+        transition: all var(--transition-base);
         text-decoration: none;
+        font-family: var(--font-body);
     }
 
     .btn-filter.apply {
-        background: white;
-        color: #667eea;
+        background: linear-gradient(135deg, var(--cyan-600), var(--cyan-700));
+        color: white;
+        box-shadow: 0 2px 8px rgba(6,182,212,0.3);
     }
-    .btn-filter.apply:hover { background: #f0f0ff; transform: translateY(-1px); }
+    .btn-filter.apply:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(6,182,212,0.4); }
 
     .btn-filter.excel {
-        background: rgba(16,185,129,0.9);
-        color: white;
-        border: 2px solid rgba(255,255,255,0.3);
+        background: rgba(34,197,94,0.15);
+        color: var(--success);
+        border: 1px solid rgba(34,197,94,0.3);
     }
-    .btn-filter.excel:hover { background: #10b981; transform: translateY(-1px); }
+    .btn-filter.excel:hover { background: rgba(34,197,94,0.25); transform: translateY(-1px); }
 
     .btn-filter.print {
-        background: rgba(245,158,11,0.9);
-        color: white;
-        border: 2px solid rgba(255,255,255,0.3);
+        background: rgba(245,158,11,0.15);
+        color: var(--warning);
+        border: 1px solid rgba(245,158,11,0.3);
     }
-    .btn-filter.print:hover { background: #f59e0b; transform: translateY(-1px); }
+    .btn-filter.print:hover { background: rgba(245,158,11,0.25); transform: translateY(-1px); }
 
     .btn-filter.reset {
-        background: rgba(255,255,255,0.2);
-        color: white;
-        border: 2px solid rgba(255,255,255,0.3);
+        background: var(--ink-700);
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
     }
-    .btn-filter.reset:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+    .btn-filter.reset:hover { background: var(--ink-600); color: var(--text-primary); transform: translateY(-1px); }
 
     /* ── Summary Stat Cards ── */
     .stat-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        background: var(--surface-800);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-md);
+        box-shadow: var(--shadow-md);
         display: flex;
         align-items: center;
-        gap: 1rem;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(0,0,0,0.04);
-        opacity: 0;
-        transform: translateY(15px);
-        animation: fadeInUp 0.5s ease-out forwards;
+        gap: var(--spacing-md);
+        transition: all var(--transition-base);
+        
+        position: relative;
+        overflow: hidden;
     }
-    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--cyan-600), var(--cyan-400));
+        opacity: 0;
+        transition: opacity var(--transition-base);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-glow);
+        border-color: var(--border-accent);
+    }
+    .stat-card:hover::before { opacity: 1; }
 
     .stat-icon {
-        width: 50px; height: 50px;
-        border-radius: 10px;
+        width: 48px; height: 48px;
+        border-radius: var(--radius-lg);
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.5rem; color: white; flex-shrink: 0;
+        font-size: 1.375rem; color: white; flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
-    .stat-number { font-size: 1.5rem; font-weight: 700; color: #1f2937; margin: 0; line-height: 1; }
-    .stat-label { font-size: 0.75rem; color: #6b7280; margin: 0.25rem 0 0; font-weight: 500; }
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        line-height: 1;
+        font-family: var(--font-heading);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin: 0.25rem 0 0;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 
     /* ── Chart Cards ── */
     .chart-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-        border: 1px solid rgba(0,0,0,0.04);
+        background: var(--surface-800);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-md) 1.25rem;
+        box-shadow: var(--shadow-md);
         height: 100%;
-        opacity: 0;
-        transform: translateY(15px);
-        animation: fadeInUp 0.5s ease-out forwards;
+        
+        transition: all var(--transition-base);
     }
-    .chart-card:hover { box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+    .chart-card:hover {
+        box-shadow: var(--shadow-glow);
+        border-color: var(--border-accent);
+    }
 
     .chart-title {
-        font-size: 0.9375rem;
-        font-weight: 600;
-        color: #1f2937;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-secondary);
         margin-bottom: 0.75rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #f3f4f6;
+        padding-bottom: 0.625rem;
+        border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
-        gap: 0.375rem;
+        gap: 0.4rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
+    .chart-title i { color: var(--cyan-400); }
 
     .chart-card canvas { max-height: 220px; }
 
-    /* ── Data Table Card ── */
+    /* ── Table Cards (breakdown + main) ── */
     .table-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        background: var(--surface-800);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
         overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.04);
-        margin-bottom: 1.25rem;
-        opacity: 0;
-        transform: translateY(15px);
-        animation: fadeInUp 0.5s ease-out forwards;
+        margin-bottom: var(--spacing-md);
+        
+        transition: border-color var(--transition-base);
     }
+    .table-card:hover { border-color: var(--border-accent); }
 
     .table-card-header {
-        background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+        background: var(--ink-800);
+        border-bottom: 1px solid var(--border);
         padding: 0.75rem 1.25rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 0.5rem;
+        position: relative;
+    }
+
+    .table-card-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, var(--cyan-700), transparent 60%);
     }
 
     .table-card-header h5 {
-        color: white;
-        font-size: 0.9375rem;
-        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.8125rem;
+        font-weight: 700;
         margin: 0;
         display: flex;
         align-items: center;
-        gap: 0.375rem;
+        gap: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
     }
+    .table-card-header h5 i { color: var(--cyan-400); }
 
     .table-card-header .record-count {
-        background: rgba(255,255,255,0.15);
-        color: white;
-        padding: 0.2rem 0.6rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
+        background: rgba(6,182,212,0.12);
+        border: 1px solid var(--border-accent);
+        color: var(--cyan-400);
+        padding: 0.2rem 0.7rem;
+        border-radius: var(--radius-full);
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.4px;
     }
 
-    /* Search box inside table header */
+    /* Search inside table header */
     .table-search {
-        background: rgba(255,255,255,0.15);
-        border: 1px solid rgba(255,255,255,0.3);
-        border-radius: 6px;
-        padding: 0.3rem 0.75rem;
-        color: white;
+        background: var(--ink-700);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.35rem 0.75rem;
+        color: var(--text-primary);
         font-size: 0.8125rem;
-        width: 200px;
-        transition: all 0.2s;
+        width: 160px;
+        min-width: 0;
+        transition: all var(--transition-fast);
+        font-family: var(--font-body);
     }
-    .table-search::placeholder { color: rgba(255,255,255,0.6); }
-    .table-search:focus { outline: none; background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.6); }
+    .table-search::placeholder { color: var(--text-muted); }
+    .table-search:focus {
+        outline: none;
+        background: var(--ink-600);
+        border-color: var(--cyan-600);
+        box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+    }
 
-    /* Scrollable Table Container */
+    /* ── Scrollable Table Container ── */
     .table-scroll-container {
-        max-height: 600px;  /* Fixed height for scrolling */
-        overflow-y: auto;   /* Vertical scroll */
-        overflow-x: auto;   /* Horizontal scroll if needed */
+        max-height: 600px;
+        overflow-y: auto;
+        overflow-x: auto;
         position: relative;
-        border-radius: 0 0 12px 12px;
-        -webkit-overflow-scrolling: touch;  /* Smooth scrolling on mobile */
-        scroll-behavior: smooth;  /* Smooth scrolling experience */
+        border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
     }
 
-    /* Custom scrollbar styling */
-    .table-scroll-container::-webkit-scrollbar {
-        width: 12px;
-        height: 10px;
-    }
-
-    .table-scroll-container::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 6px;
-    }
-
+    .table-scroll-container::-webkit-scrollbar { width: 6px; height: 6px; }
+    .table-scroll-container::-webkit-scrollbar-track { background: var(--ink-900); }
     .table-scroll-container::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 6px;
-        border: 2px solid #f1f5f9;  /* Add padding around thumb */
+        background: var(--ink-500);
+        border-radius: var(--radius-full);
     }
+    .table-scroll-container::-webkit-scrollbar-thumb:hover { background: var(--cyan-600); }
 
-    .table-scroll-container::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
-    }
-
-    /* Scroll indicator shadows */
-    .table-scroll-container::before {
-        content: '';
-        position: sticky;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 0;
-        z-index: 9;
-        pointer-events: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-
-    .table-scroll-container.is-scrolled::before {
-        opacity: 1;
-    }
-
-    /* Data Table */
+    /* ── Data Table ── */
     .data-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
-        font-size: 0.875rem;
+        font-size: 0.8125rem;
+        table-layout: auto;
     }
 
-    /* Sticky Table Header */
     .data-table thead {
         position: sticky;
         top: 0;
         z-index: 10;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);  /* Shadow for depth */
     }
 
     .data-table thead tr {
-        background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+        background: var(--ink-800);
     }
 
     .data-table th {
-        padding: 0.625rem 1rem;
+        padding: 0.5rem 0.75rem;
         text-align: left;
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         font-weight: 700;
-        color: #4b5563;
+        color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.4px;
-        border-bottom: 2px solid #e5e7eb;
+        letter-spacing: 0.6px;
+        border-bottom: 2px solid var(--border);
         white-space: nowrap;
         cursor: pointer;
         user-select: none;
-        transition: background 0.2s;
+        transition: background var(--transition-fast), color var(--transition-fast);
     }
 
-    .data-table th:hover { background: #e8ecff; }
+    .data-table th:hover { background: var(--ink-700); color: var(--text-primary); }
 
-    .data-table th .sort-icon { opacity: 0.4; font-size: 0.625rem; margin-left: 4px; }
+    .data-table th .sort-icon { opacity: 0.3; font-size: 0.6rem; margin-left: 4px; }
     .data-table th.sort-asc .sort-icon,
-    .data-table th.sort-desc .sort-icon { opacity: 1; color: #667eea; }
+    .data-table th.sort-desc .sort-icon { opacity: 1; color: var(--cyan-400); }
 
     .data-table tbody tr {
-        transition: all 0.15s ease;
-        border-bottom: 1px solid #f3f4f6;
+        transition: background var(--transition-fast);
+        border-bottom: 1px solid var(--border);
     }
 
-    .data-table tbody tr:hover { background: #f8f9ff; }
+    .data-table tbody tr:hover td {
+        background: rgba(6,182,212,0.04);
+        color: var(--text-primary);
+    }
     .data-table tbody tr:last-child { border-bottom: none; }
 
     .data-table td {
-        padding: 0.625rem 1rem;
-        color: #374151;
+        padding: 0.5rem 0.75rem;
+        color: var(--text-secondary);
         vertical-align: middle;
+        border-bottom: 1px solid var(--border);
     }
 
-    /* Sticky Tfoot totals row */
+    /* Sticky tfoot */
     .data-table tfoot {
         position: sticky;
         bottom: 0;
         z-index: 10;
-        box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.08);  /* Shadow for depth */
     }
 
     .data-table tfoot tr {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--ink-700) 0%, var(--ink-600) 100%);
+        border-top: 2px solid var(--border-accent);
     }
 
     .data-table tfoot td {
-        padding: 0.625rem 1rem;
-        color: white;
+        padding: 0.5rem 0.75rem;
+        color: var(--cyan-300);
         font-weight: 700;
-        font-size: 0.875rem;
+        font-size: 0.8125rem;
     }
 
     /* Doc type badge */
@@ -348,14 +410,22 @@
         align-items: center;
         gap: 0.25rem;
         padding: 0.2rem 0.6rem;
-        border-radius: 20px;
-        font-size: 0.6875rem;
+        border-radius: 3px;
+        font-size: 0.65rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
+        letter-spacing: 0.5px;
     }
-    .doc-badge.pv { background: #fef3c7; color: #92400e; }
-    .doc-badge.pf { background: #dbeafe; color: #1e40af; }
+    .doc-badge.pv {
+        background: rgba(245,158,11,0.12);
+        color: #fbbf24;
+        border: 1px solid rgba(245,158,11,0.25);
+    }
+    .doc-badge.pf {
+        background: var(--info-light);
+        color: #60a5fa;
+        border: 1px solid rgba(59,130,246,0.25);
+    }
 
     /* Status badge */
     .status-badge {
@@ -363,28 +433,29 @@
         align-items: center;
         gap: 0.25rem;
         padding: 0.2rem 0.6rem;
-        border-radius: 20px;
-        font-size: 0.6875rem;
+        border-radius: 3px;
+        font-size: 0.65rem;
         font-weight: 700;
         text-transform: uppercase;
+        letter-spacing: 0.4px;
     }
-    .status-badge.approved { background: #d1fae5; color: #065f46; }
-    .status-badge.pending  { background: #fef3c7; color: #92400e; }
-    .status-badge.draft    { background: #f3f4f6; color: #4b5563; }
-    .status-badge.rejected { background: #fee2e2; color: #991b1b; }
-    .status-badge.revision { background: #dbeafe; color: #1e40af; }
+    .status-badge.approved { background: var(--success-light); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+    .status-badge.pending  { background: var(--warning-light); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+    .status-badge.draft    { background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border); }
+    .status-badge.rejected { background: var(--danger-light); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    .status-badge.revision { background: var(--info-light); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
 
     /* Amount cell */
-    .amount-cell { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
-    .amount-cell.usd { color: #065f46; }
-    .amount-cell.khr { color: #1e40af; }
-    .amount-cell.thb { color: #92400e; }
+    .amount-cell { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+    .amount-cell.usd { color: #4ade80; }
+    .amount-cell.khr { color: #60a5fa; }
+    .amount-cell.thb { color: #fbbf24; }
 
-    /* Pagination */
+    /* ── Table Footer / Pagination ── */
     .table-footer {
         padding: 0.75rem 1.25rem;
-        background: #f9fafb;
-        border-top: 1px solid #e5e7eb;
+        background: var(--ink-800);
+        border-top: 1px solid var(--border);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -392,36 +463,41 @@
         gap: 0.5rem;
     }
 
-    .table-info { font-size: 0.8125rem; color: #6b7280; }
+    .table-info { font-size: 0.78rem; color: var(--text-muted); }
+    .table-info strong { color: var(--cyan-400); }
 
     .pagination-controls { display: flex; gap: 0.25rem; align-items: center; }
 
     .page-btn {
-        width: 32px; height: 32px;
-        border-radius: 6px;
-        border: 1px solid #e5e7eb;
-        background: white;
-        color: #374151;
-        font-size: 0.8125rem;
+        width: 30px; height: 30px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--ink-700);
+        color: var(--text-secondary);
+        font-size: 0.78rem;
         font-weight: 600;
         cursor: pointer;
         display: flex; align-items: center; justify-content: center;
-        transition: all 0.15s;
+        transition: all var(--transition-fast);
+        font-family: var(--font-body);
     }
-    .page-btn:hover { background: #f0f4ff; border-color: #667eea; color: #667eea; }
-    .page-btn.active { background: #667eea; border-color: #667eea; color: white; }
-    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-btn:hover { background: var(--ink-600); border-color: var(--border-accent); color: var(--cyan-400); }
+    .page-btn.active { background: var(--cyan-700); border-color: var(--cyan-600); color: white; box-shadow: 0 0 8px rgba(6,182,212,0.3); }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
     .per-page-select {
         padding: 0.3rem 0.5rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        font-size: 0.8125rem;
-        color: #374151;
-        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        background: var(--ink-700);
+        font-family: var(--font-body);
+        transition: all var(--transition-fast);
     }
+    .per-page-select:focus { outline: none; border-color: var(--cyan-600); color: var(--text-primary); }
 
-    /* ── Department Breakdown Table ── */
+    /* ── Department/Creator Breakdown Table ── */
     .breakdown-table {
         width: 100%;
         border-collapse: separate;
@@ -429,28 +505,29 @@
         font-size: 0.8125rem;
     }
     .breakdown-table th {
-        background: #f8f9ff;
+        background: var(--ink-800);
         padding: 0.5rem 0.75rem;
-        font-size: 0.6875rem;
+        font-size: 0.65rem;
         font-weight: 700;
-        color: #4b5563;
+        color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.4px;
-        border-bottom: 2px solid #e5e7eb;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border);
     }
     .breakdown-table td {
         padding: 0.5rem 0.75rem;
-        border-bottom: 1px solid #f3f4f6;
-        color: #374151;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-secondary);
     }
     .breakdown-table tr:last-child td { border-bottom: none; }
-    .breakdown-table tr:hover td { background: #f8f9ff; }
+    .breakdown-table tbody tr:hover td { background: rgba(6,182,212,0.04); color: var(--text-primary); }
+    .breakdown-table td strong { color: var(--text-primary); }
 
     /* Progress bar in breakdown */
     .progress-mini {
-        height: 6px;
-        background: #e5e7eb;
-        border-radius: 3px;
+        height: 4px;
+        background: var(--ink-600);
+        border-radius: var(--radius-full);
         overflow: hidden;
         width: 80px;
         display: inline-block;
@@ -459,24 +536,56 @@
     }
     .progress-mini-fill {
         height: 100%;
-        background: linear-gradient(90deg, #667eea, #764ba2);
-        border-radius: 3px;
+        background: linear-gradient(90deg, var(--cyan-600), var(--cyan-400));
+        border-radius: var(--radius-full);
         transition: width 1s ease;
     }
 
-    /* View detail link */
+    /* View link */
     .view-link {
-        color: #667eea;
+        color: var(--cyan-400);
         text-decoration: none;
         font-weight: 600;
-        font-size: 0.8125rem;
-        transition: color 0.2s;
+        font-size: 0.78rem;
+        transition: color var(--transition-fast);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
-    .view-link:hover { color: #764ba2; text-decoration: underline; }
+    .view-link:hover { color: var(--cyan-300); text-decoration: underline; }
 
     /* ── Animations ── */
     @keyframes fadeInUp {
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: translateY(15px); }
+        to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    /* ── Global overflow guard ── */
+    body { overflow-x: hidden; }
+    main { padding-top: var(--spacing-md) !important; padding-bottom: var(--spacing-md) !important; }
+
+    /* ── Laptop 13"–14" ── */
+    @media (max-width: 1366px) {
+        main { padding: var(--spacing-md) 0; }
+        .report-container { padding: 0 0.5rem; }
+        .btn-filter { padding: 0.3rem 0.6rem; font-size: 0.75rem; gap: 0.25rem; }
+        .btn-filter i { font-size: 0.8rem; }
+        .filter-card-header h5 { font-size: 0.78rem; }
+        .filter-card-body { padding: 0.65rem 0.75rem; }
+        .stat-card { padding: 0.65rem 0.75rem; gap: 0.65rem; }
+        .stat-icon { width: 40px; height: 40px; font-size: 1.1rem; }
+        .stat-number { font-size: 1.2rem; }
+        .stat-label { font-size: 0.65rem; }
+        .chart-card { padding: 0.65rem 0.75rem; }
+        .chart-card canvas { max-height: 190px; }
+        .table-card-header { padding: 0.55rem 0.75rem; }
+        .table-search { width: 120px; }
+        .data-table th { font-size: 0.6rem; padding: 0.4rem 0.45rem; letter-spacing: 0.3px; }
+        .data-table td { padding: 0.4rem 0.45rem; font-size: 0.74rem; }
+        .data-table tfoot td { padding: 0.4rem 0.45rem; font-size: 0.74rem; }
+        .doc-badge, .status-badge { font-size: 0.58rem; padding: 0.12rem 0.4rem; }
+        .breakdown-table th, .breakdown-table td { padding: 0.38rem 0.55rem; font-size: 0.74rem; }
+        .progress-mini { width: 60px; }
     }
 
     /* ── Print Styles ── */
@@ -485,12 +594,20 @@
         .pagination-controls, .per-page-select,
         nav, footer, .no-print { display: none !important; }
 
+        :root {
+            --surface-800: #fff;
+            --ink-800: #f5f5f5;
+            --text-primary: #111;
+            --text-secondary: #333;
+            --text-muted: #666;
+            --border: #ddd;
+        }
+
         .report-container { max-width: 100%; padding: 0; }
         .data-table { font-size: 0.75rem; }
         .data-table th, .data-table td { padding: 0.375rem 0.5rem; }
         .stat-card, .chart-card, .table-card { box-shadow: none; border: 1px solid #ddd; }
         .table-card { break-inside: avoid; }
-
         .print-header { display: block !important; }
     }
 
@@ -499,23 +616,19 @@
         text-align: center;
         margin-bottom: 1.5rem;
         padding-bottom: 1rem;
-        border-bottom: 2px solid #667eea;
+        border-bottom: 2px solid var(--cyan-600);
     }
-
-    .print-header h2 { font-size: 1.5rem; font-weight: 700; color: #1f2937; }
-    .print-header p { color: #6b7280; font-size: 0.875rem; }
+    .print-header h2 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+    .print-header p { color: var(--text-muted); font-size: 0.875rem; }
 
     /* ── Responsive ── */
     @media (max-width: 768px) {
-        .stat-number { font-size: 1.25rem; }
-        .table-search { width: 140px; }
-        .data-table { font-size: 0.8125rem; }
-        .data-table th, .data-table td { padding: 0.5rem 0.625rem; }
-
-        /* Reduce max height on mobile for better UX */
-        .table-scroll-container {
-            max-height: 450px;
-        }
+        .report-container { padding: 0 0.5rem; }
+        .stat-number { font-size: 1.1rem; }
+        .table-search { width: 120px; }
+        .data-table { font-size: 0.8rem; }
+        .data-table th, .data-table td { padding: 0.4rem 0.5rem; }
+        .table-scroll-container { max-height: 400px; }
     }
 
     @media (max-width: 576px) {
@@ -530,18 +643,31 @@
 {% block content %}
 <div class="report-container">
 
-    <!-- Print Header (hidden on screen, visible on print) -->
+    <!-- Print Header (hidden on screen) -->
     <div class="print-header">
         <h2>Payment Voucher System — Financial Report</h2>
         <p>Generated on: <span id="print-date"></span> | Garden City Water Park</p>
     </div>
 
-    <!-- ==================== PAGE HEADER ==================== -->
+    <!-- ══════════════════════════════════════════
+         PAGE HEADER
+    ══════════════════════════════════════════ -->
+    <div class="page-header report-page-header">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-bar-chart-line"></i>
+                Financial Reports
+            </h1>
+            <p class="page-subtitle">Analytics & payment summary — Garden City Water Park</p>
+        </div>
+    </div>
 
-    <!-- ==================== FILTER CARD ==================== -->
+    <!-- ══════════════════════════════════════════
+         FILTER CARD
+    ══════════════════════════════════════════ -->
     <div class="filter-card no-print">
         <div class="filter-card-header">
-            <h5><i class="bi bi-funnel me-2"></i>Filters</h5>
+            <h5><i class="bi bi-funnel-fill"></i>Filters</h5>
             <div class="filter-actions">
                 <button type="button" class="btn-filter apply" onclick="applyFilters()">
                     <i class="bi bi-search"></i> Apply
@@ -560,24 +686,18 @@
         <div class="filter-card-body">
             <form id="reportForm" method="GET">
                 <div class="row g-2">
-                    <div class="col-md-6 col-lg-2">
-                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
-                            <i class="bi bi-calendar-date text-primary"></i> From Date
-                        </label>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <label class="form-label"><i class="bi bi-calendar-date" style="color:var(--cyan-400)"></i> From Date</label>
                         <input type="date" class="form-control form-control-sm" name="date_from"
                                value="{{ request.GET.date_from }}">
                     </div>
-                    <div class="col-md-6 col-lg-2">
-                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
-                            <i class="bi bi-calendar-date text-primary"></i> To Date
-                        </label>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <label class="form-label"><i class="bi bi-calendar-date" style="color:var(--cyan-400)"></i> To Date</label>
                         <input type="date" class="form-control form-control-sm" name="date_to"
                                value="{{ request.GET.date_to }}">
                     </div>
-                    <div class="col-md-6 col-lg-2">
-                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
-                            <i class="bi bi-check-circle text-success"></i> Status
-                        </label>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <label class="form-label"><i class="bi bi-check-circle" style="color:var(--success)"></i> Status</label>
                         <select class="form-select form-select-sm" name="status">
                             <option value="">After L2 Approval (Default)</option>
                             {% for status in statuses %}
@@ -585,20 +705,16 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6 col-lg-2">
-                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
-                            <i class="bi bi-file-earmark-text text-info"></i> Doc Type
-                        </label>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <label class="form-label"><i class="bi bi-file-earmark-text" style="color:var(--info)"></i> Doc Type</label>
                         <select class="form-select form-select-sm" name="doc_type">
                             <option value="">Both (PV & PF)</option>
                             <option value="PV" {% if request.GET.doc_type == 'PV' %}selected{% endif %}>Payment Voucher (PV)</option>
                             <option value="PF" {% if request.GET.doc_type == 'PF' %}selected{% endif %}>Payment Form (PF)</option>
                         </select>
                     </div>
-                    <div class="col-md-6 col-lg-2">
-                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
-                            <i class="bi bi-person text-warning"></i> Creator
-                        </label>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <label class="form-label"><i class="bi bi-person" style="color:var(--warning)"></i> Creator</label>
                         <select class="form-select form-select-sm" name="creator">
                             <option value="">All Creators</option>
                             {% for u in users %}
@@ -608,10 +724,8 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6 col-lg-2">
-                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
-                            <i class="bi bi-building text-danger"></i> Department
-                        </label>
+                    <div class="col-6 col-md-4 col-xl-2">
+                        <label class="form-label"><i class="bi bi-building" style="color:var(--danger)"></i> Department</label>
                         <select class="form-select form-select-sm" name="department">
                             <option value="">All Departments</option>
                             {% for dept in departments %}
@@ -621,10 +735,8 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-12 col-lg-4">
-                        <label class="form-label" style="font-size:0.8125rem; font-weight:600; margin-bottom:3px;">
-                            <i class="bi bi-person-badge text-secondary"></i> Payee Name
-                        </label>
+                    <div class="col-12 col-md-8 col-xl-4">
+                        <label class="form-label"><i class="bi bi-person-badge" style="color:var(--text-muted)"></i> Payee Name</label>
                         <input type="text" class="form-control form-control-sm" name="payee_name"
                                placeholder="Search by payee..." value="{{ request.GET.payee_name }}">
                     </div>
@@ -633,11 +745,13 @@
         </div>
     </div>
 
-    <!-- ==================== SUMMARY STAT CARDS ==================== -->
-    <div class="row g-2 mb-2">
+    <!-- ══════════════════════════════════════════
+         SUMMARY STAT CARDS
+    ══════════════════════════════════════════ -->
+    <div class="row g-2 mb-3">
         <div class="col-6 col-lg-3">
-            <div class="stat-card" style="animation-delay:0.2s;">
-                <div class="stat-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+            <div class="stat-card" >
+                <div class="stat-icon" style="background:linear-gradient(135deg,var(--cyan-600),var(--cyan-700));">
                     <i class="bi bi-file-earmark-text"></i>
                 </div>
                 <div class="stat-content">
@@ -647,7 +761,7 @@
             </div>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="stat-card" style="animation-delay:0.3s;">
+            <div class="stat-card" >
                 <div class="stat-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);">
                     <i class="bi bi-receipt"></i>
                 </div>
@@ -658,7 +772,7 @@
             </div>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="stat-card" style="animation-delay:0.4s;">
+            <div class="stat-card">
                 <div class="stat-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);">
                     <i class="bi bi-file-earmark-check"></i>
                 </div>
@@ -669,7 +783,7 @@
             </div>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="stat-card" style="animation-delay:0.5s;">
+            <div class="stat-card">
                 <div class="stat-icon" style="background:linear-gradient(135deg,#43e97b,#38f9d7);">
                     <i class="bi bi-cash-stack"></i>
                 </div>
@@ -681,16 +795,18 @@
         </div>
     </div>
 
-    <!-- ==================== CHARTS ROW ==================== -->
+    <!-- ══════════════════════════════════════════
+         CHARTS ROW
+    ══════════════════════════════════════════ -->
     <div class="row g-2 mb-2">
         <div class="col-lg-8">
-            <div class="chart-card" style="animation-delay:0.6s;">
+            <div class="chart-card">
                 <div class="chart-title"><i class="bi bi-graph-up"></i>Monthly Trends</div>
                 <canvas id="monthlyChart"></canvas>
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="chart-card" style="animation-delay:0.65s;">
+            <div class="chart-card">
                 <div class="chart-title"><i class="bi bi-pie-chart"></i>Document Types</div>
                 <canvas id="pieChart"></canvas>
             </div>
@@ -699,25 +815,27 @@
 
     <div class="row g-2 mb-3">
         <div class="col-lg-6">
-            <div class="chart-card" style="animation-delay:0.7s;">
+            <div class="chart-card">
                 <div class="chart-title"><i class="bi bi-currency-dollar"></i>Currency Distribution</div>
                 <canvas id="currencyChart"></canvas>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="chart-card" style="animation-delay:0.75s;">
+            <div class="chart-card">
                 <div class="chart-title"><i class="bi bi-activity"></i>Approval Activity</div>
                 <canvas id="activityChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- ==================== DEPARTMENT BREAKDOWN ==================== -->
+    <!-- ══════════════════════════════════════════
+         DEPARTMENT BREAKDOWN
+    ══════════════════════════════════════════ -->
     <div class="row g-2 mb-3">
         <div class="col-lg-6">
-            <div class="table-card" style="animation-delay:0.8s;">
+            <div class="table-card">
                 <div class="table-card-header">
-                    <h5><i class="bi bi-building"></i> Department Breakdown</h5>
+                    <h5><i class="bi bi-building"></i>Department Breakdown</h5>
                     <span class="record-count">{{ dept_breakdown|length }} depts</span>
                 </div>
                 <div style="overflow-x:auto;">
@@ -744,7 +862,12 @@
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:1.5rem;">No data</td></tr>
+                            <tr>
+                                <td colspan="4" style="text-align:center;color:var(--text-muted);padding:1.5rem;">
+                                    <i class="bi bi-inbox" style="display:block;font-size:1.5rem;margin-bottom:0.4rem;opacity:0.4;"></i>
+                                    No data
+                                </td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -752,9 +875,9 @@
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="table-card" style="animation-delay:0.85s;">
+            <div class="table-card">
                 <div class="table-card-header">
-                    <h5><i class="bi bi-person-lines-fill"></i> Top Creators</h5>
+                    <h5><i class="bi bi-person-lines-fill"></i>Top Creators</h5>
                     <span class="record-count">{{ creator_breakdown|length }} users</span>
                 </div>
                 <div style="overflow-x:auto;">
@@ -776,7 +899,12 @@
                                 <td class="amount-cell usd">${{ creator.total_usd|floatformat:2 }}</td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:1.5rem;">No data</td></tr>
+                            <tr>
+                                <td colspan="4" style="text-align:center;color:var(--text-muted);padding:1.5rem;">
+                                    <i class="bi bi-inbox" style="display:block;font-size:1.5rem;margin-bottom:0.4rem;opacity:0.4;"></i>
+                                    No data
+                                </td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -785,8 +913,10 @@
         </div>
     </div>
 
-    <!-- ==================== MAIN DATA TABLE ==================== -->
-    <div class="table-card" style="animation-delay:0.9s;">
+    <!-- ══════════════════════════════════════════
+         MAIN DATA TABLE
+    ══════════════════════════════════════════ -->
+    <div class="table-card">
         <div class="table-card-header">
             <h5>
                 <i class="bi bi-table"></i>
@@ -795,7 +925,7 @@
             </h5>
             <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
                 <input type="text" class="table-search" id="tableSearch"
-                       placeholder="&#xF52A; Quick search..." onkeyup="filterTable()">
+                       placeholder="Quick search..." onkeyup="filterTable()">
                 <select class="per-page-select" id="perPageSelect" onchange="changePerPage()">
                     <option value="25">25 / page</option>
                     <option value="50">50 / page</option>
@@ -805,11 +935,11 @@
             </div>
         </div>
 
-        <div class="table-scroll-container">
+        <div class="table-scroll-container" id="tableScrollContainer">
             <table class="data-table" id="mainDataTable">
                 <thead>
                     <tr>
-                        <th onclick="sortTable(0)" title="Sort">#  <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(0)"># <span class="sort-icon">▲▼</span></th>
                         <th onclick="sortTable(1)">Doc No <span class="sort-icon">▲▼</span></th>
                         <th onclick="sortTable(2)">Type <span class="sort-icon">▲▼</span></th>
                         <th onclick="sortTable(3)">Payee <span class="sort-icon">▲▼</span></th>
@@ -818,17 +948,17 @@
                         <th onclick="sortTable(6)">Payment Date <span class="sort-icon">▲▼</span></th>
                         <th onclick="sortTable(7)">Created By <span class="sort-icon">▲▼</span></th>
                         <th onclick="sortTable(8)">Status <span class="sort-icon">▲▼</span></th>
-                        <th onclick="sortTable(9)" style="text-align:right;">Amount (USD) <span class="sort-icon">▲▼</span></th>
-                        <th onclick="sortTable(10)" style="text-align:right;">Amount (KHR) <span class="sort-icon">▲▼</span></th>
-                        <th onclick="sortTable(11)" style="text-align:right;">Amount (THB) <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(9)" style="text-align:right;">USD <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(10)" style="text-align:right;">KHR <span class="sort-icon">▲▼</span></th>
+                        <th onclick="sortTable(11)" style="text-align:right;">THB <span class="sort-icon">▲▼</span></th>
                         <th class="no-print">Action</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     {% for record in records %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td><strong>{{ record.doc_number }}</strong></td>
+                        <td style="color:var(--text-muted);">{{ forloop.counter }}</td>
+                        <td><strong style="color:var(--cyan-400);font-family:var(--font-mono);">{{ record.doc_number }}</strong></td>
                         <td>
                             {% if record.doc_type == 'PV' %}
                                 <span class="doc-badge pv"><i class="bi bi-receipt"></i> PV</span>
@@ -837,9 +967,9 @@
                             {% endif %}
                         </td>
                         <td>{{ record.payee_name }}</td>
-                        <td>{{ record.description|default:"-" }}</td>
+                        <td style="color:var(--text-muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ record.description|default:"-" }}</td>
                         <td>{{ record.department|default:"-" }}</td>
-                        <td>{{ record.payment_date|date:"d M Y" }}</td>
+                        <td style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-muted);">{{ record.payment_date|date:"d M Y" }}</td>
                         <td>{{ record.created_by|default:"-" }}</td>
                         <td>
                             {% if record.status == 'APPROVED' %}
@@ -857,13 +987,13 @@
                             {% endif %}
                         </td>
                         <td class="amount-cell usd">
-                            {% if record.total_usd %}${{ record.total_usd|floatformat:2 }}{% else %}-{% endif %}
+                            {% if record.total_usd %}${{ record.total_usd|floatformat:2 }}{% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
                         </td>
                         <td class="amount-cell khr">
-                            {% if record.total_khr %}៛{{ record.total_khr|floatformat:0 }}{% else %}-{% endif %}
+                            {% if record.total_khr %}៛{{ record.total_khr|floatformat:0 }}{% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
                         </td>
                         <td class="amount-cell thb">
-                            {% if record.total_thb %}฿{{ record.total_thb|floatformat:2 }}{% else %}-{% endif %}
+                            {% if record.total_thb %}฿{{ record.total_thb|floatformat:2 }}{% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
                         </td>
                         <td class="no-print">
                             {% if record.doc_type == 'PV' %}
@@ -879,8 +1009,8 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="13" style="text-align:center;padding:3rem;color:#9ca3af;">
-                            <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+                        <td colspan="13" style="text-align:center;padding:3rem;color:var(--text-muted);">
+                            <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.4;"></i>
                             No records found matching the current filters.
                         </td>
                     </tr>
@@ -889,16 +1019,15 @@
                 <tfoot>
                     <tr>
                         <td colspan="9"><strong>TOTALS (filtered results)</strong></td>
-                        <td class="amount-cell" style="color:white;">${{ total_usd|floatformat:2|default:"0.00" }}</td>
-                        <td class="amount-cell" style="color:white;">៛{{ total_khr|floatformat:0|default:"0" }}</td>
-                        <td class="amount-cell" style="color:white;">฿{{ total_thb|floatformat:2|default:"0.00" }}</td>
+                        <td class="amount-cell">${{ total_usd|floatformat:2|default:"0.00" }}</td>
+                        <td class="amount-cell">៛{{ total_khr|floatformat:0|default:"0" }}</td>
+                        <td class="amount-cell">฿{{ total_thb|floatformat:2|default:"0.00" }}</td>
                         <td class="no-print"></td>
                     </tr>
                 </tfoot>
             </table>
         </div>
 
-        <!-- Table Footer: info + pagination -->
         <div class="table-footer">
             <div class="table-info" id="tableInfo">
                 Showing <strong id="showFrom">1</strong>–<strong id="showTo">25</strong>
@@ -908,85 +1037,59 @@
         </div>
     </div>
 
-</div><!-- end report-container -->
+</div><!-- /report-container -->
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-    // ── Set print date ──
+    // ── Chart.js global dark theme defaults ──
+    Chart.defaults.color = '#8fa8c0';
+    Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+    Chart.defaults.font.family = 'Montserrat, sans-serif';
+
+    // ── Print date ──
     document.getElementById('print-date').textContent = new Date().toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
 
-    // ── Filter form ──
+    // ── Filter helpers ──
     function applyFilters() { document.getElementById('reportForm').submit(); }
-
-    function resetFilters() {
-        window.location.href = window.location.pathname;
-    }
-
+    function resetFilters() { window.location.href = window.location.pathname; }
     function exportToExcel() {
-        const form = document.getElementById('reportForm');
-        const params = new URLSearchParams(new FormData(form));
+        const params = new URLSearchParams(new FormData(document.getElementById('reportForm')));
         window.location.href = "{% url 'vouchers:export_excel' %}?" + params.toString();
     }
+    function printReport() { window.print(); }
 
-    function printReport() {
-        window.print();
-    }
-
-    // ── Calculate Totals from Visible Rows ──
+    // ── Update footer totals from visible rows ──
     function updateTotals() {
-        // Get all rows that are not hidden by search filter
         const allRows = document.querySelectorAll('#tableBody tr');
         const searchQuery = document.getElementById('tableSearch').value.toLowerCase();
-
-        let totalUSD = 0;
-        let totalKHR = 0;
-        let totalTHB = 0;
-
+        let totalUSD = 0, totalKHR = 0, totalTHB = 0;
         allRows.forEach(row => {
-            // Check if row matches search (if no search, all rows count)
             const text = row.textContent.toLowerCase();
-            const matchesSearch = !searchQuery || text.includes(searchQuery);
-
-            if (matchesSearch) {
-                // USD is column 9 (index 9)
-                const usdText = row.cells[9]?.textContent.trim() || '';
-                const usdValue = parseFloat(usdText.replace(/[$,]/g, ''));
-                if (!isNaN(usdValue)) totalUSD += usdValue;
-
-                // KHR is column 10 (index 10)
-                const khrText = row.cells[10]?.textContent.trim() || '';
-                const khrValue = parseFloat(khrText.replace(/[៛,]/g, ''));
-                if (!isNaN(khrValue)) totalKHR += khrValue;
-
-                // THB is column 11 (index 11)
-                const thbText = row.cells[11]?.textContent.trim() || '';
-                const thbValue = parseFloat(thbText.replace(/[฿,]/g, ''));
-                if (!isNaN(thbValue)) totalTHB += thbValue;
+            if (!searchQuery || text.includes(searchQuery)) {
+                const usdVal = parseFloat((row.cells[9]?.textContent||'').replace(/[$,]/g,''));
+                const khrVal = parseFloat((row.cells[10]?.textContent||'').replace(/[៛,]/g,''));
+                const thbVal = parseFloat((row.cells[11]?.textContent||'').replace(/[฿,]/g,''));
+                if (!isNaN(usdVal)) totalUSD += usdVal;
+                if (!isNaN(khrVal)) totalKHR += khrVal;
+                if (!isNaN(thbVal)) totalTHB += thbVal;
             }
         });
-
-        // Update footer totals
-        const tfoot = document.querySelector('.data-table tfoot');
-        if (tfoot) {
-            const cells = tfoot.querySelectorAll('td');
-            cells[1].textContent = '$' + totalUSD.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            cells[2].textContent = '៛' + Math.round(totalKHR).toLocaleString('en-US');
-            cells[3].textContent = '฿' + totalTHB.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        }
+        const cells = document.querySelectorAll('.data-table tfoot td');
+        if (cells[1]) cells[1].textContent = '$' + totalUSD.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
+        if (cells[2]) cells[2].textContent = '៛' + Math.round(totalKHR).toLocaleString('en-US');
+        if (cells[3]) cells[3].textContent = '฿' + totalTHB.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
     }
 
-    // ── Table Client-Side Search ──
+    // ── Client-side search ──
     function filterTable() {
         const query = document.getElementById('tableSearch').value.toLowerCase();
-        const rows = document.querySelectorAll('#tableBody tr');
         let visible = 0;
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            const match = text.includes(query);
+        document.querySelectorAll('#tableBody tr').forEach(row => {
+            const match = row.textContent.toLowerCase().includes(query);
             row.style.display = match ? '' : 'none';
             if (match) visible++;
         });
@@ -1009,20 +1112,17 @@
         const total = rows.length;
         const totalPages = Math.ceil(total / perPage);
 
-        // Hide/show rows
         rows.forEach((row, i) => {
-            const inPage = i >= (currentPage - 1) * perPage && i < currentPage * perPage;
+            const inPage = i >= (currentPage-1)*perPage && i < currentPage*perPage;
             row.style.display = inPage ? '' : 'none';
         });
 
-        // Update info
-        const from = total === 0 ? 0 : (currentPage - 1) * perPage + 1;
-        const to = Math.min(currentPage * perPage, total);
+        const from = total === 0 ? 0 : (currentPage-1)*perPage+1;
+        const to = Math.min(currentPage*perPage, total);
         document.getElementById('showFrom').textContent = from;
-        document.getElementById('showTo').textContent = to;
+        document.getElementById('showTo').textContent   = to;
         document.getElementById('totalRows').textContent = total;
 
-        // Build page buttons
         const ctrl = document.getElementById('paginationControls');
         ctrl.innerHTML = '';
 
@@ -1033,10 +1133,9 @@
         prevBtn.onclick = () => { currentPage--; renderPagination(); };
         ctrl.appendChild(prevBtn);
 
-        // Page numbers (show max 5)
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage   = Math.min(totalPages, startPage + 4);
-        startPage = Math.max(1, endPage - 4);
+        let startPage = Math.max(1, currentPage-2);
+        let endPage   = Math.min(totalPages, startPage+4);
+        startPage = Math.max(1, endPage-4);
 
         for (let p = startPage; p <= endPage; p++) {
             const btn = document.createElement('button');
@@ -1067,10 +1166,8 @@
         const tbody = document.getElementById('tableBody');
         const rows = Array.from(tbody.querySelectorAll('tr'));
         const asc = !sortDir[colIndex];
-        sortDir = {};
-        sortDir[colIndex] = asc;
+        sortDir = {}; sortDir[colIndex] = asc;
 
-        // Update sort icons
         document.querySelectorAll('.data-table th').forEach((th, i) => {
             th.classList.remove('sort-asc', 'sort-desc');
             if (i === colIndex) th.classList.add(asc ? 'sort-asc' : 'sort-desc');
@@ -1079,9 +1176,9 @@
         rows.sort((a, b) => {
             const aText = a.cells[colIndex]?.textContent.trim() || '';
             const bText = b.cells[colIndex]?.textContent.trim() || '';
-            const aNum = parseFloat(aText.replace(/[^0-9.-]/g, ''));
-            const bNum = parseFloat(bText.replace(/[^0-9.-]/g, ''));
-            if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum - bNum : bNum - aNum;
+            const aNum = parseFloat(aText.replace(/[^0-9.-]/g,''));
+            const bNum = parseFloat(bText.replace(/[^0-9.-]/g,''));
+            if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum-bNum : bNum-aNum;
             return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
         });
 
@@ -1091,109 +1188,110 @@
         renderPagination();
     }
 
-    // Init pagination on load
+    // ── Init ──
     document.addEventListener('DOMContentLoaded', () => {
         updateTotals();
         renderPagination();
 
-        // Add scroll listener for table container
-        const tableContainer = document.querySelector('.table-scroll-container');
+        const tableContainer = document.getElementById('tableScrollContainer');
         if (tableContainer) {
             tableContainer.addEventListener('scroll', function() {
-                if (this.scrollTop > 10) {
-                    this.classList.add('is-scrolled');
-                } else {
-                    this.classList.remove('is-scrolled');
-                }
+                this.classList.toggle('is-scrolled', this.scrollTop > 10);
             });
         }
     });
 
-    // ── Chart.js ──
-    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-    new Chart(monthlyCtx, {
+    // ── Chart.js: dark palette helpers ──
+    const gridColor  = 'rgba(255,255,255,0.05)';
+    const tickFont   = { size: 10, family: 'Montserrat, sans-serif' };
+    const tooltipCfg = { backgroundColor: 'rgba(7,13,20,0.92)', padding: 10, cornerRadius: 6,
+                         titleColor: '#22d3ee', bodyColor: '#e2eaf4', borderColor: 'rgba(6,182,212,0.3)', borderWidth: 1 };
+
+    // Monthly Trends
+    new Chart(document.getElementById('monthlyChart').getContext('2d'), {
         type: 'bar',
         data: {
             labels: {{ monthly_labels|safe }},
             datasets: [{
                 label: 'Payment Vouchers',
                 data: {{ monthly_pv|safe }},
-                backgroundColor: 'rgba(245,135,124,0.7)',
+                backgroundColor: 'rgba(245,135,124,0.65)',
                 borderColor: 'rgba(245,135,124,1)',
-                borderWidth: 2,
-                borderRadius: 6,
+                borderWidth: 2, borderRadius: 4,
             }, {
                 label: 'Payment Forms',
                 data: {{ monthly_pf|safe }},
-                backgroundColor: 'rgba(79,172,254,0.7)',
+                backgroundColor: 'rgba(79,172,254,0.65)',
                 borderColor: 'rgba(79,172,254,1)',
-                borderWidth: 2,
-                borderRadius: 6,
+                borderWidth: 2, borderRadius: 4,
             }, {
                 label: 'Total Amount (USD)',
                 data: {{ monthly_amounts|safe }},
                 type: 'line',
-                borderColor: 'rgba(67,233,123,1)',
-                backgroundColor: 'rgba(67,233,123,0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                yAxisID: 'y1',
+                borderColor: 'rgba(34,211,238,1)',
+                backgroundColor: 'rgba(34,211,238,0.08)',
+                borderWidth: 2, fill: true, tension: 0.4, yAxisID: 'y1',
+                pointBackgroundColor: 'rgba(34,211,238,1)',
+                pointBorderColor: '#070d14', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
             }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'top', labels: { padding: 10, font: { size: 11, weight: '600' }, usePointStyle: true }},
-                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, cornerRadius: 6 }
+                legend: { position: 'top', labels: { padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true, color: '#8fa8c0' }},
+                tooltip: tooltipCfg
             },
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 }}},
+                y:  { beginAtZero: true, grid: { color: gridColor }, ticks: { font: tickFont }},
                 y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false },
-                      ticks: { font: { size: 10 }, callback: v => '$' + v.toLocaleString() }},
-                x: { grid: { display: false }, ticks: { font: { size: 10 }}}
+                      ticks: { font: tickFont, color: '#22d3ee', callback: v => '$' + v.toLocaleString() }},
+                x:  { grid: { display: false }, ticks: { font: tickFont }}
             },
             animation: { duration: 1200, easing: 'easeInOutQuart' }
         }
     });
 
+    // Doughnut: Doc Types
     new Chart(document.getElementById('pieChart').getContext('2d'), {
         type: 'doughnut',
         data: {
             labels: ['Payment Vouchers', 'Payment Forms'],
             datasets: [{ data: [{{ total_pv|default:0 }}, {{ total_pf|default:0 }}],
                 backgroundColor: ['rgba(245,135,124,0.8)', 'rgba(79,172,254,0.8)'],
-                borderColor: ['#fff', '#fff'], borderWidth: 2, hoverOffset: 8 }]
+                borderColor: ['rgba(7,13,20,0.8)', 'rgba(7,13,20,0.8)'],
+                borderWidth: 2, hoverOffset: 8 }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom', labels: { padding: 10, font: { size: 11, weight: '600' }, usePointStyle: true }},
-                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, cornerRadius: 6 }
+                legend: { position: 'bottom', labels: { padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true, color: '#8fa8c0' }},
+                tooltip: tooltipCfg
             },
             animation: { animateRotate: true, animateScale: true, duration: 1200 }
         }
     });
 
+    // Doughnut: Currency
     new Chart(document.getElementById('currencyChart').getContext('2d'), {
         type: 'doughnut',
         data: {
             labels: ['USD ($)', 'KHR (៛)', 'THB (฿)'],
             datasets: [{ data: [{{ total_usd|default:0 }}, {{ total_khr|default:0 }}, {{ total_thb|default:0 }}],
-                backgroundColor: ['rgba(67,233,123,0.8)', 'rgba(102,126,234,0.8)', 'rgba(245,158,11,0.8)'],
-                borderColor: ['#fff','#fff','#fff'], borderWidth: 2, hoverOffset: 8 }]
+                backgroundColor: ['rgba(34,197,94,0.75)', 'rgba(34,211,238,0.75)', 'rgba(245,158,11,0.75)'],
+                borderColor: ['rgba(7,13,20,0.8)', 'rgba(7,13,20,0.8)', 'rgba(7,13,20,0.8)'],
+                borderWidth: 2, hoverOffset: 8 }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom', labels: { padding: 10, font: { size: 11, weight: '600' }, usePointStyle: true }},
-                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, cornerRadius: 6,
-                    callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                legend: { position: 'bottom', labels: { padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true, color: '#8fa8c0' }},
+                tooltip: { ...tooltipCfg, callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
             },
             animation: { animateRotate: true, animateScale: true, duration: 1200 }
         }
     });
 
+    // Line: Approval Activity
     new Chart(document.getElementById('activityChart').getContext('2d'), {
         type: 'line',
         data: {
@@ -1201,22 +1299,19 @@
             datasets: [{
                 label: 'Total Documents',
                 data: {{ monthly_pv|safe }}.map((pv, i) => pv + {{ monthly_pf|safe }}[i]),
-                borderColor: 'rgba(102,126,234,1)',
-                backgroundColor: 'rgba(102,126,234,0.1)',
+                borderColor: 'rgba(34,211,238,1)',
+                backgroundColor: 'rgba(34,211,238,0.07)',
                 borderWidth: 2, fill: true, tension: 0.4,
-                pointBackgroundColor: 'rgba(102,126,234,1)',
-                pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
+                pointBackgroundColor: 'rgba(34,211,238,1)',
+                pointBorderColor: '#070d14', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
             }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, cornerRadius: 6 }
-            },
+            plugins: { legend: { display: false }, tooltip: tooltipCfg },
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 }}},
-                x: { grid: { display: false }, ticks: { font: { size: 10 }}}
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { font: tickFont }},
+                x: { grid: { display: false }, ticks: { font: tickFont }}
             },
             animation: { duration: 1200, easing: 'easeInOutQuart' }
         }
