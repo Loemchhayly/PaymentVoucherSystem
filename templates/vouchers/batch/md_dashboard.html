@@ -145,7 +145,7 @@
 /* ── Queue rows ── */
 .md-q-row {
     display: grid;
-    grid-template-columns: 28px 1fr auto auto auto;
+    grid-template-columns: 52px 1fr auto auto auto;
     align-items: center;
     gap: 12px;
     padding: 13px 18px;
@@ -156,6 +156,12 @@
 }
 .md-q-row:last-child { border-bottom: none; }
 .md-q-row:hover td, .md-q-row:hover { background: rgba(6,182,212,0.04); }
+
+/* Checkbox checked state */
+.md-q-row:has(.batch-checkbox:checked) {
+    background: rgba(6,182,212,0.08) !important;
+    border-left: 3px solid var(--cyan-500);
+}
 
 
 .md-q-num {
@@ -213,6 +219,11 @@
 }
 .md-q-empty h5 { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
 .md-q-empty p  { font-size: 0.75rem; color: var(--text-muted); margin: 0; }
+
+/* Bulk sign modal batch list scrollbar */
+#bulk-sign-batch-list::-webkit-scrollbar { width: 4px; }
+#bulk-sign-batch-list::-webkit-scrollbar-thumb { background: var(--ink-500); border-radius: 99px; }
+#bulk-sign-batch-list::-webkit-scrollbar-track { background: transparent; }
 
 /* ── Side column ── */
 .md-side { display: flex; flex-direction: column; gap: 16px; }
@@ -394,9 +405,9 @@
 }
 .md-hist-link:hover { color: var(--cyan-400); }
 
-.md-hist-table { width: 100%; border-collapse: collapse; font-size: 0.775rem; }
+.md-hist-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
 .md-hist-table thead th {
-    padding: 8px 16px; font-size: 0.6rem; font-weight: 700;
+    padding: 10px 16px; font-size: 0.6875rem; font-weight: 800;
     letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted);
     border-bottom: 1px solid var(--border);
 }
@@ -406,7 +417,7 @@
 }
 .md-hist-table tbody tr:last-child { border-bottom: none; }
 .md-hist-table tbody tr:hover td { background: rgba(6,182,212,0.04); }
-.md-hist-table td { padding: 9px 16px; color: var(--text-secondary); vertical-align: middle; }
+.md-hist-table td { padding: 11px 16px; color: var(--text-secondary); vertical-align: middle; font-size: 0.8125rem; }
 
 /* ── Modals ── */
 .modal-content {
@@ -447,16 +458,427 @@
    LIGHT MODE OVERRIDES
 ══════════════════════════════════════════════════════════ */
 body[data-theme="light"] .md-vel-delta.neu { background: rgba(0,0,0,0.05); }
+
 body[data-theme="light"] .md-queue-head,
 body[data-theme="light"] .md-feed-head,
 body[data-theme="light"] .md-hist-head,
 body[data-theme="light"] .md-drawer-top,
 body[data-theme="light"] .md-drawer-foot { background: rgba(0,0,0,0.02); }
+
 body[data-theme="light"] .md-qbtn.view { background: rgba(0,0,0,0.04); }
 body[data-theme="light"] .md-drawer-overlay { background: rgba(0,0,0,0.4); }
+
 body[data-theme="light"] .md-dw-note {
     background: rgba(245,158,11,0.12);
     border: 1px solid rgba(245,158,11,0.3);
+}
+
+/* Velocity cards - numbers and text */
+body[data-theme="light"] .md-vel-num {
+    color: #0f172a;
+}
+
+body[data-theme="light"] .md-vel-num.urgent {
+    color: #d97706;
+}
+
+/* Queue rows - batch number and metadata */
+body[data-theme="light"] .md-q-num {
+    color: #0c7792;
+    font-weight: 800;
+}
+
+body[data-theme="light"] .md-q-meta {
+    color: #64748b;
+}
+
+body[data-theme="light"] .md-q-idx {
+    color: #64748b;
+}
+
+body[data-theme="light"] .md-q-docs {
+    color: #64748b;
+}
+
+body[data-theme="light"] .md-q-amount {
+    color: #15803d;
+    font-weight: 800;
+}
+
+/* Age badges - proper dark colors for light mode */
+body[data-theme="light"] .md-age.fresh {
+    background: rgba(34,197,94,0.15);
+    color: #15803d;
+    border: 1px solid rgba(34,197,94,0.35);
+}
+
+body[data-theme="light"] .md-age.warm {
+    background: rgba(245,158,11,0.15);
+    color: #d97706;
+    border: 1px solid rgba(245,158,11,0.35);
+}
+
+body[data-theme="light"] .md-age.hot {
+    background: rgba(239,68,68,0.15);
+    color: #dc2626;
+    border: 1px solid rgba(239,68,68,0.35);
+}
+
+/* Delta badges */
+body[data-theme="light"] .md-vel-delta.up {
+    background: rgba(34,197,94,0.15);
+    color: #15803d;
+}
+
+body[data-theme="light"] .md-vel-delta.warn {
+    background: rgba(245,158,11,0.15);
+    color: #d97706;
+}
+
+/* Queue search input */
+body[data-theme="light"] .md-queue-search input {
+    background: #f2f4f7;
+    border-color: rgba(0,0,0,0.15);
+    color: #0f172a;
+}
+
+body[data-theme="light"] .md-queue-search input:focus {
+    background: #f2f4f7;
+    border-color: #0891b2;
+}
+
+body[data-theme="light"] .md-queue-search i {
+    color: #64748b;
+}
+
+/* Filter tabs */
+body[data-theme="light"] .md-filter-tabs {
+    background: #e8ebef;
+    border-color: rgba(0,0,0,0.1);
+}
+
+body[data-theme="light"] .md-filter-tab {
+    color: #64748b;
+}
+
+body[data-theme="light"] .md-filter-tab.active {
+    background: #f2f4f7;
+    color: #0c7792;
+    border-color: rgba(6,182,212,0.4);
+}
+
+/* History table */
+body[data-theme="light"] .md-hist-table thead th {
+    color: #64748b;
+    font-weight: 800;
+    font-size: 0.6875rem;
+}
+
+body[data-theme="light"] .md-hist-table td {
+    color: #4a5568;
+    font-size: 0.8125rem;
+}
+
+body[data-theme="light"] .md-hist-table tbody tr:hover td {
+    background: rgba(6,182,212,0.08);
+}
+
+body[data-theme="light"] .md-hist-table td[style*="font-weight:700"] {
+    color: #0c7792 !important;
+    font-weight: 800 !important;
+}
+
+body[data-theme="light"] .md-hist-table td[style*="color:var(--success)"] {
+    color: #15803d !important;
+    font-weight: 800 !important;
+}
+
+/* Activity feed */
+body[data-theme="light"] .md-feed-text {
+    color: #4a5568;
+}
+
+body[data-theme="light"] .md-feed-text strong {
+    color: #0f172a;
+}
+
+body[data-theme="light"] .md-feed-time {
+    color: #64748b;
+}
+
+body[data-theme="light"] .md-feed-dot.signed {
+    background: rgba(34,197,94,0.15);
+    color: #15803d;
+    border: 1px solid rgba(34,197,94,0.35);
+}
+
+body[data-theme="light"] .md-feed-dot.rejected {
+    background: rgba(239,68,68,0.15);
+    color: #dc2626;
+    border: 1px solid rgba(239,68,68,0.35);
+}
+
+body[data-theme="light"] .md-feed-dot.created {
+    background: rgba(59,130,246,0.15);
+    color: #2563eb;
+    border: 1px solid rgba(59,130,246,0.35);
+}
+
+/* Drawer */
+body[data-theme="light"] .md-drawer-batch-num {
+    color: #0c7792;
+}
+
+body[data-theme="light"] .md-dw-info-key {
+    color: #64748b;
+}
+
+body[data-theme="light"] .md-dw-info-val {
+    color: #0f172a;
+}
+
+body[data-theme="light"] .md-dw-info-val.green {
+    color: #15803d !important;
+}
+
+body[data-theme="light"] .md-dw-doc-num {
+    color: #0f172a;
+}
+
+body[data-theme="light"] .md-dw-doc-payee {
+    color: #64748b;
+}
+
+body[data-theme="light"] .md-dw-doc-amt {
+    color: #15803d;
+}
+
+body[data-theme="light"] .md-dw-doc-type.pv {
+    background: rgba(59,130,246,0.15);
+    color: #2563eb;
+    border: 1px solid rgba(59,130,246,0.35);
+}
+
+body[data-theme="light"] .md-dw-doc-type.pf {
+    background: rgba(34,197,94,0.15);
+    color: #15803d;
+    border: 1px solid rgba(34,197,94,0.35);
+}
+
+/* Action buttons */
+body[data-theme="light"] .md-qbtn.sign {
+    background: rgba(34,197,94,0.15);
+    color: #15803d;
+    border-color: rgba(34,197,94,0.35);
+}
+
+body[data-theme="light"] .md-qbtn.sign:hover {
+    background: #15803d;
+    color: white;
+}
+
+body[data-theme="light"] .md-qbtn.reject {
+    background: rgba(239,68,68,0.15);
+    color: #dc2626;
+    border-color: rgba(239,68,68,0.35);
+}
+
+body[data-theme="light"] .md-qbtn.reject:hover {
+    background: #dc2626;
+    color: white;
+}
+
+body[data-theme="light"] .md-qbtn.view:hover {
+    background: rgba(6,182,212,0.12);
+    color: #0891b2;
+}
+
+/* Drawer buttons */
+body[data-theme="light"] .md-dw-btn.sign {
+    background: rgba(34,197,94,0.15);
+    color: #15803d;
+    border-color: rgba(34,197,94,0.35);
+}
+
+body[data-theme="light"] .md-dw-btn.sign:hover {
+    background: #15803d;
+}
+
+body[data-theme="light"] .md-dw-btn.reject {
+    background: rgba(239,68,68,0.15);
+    color: #dc2626;
+    border-color: rgba(239,68,68,0.35);
+}
+
+body[data-theme="light"] .md-dw-btn.reject:hover {
+    background: #dc2626;
+}
+
+body[data-theme="light"] .md-dw-btn.full:hover {
+    background: rgba(6,182,212,0.12);
+    color: #0891b2;
+}
+
+/* Drawer close button */
+body[data-theme="light"] .md-drawer-close:hover {
+    background: rgba(6,182,212,0.12);
+    color: #0891b2;
+}
+
+/* Modal textarea */
+body[data-theme="light"] .md-reject-textarea {
+    background: #f2f4f7;
+    color: #0f172a;
+}
+
+body[data-theme="light"] .md-reject-textarea:focus {
+    background: #f2f4f7;
+}
+
+/* Queue titles */
+body[data-theme="light"] .md-queue-title,
+body[data-theme="light"] .md-hist-title {
+    color: #0f172a;
+}
+
+/* Feed head title and icon */
+body[data-theme="light"] .md-feed-head {
+    color: #0f172a;
+}
+
+body[data-theme="light"] .md-feed-head i {
+    color: #0891b2;
+}
+
+/* History link */
+body[data-theme="light"] .md-hist-link {
+    color: #64748b;
+}
+
+body[data-theme="light"] .md-hist-link:hover {
+    color: #0891b2;
+}
+
+/* History table - all cells specific overrides */
+body[data-theme="light"] .md-hist-table tbody tr td:nth-child(1) {
+    color: #0c7792 !important;
+    font-weight: 800;
+}
+
+body[data-theme="light"] .md-hist-table tbody tr td:nth-child(2) {
+    color: #4a5568;
+}
+
+body[data-theme="light"] .md-hist-table tbody tr td:nth-child(3) {
+    color: #64748b;
+}
+
+body[data-theme="light"] .md-hist-table tbody tr td:nth-child(4) {
+    color: #15803d !important;
+    font-weight: 800;
+}
+
+body[data-theme="light"] .md-hist-table tbody tr td:nth-child(5) .badge {
+    font-weight: 700;
+}
+
+body[data-theme="light"] .md-hist-table tbody tr td:nth-child(5) .badge-success {
+    background: rgba(34,197,94,0.15) !important;
+    color: #15803d !important;
+    border: 1px solid rgba(34,197,94,0.35);
+}
+
+body[data-theme="light"] .md-hist-table tbody tr td:nth-child(5) .badge-danger {
+    background: rgba(239,68,68,0.15) !important;
+    color: #dc2626 !important;
+    border: 1px solid rgba(239,68,68,0.35);
+}
+
+/* Live Activity - specific overrides */
+body[data-theme="light"] .md-feed-list {
+    background: transparent;
+}
+
+body[data-theme="light"] .md-feed-item {
+    background: transparent;
+}
+
+body[data-theme="light"] .md-feed-item:hover {
+    background: rgba(6,182,212,0.08);
+}
+
+body[data-theme="light"] .md-feed-item .md-feed-text {
+    color: #4a5568;
+}
+
+body[data-theme="light"] .md-feed-item .md-feed-text strong {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+body[data-theme="light"] .md-feed-item .md-feed-time {
+    color: #64748b;
+}
+
+/* Activity feed empty state */
+body[data-theme="light"] .md-feed-list > div[style*="padding"] {
+    color: #64748b;
+}
+
+/* Bulk sign button in light mode */
+body[data-theme="light"] #bulk-sign-btn {
+    background: rgba(34,197,94,0.15);
+    color: #15803d;
+    border-color: rgba(34,197,94,0.35);
+}
+
+body[data-theme="light"] #bulk-sign-btn:hover {
+    background: #15803d;
+    color: white;
+}
+
+/* Selected row in light mode */
+body[data-theme="light"] .md-q-row:has(.batch-checkbox:checked) {
+    background: rgba(6,182,212,0.12) !important;
+    border-left-color: #0891b2;
+}
+
+/* Selected count badge */
+body[data-theme="light"] #selected-count-badge {
+    background: rgba(34,197,94,0.15) !important;
+    color: #15803d !important;
+    border: 1px solid rgba(34,197,94,0.35);
+}
+
+/* Bulk sign modal */
+body[data-theme="light"] #bulk-sign-batch-list {
+    background: #f2f4f7;
+    border-color: rgba(0,0,0,0.1);
+    color: #0f172a;
+}
+
+/* Empty state */
+body[data-theme="light"] .md-q-empty h5 {
+    color: #0f172a;
+}
+
+body[data-theme="light"] .md-q-empty p {
+    color: #64748b;
+}
+
+/* Drawer info cells */
+body[data-theme="light"] .md-dw-info-cell {
+    background: #f2f4f7;
+    border-color: rgba(0,0,0,0.1);
+}
+
+body[data-theme="light"] .md-dw-doc-row {
+    background: #f2f4f7;
+    border-color: rgba(0,0,0,0.1);
+}
+
+body[data-theme="light"] .md-dw-doc-row:hover {
+    border-color: rgba(6,182,212,0.4);
 }
 </style>
 {% endblock %}
@@ -519,11 +941,16 @@ body[data-theme="light"] .md-dw-note {
             <div class="md-queue md-fade">
                 <div class="md-queue-head">
                     <span class="md-queue-title">
+                        <input type="checkbox" id="select-all-batches" style="width:16px;height:16px;margin-right:8px;cursor:pointer;accent-color:var(--cyan-500);" onclick="toggleSelectAll(event)" title="Select all">
                         Signature Queue
                         {% if pending_count > 0 %}
                         <span class="badge badge-warning ms-2" style="font-size:0.6rem;">{{ pending_count }}</span>
                         {% endif %}
+                        <span id="selected-count-badge" class="badge badge-success ms-2" style="font-size:0.6rem;display:none;">0 selected</span>
                     </span>
+                    <button id="bulk-sign-btn" class="md-qbtn sign" style="display:none;margin-right:8px;width:auto;padding:0 12px;font-size:0.7rem;" onclick="bulkSign(event)" title="Sign selected batches">
+                        <i class="bi bi-pen-fill" style="margin-right:4px;"></i> Bulk Sign
+                    </button>
                     <div class="md-filter-tabs">
                         <button class="md-filter-tab active" onclick="setFilter('all',this)">All</button>
                         <button class="md-filter-tab" onclick="setFilter('oldest',this)">Oldest</button>
@@ -547,11 +974,14 @@ body[data-theme="light"] .md-dw-note {
                              data-notes="{{ batch.fm_notes|default:'' }}"
                              data-created-str="{{ batch.created_at|date:'d M Y · H:i' }}"
                              data-fm="{{ batch.created_by.get_full_name|default:batch.created_by.username }}"
-                             onclick="window.location.href='{% url 'vouchers:batch_detail' batch.id %}'"
+                             onclick="handleRowClick(event, '{% url 'vouchers:batch_detail' batch.id %}')"
                              style="cursor: pointer;"
                              tabindex="0">
 
-                            <div class="md-q-idx">{{ forloop.counter }}</div>
+                            <div style="display:flex;align-items:center;">
+                                <input type="checkbox" class="batch-checkbox" data-batch-id="{{ batch.id }}" data-batch-num="{{ batch.batch_number }}" onclick="event.stopPropagation();updateBulkSignButton()" style="width:16px;height:16px;margin-right:8px;cursor:pointer;accent-color:var(--cyan-500);">
+                                <div class="md-q-idx">{{ forloop.counter }}</div>
+                            </div>
 
                             <div>
                                 <div class="md-q-num">
@@ -616,15 +1046,15 @@ body[data-theme="light"] .md-dw-note {
                     <tbody>
                         {% for batch in recent_batches %}
                         <tr onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
-                            <td style="font-weight:700;color:var(--text-primary);">{{ batch.batch_number }}</td>
-                            <td style="font-size:0.72rem;">{{ batch.created_by.get_full_name|default:batch.created_by.username }}</td>
-                            <td style="font-size:0.68rem;">{{ batch.signed_at|date:"d M Y · H:i" }}</td>
-                            <td style="font-weight:700;color:var(--success);">{{ batch.get_total_amount_display }}</td>
+                            <td style="font-weight:800;color:var(--text-primary);">{{ batch.batch_number }}</td>
+                            <td>{{ batch.created_by.get_full_name|default:batch.created_by.username }}</td>
+                            <td>{{ batch.signed_at|date:"d M Y · H:i" }}</td>
+                            <td style="font-weight:800;color:var(--success);">{{ batch.get_total_amount_display }}</td>
                             <td>
                                 {% if batch.status == 'signed' %}
-                                <span class="badge badge-success"><i class="bi bi-check-circle-fill me-1"></i>Signed</span>
+                                <span class="badge badge-success" style="font-size:0.7rem;font-weight:700;"><i class="bi bi-check-circle-fill me-1"></i>Signed</span>
                                 {% else %}
-                                <span class="badge badge-danger"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+                                <span class="badge badge-danger" style="font-size:0.7rem;font-weight:700;"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -754,6 +1184,39 @@ body[data-theme="light"] .md-dw-note {
     </div>
 </div>
 
+<!-- Bulk Sign Confirmation Modal -->
+<div class="modal fade" id="bulkSignModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pen-fill me-2" style="color:var(--success);"></i>
+                    Confirm Bulk Signature
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.8125rem;color:var(--text-secondary);margin:0 0 12px;">
+                    You are about to sign <strong id="bulk-sign-count" style="color:var(--text-primary);"></strong> batch(es).
+                    Your digital signature will be applied to all documents in these batches:
+                </p>
+                <div id="bulk-sign-batch-list" style="max-height:200px;overflow-y:auto;padding:8px 12px;background:var(--ink-700);border:1px solid var(--border);border-radius:var(--radius-md);font-size:0.78rem;margin-bottom:12px;">
+                </div>
+                <p style="font-size:0.75rem;color:var(--text-muted);margin:0;">
+                    <i class="bi bi-info-circle" style="margin-right:4px;"></i>
+                    This action cannot be undone. Finance will be notified immediately.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success btn-sm" onclick="confirmBulkSign()">
+                    <i class="bi bi-pen-fill"></i> Sign All
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -868,5 +1331,101 @@ function quickReject(id, num) {
 function drawerSign()   { if (drawerBatchId) { const r = document.querySelector(`.q-item[data-id="${drawerBatchId}"]`); closeDrawer(); quickSign(drawerBatchId, r?.dataset.num || drawerBatchId); } }
 function drawerReject() { if (drawerBatchId) { const r = document.querySelector(`.q-item[data-id="${drawerBatchId}"]`); closeDrawer(); quickReject(drawerBatchId, r?.dataset.num || drawerBatchId); } }
 function captureRejectReason() { document.getElementById('reject-comments-input').value = document.getElementById('reject-reason').value; }
+
+/* ── Bulk Sign Functions ── */
+function toggleSelectAll(event) {
+    event.stopPropagation();
+    const selectAllCheckbox = document.getElementById('select-all-batches');
+    const checkboxes = document.querySelectorAll('.batch-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+    updateBulkSignButton();
+}
+
+function updateBulkSignButton() {
+    const checkedBoxes = document.querySelectorAll('.batch-checkbox:checked');
+    const count = checkedBoxes.length;
+    const bulkSignBtn = document.getElementById('bulk-sign-btn');
+    const countBadge = document.getElementById('selected-count-badge');
+    const selectAllCheckbox = document.getElementById('select-all-batches');
+
+    if (count > 0) {
+        bulkSignBtn.style.display = 'inline-flex';
+        countBadge.style.display = 'inline';
+        countBadge.textContent = count + ' selected';
+    } else {
+        bulkSignBtn.style.display = 'none';
+        countBadge.style.display = 'none';
+    }
+
+    // Update select-all checkbox state
+    const totalCheckboxes = document.querySelectorAll('.batch-checkbox').length;
+    selectAllCheckbox.checked = count === totalCheckboxes && count > 0;
+    selectAllCheckbox.indeterminate = count > 0 && count < totalCheckboxes;
+}
+
+function handleRowClick(event, url) {
+    // Don't navigate if clicking on checkbox or action buttons
+    if (event.target.type === 'checkbox' || event.target.closest('.batch-checkbox') || event.target.closest('.md-q-actions')) {
+        return;
+    }
+    window.location.href = url;
+}
+
+function bulkSign(event) {
+    event.stopPropagation();
+    const checkedBoxes = document.querySelectorAll('.batch-checkbox:checked');
+
+    if (checkedBoxes.length === 0) {
+        return;
+    }
+
+    const batchIds = Array.from(checkedBoxes).map(cb => cb.dataset.batchId);
+    const batchNumbers = Array.from(checkedBoxes).map(cb => cb.dataset.batchNum);
+
+    // Update modal content
+    document.getElementById('bulk-sign-count').textContent = checkedBoxes.length;
+    document.getElementById('bulk-sign-batch-list').innerHTML = batchNumbers.map(num =>
+        `<div style="padding:4px 0;"><i class="bi bi-folder" style="color:var(--cyan-400);margin-right:6px;"></i>${num}</div>`
+    ).join('');
+
+    // Store batch IDs for submission
+    window.bulkSignBatchIds = batchIds;
+
+    // Show modal
+    new bootstrap.Modal(document.getElementById('bulkSignModal')).show();
+}
+
+function confirmBulkSign() {
+    const batchIds = window.bulkSignBatchIds;
+
+    if (!batchIds || batchIds.length === 0) {
+        return;
+    }
+
+    // Create a form to submit batch IDs
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/vouchers/batch/bulk-sign/';
+
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    // Add batch IDs
+    batchIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'batch_ids';
+        input.value = id;
+        form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+}
 </script>
 {% endblock %}

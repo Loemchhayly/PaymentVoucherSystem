@@ -622,6 +622,97 @@ def batch_sign(request, batch_id):
 
 
 @login_required
+def batch_bulk_sign(request):
+    """
+    MD signs multiple batches at once
+    """
+    # Check permission
+    if request.user.role_level != 5:
+        messages.error(request, 'Only MD can sign batches')
+        return redirect('vouchers:md_dashboard')
+
+    if request.method == 'POST':
+        batch_ids = request.POST.getlist('batch_ids')
+
+        if not batch_ids:
+            messages.error(request, 'No batches selected')
+            return redirect('vouchers:md_dashboard')
+
+        # Get IP address
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip_address = x_forwarded_for.split(',')[0]
+        else:
+            ip_address = request.META.get('REMOTE_ADDR')
+
+        from workflow.state_machine import VoucherStateMachine, FormStateMachine
+
+        total_batches = 0
+        total_documents = 0
+        failed_batches = []
+
+        for batch_id in batch_ids:
+            try:
+                batch = SignatureBatch.objects.get(id=batch_id, status='PENDING')
+
+                comment_text = f'✓ Approved via Batch {batch.batch_number} (Bulk Sign)'
+
+                success_count = 0
+                error_count = 0
+
+                # Approve all vouchers in batch
+                for item in batch.voucher_items.all():
+                    try:
+                        voucher = item.voucher
+                        if voucher.status == 'PENDING_L5':
+                            VoucherStateMachine.transition(voucher, 'approve', request.user, comment_text, via_batch=True)
+                            success_count += 1
+                        else:
+                            error_count += 1
+                    except Exception as e:
+                        error_count += 1
+
+                # Approve all forms in batch
+                for item in batch.form_items.all():
+                    try:
+                        form = item.payment_form
+                        if form.status == 'PENDING_L5':
+                            FormStateMachine.transition(form, 'approve', request.user, comment_text, via_batch=True)
+                            success_count += 1
+                        else:
+                            error_count += 1
+                    except Exception as e:
+                        error_count += 1
+
+                # Update batch status
+                batch.status = 'SIGNED'
+                batch.signed_by = request.user
+                batch.signed_at = timezone.now()
+                batch.signature_ip = ip_address
+                batch.save()
+
+                total_batches += 1
+                total_documents += success_count
+
+            except SignatureBatch.DoesNotExist:
+                failed_batches.append(f'Batch ID {batch_id} not found or already processed')
+            except Exception as e:
+                failed_batches.append(f'Batch ID {batch_id}: {str(e)}')
+
+        # Show results
+        if failed_batches:
+            messages.warning(request, f'Bulk sign completed with errors. {total_batches} batch(es) signed, {total_documents} document(s) approved.')
+            for error in failed_batches[:5]:
+                messages.error(request, error)
+        else:
+            messages.success(request, f'✓ Bulk sign successful! {total_batches} batch(es) signed, {total_documents} document(s) approved.')
+
+        return redirect('vouchers:md_dashboard')
+
+    return redirect('vouchers:md_dashboard')
+
+
+@login_required
 def batch_reject(request, batch_id):
     """
     MD rejects a batch

@@ -11,8 +11,8 @@
 
     .report-container {
         width: 100%;
-        max-width: 100%;
-        margin: 0;
+        max-width: 1300px;
+        margin: 0 auto;
         padding: 0 0.75rem;
         box-sizing: border-box;
         overflow-x: hidden;
@@ -336,6 +336,11 @@
         table-layout: auto;
     }
 
+    /* Light mode - increase base font size for better readability */
+    body[data-theme="light"] .data-table {
+        font-size: 0.8125rem;
+    }
+
     .data-table thead {
         position: sticky;
         top: 0;
@@ -636,6 +641,409 @@
         .btn-filter { flex: 1; justify-content: center; }
         .table-card-header { flex-direction: column; align-items: flex-start; }
         .table-search { width: 100%; }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       LIGHT MODE OVERRIDES
+    ══════════════════════════════════════════════════════════ */
+
+    /* Filter Card */
+    body[data-theme="light"] .filter-card-header {
+        background: linear-gradient(135deg, #e8ebef 0%, #dde2e8 100%);
+        border-bottom-color: rgba(6,182,212,0.4);
+    }
+
+    body[data-theme="light"] .filter-card-header h5 {
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] .filter-card-header h5 i {
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] .filter-card-header::after {
+        background: linear-gradient(90deg, #0891b2, transparent 70%);
+    }
+
+    /* Filter Buttons */
+    body[data-theme="light"] .btn-filter.excel {
+        background: rgba(34,197,94,0.15);
+        color: #15803d;
+        border-color: rgba(34,197,94,0.35);
+    }
+
+    body[data-theme="light"] .btn-filter.excel:hover {
+        background: rgba(34,197,94,0.25);
+    }
+
+    body[data-theme="light"] .btn-filter.print {
+        background: rgba(245,158,11,0.15);
+        color: #d97706;
+        border-color: rgba(245,158,11,0.35);
+    }
+
+    body[data-theme="light"] .btn-filter.print:hover {
+        background: rgba(245,158,11,0.25);
+    }
+
+    body[data-theme="light"] .btn-filter.reset {
+        background: #f2f4f7;
+        color: #4a5568;
+        border-color: rgba(0,0,0,0.1);
+    }
+
+    body[data-theme="light"] .btn-filter.reset:hover {
+        background: #e8ebef;
+        color: #0f172a;
+    }
+
+    /* Stat Cards */
+    body[data-theme="light"] .stat-number {
+        color: #0f172a;
+        font-weight: 800;
+    }
+
+    body[data-theme="light"] .stat-label {
+        color: #64748b;
+    }
+
+    /* Chart Cards */
+    body[data-theme="light"] .chart-title {
+        color: #4a5568;
+        border-bottom-color: rgba(0,0,0,0.1);
+    }
+
+    body[data-theme="light"] .chart-title i {
+        color: #0891b2;
+    }
+
+    /* Table Card Headers */
+    body[data-theme="light"] .table-card-header {
+        background: #e8ebef;
+        border-bottom-color: rgba(0,0,0,0.1);
+    }
+
+    body[data-theme="light"] .table-card-header h5 {
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] .table-card-header h5 i {
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] .table-card-header::after {
+        background: linear-gradient(90deg, #0891b2, transparent 60%);
+    }
+
+    body[data-theme="light"] .record-count {
+        background: rgba(6,182,212,0.15);
+        border-color: rgba(6,182,212,0.35);
+        color: #0891b2;
+    }
+
+    /* Table Search */
+    body[data-theme="light"] .table-search {
+        background: #f2f4f7;
+        border-color: rgba(0,0,0,0.15);
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] .table-search:focus {
+        background: #f2f4f7;
+        border-color: #0891b2;
+    }
+
+    /* Data Table */
+    body[data-theme="light"] .data-table thead tr {
+        background: #e8ebef;
+    }
+
+    body[data-theme="light"] .data-table th {
+        color: #64748b;
+        border-bottom-color: rgba(0,0,0,0.15);
+        font-weight: 800;
+        font-size: 0.6875rem;
+    }
+
+    body[data-theme="light"] .data-table th:hover {
+        background: #dde2e8;
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] .data-table th.sort-asc .sort-icon,
+    body[data-theme="light"] .data-table th.sort-desc .sort-icon {
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] .data-table tbody tr {
+        border-bottom-color: rgba(0,0,0,0.08);
+    }
+
+    body[data-theme="light"] .data-table tbody tr:hover td {
+        background: rgba(6,182,212,0.08);
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] .data-table td {
+        color: #0f172a;
+        font-weight: 500;
+        font-size: 0.8125rem;
+        border-bottom-color: rgba(0,0,0,0.08);
+    }
+
+    /* Table row counter */
+    body[data-theme="light"] .data-table td[style*="color:var(--text-muted)"] {
+        color: #64748b !important;
+    }
+
+    /* Doc number */
+    body[data-theme="light"] .data-table td strong[style*="color:var(--cyan-400)"] {
+        color: #0c7792 !important;
+        font-weight: 800;
+    }
+
+    /* Payee column - make it bolder */
+    body[data-theme="light"] .data-table tbody tr td:nth-child(4) {
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    /* Description column */
+    body[data-theme="light"] .data-table tbody tr td:nth-child(5) {
+        color: #475569 !important;
+        font-weight: 500;
+    }
+
+    /* Department column - make it bolder */
+    body[data-theme="light"] .data-table tbody tr td:nth-child(6) {
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    /* Payment Date column - make it clearer */
+    body[data-theme="light"] .data-table tbody tr td:nth-child(7) {
+        color: #475569 !important;
+        font-weight: 600;
+    }
+
+    /* Created By column - make it bolder */
+    body[data-theme="light"] .data-table tbody tr td:nth-child(8) {
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    /* Doc Type Badges */
+    body[data-theme="light"] .doc-badge.pv {
+        background: rgba(245,158,11,0.15);
+        color: #d97706;
+        border-color: rgba(245,158,11,0.35);
+    }
+
+    body[data-theme="light"] .doc-badge.pf {
+        background: rgba(59,130,246,0.15);
+        color: #2563eb;
+        border-color: rgba(59,130,246,0.35);
+    }
+
+    /* Status Badges */
+    body[data-theme="light"] .status-badge.approved {
+        background: rgba(34,197,94,0.15);
+        color: #15803d;
+        border-color: rgba(34,197,94,0.35);
+    }
+
+    body[data-theme="light"] .status-badge.pending {
+        background: rgba(245,158,11,0.15);
+        color: #d97706;
+        border-color: rgba(245,158,11,0.35);
+    }
+
+    body[data-theme="light"] .status-badge.draft {
+        background: rgba(0,0,0,0.05);
+        color: #64748b;
+        border-color: rgba(0,0,0,0.15);
+    }
+
+    body[data-theme="light"] .status-badge.rejected {
+        background: rgba(239,68,68,0.15);
+        color: #dc2626;
+        border-color: rgba(239,68,68,0.35);
+    }
+
+    body[data-theme="light"] .status-badge.revision {
+        background: rgba(59,130,246,0.15);
+        color: #2563eb;
+        border-color: rgba(59,130,246,0.35);
+    }
+
+    /* Amount Cells */
+    body[data-theme="light"] .amount-cell.usd {
+        color: #15803d;
+        font-weight: 700;
+    }
+
+    body[data-theme="light"] .amount-cell.khr {
+        color: #2563eb;
+        font-weight: 700;
+    }
+
+    body[data-theme="light"] .amount-cell.thb {
+        color: #d97706;
+        font-weight: 700;
+    }
+
+    /* Table Footer (Totals Row) */
+    body[data-theme="light"] .data-table tfoot tr {
+        background: linear-gradient(135deg, #e8ebef 0%, #dde2e8 100%);
+        border-top-color: rgba(6,182,212,0.4);
+    }
+
+    body[data-theme="light"] .data-table tfoot td {
+        color: #0891b2;
+        font-weight: 800;
+    }
+
+    /* Breakdown Tables */
+    body[data-theme="light"] .breakdown-table th {
+        background: #e8ebef;
+        color: #64748b;
+        border-bottom-color: rgba(0,0,0,0.15);
+        font-weight: 800;
+        font-size: 0.6875rem;
+    }
+
+    body[data-theme="light"] .breakdown-table td {
+        color: #0f172a;
+        border-bottom-color: rgba(0,0,0,0.08);
+        font-weight: 500;
+        font-size: 0.8125rem;
+    }
+
+    body[data-theme="light"] .breakdown-table tbody tr:hover td {
+        background: rgba(6,182,212,0.08);
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] .breakdown-table td strong {
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    /* Breakdown table - Department/Creator names */
+    body[data-theme="light"] .breakdown-table tbody tr td:first-child strong {
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    /* Breakdown table - Count columns */
+    body[data-theme="light"] .breakdown-table tbody tr td:nth-child(2),
+    body[data-theme="light"] .breakdown-table tbody tr td:nth-child(3) {
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    /* Breakdown table - Amount columns */
+    body[data-theme="light"] .breakdown-table tbody tr td.amount-cell {
+        font-weight: 700;
+    }
+
+    /* Progress Bar */
+    body[data-theme="light"] .progress-mini {
+        background: #dde2e8;
+    }
+
+    /* View Link */
+    body[data-theme="light"] .view-link {
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] .view-link:hover {
+        color: #0e7490;
+    }
+
+    /* Table Footer Info */
+    body[data-theme="light"] .table-footer {
+        background: #e8ebef;
+        border-top-color: rgba(0,0,0,0.1);
+    }
+
+    body[data-theme="light"] .table-info {
+        color: #64748b;
+    }
+
+    body[data-theme="light"] .table-info strong {
+        color: #0891b2;
+    }
+
+    /* Pagination Buttons */
+    body[data-theme="light"] .page-btn {
+        background: #f2f4f7;
+        border-color: rgba(0,0,0,0.15);
+        color: #4a5568;
+    }
+
+    body[data-theme="light"] .page-btn:hover {
+        background: #e8ebef;
+        border-color: rgba(6,182,212,0.4);
+        color: #0891b2;
+    }
+
+    body[data-theme="light"] .page-btn.active {
+        background: #0891b2;
+        border-color: #0891b2;
+        color: white;
+    }
+
+    body[data-theme="light"] .per-page-select {
+        background: #f2f4f7;
+        border-color: rgba(0,0,0,0.15);
+        color: #4a5568;
+    }
+
+    body[data-theme="light"] .per-page-select:focus {
+        border-color: #0891b2;
+        color: #0f172a;
+    }
+
+    /* Scrollbar */
+    body[data-theme="light"] .table-scroll-container::-webkit-scrollbar-track {
+        background: #f2f4f7;
+    }
+
+    body[data-theme="light"] .table-scroll-container::-webkit-scrollbar-thumb {
+        background: #c4cdd6;
+    }
+
+    body[data-theme="light"] .table-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #0891b2;
+    }
+
+    /* Empty State */
+    body[data-theme="light"] .data-table td[colspan] {
+        color: #64748b;
+    }
+
+    /* Form Controls in Filter */
+    body[data-theme="light"] .form-control,
+    body[data-theme="light"] .form-select {
+        background: #f2f4f7;
+        border-color: rgba(0,0,0,0.15);
+        color: #0f172a;
+    }
+
+    body[data-theme="light"] .form-control:focus,
+    body[data-theme="light"] .form-select:focus {
+        background: #f2f4f7;
+        border-color: #0891b2;
+        box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+    }
+
+    body[data-theme="light"] .form-label {
+        color: #64748b;
+    }
+
+    body[data-theme="light"] .form-label i {
+        color: #0891b2;
     }
 </style>
 {% endblock %}
@@ -1049,9 +1457,10 @@
             if (existing) existing.destroy();
         });
     }
-    // ── Chart.js global dark theme defaults ──
-    Chart.defaults.color = '#8fa8c0';
-    Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+    // ── Chart.js global theme defaults (adapt to light/dark) ──
+    const isLightMode = document.body.getAttribute('data-theme') === 'light';
+    Chart.defaults.color = isLightMode ? '#64748b' : '#8fa8c0';
+    Chart.defaults.borderColor = isLightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.07)';
     Chart.defaults.font.family = 'Montserrat, sans-serif';
 
     // ── Print date ──
@@ -1207,11 +1616,18 @@
         }
     });
 
-    // ── Chart.js: dark palette helpers ──
-    const gridColor  = 'rgba(255,255,255,0.05)';
+    // ── Chart.js: theme-aware palette helpers ──
+    const gridColor  = isLightMode ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.05)';
     const tickFont   = { size: 10, family: 'Montserrat, sans-serif' };
-    const tooltipCfg = { backgroundColor: 'rgba(7,13,20,0.92)', padding: 10, cornerRadius: 6,
-                         titleColor: '#22d3ee', bodyColor: '#e2eaf4', borderColor: 'rgba(6,182,212,0.3)', borderWidth: 1 };
+    const tooltipCfg = {
+        backgroundColor: isLightMode ? 'rgba(255,255,255,0.95)' : 'rgba(7,13,20,0.92)',
+        padding: 10,
+        cornerRadius: 6,
+        titleColor: isLightMode ? '#0891b2' : '#22d3ee',
+        bodyColor: isLightMode ? '#0f172a' : '#e2eaf4',
+        borderColor: isLightMode ? 'rgba(6,182,212,0.3)' : 'rgba(6,182,212,0.3)',
+        borderWidth: 1
+    };
 
     // Monthly Trends
     new Chart(document.getElementById('monthlyChart').getContext('2d'), {
@@ -1244,7 +1660,7 @@
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'top', labels: { padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true, color: '#8fa8c0' }},
+                legend: { position: 'top', labels: { padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true, color: isLightMode ? '#64748b' : '#8fa8c0' }},
                 tooltip: tooltipCfg
             },
             scales: {
@@ -1264,13 +1680,13 @@
             labels: ['Payment Vouchers', 'Payment Forms'],
             datasets: [{ data: [{{ total_pv|default:0 }}, {{ total_pf|default:0 }}],
                 backgroundColor: ['rgba(245,135,124,0.8)', 'rgba(79,172,254,0.8)'],
-                borderColor: ['rgba(7,13,20,0.8)', 'rgba(7,13,20,0.8)'],
+                borderColor: [isLightMode ? 'rgba(255,255,255,0.8)' : 'rgba(7,13,20,0.8)', isLightMode ? 'rgba(255,255,255,0.8)' : 'rgba(7,13,20,0.8)'],
                 borderWidth: 2, hoverOffset: 8 }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom', labels: { padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true, color: '#8fa8c0' }},
+                legend: { position: 'bottom', labels: { padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true, color: isLightMode ? '#64748b' : '#8fa8c0' }},
                 tooltip: tooltipCfg
             },
             animation: { animateRotate: true, animateScale: true, duration: 1200 }
@@ -1284,13 +1700,13 @@
             labels: ['USD ($)', 'KHR (៛)', 'THB (฿)'],
             datasets: [{ data: [{{ total_usd|default:0 }}, {{ total_khr|default:0 }}, {{ total_thb|default:0 }}],
                 backgroundColor: ['rgba(34,197,94,0.75)', 'rgba(34,211,238,0.75)', 'rgba(245,158,11,0.75)'],
-                borderColor: ['rgba(7,13,20,0.8)', 'rgba(7,13,20,0.8)', 'rgba(7,13,20,0.8)'],
+                borderColor: [isLightMode ? 'rgba(255,255,255,0.8)' : 'rgba(7,13,20,0.8)', isLightMode ? 'rgba(255,255,255,0.8)' : 'rgba(7,13,20,0.8)', isLightMode ? 'rgba(255,255,255,0.8)' : 'rgba(7,13,20,0.8)'],
                 borderWidth: 2, hoverOffset: 8 }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom', labels: { padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true, color: '#8fa8c0' }},
+                legend: { position: 'bottom', labels: { padding: 12, font: { size: 11, weight: '600' }, usePointStyle: true, color: isLightMode ? '#64748b' : '#8fa8c0' }},
                 tooltip: { ...tooltipCfg, callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
             },
             animation: { animateRotate: true, animateScale: true, duration: 1200 }
