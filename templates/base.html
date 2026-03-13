@@ -16,6 +16,35 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
+    <!-- Prevent white flash - apply background immediately -->
+    <style>
+        /* Prevent white flash on page load */
+        html, body {
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Light theme background */
+        html[data-theme="light"],
+        html[data-theme="light"] body {
+            background: #e8ebef !important;
+        }
+        /* Dark theme background */
+        html[data-theme="dark"],
+        html[data-theme="dark"] body {
+            background: #070d14 !important;
+        }
+    </style>
+
+    <script>
+        // Apply theme IMMEDIATELY before any rendering
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
     <style>
         /* ══════════════════════════════════════════════════════════
            FINVAULT DESIGN SYSTEM — Enterprise Dark
@@ -108,44 +137,47 @@
            LIGHT MODE — Default Theme
         ══════════════════════════════════════════════════════════ */
         body[data-theme="light"] {
-            --ink-950: #f0f2f5;
-            --ink-900: #e8ebed;
-            --ink-800: #dde1e6;
-            --ink-750: #cbd5e1;
-            --ink-700: #dde1e6;
-            --ink-600: #cbd5e1;
-            --ink-500: #94a3b8;
+            --ink-950: #e8ebef;
+            --ink-900: #dde2e8;
+            --ink-800: #d2d8df;
+            --ink-750: #c4cdd6;
+            --ink-700: #d2d8df;
+            --ink-600: #c4cdd6;
+            --ink-500: #8a96a3;
 
-            --surface-900: #fafbfc;
-            --surface-800: #fafbfc;
-            --surface-700: #f5f6f8;
+            --surface-900: #f2f4f7;
+            --surface-800: #f2f4f7;
+            --surface-700: #ebeef1;
 
-            --text-primary:   #1a1f36;
+            --text-primary:   #2d3748;
             --text-secondary: #4a5568;
             --text-muted:     #64748b;
             --text-disabled:  #cbd5e1;
             --text-accent:    #0891b2;
 
-            --border:        rgba(0,0,0,0.08);
-            --border-accent: rgba(6,182,212,0.35);
+            --border:        rgba(0,0,0,0.1);
+            --border-accent: rgba(6,182,212,0.4);
 
-            --shadow-sm:   0 1px 2px rgba(0,0,0,0.04);
-            --shadow-md:   0 4px 6px rgba(0,0,0,0.06);
-            --shadow-lg:   0 10px 15px rgba(0,0,0,0.08);
-            --shadow-xl:   0 20px 25px rgba(0,0,0,0.12);
-            --shadow-2xl:  0 25px 50px rgba(0,0,0,0.15);
-            --shadow-glow: 0 0 20px rgba(6,182,212,0.15);
+            --shadow-sm:   0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md:   0 4px 6px rgba(0,0,0,0.08);
+            --shadow-lg:   0 10px 15px rgba(0,0,0,0.1);
+            --shadow-xl:   0 20px 25px rgba(0,0,0,0.13);
+            --shadow-2xl:  0 25px 50px rgba(0,0,0,0.16);
+            --shadow-glow: 0 0 20px rgba(6,182,212,0.18);
 
             /* Light mode specific colors */
-            --success-light: rgba(34,197,94,0.12);
-            --warning-light: rgba(245,158,11,0.12);
-            --danger-light:  rgba(239,68,68,0.12);
-            --info-light:    rgba(59,130,246,0.12);
+            --success-light: rgba(34,197,94,0.14);
+            --warning-light: rgba(245,158,11,0.14);
+            --danger-light:  rgba(239,68,68,0.14);
+            --info-light:    rgba(59,130,246,0.14);
         }
 
         body[data-theme="light"] {
-            background: #f0f2f5;
-            color: #1a1f36;
+            background: #e8ebef;
+            color: #2d3748;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
         }
 
         body[data-theme="light"]::before {
@@ -155,7 +187,43 @@
         /* Light mode - update html background */
         body[data-theme="light"] ~ html,
         html:has(body[data-theme="light"]) {
-            background: #f0f2f5;
+            background: #e8ebef;
+        }
+
+        /* Ensure crisp text rendering in light mode */
+        body[data-theme="light"] {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           SPA-LIKE NAVIGATION — Smooth content transitions
+        ══════════════════════════════════════════════════════════ */
+        #mainContent {
+            transition: opacity 0.15s ease-out;
+        }
+        #mainContent.page-loading {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .nav-loading-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--cyan-400);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+            z-index: 10000;
+        }
+        .nav-loading-indicator.active {
+            transform: scaleX(1);
+        }
+        body[data-theme="light"] .nav-loading-indicator {
+            background: #0891b2;
         }
 
         /* ══════════════ RESET & BASE ══════════════ */
@@ -600,7 +668,7 @@
 
         /* Topbar dropdown in light mode */
         body[data-theme="light"] .topbar-dropdown {
-            background: #ffffff;
+            background: #f2f4f7;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
@@ -977,6 +1045,16 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body data-theme="light">
+<script>
+    // Apply theme immediately to prevent flash
+    (function() {
+        const theme = localStorage.getItem('theme') || 'light';
+        document.body.setAttribute('data-theme', theme);
+    })();
+</script>
+
+<!-- Loading indicator for smooth navigation -->
+<div class="nav-loading-indicator" id="navLoadingIndicator"></div>
 
 <div class="app-shell">
 
@@ -1235,7 +1313,7 @@
         {% endif %}
 
         <!-- ══════════════ MAIN CONTENT ══════════════ -->
-        <main>
+        <main id="mainContent" data-url="{{ request.path }}">
             {% block content %}{% endblock %}
         </main>
 
@@ -1297,6 +1375,268 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    /* ═══════════════════════════════════════════════════════════
+       SPA NAVIGATION — Only reload content, not sidebar/header
+    ═══════════════════════════════════════════════════════════ */
+    const mainContent = document.getElementById('mainContent');
+    const loadingIndicator = document.getElementById('navLoadingIndicator');
+    let isNavigating = false;
+
+    // Intercept sidebar navigation links
+    function enableSmoothNavigation() {
+        const navLinks = document.querySelectorAll('.sidebar-link');
+
+        navLinks.forEach(link => {
+            // Skip if already processed
+            if (link.hasAttribute('data-spa-enabled')) return;
+            link.setAttribute('data-spa-enabled', 'true');
+
+            const href = link.getAttribute('href');
+
+            // Only intercept internal links
+            if (href && !href.startsWith('#') && !href.startsWith('http') && !href.startsWith('javascript:')) {
+                link.addEventListener('click', function(e) {
+                    // Allow default behavior for Ctrl/Cmd/Shift clicks
+                    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+                    e.preventDefault();
+                    navigateToPage(href, link);
+                });
+            }
+        });
+    }
+
+    // Navigate to a new page via AJAX
+    async function navigateToPage(url, clickedLink) {
+        if (isNavigating) return;
+        isNavigating = true;
+
+        // Show loading state
+        if (mainContent) mainContent.classList.add('page-loading');
+        if (loadingIndicator) loadingIndicator.classList.add('active');
+
+        try {
+            // Fetch the new page
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Navigation failed');
+            }
+
+            const html = await response.text();
+
+            // Parse the HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // Extract the new content
+            const newContent = doc.querySelector('#mainContent');
+
+            if (newContent && mainContent) {
+                mainContent.innerHTML = newContent.innerHTML;
+                mainContent.setAttribute('data-url', url);
+
+                // Remove old page-specific styles and scripts
+                cleanupOldPageResources();
+
+                // Swap the content
+
+                // Load page-specific CSS
+                loadPageStyles(doc);
+
+                // Update page title
+                const newTitle = doc.querySelector('title');
+                if (newTitle) document.title = newTitle.textContent;
+
+                // Update URL
+                window.history.pushState({url: url}, '', url);
+
+                // Update active nav state
+                updateActiveNav(url);
+
+                // Scroll to top
+                window.scrollTo({top: 0, behavior: 'instant'});
+
+                // Execute page-specific scripts
+                executePageScripts(doc);
+            } else {
+                // Fallback to full page load
+                window.location.href = url;
+            }
+        } catch (error) {
+            console.error('Navigation error:', error);
+            // Fallback to full page load
+            window.location.href = url;
+        } finally {
+            // Hide loading state
+            if (mainContent) mainContent.classList.remove('page-loading');
+            if (loadingIndicator) loadingIndicator.classList.remove('active');
+            isNavigating = false;
+        }
+    }
+
+    // Clean up old page-specific resources
+    function cleanupOldPageResources() {
+        // ✅ Destroy ALL Chart.js instances, not just hardcoded IDs
+        if (window.Chart) {
+            // Chart.js 4.x: Chart.instances is a plain object keyed by internal ID
+            Object.values(Chart.instances).forEach(chart => {
+                try { chart.destroy(); } catch(e) {}
+            });
+        }
+
+        document.querySelectorAll('style[data-page-specific], link[data-page-specific]').forEach(el => el.remove());
+        document.querySelectorAll('script[data-page-specific]').forEach(el => el.remove());
+    }
+
+    // Load page-specific CSS from the fetched document
+    function loadPageStyles(doc) {
+        // Get all style tags from head
+        const styleTags = doc.querySelectorAll('head style');
+        styleTags.forEach(style => {
+            // Skip base.html styles (only inject page-specific styles)
+            if (style.textContent.includes('FINVAULT DESIGN SYSTEM')) return;
+            if (style.textContent.includes('Prevent white flash')) return;
+
+            const newStyle = document.createElement('style');
+            newStyle.textContent = style.textContent;
+            newStyle.setAttribute('data-page-specific', 'true');
+            document.head.appendChild(newStyle);
+        });
+
+        // Get all link tags (CSS) from head
+        const linkTags = doc.querySelectorAll('head link[rel="stylesheet"]');
+        linkTags.forEach(link => {
+            const href = link.getAttribute('href');
+
+            // Skip if already loaded globally (Bootstrap, Bootstrap Icons)
+            if (href.includes('bootstrap') && !href.includes('dataTables')) return;
+
+            // Check if this CSS is already loaded
+            if (!document.querySelector(`link[href="${href}"]`)) {
+                const newLink = document.createElement('link');
+                newLink.rel = 'stylesheet';
+                newLink.href = href;
+                newLink.setAttribute('data-page-specific', 'true');
+                document.head.appendChild(newLink);
+            }
+        });
+    }
+
+    // Execute page-specific scripts from the fetched document
+function executePageScripts(doc) {
+    const scripts = doc.querySelectorAll('body script');
+    const externalScripts = [];
+    const inlineScripts = [];
+
+    scripts.forEach(oldScript => {
+        const src = oldScript.getAttribute('src');
+        if (src) {
+            if (src.includes('bootstrap.bundle')) return;
+            if (src.includes('chart.umd') && window.Chart) return;
+            externalScripts.push(src);
+        } else {
+            inlineScripts.push(oldScript.textContent);  // ← THIS LINE IS MISSING
+        }
+    });
+
+    // Load all external scripts first, THEN run inline scripts in order
+    function loadScriptsSequentially(srcs, index, callback) {
+        if (index >= srcs.length) {
+            callback();
+            return;
+        }
+        const src = srcs[index];
+        const existing = document.querySelector(`script[src="${src}"]`);
+        if (existing) {
+            loadScriptsSequentially(srcs, index + 1, callback);
+            return;
+        }
+        const s = document.createElement('script');
+        s.src = src;
+        s.setAttribute('data-page-specific', 'true');
+        s.onload = () => loadScriptsSequentially(srcs, index + 1, callback);
+        s.onerror = () => loadScriptsSequentially(srcs, index + 1, callback);
+        document.body.appendChild(s);
+    }
+
+    loadScriptsSequentially(externalScripts, 0, function () {
+        inlineScripts.forEach(code => {
+            try {
+                // ✅ Shim DOMContentLoaded so page scripts that wrap init in it still fire
+                const shimmed = code
+                    .replace(
+                        /document\.addEventListener\s*\(\s*['"]DOMContentLoaded['"]\s*,\s*/g,
+                        '(window.__spa_domready = window.__spa_domready || function(fn){fn()}, window.__spa_domready('
+                    )
+                    // close the extra paren if the original had one closing paren at end
+                    .replace(/\)\s*\)\s*;?\s*$/, '));');
+
+                const s = document.createElement('script');
+                // Run the original code — if shimming regex is fragile, fall back to direct exec
+                s.textContent = `
+                    (function(){
+                        var _origAddEvt = document.addEventListener.bind(document);
+                        var _hoisted = false;
+                        document.addEventListener = function(type, fn, opts) {
+                            if (type === 'DOMContentLoaded') { fn(); return; }
+                            return _origAddEvt(type, fn, opts);
+                        };
+                        try { ${code} } finally {
+                            document.addEventListener = _origAddEvt;
+                        }
+                    })();
+                `;
+                s.setAttribute('data-page-specific', 'true');
+                document.body.appendChild(s);
+            } catch (e) {
+                console.error('Script error:', e);
+            }
+        });
+    });
+}
+
+    // Update active navigation highlight
+    function updateActiveNav(url) {
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.classList.remove('active');
+            const linkPath = new URL(link.href, window.location.origin).pathname;
+            const currentPath = new URL(url, window.location.origin).pathname;
+
+            if (linkPath === currentPath || (linkPath !== '/' && currentPath.startsWith(linkPath))) {
+                link.classList.add('active');
+
+                // Update topbar title
+                const navLabel = link.querySelector('.nav-label');
+                const titleEl = document.getElementById('topbarPageTitle');
+                if (navLabel && titleEl) {
+                    titleEl.textContent = navLabel.textContent.trim();
+                }
+            }
+        });
+    }
+
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function(event) {
+        if (event.state && event.state.url) {
+            navigateToPage(event.state.url);
+        }
+    });
+
+    // Initialize smooth navigation on page load
+    enableSmoothNavigation();
+
+    // Store initial state for back button
+    if (mainContent) {
+        const initialUrl = mainContent.getAttribute('data-url') || window.location.pathname;
+        window.history.replaceState({url: initialUrl}, '', initialUrl);
+    }
 
     /* ── Sidebar collapse (desktop) ── */
     const sidebar        = document.getElementById('sidebar');
@@ -1409,6 +1749,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialize theme from localStorage or default to light
     const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
     body.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
 
@@ -1418,6 +1759,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const currentTheme = body.getAttribute('data-theme');
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
 
+            document.documentElement.setAttribute('data-theme', newTheme);
             body.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateThemeIcon(newTheme);

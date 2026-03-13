@@ -1043,6 +1043,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
+    if (window.Chart) {
+        ['monthlyChart', 'pieChart', 'currencyChart', 'activityChart'].forEach(id => {
+            const existing = Chart.getChart(id);
+            if (existing) existing.destroy();
+        });
+    }
     // ── Chart.js global dark theme defaults ──
     Chart.defaults.color = '#8fa8c0';
     Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';

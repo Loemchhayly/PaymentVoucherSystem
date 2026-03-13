@@ -283,7 +283,7 @@
    LIGHT MODE OVERRIDES
 ══════════════════════════════════════════════════════════ */
 body[data-theme="light"] {
-  --ink-950: #f0f2f5; --ink-900: #f1f5f9; --ink-800: #e2e8f0;
+  --ink-950: #e8ebef; --ink-900: #f1f5f9; --ink-800: #e2e8f0;
   --ink-750: #cbd5e1; --ink-700: #e2e8f0; --ink-600: #cbd5e1;
   --ink-500: #94a3b8; --ink-400: #64748b;
 
@@ -292,14 +292,168 @@ body[data-theme="light"] {
   --border:        rgba(0,0,0,0.1);
   --border-accent: rgba(6,182,212,0.4);
 
-  --surface-card:   #ffffff;
-  --surface-raised: #f0f2f5;
-  --surface-inset:  #f1f5f9;
+  --surface-card:   #f2f4f7;
+  --surface-raised: #e8ebef;
+  --surface-inset:  #ebeef1;
 
   --shadow-sm:   0 1px 2px rgba(0,0,0,0.05);
   --shadow-md:   0 4px 6px rgba(0,0,0,0.07);
   --shadow-lg:   0 10px 15px rgba(0,0,0,0.1);
   --shadow-glow: 0 0 20px rgba(6,182,212,0.2);
+}
+
+/* Numbers & Amounts - dark and readable in light mode */
+body[data-theme="light"] .stat-value {
+  color: #1e293b;
+}
+body[data-theme="light"] .amount-val {
+  color: #1e293b;
+  font-weight: 700;
+}
+body[data-theme="light"] .apv-amt {
+  font-weight: 800;
+}
+
+/* Table - Type column (Doc badges) */
+body[data-theme="light"] .doc-badge.pv {
+  background: rgba(6,182,212,0.15);
+  color: #0c7792;
+  border: 1px solid rgba(6,182,212,0.3);
+}
+body[data-theme="light"] .doc-badge.pf {
+  background: rgba(34,197,94,0.15);
+  color: #15803d;
+  border: 1px solid rgba(34,197,94,0.3);
+}
+
+/* Table - Number column (PV/PF numbers) */
+body[data-theme="light"] .pv-num {
+  background: rgba(6,182,212,0.12);
+  color: #0c7792;
+  border: 1px solid rgba(6,182,212,0.3);
+}
+body[data-theme="light"] .pv-num.pf {
+  background: rgba(34,197,94,0.12);
+  color: #15803d;
+  border: 1px solid rgba(34,197,94,0.3);
+}
+
+/* Table - Payee column */
+body[data-theme="light"] .payee-name {
+  color: #1e293b;
+}
+
+/* Table - Status column */
+body[data-theme="light"] .sbadge.draft {
+  background: rgba(100,116,139,0.15);
+  color: #475569;
+  border: 1px solid rgba(100,116,139,0.3);
+}
+body[data-theme="light"] .sbadge.draft::before {
+  background: #475569;
+}
+body[data-theme="light"] .sbadge.pending {
+  background: rgba(245,158,11,0.15);
+  color: #c2710c;
+  border: 1px solid rgba(245,158,11,0.3);
+}
+body[data-theme="light"] .sbadge.pending::before {
+  background: #c2710c;
+}
+body[data-theme="light"] .sbadge.approved {
+  background: rgba(34,197,94,0.15);
+  color: #15803d;
+  border: 1px solid rgba(34,197,94,0.3);
+}
+body[data-theme="light"] .sbadge.approved::before {
+  background: #15803d;
+}
+body[data-theme="light"] .sbadge.rejected {
+  background: rgba(239,68,68,0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239,68,68,0.3);
+}
+body[data-theme="light"] .sbadge.rejected::before {
+  background: #dc2626;
+}
+body[data-theme="light"] .sbadge.revision {
+  background: rgba(59,130,246,0.15);
+  color: #2563eb;
+  border: 1px solid rgba(59,130,246,0.3);
+}
+body[data-theme="light"] .sbadge.revision::before {
+  background: #2563eb;
+}
+
+/* Table - Date column */
+body[data-theme="light"] .date-val {
+  color: #64748b;
+}
+
+/* Table - Actions column (View/Repeat buttons) */
+body[data-theme="light"] .view-btn {
+  background: rgba(6,182,212,0.12);
+  color: #0c7792;
+  border: 1px solid rgba(6,182,212,0.3);
+}
+body[data-theme="light"] .view-btn:hover {
+  background: rgba(6,182,212,0.2);
+  color: #0a5f75;
+  border-color: #0891b2;
+  box-shadow: 0 3px 10px rgba(6,182,212,0.2);
+}
+body[data-theme="light"] .view-btn.repeat {
+  background: rgba(34,197,94,0.12);
+  color: #15803d;
+  border: 1px solid rgba(34,197,94,0.3);
+}
+body[data-theme="light"] .view-btn.repeat:hover {
+  background: rgba(34,197,94,0.2);
+  color: #166534;
+  border-color: #16a34a;
+  box-shadow: 0 3px 10px rgba(34,197,94,0.2);
+}
+
+/* Pending pulse animation for light mode */
+@keyframes pendingPulseLight {
+  0%, 100% { background: rgba(245,158,11,0.15); }
+  50% { background: rgba(245,158,11,0.25); }
+}
+body[data-theme="light"] .sbadge.pending {
+  animation: pendingPulseLight 2.5s ease-in-out infinite;
+}
+
+/* Filter chips */
+body[data-theme="light"] .filter-chip {
+  background: #dde2e8;
+  border: 1px solid #c4cdd6;
+  color: #475569;
+}
+body[data-theme="light"] .filter-chip:hover {
+  border-color: #0891b2;
+  color: #0f172a;
+}
+body[data-theme="light"] .filter-chip.active {
+  background: rgba(6,182,212,0.15);
+  border-color: #0891b2;
+  color: #0c7792;
+}
+
+/* Table hover */
+body[data-theme="light"] .dt tbody tr:hover td {
+  background: rgba(6,182,212,0.08);
+}
+
+/* Approval widget items */
+body[data-theme="light"] .apv-item {
+  border: 1px solid #d2d8df;
+}
+body[data-theme="light"] .apv-item:hover {
+  border-color: #0891b2;
+  background: rgba(6,182,212,0.05);
+}
+body[data-theme="light"] .apv-name {
+  color: #1e293b;
 }
 </style>
 {% endblock %}
@@ -655,8 +809,26 @@ body[data-theme="light"] {
 
 {% block extra_js %}
 <!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
+// Destroy old Chart.js instances
+if (window.Chart) {
+    ['barChart', 'donutChart'].forEach(id => {
+        const existing = Chart.getChart(id);
+        if (existing) existing.destroy();
+    });
+}
+
+// Replace canvas with fresh clone to fully reset any stale binding
+['barChart', 'donutChart'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        const clone = el.cloneNode(true);
+        el.parentNode.replaceChild(clone, el);
+    }
+});
+
 // ── Data from Django ──
 const chartLabels  = {{ chart_labels|safe }};
 const chartData    = {{ chart_data|safe }};
