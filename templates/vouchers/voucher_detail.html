@@ -2420,22 +2420,24 @@
                 </div>
 
                 <script>
-                    function vdModal(name) {
+                // Wrap all functions in IIFE and attach to window for SPA navigation
+                (function() {
+                    window.vdModal = function(name) {
                         document.getElementById('vd-modal-' + name).style.display = 'flex';
                         document.body.classList.add('vd-modal-open');
-                    }
+                    };
 
-                    function vdModalClose(name) {
+                    window.vdModalClose = function(name) {
                         document.getElementById('vd-modal-' + name).style.display = 'none';
                         document.body.classList.remove('vd-modal-open');
-                    }
+                    };
 
-                    function vdLoading() {
+                    window.vdLoading = function() {
                         document.getElementById('vd-loading').classList.add('active');
-                    }
+                    };
 
-                    function vdConfirm(name) {
-                        vdLoading();
+                    window.vdConfirm = function(name) {
+                        window.vdLoading();
                         if (name === 'submit') {
                             document.getElementById('vd-submit-form').submit();
                         }
@@ -2445,7 +2447,7 @@
                         if (name === 'approve') {
                             document.getElementById('vd-approve-form').submit();
                         }
-                    }
+                    };
 
                     document.addEventListener('keydown', e => {
                         if (e.key === 'Escape') {
@@ -2459,5 +2461,6 @@
                     document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('vd-loading').classList.remove('active');
                     });
+                })();
                 </script>
 {% endblock %}

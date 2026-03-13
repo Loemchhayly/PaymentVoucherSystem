@@ -1236,196 +1236,218 @@ document.querySelectorAll('.md-age[data-created]').forEach(el => {
 
 
 /* ── Search ── */
-function searchQueue() {
-    const q = document.getElementById('q-search').value.toLowerCase().trim();
-    rows().forEach(el => {
-        const match = !q || el.dataset.num.toLowerCase().includes(q) || (el.dataset.fm||'').toLowerCase().includes(q);
-        el.style.display = match ? '' : 'none';
-    });
-    focusedIdx = -1;
-}
-
 /* ── Sort/Filter ── */
-function setFilter(type, btn) {
-    document.querySelectorAll('.md-filter-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const body = document.getElementById('queue-body');
-    const items = Array.from(body.querySelectorAll('.q-item'));
-    if (type === 'oldest') items.sort((a,b) => parseInt(a.dataset.created) - parseInt(b.dataset.created));
-    else if (type === 'largest') items.sort((a,b) => (parseFloat(b.dataset.amount.replace(/[^0-9.]/g,''))||0) - (parseFloat(a.dataset.amount.replace(/[^0-9.]/g,''))||0));
-    else items.sort((a,b) => parseInt(b.dataset.created) - parseInt(a.dataset.created));
-    items.forEach((item, i) => { body.appendChild(item); item.querySelector('.md-q-idx').textContent = i + 1; });
-    focusedIdx = -1;
-}
-
 /* ── Preview Drawer ── */
-let drawerBatchId = null;
+/* ── Sign / Reject ── */
+/* ── Bulk Sign Functions ── */
 
-function openPreview(el) {
-    drawerBatchId = el.dataset.id;
-    document.getElementById('dw-batch-num').textContent = el.dataset.num;
-    document.getElementById('dw-full-link').href = `/vouchers/batch/${drawerBatchId}/`;
-    document.getElementById('drawer-overlay').classList.add('open');
-    document.getElementById('batch-drawer').classList.add('open');
-    fetch(`/vouchers/${drawerBatchId}/api/details/`)
-        .then(r => r.json())
-        .then(data => renderDrawer(data, el.dataset))
-        .catch(() => renderDrawerFallback(el.dataset));
-}
+// Wrap all functions in IIFE and attach to window for SPA navigation
+(function() {
+    let drawerBatchId = null;
 
-function renderDrawer(data, ds) {
-    let html = `<div class="md-dw-section">
-        <div class="md-dw-sec-label">Overview</div>
-        <div class="md-dw-info-grid">
-            <div class="md-dw-info-cell"><div class="md-dw-info-key">Submitted By</div><div class="md-dw-info-val">${ds.fm||'—'}</div></div>
-            <div class="md-dw-info-cell"><div class="md-dw-info-key">Created</div><div class="md-dw-info-val">${ds.createdStr||'—'}</div></div>
-            <div class="md-dw-info-cell"><div class="md-dw-info-key">Documents</div><div class="md-dw-info-val">${ds.docs}</div></div>
-            <div class="md-dw-info-cell"><div class="md-dw-info-key">Total Amount</div><div class="md-dw-info-val green">${ds.amount}</div></div>
-        </div></div>`;
-    if (ds.notes) html += `<div class="md-dw-section"><div class="md-dw-sec-label">FM Notes</div><div class="md-dw-note">${ds.notes}</div></div>`;
-    if (data.documents?.length) {
-        html += `<div class="md-dw-section"><div class="md-dw-sec-label">Documents (${data.documents.length})</div>`;
-        data.documents.forEach(doc => {
-            html += `<div class="md-dw-doc-row">
-                <div class="md-dw-doc-type ${doc.type}">${doc.type.toUpperCase()}</div>
-                <div class="md-dw-doc-info"><div class="md-dw-doc-num">${doc.number}</div><div class="md-dw-doc-payee">${doc.payee_name}</div></div>
-                <div class="md-dw-doc-amt">${doc.amount_display}</div></div>`;
+    window.searchQueue = function() {
+        const q = document.getElementById('q-search').value.toLowerCase().trim();
+        rows().forEach(el => {
+            const match = !q || el.dataset.num.toLowerCase().includes(q) || (el.dataset.fm||'').toLowerCase().includes(q);
+            el.style.display = match ? '' : 'none';
         });
-        html += '</div>';
-    }
-    document.getElementById('dw-body').innerHTML = html;
-}
+        focusedIdx = -1;
+    };
 
-function renderDrawerFallback(ds) {
-    document.getElementById('dw-body').innerHTML = `
-        <div class="md-dw-section">
+    window.setFilter = function(type, btn) {
+        document.querySelectorAll('.md-filter-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const body = document.getElementById('queue-body');
+        const items = Array.from(body.querySelectorAll('.q-item'));
+        if (type === 'oldest') items.sort((a,b) => parseInt(a.dataset.created) - parseInt(b.dataset.created));
+        else if (type === 'largest') items.sort((a,b) => (parseFloat(b.dataset.amount.replace(/[^0-9.]/g,''))||0) - (parseFloat(a.dataset.amount.replace(/[^0-9.]/g,''))||0));
+        else items.sort((a,b) => parseInt(b.dataset.created) - parseInt(a.dataset.created));
+        items.forEach((item, i) => { body.appendChild(item); item.querySelector('.md-q-idx').textContent = i + 1; });
+        focusedIdx = -1;
+    };
+
+    window.openPreview = function(el) {
+        drawerBatchId = el.dataset.id;
+        document.getElementById('dw-batch-num').textContent = el.dataset.num;
+        document.getElementById('dw-full-link').href = `/vouchers/batch/${drawerBatchId}/`;
+        document.getElementById('drawer-overlay').classList.add('open');
+        document.getElementById('batch-drawer').classList.add('open');
+        fetch(`/vouchers/${drawerBatchId}/api/details/`)
+            .then(r => r.json())
+            .then(data => window.renderDrawer(data, el.dataset))
+            .catch(() => window.renderDrawerFallback(el.dataset));
+    };
+
+    window.renderDrawer = function(data, ds) {
+        let html = `<div class="md-dw-section">
             <div class="md-dw-sec-label">Overview</div>
             <div class="md-dw-info-grid">
                 <div class="md-dw-info-cell"><div class="md-dw-info-key">Submitted By</div><div class="md-dw-info-val">${ds.fm||'—'}</div></div>
                 <div class="md-dw-info-cell"><div class="md-dw-info-key">Created</div><div class="md-dw-info-val">${ds.createdStr||'—'}</div></div>
                 <div class="md-dw-info-cell"><div class="md-dw-info-key">Documents</div><div class="md-dw-info-val">${ds.docs}</div></div>
                 <div class="md-dw-info-cell"><div class="md-dw-info-key">Total Amount</div><div class="md-dw-info-val green">${ds.amount}</div></div>
+            </div></div>`;
+        if (ds.notes) html += `<div class="md-dw-section"><div class="md-dw-sec-label">FM Notes</div><div class="md-dw-note">${ds.notes}</div></div>`;
+        if (data.documents?.length) {
+            html += `<div class="md-dw-section"><div class="md-dw-sec-label">Documents (${data.documents.length})</div>`;
+            data.documents.forEach(doc => {
+                html += `<div class="md-dw-doc-row">
+                    <div class="md-dw-doc-type ${doc.type}">${doc.type.toUpperCase()}</div>
+                    <div class="md-dw-doc-info"><div class="md-dw-doc-num">${doc.number}</div><div class="md-dw-doc-payee">${doc.payee_name}</div></div>
+                    <div class="md-dw-doc-amt">${doc.amount_display}</div></div>`;
+            });
+            html += '</div>';
+        }
+        document.getElementById('dw-body').innerHTML = html;
+    };
+
+    window.renderDrawerFallback = function(ds) {
+        document.getElementById('dw-body').innerHTML = `
+            <div class="md-dw-section">
+                <div class="md-dw-sec-label">Overview</div>
+                <div class="md-dw-info-grid">
+                    <div class="md-dw-info-cell"><div class="md-dw-info-key">Submitted By</div><div class="md-dw-info-val">${ds.fm||'—'}</div></div>
+                    <div class="md-dw-info-cell"><div class="md-dw-info-key">Created</div><div class="md-dw-info-val">${ds.createdStr||'—'}</div></div>
+                    <div class="md-dw-info-cell"><div class="md-dw-info-key">Documents</div><div class="md-dw-info-val">${ds.docs}</div></div>
+                    <div class="md-dw-info-cell"><div class="md-dw-info-key">Total Amount</div><div class="md-dw-info-val green">${ds.amount}</div></div>
+                </div>
+                ${ds.notes ? `<div style="margin-top:12px;"><div class="md-dw-sec-label">FM Notes</div><div class="md-dw-note">${ds.notes}</div></div>` : ''}
             </div>
-            ${ds.notes ? `<div style="margin-top:12px;"><div class="md-dw-sec-label">FM Notes</div><div class="md-dw-note">${ds.notes}</div></div>` : ''}
-        </div>
-        <p style="font-size:0.7rem;color:var(--text-muted);text-align:center;margin-top:16px;">Open full view for document details</p>`;
-}
+            <p style="font-size:0.7rem;color:var(--text-muted);text-align:center;margin-top:16px;">Open full view for document details</p>`;
+    };
 
-function closeDrawer() {
-    document.getElementById('drawer-overlay').classList.remove('open');
-    document.getElementById('batch-drawer').classList.remove('open');
-    drawerBatchId = null;
-}
+    window.closeDrawer = function() {
+        document.getElementById('drawer-overlay').classList.remove('open');
+        document.getElementById('batch-drawer').classList.remove('open');
+        drawerBatchId = null;
+    };
 
-/* ── Sign / Reject ── */
-function quickSign(id, num) {
-    document.getElementById('sign-modal-num').textContent = num;
-    document.getElementById('sign-form').action = `/vouchers/batch/${id}/sign/`;
-    new bootstrap.Modal(document.getElementById('signModal')).show();
-}
-function quickReject(id, num) {
-    document.getElementById('reject-modal-num').textContent = num;
-    document.getElementById('reject-form').action = `/vouchers/batch/${id}/reject/`;
-    new bootstrap.Modal(document.getElementById('rejectModal')).show();
-}
-function drawerSign()   { if (drawerBatchId) { const r = document.querySelector(`.q-item[data-id="${drawerBatchId}"]`); closeDrawer(); quickSign(drawerBatchId, r?.dataset.num || drawerBatchId); } }
-function drawerReject() { if (drawerBatchId) { const r = document.querySelector(`.q-item[data-id="${drawerBatchId}"]`); closeDrawer(); quickReject(drawerBatchId, r?.dataset.num || drawerBatchId); } }
-function captureRejectReason() { document.getElementById('reject-comments-input').value = document.getElementById('reject-reason').value; }
+    window.quickSign = function(id, num) {
+        document.getElementById('sign-modal-num').textContent = num;
+        document.getElementById('sign-form').action = `/vouchers/batch/${id}/sign/`;
+        new bootstrap.Modal(document.getElementById('signModal')).show();
+    };
 
-/* ── Bulk Sign Functions ── */
-function toggleSelectAll(event) {
-    event.stopPropagation();
-    const selectAllCheckbox = document.getElementById('select-all-batches');
-    const checkboxes = document.querySelectorAll('.batch-checkbox');
-    checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-    updateBulkSignButton();
-}
+    window.quickReject = function(id, num) {
+        document.getElementById('reject-modal-num').textContent = num;
+        document.getElementById('reject-form').action = `/vouchers/batch/${id}/reject/`;
+        new bootstrap.Modal(document.getElementById('rejectModal')).show();
+    };
 
-function updateBulkSignButton() {
-    const checkedBoxes = document.querySelectorAll('.batch-checkbox:checked');
-    const count = checkedBoxes.length;
-    const bulkSignBtn = document.getElementById('bulk-sign-btn');
-    const countBadge = document.getElementById('selected-count-badge');
-    const selectAllCheckbox = document.getElementById('select-all-batches');
+    window.drawerSign = function() {
+        if (drawerBatchId) {
+            const r = document.querySelector(`.q-item[data-id="${drawerBatchId}"]`);
+            window.closeDrawer();
+            window.quickSign(drawerBatchId, r?.dataset.num || drawerBatchId);
+        }
+    };
 
-    if (count > 0) {
-        bulkSignBtn.style.display = 'inline-flex';
-        countBadge.style.display = 'inline';
-        countBadge.textContent = count + ' selected';
-    } else {
-        bulkSignBtn.style.display = 'none';
-        countBadge.style.display = 'none';
-    }
+    window.drawerReject = function() {
+        if (drawerBatchId) {
+            const r = document.querySelector(`.q-item[data-id="${drawerBatchId}"]`);
+            window.closeDrawer();
+            window.quickReject(drawerBatchId, r?.dataset.num || drawerBatchId);
+        }
+    };
 
-    // Update select-all checkbox state
-    const totalCheckboxes = document.querySelectorAll('.batch-checkbox').length;
-    selectAllCheckbox.checked = count === totalCheckboxes && count > 0;
-    selectAllCheckbox.indeterminate = count > 0 && count < totalCheckboxes;
-}
+    window.captureRejectReason = function() {
+        document.getElementById('reject-comments-input').value = document.getElementById('reject-reason').value;
+    };
 
-function handleRowClick(event, url) {
-    // Don't navigate if clicking on checkbox or action buttons
-    if (event.target.type === 'checkbox' || event.target.closest('.batch-checkbox') || event.target.closest('.md-q-actions')) {
-        return;
-    }
-    window.location.href = url;
-}
+    window.toggleSelectAll = function(event) {
+        event.stopPropagation();
+        const selectAllCheckbox = document.getElementById('select-all-batches');
+        const checkboxes = document.querySelectorAll('.batch-checkbox');
+        checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+        window.updateBulkSignButton();
+    };
 
-function bulkSign(event) {
-    event.stopPropagation();
-    const checkedBoxes = document.querySelectorAll('.batch-checkbox:checked');
+    window.updateBulkSignButton = function() {
+        const checkedBoxes = document.querySelectorAll('.batch-checkbox:checked');
+        const count = checkedBoxes.length;
+        const bulkSignBtn = document.getElementById('bulk-sign-btn');
+        const countBadge = document.getElementById('selected-count-badge');
+        const selectAllCheckbox = document.getElementById('select-all-batches');
 
-    if (checkedBoxes.length === 0) {
-        return;
-    }
+        if (count > 0) {
+            bulkSignBtn.style.display = 'inline-flex';
+            countBadge.style.display = 'inline';
+            countBadge.textContent = count + ' selected';
+        } else {
+            bulkSignBtn.style.display = 'none';
+            countBadge.style.display = 'none';
+        }
 
-    const batchIds = Array.from(checkedBoxes).map(cb => cb.dataset.batchId);
-    const batchNumbers = Array.from(checkedBoxes).map(cb => cb.dataset.batchNum);
+        // Update select-all checkbox state
+        const totalCheckboxes = document.querySelectorAll('.batch-checkbox').length;
+        selectAllCheckbox.checked = count === totalCheckboxes && count > 0;
+        selectAllCheckbox.indeterminate = count > 0 && count < totalCheckboxes;
+    };
 
-    // Update modal content
-    document.getElementById('bulk-sign-count').textContent = checkedBoxes.length;
-    document.getElementById('bulk-sign-batch-list').innerHTML = batchNumbers.map(num =>
-        `<div style="padding:4px 0;"><i class="bi bi-folder" style="color:var(--cyan-400);margin-right:6px;"></i>${num}</div>`
-    ).join('');
+    window.handleRowClick = function(event, url) {
+        // Don't navigate if clicking on checkbox or action buttons
+        if (event.target.type === 'checkbox' || event.target.closest('.batch-checkbox') || event.target.closest('.md-q-actions')) {
+            return;
+        }
+        window.location.href = url;
+    };
 
-    // Store batch IDs for submission
-    window.bulkSignBatchIds = batchIds;
+    window.bulkSign = function(event) {
+        event.stopPropagation();
+        const checkedBoxes = document.querySelectorAll('.batch-checkbox:checked');
 
-    // Show modal
-    new bootstrap.Modal(document.getElementById('bulkSignModal')).show();
-}
+        if (checkedBoxes.length === 0) {
+            return;
+        }
 
-function confirmBulkSign() {
-    const batchIds = window.bulkSignBatchIds;
+        const batchIds = Array.from(checkedBoxes).map(cb => cb.dataset.batchId);
+        const batchNumbers = Array.from(checkedBoxes).map(cb => cb.dataset.batchNum);
 
-    if (!batchIds || batchIds.length === 0) {
-        return;
-    }
+        // Update modal content
+        document.getElementById('bulk-sign-count').textContent = checkedBoxes.length;
+        document.getElementById('bulk-sign-batch-list').innerHTML = batchNumbers.map(num =>
+            `<div style="padding:4px 0;"><i class="bi bi-folder" style="color:var(--cyan-400);margin-right:6px;"></i>${num}</div>`
+        ).join('');
 
-    // Create a form to submit batch IDs
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/vouchers/batch/bulk-sign/';
+        // Store batch IDs for submission
+        window.bulkSignBatchIds = batchIds;
 
-    // Add CSRF token
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = 'csrfmiddlewaretoken';
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
+        // Show modal
+        new bootstrap.Modal(document.getElementById('bulkSignModal')).show();
+    };
 
-    // Add batch IDs
-    batchIds.forEach(id => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'batch_ids';
-        input.value = id;
-        form.appendChild(input);
-    });
+    window.confirmBulkSign = function() {
+        const batchIds = window.bulkSignBatchIds;
 
-    document.body.appendChild(form);
-    form.submit();
-}
+        if (!batchIds || batchIds.length === 0) {
+            return;
+        }
+
+        // Create a form to submit batch IDs
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/vouchers/batch/bulk-sign/';
+
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+
+        // Add batch IDs
+        batchIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'batch_ids';
+            input.value = id;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    };
+})();
 </script>
 {% endblock %}

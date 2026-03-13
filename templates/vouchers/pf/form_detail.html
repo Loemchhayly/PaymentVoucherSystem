@@ -1470,34 +1470,37 @@ body[data-theme="light"] .vd-summary-amount-value {
 </div>
 
 <script>
-function vdModal(name) {
-    document.getElementById('vd-modal-' + name).style.display = 'flex';
-    document.body.classList.add('vd-modal-open');
-}
-function vdModalClose(name) {
-    document.getElementById('vd-modal-' + name).style.display = 'none';
-    document.body.classList.remove('vd-modal-open');
-}
-function vdLoading() {
-    document.getElementById('vd-loading').classList.add('active');
-}
-function vdConfirm(name) {
-    vdLoading();
-    if (name === 'submit')  { document.getElementById('vd-submit-form').submit(); }
-    if (name === 'delete')  { document.getElementById('vd-delete-form').submit(); }
-    if (name === 'approve') { document.getElementById('vd-approve-form').submit(); }
-}
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-        ['submit','delete','approve'].forEach(n => {
-            const el = document.getElementById('vd-modal-' + n);
-            if (el) el.style.display = 'none';
-        });
+// Wrap all functions in IIFE and attach to window for SPA navigation
+(function() {
+    window.vdModal = function(name) {
+        document.getElementById('vd-modal-' + name).style.display = 'flex';
+        document.body.classList.add('vd-modal-open');
+    };
+    window.vdModalClose = function(name) {
+        document.getElementById('vd-modal-' + name).style.display = 'none';
         document.body.classList.remove('vd-modal-open');
-    }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('vd-loading').classList.remove('active');
-});
+    };
+    window.vdLoading = function() {
+        document.getElementById('vd-loading').classList.add('active');
+    };
+    window.vdConfirm = function(name) {
+        window.vdLoading();
+        if (name === 'submit')  { document.getElementById('vd-submit-form').submit(); }
+        if (name === 'delete')  { document.getElementById('vd-delete-form').submit(); }
+        if (name === 'approve') { document.getElementById('vd-approve-form').submit(); }
+    };
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            ['submit','delete','approve'].forEach(n => {
+                const el = document.getElementById('vd-modal-' + n);
+                if (el) el.style.display = 'none';
+            });
+            document.body.classList.remove('vd-modal-open');
+        }
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('vd-loading').classList.remove('active');
+    });
+})();
 </script>
 {% endblock %}

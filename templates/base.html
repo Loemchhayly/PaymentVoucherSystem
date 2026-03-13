@@ -35,6 +35,11 @@
         html[data-theme="dark"] body {
             background: #070d14 !important;
         }
+        /* Auth pages exception - allow transparent background for image */
+        html:has(body[data-theme="dark"].auth-page),
+        html:has(body[data-theme="dark"].auth-page) body {
+            background: transparent !important;
+        }
     </style>
 
     <script>
@@ -1257,7 +1262,7 @@
 
     {% block extra_css %}{% endblock %}
 </head>
-<body data-theme="light">
+<body data-theme="light" class="{% block body_class %}{% endblock %}">
 <script>
     // Apply theme immediately to prevent flash
     (function() {

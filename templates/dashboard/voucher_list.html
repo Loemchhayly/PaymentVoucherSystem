@@ -1455,30 +1455,33 @@ body[data-theme="light"] .amount-cell {
 
 {% block extra_js %}
 <script>
-let currentFilters = {
-    doc_type: '{{ request.GET.doc_type|default:"all" }}',
-    search:   '{{ request.GET.search|default:"" }}',
-    page:     {{ page_obj.number|default:1 }}
-};
+// Wrap in IIFE and attach to window to ensure functions are available during SPA navigation
+(function() {
+    // Make all functions globally available
+    window.currentFilters = {
+        doc_type: '{{ request.GET.doc_type|default:"all" }}',
+        search:   '{{ request.GET.search|default:"" }}',
+        page:     {{ page_obj.number|default:1 }}
+    };
 
-/* ─── Row navigation ─── */
-function goToVoucher(e, url) {
+    /* ─── Row navigation ─── */
+    window.goToVoucher = function(e, url) {
     if (e.target.tagName === 'A' || e.target.tagName === 'INPUT' ||
         e.target.tagName === 'BUTTON' || e.target.closest('a') ||
         e.target.closest('button') || e.target.closest('.row-actions')) return;
     window.location.href = url;
-}
+    };
 
-/* ─── Checkbox helpers ─── */
-function toggleSelectAll(master) {
+    /* ─── Checkbox helpers ─── */
+    window.toggleSelectAll = function(master) {
     document.querySelectorAll('.row-checkbox').forEach(cb => {
         cb.checked = master.checked;
         cb.closest('tr').classList.toggle('row-selected', master.checked);
     });
     updateBulkBar();
-}
+    };
 
-function updateBulkBar() {
+    window.updateBulkBar = function() {
     const checked = document.querySelectorAll('.row-checkbox:checked');
     const all     = document.querySelectorAll('.row-checkbox');
     const bar     = document.getElementById('bulkActionBar');
@@ -1497,26 +1500,26 @@ function updateBulkBar() {
     document.querySelectorAll('.row-checkbox').forEach(cb => {
         cb.closest('tr').classList.toggle('row-selected', cb.checked);
     });
-}
+    };
 
-/* ─── Filters ─── */
-function filterByDocType(type) {
+    /* ─── Filters ─── */
+    window.filterByDocType = function(type) {
     currentFilters.doc_type = type;
     currentFilters.page = 1;
     applyFilters();
-}
+    };
 
-function goToPage(pageNum) {
+    window.goToPage = function(pageNum) {
     currentFilters.page = pageNum;
     applyFilters();
-}
+    };
 
-/* ═══════════════════════════════════════════
-   MULTI-FIELD CLIENT-SIDE SEARCH
-═══════════════════════════════════════════ */
-let activeSearchField = 'all';
+    /* ═══════════════════════════════════════════
+       MULTI-FIELD CLIENT-SIDE SEARCH
+    ═══════════════════════════════════════════ */
+    let activeSearchField = 'all';
 
-function setSearchField(field) {
+    window.setSearchField = function(field) {
     activeSearchField = field;
     document.querySelectorAll('.search-pill').forEach(p => {
         p.classList.toggle('active', p.dataset.field === field);
@@ -1534,26 +1537,26 @@ function setSearchField(field) {
     input.focus();
     /* Re-run current search with new field */
     clientSearch(input.value.trim());
-}
+    };
 
-function clearSearch() {
+    window.clearSearch = function() {
     const input = document.getElementById('searchInput');
     input.value = '';
     document.getElementById('searchClearBtn').style.display = 'none';
     clientSearch('');
     input.focus();
-}
+    };
 
-let searchTimeout;
-function liveSearch(val) {
+    let searchTimeout;
+    window.liveSearch = function(val) {
     const clearBtn = document.getElementById('searchClearBtn');
     if (clearBtn) clearBtn.style.display = val.trim() ? 'flex' : 'none';
 
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => clientSearch(val.trim()), 200);
-}
+    };
 
-function clientSearch(query) {
+    function clientSearch(query) {
     const rows      = document.querySelectorAll('.pv-table tbody tr');
     const hasData   = rows.length && !rows[0].querySelector('td[colspan]');
     if (!hasData) return;
@@ -1704,10 +1707,10 @@ window.addEventListener('popstate', function(e) {
     else location.reload();
 });
 
-/* ═══════════════════════════════════════════
-   BULK APPROVAL — Modal + Form Submission
-═══════════════════════════════════════════ */
-function showBulkModal(type) {
+    /* ═══════════════════════════════════════════
+       BULK APPROVAL — Modal + Form Submission
+    ═══════════════════════════════════════════ */
+    window.showBulkModal = function(type) {
     const n = document.querySelectorAll('.row-checkbox:checked').length;
     if (n === 0) return;
 
@@ -1721,15 +1724,15 @@ function showBulkModal(type) {
 
     document.getElementById(type + '-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
-}
+    };
 
-function hideBulkModal(type) {
+    window.hideBulkModal = function(type) {
     const modal = document.getElementById(type + '-modal');
     if (modal) modal.classList.remove('active');
     document.body.style.overflow = '';
-}
+    };
 
-function confirmBulkAction(action) {
+    window.confirmBulkAction = function(action) {
     const commentsEl = document.getElementById(action + '-comments');
     const comments   = commentsEl ? commentsEl.value.trim() : '';
 
@@ -1762,10 +1765,10 @@ function confirmBulkAction(action) {
     });
 
     document.getElementById('bulk-action-form').submit();
-}
+    };
 
-/* Close on Escape */
-document.addEventListener('keydown', e => {
+    /* Close on Escape */
+    document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         hideBulkModal('approve');
         hideBulkModal('reject');
@@ -1780,6 +1783,14 @@ document.addEventListener('keydown', e => {
             if (e.target === this) hideBulkModal(id.replace('-modal', ''));
         });
     }
-});
+    });
+
+    // Execute immediately on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateBulkBar);
+    } else {
+        updateBulkBar();
+    }
+})();
 </script>
 {% endblock %}

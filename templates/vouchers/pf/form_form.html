@@ -1099,9 +1099,11 @@ body[data-theme="light"] .file-upload-container:hover {
 /* ─────────────────────────────────────────
    All JS preserved exactly from doc 4
 ──────────────────────────────────────────*/
+// Wrap all functions in IIFE and attach to window for SPA navigation
+(function() {
 let deletedAttachments = [];
 
-function showNotification(message, type = 'info') {
+window.showNotification = function(message, type = 'info') {
     const iconMap = {
         success: 'bi-check-circle-fill',
         warning: 'bi-exclamation-triangle-fill',
@@ -1113,9 +1115,9 @@ function showNotification(message, type = 'info') {
     toast.innerHTML = `<i class="bi ${iconMap[type]||iconMap.info}"></i><span class="toast-message">${message}</span>`;
     document.body.appendChild(toast);
     setTimeout(() => { toast.classList.add('fadeOut'); setTimeout(() => toast.remove(), 280); }, 3000);
-}
+};
 
-function calculateLineTotals() {
+window.calculateLineTotals = function() {
     const sym = { 'USD':'$', 'KHR':'៛', 'THB':'฿' };
     const grandTotals = {};
 
@@ -1138,10 +1140,10 @@ function calculateLineTotals() {
     const curs = Object.keys(grandTotals).sort();
     gtEl.textContent = curs.length ? curs.map(c => `${sym[c]||c}${grandTotals[c].toFixed(2)}`).join(' + ') : '$0.00';
 
-    updateSidebar(grandTotals, sym);
-}
+    window.updateSidebar(grandTotals, sym);
+};
 
-function updateSidebar(totals, sym) {
+window.updateSidebar = function(totals, sym) {
     let usdAmt = 0, usdVat = 0;
     document.querySelectorAll('.line-item-row').forEach(row => {
         const a = row.querySelector('[name$="-amount"]');
@@ -1165,22 +1167,22 @@ function updateSidebar(totals, sym) {
     if (payeeEl && payeeEl.value) document.getElementById('sidebar-payee').textContent = payeeEl.value;
     if (dateEl && dateEl.value)   document.getElementById('sidebar-date').textContent  = new Date(dateEl.value).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
     if (bankEl && bankEl.selectedOptions[0]) document.getElementById('sidebar-bank').textContent = bankEl.selectedOptions[0].text || '—';
-}
+};
 
 document.addEventListener('DOMContentLoaded', function () {
-    calculateLineTotals();
+    window.calculateLineTotals();
 
     document.querySelectorAll('[name$="-amount"],[name$="-currency"],[name$="-vat_applicable"]').forEach(el => {
-        el.addEventListener('change', calculateLineTotals);
-        el.addEventListener('input',  calculateLineTotals);
+        el.addEventListener('change', window.calculateLineTotals);
+        el.addEventListener('input',  window.calculateLineTotals);
     });
 
     const payeeEl = document.querySelector('[name="payee_name"]');
     const dateEl  = document.querySelector('[name="payment_date"]');
     const bankEl  = document.querySelector('[name="company_bank_account"]');
-    if (payeeEl) { payeeEl.addEventListener('input', calculateLineTotals); payeeEl.addEventListener('change', calculateLineTotals); }
-    if (dateEl)  dateEl.addEventListener('change', calculateLineTotals);
-    if (bankEl)  bankEl.addEventListener('change', calculateLineTotals);
+    if (payeeEl) { payeeEl.addEventListener('input', window.calculateLineTotals); payeeEl.addEventListener('change', window.calculateLineTotals); }
+    if (dateEl)  dateEl.addEventListener('change', window.calculateLineTotals);
+    if (bankEl)  bankEl.addEventListener('change', window.calculateLineTotals);
 
     document.querySelectorAll('[name$="-vat_applicable"]').forEach(cb => cb.classList.add('vat-checkbox'));
 
@@ -1201,19 +1203,19 @@ document.addEventListener('DOMContentLoaded', function () {
         ['dragenter','dragover','dragleave','drop'].forEach(ev => lbl.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }));
         ['dragenter','dragover'].forEach(ev => lbl.addEventListener(ev, () => { lbl.style.borderColor='var(--teal)'; lbl.style.background='rgba(6,182,212,.04)'; }));
         ['dragleave','drop'].forEach(ev => lbl.addEventListener(ev, () => { lbl.style.borderColor=''; lbl.style.background=''; }));
-        lbl.addEventListener('drop', e => { fi.files = e.dataTransfer.files; displaySelectedFiles(fi); if(fi.files.length) showNotification(`${fi.files.length} file(s) selected.`,'success'); });
+        lbl.addEventListener('drop', e => { fi.files = e.dataTransfer.files; window.displaySelectedFiles(fi); if(fi.files.length) window.showNotification(`${fi.files.length} file(s) selected.`,'success'); });
     }
 });
 
-function addLineItem() {
+window.addLineItem = function() {
     const tbody          = document.getElementById('line-items-body');
     const totalFormsInput = document.querySelector('input[name$="TOTAL_FORMS"]');
     const maxFormsInput  = document.querySelector('input[name$="MAX_NUM_FORMS"]');
     let totalForms = parseInt(totalFormsInput.value);
-    if (totalForms >= parseInt(maxFormsInput.value)) { showNotification('Maximum 50 line items reached.','warning'); return; }
+    if (totalForms >= parseInt(maxFormsInput.value)) { window.showNotification('Maximum 50 line items reached.','warning'); return; }
 
     const firstRow = tbody.querySelector('.line-item-row');
-    if (!firstRow) { showNotification('Error: No template row.','danger'); return; }
+    if (!firstRow) { window.showNotification('Error: No template row.','danger'); return; }
 
     const newRow = firstRow.cloneNode(true);
     newRow.querySelector('.line-number-badge').textContent = totalForms + 1;
@@ -1231,21 +1233,21 @@ function addLineItem() {
     totalFormsInput.value = totalForms + 1;
 
     newRow.querySelectorAll('[name$="-amount"],[name$="-currency"],[name$="-vat_applicable"]').forEach(el => {
-        el.addEventListener('change', calculateLineTotals);
-        el.addEventListener('input',  calculateLineTotals);
+        el.addEventListener('change', window.calculateLineTotals);
+        el.addEventListener('input',  window.calculateLineTotals);
         if (el.type === 'checkbox') el.classList.add('vat-checkbox');
     });
 
     newRow.scrollIntoView({ behavior:'smooth', block:'center' });
     const desc = newRow.querySelector('[name$="-description"]');
     if (desc) setTimeout(() => desc.focus(), 300);
-    showNotification(`Line item ${totalForms + 1} added.`, 'success');
-}
+    window.showNotification(`Line item ${totalForms + 1} added.`, 'success');
+};
 
-function removeLineItem(button) {
+window.removeLineItem = function(button) {
     const tbody   = document.getElementById('line-items-body');
     const visible = tbody.querySelectorAll('.line-item-row:not([data-deleted="true"])');
-    if (visible.length <= 1) { showNotification('You must have at least one line item.','warning'); return; }
+    if (visible.length <= 1) { window.showNotification('You must have at least one line item.','warning'); return; }
 
     const row     = button.closest('.line-item-row');
     const idInput = row.querySelector('input[name$="-id"]');
@@ -1255,20 +1257,20 @@ function removeLineItem(button) {
         if (del) del.checked = true;
         row.setAttribute('data-deleted','true');
         row.style.cssText += 'opacity:0;transform:translateX(-16px);transition:all .18s;';
-        setTimeout(() => { row.style.display='none'; renumberRows(); calculateLineTotals(); showNotification('Line marked for deletion.','success'); }, 200);
+        setTimeout(() => { row.style.display='none'; window.renumberRows(); window.calculateLineTotals(); window.showNotification('Line marked for deletion.','success'); }, 200);
     } else {
         row.style.cssText += 'opacity:0;transform:translateX(-16px);transition:all .18s;';
         setTimeout(() => {
             row.remove();
             const tf = document.querySelector('input[name$="TOTAL_FORMS"]');
             tf.value = parseInt(tf.value) - 1;
-            renumberRows(); calculateLineTotals();
-            showNotification('Line item removed.','success');
+            window.renumberRows(); window.calculateLineTotals();
+            window.showNotification('Line item removed.','success');
         }, 200);
     }
-}
+};
 
-function renumberRows() {
+window.renumberRows = function() {
     const all = document.querySelectorAll('.line-item-row');
     const vis = Array.from(all).filter(r => !r.hasAttribute('data-deleted'));
     vis.forEach((r,i) => { const b = r.querySelector('.line-number-badge'); if(b) b.textContent = i+1; });
@@ -1278,9 +1280,9 @@ function renumberRows() {
             if (f.id)   f.id   = f.id.replace(/id_line_items-\d+-/, `id_line_items-${i}-`);
         });
     });
-}
+};
 
-function displaySelectedFiles(input) {
+window.displaySelectedFiles = function(input) {
     const list = document.getElementById('files-list');
     const wrap = document.getElementById('selected-files-list');
     list.innerHTML = '';
@@ -1290,21 +1292,21 @@ function displaySelectedFiles(input) {
     Array.from(input.files).forEach((file, idx) => {
         dt.items.add(file);
         const li = document.createElement('li');
-        li.innerHTML = `<div class="file-info"><i class="bi ${file.type.startsWith('image/') ? 'bi-file-earmark-image' : 'bi-file-earmark-pdf'} file-icon"></i><span class="file-name" style="color:var(--text-1);">${file.name}</span><span class="file-size">(${(file.size/1024).toFixed(1)} KB)</span></div><button type="button" class="remove-file-btn" onclick="removeFile(${idx},document.getElementById('id_attachments'))"><i class="bi bi-x"></i> Remove</button>`;
+        li.innerHTML = `<div class="file-info"><i class="bi ${file.type.startsWith('image/') ? 'bi-file-earmark-image' : 'bi-file-earmark-pdf'} file-icon"></i><span class="file-name" style="color:var(--text-1);">${file.name}</span><span class="file-size">(${(file.size/1024).toFixed(1)} KB)</span></div><button type="button" class="remove-file-btn" onclick="window.removeFile(${idx},document.getElementById('id_attachments'))"><i class="bi bi-x"></i> Remove</button>`;
         list.appendChild(li);
     });
     input.files = dt.files;
-}
+};
 
-function removeFile(index, input) {
+window.removeFile = function(index, input) {
     const dt = new DataTransfer();
     Array.from(input.files).forEach((f,i) => { if(i!==index) dt.items.add(f); });
     input.files = dt.files;
-    displaySelectedFiles(input);
-    showNotification('File removed.','success');
-}
+    window.displaySelectedFiles(input);
+    window.showNotification('File removed.','success');
+};
 
-function removeExistingAttachment(id, name) {
+window.removeExistingAttachment = function(id, name) {
     const hi = document.getElementById('deleted-attachments');
     if (!hi) { alert('Critical error: refresh and try again.'); return; }
     deletedAttachments.push(id);
@@ -1319,16 +1321,17 @@ function removeExistingAttachment(id, name) {
                 const c = document.getElementById('existing-attachments-container');
                 if (c) c.innerHTML = `<div style="text-align:center;color:var(--text-3);font-size:.8rem;padding:10px;"><i class="bi bi-inbox"></i> All attachments removed.</div>`;
             }
-            showNotification(`"${name}" will be deleted on save.`,'warning');
+            window.showNotification(`"${name}" will be deleted on save.`,'warning');
         }, 200);
     }
-}
+};
 
-function saveDraft() {
+window.saveDraft = function() {
     const sf = document.querySelector('[name="status"]');
     if (sf) sf.value = 'DRAFT';
-    showNotification('Saving draft...','info');
+    window.showNotification('Saving draft...','info');
     setTimeout(() => document.getElementById('form-form').submit(), 400);
-}
+};
+})();
 </script>
 {% endblock %}
