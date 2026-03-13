@@ -455,6 +455,49 @@ body[data-theme="light"] .apv-item:hover {
 body[data-theme="light"] .apv-name {
   color: #1e293b;
 }
+/* ── Light mode: By Department chart legend text ── */
+body[data-theme="light"] .chart-legend-label,
+body[data-theme="light"] .dept-legend-name,
+body[data-theme="light"] .dept-legend-value,
+body[data-theme="light"] .dept-legend-pct {
+    color: #2d3748 !important;
+}
+
+/* ── Light mode: donut chart center "Total" label ── */
+body[data-theme="light"] .chart-center-label,
+body[data-theme="light"] .donut-center-text {
+    color: #2d3748 !important;
+}
+
+/* ── Light mode: Monthly Disbursement subtitle ── */
+body[data-theme="light"] .chart-subtitle,
+body[data-theme="light"] .chart-sub {
+    color: #64748b !important;
+}
+
+/* ── Light mode: Chart.js default text (axes, tooltips) ── */
+body[data-theme="light"] canvas {
+    color: #2d3748;
+}
+body[data-theme="light"] .legend-label {
+    color: #475569 !important;
+}
+body[data-theme="light"] .legend-value {
+    color: #1e293b !important;
+}
+body[data-theme="light"] .legend-pct {
+    color: #64748b !important;
+}
+/* Panel subtitle — "ការទូទាត់ប្រចាំខែ · USD only" */
+body[data-theme="light"] .panel-title-sub {
+    color: #374151 !important;
+    font-size: 11px !important;
+}
+
+/* Live Data label */
+body[data-theme="light"] .live-data-label {
+    color: #374151 !important;
+}
 </style>
 {% endblock %}
 
@@ -573,7 +616,7 @@ body[data-theme="light"] .apv-name {
           <div class="panel-title">Monthly Disbursement</div>
           <div class="panel-title-sub">ការទូទាត់ប្រចាំខែ · USD only</div>
         </div>
-        <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:5px">
+        <span class="live-data-label" style="font-size:10px;display:flex;align-items:center;gap:5px">
           <span style="width:6px;height:6px;border-radius:50%;background:var(--green-500);display:inline-block;box-shadow:0 0 5px var(--green-500)"></span>
           Live Data
         </span>
@@ -885,29 +928,58 @@ const donutData    = {{ donut_data|safe }};
           }
         }
       },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: {
-            color: ctx => {
-              const label = ctx.chart.data.labels[ctx.index];
-              return label && label.toUpperCase() === currentMonth.toUpperCase()
-                ? '#22d3ee' : '#4a6480';
-            },
-            font: { family: 'Montserrat', size: 9, weight: '700' }
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: (c) => {
+            const isLight = document.body.getAttribute('data-theme') === 'light';
+            const label = c.chart.data.labels[c.index];
+            const isCurrent = label && label.toUpperCase() === currentMonth.toUpperCase();
+            return isCurrent ? '#0891b2' : (isLight ? '#64748b' : '#4a6480'); // ✅
           },
-          border: { display: false }
+          font: { family: 'Montserrat', size: 9, weight: '700' }
         },
-        y: {
-          grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
-          ticks: {
-            color: '#4a6480',
-            font: { family: 'Montserrat', size: 9 },
-            callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)
-          },
-          border: { display: false }
-        }
+        border: { display: false }
       },
+    y: {
+        grid: {
+            color: document.body.getAttribute('data-theme') === 'light'
+                ? 'rgba(0,0,0,0.08)'
+                : 'rgba(255,255,255,0.04)',
+            drawBorder: false
+        },
+        ticks: {
+            color: document.body.getAttribute('data-theme') === 'light'
+                ? '#374151'   // ✅ was #64748b — now much darker & readable
+                : '#4a6480',
+            font: {
+                family: 'Montserrat',
+                size: 10,     // ✅ was 9 — slightly bigger
+                weight: '600' // ✅ add weight for crispness
+            },
+            callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)
+        },
+        border: { display: false }
+    },
+    x: {
+        grid: { display: false },
+        ticks: {
+            color: (c) => {
+                const isLight = document.body.getAttribute('data-theme') === 'light';
+                const label = c.chart.data.labels[c.index];
+                const isCurrent = label && label.toUpperCase() === currentMonth.toUpperCase();
+                return isCurrent ? '#0891b2' : (isLight ? '#374151' : '#4a6480'); // ✅ darker
+            },
+            font: {
+                family: 'Montserrat',
+                size: 10,     // ✅ was 9
+                weight: '700'
+            }
+        },
+        border: { display: false }
+    },
+    },
       animation: { duration: 900, easing: 'easeInOutQuart' }
     }
   });
@@ -955,12 +1027,13 @@ const donutData    = {{ donut_data|safe }};
       afterDraw(chart) {
         const { ctx, chartArea: { left, right, top, bottom } } = chart;
         const cx = (left + right) / 2, cy = (top + bottom) / 2;
+        const isLight = document.body.getAttribute('data-theme') === 'light';  // ✅ ADD
         ctx.save();
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#e2eaf4';
+        ctx.fillStyle = isLight ? '#1e293b' : '#e2eaf4';   // ✅ WAS hardcoded '#e2eaf4'
         ctx.font = 'bold 11px Montserrat';
         ctx.fillText(totalStr, cx, cy - 6);
-        ctx.fillStyle = '#4a6480';
+        ctx.fillStyle = isLight ? '#64748b' : '#4a6480';   // ✅ WAS hardcoded '#4a6480'
         ctx.font = '8px Montserrat';
         ctx.fillText('Total', cx, cy + 7);
         ctx.restore();
