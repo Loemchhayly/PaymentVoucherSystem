@@ -1451,6 +1451,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
+// Wrap in IIFE for SPA compatibility
+(function() {
     if (window.Chart) {
         ['monthlyChart', 'pieChart', 'currencyChart', 'activityChart'].forEach(id => {
             const existing = Chart.getChart(id);
@@ -1464,23 +1466,39 @@
     Chart.defaults.font.family = 'Montserrat, sans-serif';
 
     // ── Print date ──
-    document.getElementById('print-date').textContent = new Date().toLocaleDateString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-
-    // ── Filter helpers ──
-    function applyFilters() { document.getElementById('reportForm').submit(); }
-    function resetFilters() { window.location.href = window.location.pathname; }
-    function exportToExcel() {
-        const params = new URLSearchParams(new FormData(document.getElementById('reportForm')));
-        window.location.href = "{% url 'vouchers:export_excel' %}?" + params.toString();
+    const printDateEl = document.getElementById('print-date');
+    if (printDateEl) {
+        printDateEl.textContent = new Date().toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
     }
-    function printReport() { window.print(); }
+
+    // ── Filter helpers (attach to window for onclick handlers) ──
+    window.applyFilters = function() {
+        const form = document.getElementById('reportForm');
+        if (form) form.submit();
+    };
+
+    window.resetFilters = function() {
+        window.location.href = window.location.pathname;
+    };
+
+    window.exportToExcel = function() {
+        const form = document.getElementById('reportForm');
+        if (!form) return;
+        const params = new URLSearchParams(new FormData(form));
+        window.location.href = "{% url 'vouchers:export_excel' %}?" + params.toString();
+    };
+
+    window.printReport = function() {
+        window.print();
+    };
 
     // ── Update footer totals from visible rows ──
     function updateTotals() {
         const allRows = document.querySelectorAll('#tableBody tr');
-        const searchQuery = document.getElementById('tableSearch').value.toLowerCase();
+        const searchInput = document.getElementById('tableSearch');
+        const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
         let totalUSD = 0, totalKHR = 0, totalTHB = 0;
         allRows.forEach(row => {
             const text = row.textContent.toLowerCase();
@@ -1500,19 +1518,22 @@
     }
 
     // ── Client-side search ──
-    function filterTable() {
-        const query = document.getElementById('tableSearch').value.toLowerCase();
+    window.filterTable = function() {
+        const searchInput = document.getElementById('tableSearch');
+        if (!searchInput) return;
+        const query = searchInput.value.toLowerCase();
         let visible = 0;
         document.querySelectorAll('#tableBody tr').forEach(row => {
             const match = row.textContent.toLowerCase().includes(query);
             row.style.display = match ? '' : 'none';
             if (match) visible++;
         });
-        document.getElementById('visibleCount').textContent = visible + ' records';
+        const countEl = document.getElementById('visibleCount');
+        if (countEl) countEl.textContent = visible + ' records';
         currentPage = 1;
         updateTotals();
         renderPagination();
-    }
+    };
 
     // ── Pagination ──
     let currentPage = 1;
@@ -1568,16 +1589,18 @@
         ctrl.appendChild(nextBtn);
     }
 
-    function changePerPage() {
-        perPage = parseInt(document.getElementById('perPageSelect').value);
+    window.changePerPage = function() {
+        const selectEl = document.getElementById('perPageSelect');
+        if (!selectEl) return;
+        perPage = parseInt(selectEl.value);
         currentPage = 1;
         updateTotals();
         renderPagination();
-    }
+    };
 
     // ── Table Sorting ──
     let sortDir = {};
-    function sortTable(colIndex) {
+    window.sortTable = function(colIndex) {
         const tbody = document.getElementById('tableBody');
         const rows = Array.from(tbody.querySelectorAll('tr'));
         const asc = !sortDir[colIndex];
@@ -1601,10 +1624,10 @@
         currentPage = 1;
         updateTotals();
         renderPagination();
-    }
+    };
 
     // ── Init ──
-    document.addEventListener('DOMContentLoaded', () => {
+    function init() {
         updateTotals();
         renderPagination();
 
@@ -1614,7 +1637,7 @@
                 this.classList.toggle('is-scrolled', this.scrollTop > 10);
             });
         }
-    });
+    }
 
     // ── Chart.js: theme-aware palette helpers ──
     const gridColor  = isLightMode ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.05)';
@@ -1738,5 +1761,13 @@
             animation: { duration: 1200, easing: 'easeInOutQuart' }
         }
     });
+
+    // Execute init on page load and SPA navigation
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})(); // Close IIFE
 </script>
 {% endblock %}
