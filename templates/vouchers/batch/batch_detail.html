@@ -727,6 +727,80 @@
 .ob-panel-empty i { font-size: 1.5rem; display: block; margin-bottom: 6px; opacity: 0.3; }
 .ob-panel-empty span { font-size: 0.75rem; }
 
+/* ── Transfer Section ── */
+.ob-transfer {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.ob-transfer-bank {
+  flex: 1;
+  background: var(--ob-800);
+  border: 1px solid var(--ob-border);
+  border-radius: 8px;
+  padding: 12px;
+  position: relative;
+}
+.ob-transfer-bank-label {
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ob-text-400);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ob-transfer-bank-logo {
+  position: absolute;
+  bottom: 8px;
+  right: 4px;
+  width: 75px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ob-transfer-bank-logo img {
+  max-height: 45px;
+  max-width: 70px;
+  object-fit: contain;
+}
+.ob-transfer-bank-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ob-text-100);
+  margin-bottom: 3px;
+}
+.ob-transfer-bank-account {
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: var(--gold-400);
+  background: rgba(6, 182, 212, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.ob-transfer-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--gold-400);
+  justify-content: center;
+}
+.ob-transfer-arrow i {
+  font-size: 1.2rem;
+}
+.ob-transfer-arrow span {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 /* ══════════════════════════════════════
    MODALS
 ══════════════════════════════════════ */
@@ -971,6 +1045,18 @@ body[data-theme="light"] .ob-att-view         { background: rgba(6,182,212,0.1);
 body[data-theme="light"] .ob-att-view:hover   { background: rgba(6,182,212,0.2); color: #0e7490; }
 body[data-theme="light"] .ob-panel-empty      { color: #94a3b8; }
 body[data-theme="light"] .ob-panel-loading p  { color: #64748b; }
+
+/* ── Bank Transfer ── */
+body[data-theme="light"] .ob-transfer-bank         { background: #f8fafc; border-color: rgba(0,0,0,0.1); }
+body[data-theme="light"] .ob-transfer-bank-label   { color: #475569 !important; }
+body[data-theme="light"] .ob-transfer-bank-label i { color: #0891b2; }
+body[data-theme="light"] .ob-transfer-bank-name    { color: #0f172a; font-weight: 700; }
+body[data-theme="light"] .ob-transfer-bank-account { background: rgba(6,182,212,0.15) !important; border-color: rgba(6,182,212,0.35) !important; color: #0891b2 !important; font-weight: 700; }
+body[data-theme="light"] .ob-transfer-arrow        { color: #0891b2; }
+body[data-theme="light"] .ob-transfer-arrow span   { color: #64748b; font-weight: 700; }
+body[data-theme="light"] .ob-transfer-bank div[style*="font-size:0.7rem"] { color: #64748b !important; }
+body[data-theme="light"] .ob-transfer-bank div[style*="font-size:0.6rem"] { color: #94a3b8 !important; }
+body[data-theme="light"] .ob-transfer-bank span[style*="font-size:0.6rem"] { color: #94a3b8 !important; }
 
 /* ── Modals ── */
 body[data-theme="light"] .modal-content          { background: #ffffff !important; border-color: rgba(0,0,0,0.12) !important; color: #0f172a !important; }
@@ -1483,6 +1569,23 @@ function openPanel(docType,docId,docNumber){
 function closePanel(){ document.getElementById('obOverlay').classList.remove('active'); document.body.style.overflow=''; }
 function renderPanelError(msg){ document.getElementById('panelBody').innerHTML=`<div class="ob-panel-empty"><i class="bi bi-exclamation-triangle"></i><span>${msg}</span></div>`; }
 
+function getBankLogo(bankAddress){
+  if(!bankAddress) return '';
+  const upper=bankAddress.toUpperCase();
+  const logos={
+    'ABA':'aba.png','ACLEDA':'acleda.png','MAYBANK':'maybank.png','MAY BANK':'maybank.png',
+    'WING':'wing.png','CANADIA':'canadia.png','PHILLIP':'phillip.png','VATTANAC':'vattanac.png',
+    'PRASAC':'prasac.png','SATHAPANA':'sathapana.png','FTB':'ftb.png','FOREIGN TRADE':'ftb.png',
+    'BRED':'bred.png','CHIP MONG':'chipmong.png','CHIPMONG':'chipmong.png','WOORI':'woori.png',
+    'CAMBODIA PUBLIC':'cpb.png','CPB':'cpb.png','RHB':'rhb.png','EMIRATES':'emiratesnbd.png',
+    'NBD':'emiratesnbd.png','HONG LEONG':'hongleong.png','HONGLEONG':'hongleong.png'
+  };
+  for(const [key,logo] of Object.entries(logos)){
+    if(upper.includes(key)) return `<img src="/static/images/banks/${logo}" alt="${key}">`;
+  }
+  return '';
+}
+
 function renderPanel(doc){
   const body=document.getElementById('panelBody');
   const liHTML=doc.line_items&&doc.line_items.length
@@ -1491,9 +1594,34 @@ function renderPanel(doc){
   const attHTML=doc.attachments&&doc.attachments.length
     ? doc.attachments.map(a=>`<div class="ob-att-item"><div class="ob-att-icon"><i class="bi bi-file-earmark-pdf"></i></div><div><div class="ob-att-name">${a.filename}</div><div class="ob-att-meta">${a.file_size} · ${a.uploaded_at}</div></div><a href="${a.url}" target="_blank" class="ob-att-view"><i class="bi bi-eye"></i> View</a></div>`).join('')
     : '<div class="ob-panel-empty"><i class="bi bi-paperclip"></i><span>No attachments</span></div>';
+
+  const transferHTML=doc.company_bank_account?`
+    <div class="ob-transfer">
+      <div class="ob-transfer-bank">
+        <div class="ob-transfer-bank-label"><i class="bi bi-building"></i> Company (Transfer From)</div>
+        <div class="ob-transfer-bank-name">${doc.company_bank_account.company_name||'—'}</div>
+        <div style="font-size:0.7rem;color:var(--ob-text-400);margin-bottom:4px;">${doc.company_bank_account.bank||'—'}</div>
+        <span class="ob-transfer-bank-account">${doc.company_bank_account.account_number||'—'}</span>
+        <span style="font-size:0.6rem;color:var(--ob-text-400);margin-left:6px;">${doc.company_bank_account.currency||''}</span>
+      </div>
+      <div class="ob-transfer-arrow">
+        <i class="bi bi-arrow-right-circle-fill"></i>
+        <span>Transfer</span>
+      </div>
+      <div class="ob-transfer-bank">
+        <div class="ob-transfer-bank-label" style="color:rgba(16,185,129,0.8);"><i class="bi bi-person-fill"></i> Supplier (Transfer To)</div>
+        ${doc.bank_address?`<div class="ob-transfer-bank-logo">${getBankLogo(doc.bank_address)}</div>`:''}
+        <div class="ob-transfer-bank-name">${doc.bank_address||'Not specified'}</div>
+        <div style="font-size:0.7rem;color:var(--ob-text-400);margin-bottom:4px;">${doc.bank_name||'—'}</div>
+        ${doc.bank_account_number?`<span class="ob-transfer-bank-account" style="border-color:rgba(16,185,129,0.3);color:var(--jade-400);">${doc.bank_account_number}</span>`:''}
+      </div>
+    </div>
+  `:'';
+
   body.innerHTML=`
     <div class="ob-panel-section"><div class="ob-panel-section-title"><i class="bi bi-list-ul"></i> Line Items</div>${liHTML}</div>
-    <div class="ob-panel-section"><div class="ob-panel-section-title"><i class="bi bi-paperclip"></i> Attachments</div>${attHTML}</div>`;
+    <div class="ob-panel-section"><div class="ob-panel-section-title"><i class="bi bi-paperclip"></i> Attachments</div>${attHTML}</div>
+    ${transferHTML?`<div class="ob-panel-section"><div class="ob-panel-section-title"><i class="bi bi-bank"></i> Bank Transfer</div>${transferHTML}</div>`:''}`;
 }
 
 // ── Toast ──

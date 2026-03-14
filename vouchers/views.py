@@ -1737,11 +1737,25 @@ def voucher_api_details(request, pk):
                 print(f"Error processing attachment {att.id}: {e}")
                 continue
 
+        # Build bank transfer data
+        company_bank_data = None
+        if voucher.company_bank_account:
+            company_bank_data = {
+                'company_name': voucher.company_bank_account.company_name,
+                'bank': voucher.company_bank_account.bank,
+                'account_number': voucher.company_bank_account.account_number,
+                'currency': voucher.company_bank_account.currency,
+            }
+
         return JsonResponse({
             'success': True,
             'document': {
                 'line_items': line_items_data,
                 'attachments': attachments_data,
+                'company_bank_account': company_bank_data,
+                'bank_address': voucher.bank_address or '',
+                'bank_name': voucher.bank_name or '',
+                'bank_account_number': voucher.bank_account_number or '',
             }
         })
 
@@ -1806,11 +1820,25 @@ def form_api_details(request, pk):
                 print(f"Error processing attachment {att.id}: {e}")
                 continue
 
+        # Build bank transfer data
+        company_bank_data = None
+        if form.company_bank_account:
+            company_bank_data = {
+                'company_name': form.company_bank_account.company_name,
+                'bank': form.company_bank_account.bank,
+                'account_number': form.company_bank_account.account_number,
+                'currency': form.company_bank_account.currency,
+            }
+
         return JsonResponse({
             'success': True,
             'document': {
                 'line_items': line_items_data,
                 'attachments': attachments_data,
+                'company_bank_account': company_bank_data,
+                'bank_address': form.bank_address or '',
+                'bank_name': form.bank_name or '',
+                'bank_account_number': form.bank_account_number or '',
             }
         })
 
