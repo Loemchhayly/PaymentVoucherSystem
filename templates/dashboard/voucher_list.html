@@ -1778,7 +1778,12 @@ window.addEventListener('popstate', function(e) {
     ═══════════════════════════════════════════ */
     window.showBulkModal = function(type) {
     const n = document.querySelectorAll('.row-checkbox:checked').length;
-    if (n === 0) return;
+    console.log('showBulkModal called, type:', type, 'selected:', n);
+
+    if (n === 0) {
+        console.warn('No items selected');
+        return;
+    }
 
     if (type === 'approve') {
         document.getElementById('approve-count').textContent = n;
@@ -1787,12 +1792,22 @@ window.addEventListener('popstate', function(e) {
         document.getElementById('reject-count').textContent = n;
         document.getElementById('reject-comments').value = '';
     } else if (type === 'submit') {
-        document.getElementById('submit-count').textContent = n;
-        document.getElementById('submit-comments').value = '';
+        const submitCountEl = document.getElementById('submit-count');
+        const submitCommentsEl = document.getElementById('submit-comments');
+        if (submitCountEl) submitCountEl.textContent = n;
+        if (submitCommentsEl) submitCommentsEl.value = '';
+        console.log('Submit modal elements found:', !!submitCountEl, !!submitCommentsEl);
     }
 
-    document.getElementById(type + '-modal').classList.add('active');
+    const modal = document.getElementById(type + '-modal');
+    if (!modal) {
+        console.error('Modal not found:', type + '-modal');
+        return;
+    }
+
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    console.log('Modal opened:', type);
     };
 
     window.hideBulkModal = function(type) {
@@ -1859,13 +1874,31 @@ window.addEventListener('popstate', function(e) {
        BULK SUBMIT DRAFTS — Modal + Form Submission
     ═══════════════════════════════════════════ */
     window.confirmBulkSubmit = function() {
+        console.log('confirmBulkSubmit called');
+
         const commentsEl = document.getElementById('submit-comments');
         const comments = commentsEl ? commentsEl.value.trim() : '';
 
         const selected = document.querySelectorAll('.row-checkbox:checked');
-        if (!selected.length) return;
+        console.log('Selected checkboxes:', selected.length);
+
+        if (!selected.length) {
+            console.error('No checkboxes selected');
+            return;
+        }
 
         const hiddenInputs = document.getElementById('submit-hidden-inputs');
+        if (!hiddenInputs) {
+            console.error('submit-hidden-inputs element not found');
+            return;
+        }
+
+        const form = document.getElementById('bulk-submit-form');
+        if (!form) {
+            console.error('bulk-submit-form not found');
+            return;
+        }
+
         hiddenInputs.innerHTML = '';
         document.getElementById('submit-comments-input').value = comments;
 
@@ -1875,9 +1908,13 @@ window.addEventListener('popstate', function(e) {
             inp.name = cb.dataset.doctype === 'pf' ? 'pf_ids[]' : 'pv_ids[]';
             inp.value = cb.value;
             hiddenInputs.appendChild(inp);
+            console.log('Added input:', inp.name, '=', inp.value);
         });
 
-        document.getElementById('bulk-submit-form').submit();
+        console.log('Form action:', form.action);
+        console.log('Form method:', form.method);
+        console.log('Submitting form...');
+        form.submit();
     };
 
     // Execute immediately on page load
