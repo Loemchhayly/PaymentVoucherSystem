@@ -1474,13 +1474,113 @@
     }
 
     // ── Filter helpers (attach to window for onclick handlers) ──
-    window.applyFilters = function() {
+    window.applyFilters = async function() {
         const form = document.getElementById('reportForm');
-        if (form) form.submit();
+        if (!form) return;
+
+        // Build query string from form data
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+
+        for (const [key, value] of formData.entries()) {
+            if (value) {  // Only include non-empty values
+                params.append(key, value);
+            }
+        }
+
+        const queryString = params.toString();
+        const url = window.location.pathname + (queryString ? '?' + queryString : '');
+
+        // Use SPA navigation via AJAX
+        const mainContent = document.getElementById('mainContent');
+        if (!mainContent) {
+            window.location.href = url;
+            return;
+        }
+
+        try {
+            // Show loading state
+            mainContent.style.opacity = '0.6';
+
+            // Fetch new content
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (!response.ok) throw new Error('Failed to load');
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContent = doc.querySelector('#mainContent');
+
+            if (newContent) {
+                mainContent.innerHTML = newContent.innerHTML;
+                history.pushState({}, '', url);
+
+                // Re-execute page scripts
+                const scripts = mainContent.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => {
+                        newScript.setAttribute(attr.name, attr.value);
+                    });
+                    newScript.textContent = oldScript.textContent;
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+
+                mainContent.style.opacity = '1';
+            }
+        } catch (error) {
+            console.error('SPA navigation error:', error);
+            window.location.href = url;
+        }
     };
 
-    window.resetFilters = function() {
-        window.location.href = window.location.pathname;
+    window.resetFilters = async function() {
+        const url = window.location.pathname;
+        const mainContent = document.getElementById('mainContent');
+
+        if (!mainContent) {
+            window.location.href = url;
+            return;
+        }
+
+        try {
+            mainContent.style.opacity = '0.6';
+
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (!response.ok) throw new Error('Failed to load');
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContent = doc.querySelector('#mainContent');
+
+            if (newContent) {
+                mainContent.innerHTML = newContent.innerHTML;
+                history.pushState({}, '', url);
+
+                // Re-execute page scripts
+                const scripts = mainContent.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => {
+                        newScript.setAttribute(attr.name, attr.value);
+                    });
+                    newScript.textContent = oldScript.textContent;
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+
+                mainContent.style.opacity = '1';
+            }
+        } catch (error) {
+            console.error('SPA navigation error:', error);
+            window.location.href = url;
+        }
     };
 
     window.exportToExcel = function() {
