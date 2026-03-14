@@ -88,6 +88,31 @@ class SignatureUploadForm(forms.ModelForm):
         return image
 
 
+class ProfilePhotoUploadForm(forms.ModelForm):
+    """Form for uploading profile photo"""
+
+    class Meta:
+        model = User
+        fields = ['profile_photo']
+        widgets = {
+            'profile_photo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/png,image/jpeg,image/jpg'})
+        }
+
+    def clean_profile_photo(self):
+        image = self.cleaned_data.get('profile_photo')
+
+        if image:
+            # Check file size (max 2MB)
+            if image.size > 2 * 1024 * 1024:
+                raise forms.ValidationError("Image size should not exceed 2MB")
+
+            # Check file type
+            if not image.name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                raise forms.ValidationError("Only PNG, JPG, and JPEG formats are allowed")
+
+        return image
+
+
 class ProfileUpdateForm(forms.ModelForm):
     """Form for updating user profile information"""
 

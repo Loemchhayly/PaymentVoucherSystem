@@ -599,6 +599,12 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 0.6rem; font-weight: 800;
     color: white; flex-shrink: 0;
+    overflow: hidden;
+}
+.preparer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 .preparer-name {
     font-size: 0.78rem;
@@ -1233,7 +1239,11 @@ body[data-theme="light"] .amount-cell {
                         <td onclick="event.stopPropagation()">
                             <div class="preparer-cell">
                                 <div class="preparer-avatar {% cycle 'av-teal' 'av-purple' 'av-green' 'av-orange' 'av-pink' 'av-blue' 'av-amber' %}">
-                                    {{ voucher.created_by.get_full_name|default:voucher.created_by.username|slice:":2"|upper }}
+                                    {% if voucher.created_by.profile_photo %}
+                                        <img src="{{ voucher.created_by.profile_photo.url }}" alt="{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}">
+                                    {% else %}
+                                        {{ voucher.created_by.get_full_name|default:voucher.created_by.username|slice:":2"|upper }}
+                                    {% endif %}
                                 </div>
                                 <span class="preparer-name">
                                     {{ voucher.created_by.get_full_name|default:voucher.created_by.username|truncatechars:14 }}

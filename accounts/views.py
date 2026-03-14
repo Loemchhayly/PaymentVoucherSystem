@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import User
-from .forms import UserRegistrationForm, UserLoginForm, SignatureUploadForm, ProfileUpdateForm, PasswordResetRequestForm, PasswordResetConfirmForm
+from .forms import UserRegistrationForm, UserLoginForm, SignatureUploadForm, ProfilePhotoUploadForm, ProfileUpdateForm, PasswordResetRequestForm, PasswordResetConfirmForm
 from .utils import send_verification_email, send_welcome_email, send_password_reset_email
 from .tokens import verify_token, generate_token
 import threading
@@ -301,6 +301,27 @@ class SignatureUploadView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Upload Signature'
+        return context
+
+
+class ProfilePhotoUploadView(LoginRequiredMixin, UpdateView):
+    """Profile photo upload view"""
+    model = User
+    form_class = ProfilePhotoUploadForm
+    template_name = 'accounts/profile_photo_upload.html'
+    success_url = reverse_lazy('accounts:profile')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        form.save()
+        messages.success(self.request, 'Profile photo uploaded successfully!')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Upload Profile Photo'
         return context
 
 

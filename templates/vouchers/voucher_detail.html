@@ -1141,6 +1141,17 @@
             justify-content: center;
             font-size: 0.9rem;
             flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .vd-stat-pill-icon.avatar-round {
+            border-radius: 50%;
+        }
+
+        .vd-stat-pill-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .vd-stat-pill-text {
@@ -1388,8 +1399,36 @@
 
         .vd-tl-left {
             display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .vd-tl-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan-500), #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .vd-tl-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .vd-tl-info {
+            display: flex;
             flex-direction: column;
             gap: 2px;
+            flex: 1;
         }
 
         .vd-tl-actor {
@@ -2175,19 +2214,28 @@
                                                 <div class="vd-tl-card">
                                                     <div class="vd-tl-row">
                                                         <div class="vd-tl-left">
-                                                            {% if history.action == 'APPROVE' %}
-                                                                <span class="vd-badge approve"><i
-                                                                        class="bi bi-check-circle"></i> {{ history.get_action_display }}</span>
-                                                            {% elif history.action == 'REJECT' %}
-                                                                <span class="vd-badge reject"><i
-                                                                        class="bi bi-x-circle"></i> {{ history.get_action_display }}</span>
-                                                            {% elif history.action == 'RETURN' %}
-                                                                <span class="vd-badge return"><i
-                                                                        class="bi bi-arrow-counterclockwise"></i> {{ history.get_action_display }}</span>
-                                                            {% else %}<span class="vd-badge submit"><i
-                                                                    class="bi bi-send"></i> {{ history.get_action_display }}</span>{% endif %}
-                                                            <div class="vd-tl-actor">{{ history.actor.get_full_name|default:history.actor.username }}</div>
-                                                            <div class="vd-tl-role">{{ history.get_actor_role_level_display }}</div>
+                                                            <div class="vd-tl-avatar">
+                                                                {% if history.actor.profile_photo %}
+                                                                    <img src="{{ history.actor.profile_photo.url }}" alt="{{ history.actor.get_full_name|default:history.actor.username }}">
+                                                                {% else %}
+                                                                    {{ history.actor.get_full_name|default:history.actor.username|slice:":2"|upper }}
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="vd-tl-info">
+                                                                {% if history.action == 'APPROVE' %}
+                                                                    <span class="vd-badge approve"><i
+                                                                            class="bi bi-check-circle"></i> {{ history.get_action_display }}</span>
+                                                                {% elif history.action == 'REJECT' %}
+                                                                    <span class="vd-badge reject"><i
+                                                                            class="bi bi-x-circle"></i> {{ history.get_action_display }}</span>
+                                                                {% elif history.action == 'RETURN' %}
+                                                                    <span class="vd-badge return"><i
+                                                                            class="bi bi-arrow-counterclockwise"></i> {{ history.get_action_display }}</span>
+                                                                {% else %}<span class="vd-badge submit"><i
+                                                                        class="bi bi-send"></i> {{ history.get_action_display }}</span>{% endif %}
+                                                                <div class="vd-tl-actor">{{ history.actor.get_full_name|default:history.actor.username }}</div>
+                                                                <div class="vd-tl-role">{{ history.get_actor_role_level_display }}</div>
+                                                            </div>
                                                         </div>
                                                         <div class="vd-tl-time">{{ history.timestamp|date:"M d, Y · g:i A" }}</div>
                                                     </div>
@@ -2240,9 +2288,13 @@
                         <!-- Quick Facts Pills -->
                         <div class="vd-stat-pills">
                             <div class="vd-stat-pill">
-                                <div class="vd-stat-pill-icon"
-                                     style="background:rgba(6,182,212,0.1);border:1px solid var(--v-border-bright);color:var(--v-cyan);">
-                                    <i class="bi bi-person-badge"></i>
+                                <div class="vd-stat-pill-icon avatar-round"
+                                     style="background:{% if voucher.created_by.profile_photo %}transparent{% else %}rgba(6,182,212,0.1){% endif %};border:1px solid var(--v-border-bright);{% if not voucher.created_by.profile_photo %}color:var(--v-cyan);{% endif %}">
+                                    {% if voucher.created_by.profile_photo %}
+                                        <img src="{{ voucher.created_by.profile_photo.url }}" alt="{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}">
+                                    {% else %}
+                                        <i class="bi bi-person-badge"></i>
+                                    {% endif %}
                                 </div>
                                 <div class="vd-stat-pill-text">
                                     <div class="vd-stat-pill-val">{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</div>
@@ -2262,9 +2314,13 @@
                             </div>
                             {% if voucher.current_approver %}
                                 <div class="vd-stat-pill">
-                                    <div class="vd-stat-pill-icon"
-                                         style="background:var(--v-green-dim);border:1px solid rgba(16,185,129,0.2);color:var(--v-green);">
-                                        <i class="bi bi-shield-check"></i>
+                                    <div class="vd-stat-pill-icon avatar-round"
+                                         style="background:{% if voucher.current_approver.profile_photo %}transparent{% else %}var(--v-green-dim){% endif %};border:1px solid rgba(16,185,129,0.2);{% if not voucher.current_approver.profile_photo %}color:var(--v-green);{% endif %}">
+                                        {% if voucher.current_approver.profile_photo %}
+                                            <img src="{{ voucher.current_approver.profile_photo.url }}" alt="{{ voucher.current_approver.get_full_name|default:voucher.current_approver.username }}">
+                                        {% else %}
+                                            <i class="bi bi-shield-check"></i>
+                                        {% endif %}
                                     </div>
                                     <div class="vd-stat-pill-text">
                                         <div class="vd-stat-pill-val">{{ voucher.current_approver.get_full_name|default:voucher.current_approver.username }}</div>

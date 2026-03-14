@@ -10,6 +10,7 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('profile/', views.ProfileView.as_view(), name='profile'),
     path('profile/signature/', views.SignatureUploadView.as_view(), name='upload_signature'),
+    path('profile/photo/', views.ProfilePhotoUploadView.as_view(), name='upload_profile_photo'),
 
     # Password Reset URLs
     path('password-reset/', views.PasswordResetRequestView.as_view(), name='password_reset'),

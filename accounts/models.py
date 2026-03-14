@@ -36,6 +36,13 @@ class User(AbstractUser):
         help_text="Digital signature image (PNG format recommended)"
     )
 
+    profile_photo = models.ImageField(
+        upload_to='profile_photos/',
+        null=True,
+        blank=True,
+        help_text="Profile photo (JPG or PNG format recommended)"
+    )
+
     email_verified = models.BooleanField(
         default=False,
         help_text="Email verification status"

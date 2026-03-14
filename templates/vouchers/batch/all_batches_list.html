@@ -191,6 +191,12 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 0.6rem; font-weight: 700; color: white;
     flex-shrink: 0;
+    overflow: hidden;
+}
+.user-mini-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 .user-name { font-weight: 500; color: var(--text-secondary); font-size: 0.8rem; }
 
@@ -457,7 +463,11 @@ body[data-theme="light"] .tbl-btn.excel:hover {
                         <td>
                             <div class="user-cell">
                                 <div class="user-mini-avatar">
-                                    {{ batch.created_by.get_full_name|default:batch.created_by.username|slice:":2"|upper }}
+                                    {% if batch.created_by.profile_photo %}
+                                        <img src="{{ batch.created_by.profile_photo.url }}" alt="{{ batch.created_by.get_full_name|default:batch.created_by.username }}">
+                                    {% else %}
+                                        {{ batch.created_by.get_full_name|default:batch.created_by.username|slice:":2"|upper }}
+                                    {% endif %}
                                 </div>
                                 <span class="user-name">
                                     {{ batch.created_by.get_full_name|default:batch.created_by.username }}
@@ -518,7 +528,11 @@ body[data-theme="light"] .tbl-btn.excel:hover {
                         <td>
                             <div class="user-cell">
                                 <div class="user-mini-avatar">
-                                    {{ batch.created_by.get_full_name|default:batch.created_by.username|slice:":2"|upper }}
+                                    {% if batch.created_by.profile_photo %}
+                                        <img src="{{ batch.created_by.profile_photo.url }}" alt="{{ batch.created_by.get_full_name|default:batch.created_by.username }}">
+                                    {% else %}
+                                        {{ batch.created_by.get_full_name|default:batch.created_by.username|slice:":2"|upper }}
+                                    {% endif %}
                                 </div>
                                 <span class="user-name">{{ batch.created_by.get_full_name|default:batch.created_by.username }}</span>
                             </div>
@@ -526,7 +540,11 @@ body[data-theme="light"] .tbl-btn.excel:hover {
                         <td>
                             <div class="user-cell">
                                 <div class="user-mini-avatar" style="background: linear-gradient(135deg, var(--success), #15803d);">
-                                    {{ batch.signed_by.get_full_name|default:batch.signed_by.username|slice:":2"|upper }}
+                                    {% if batch.signed_by.profile_photo %}
+                                        <img src="{{ batch.signed_by.profile_photo.url }}" alt="{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}">
+                                    {% else %}
+                                        {{ batch.signed_by.get_full_name|default:batch.signed_by.username|slice:":2"|upper }}
+                                    {% endif %}
                                 </div>
                                 <span class="user-name">{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}</span>
                             </div>
@@ -585,7 +603,11 @@ body[data-theme="light"] .tbl-btn.excel:hover {
                         <td>
                             <div class="user-cell">
                                 <div class="user-mini-avatar">
-                                    {{ batch.created_by.get_full_name|default:batch.created_by.username|slice:":2"|upper }}
+                                    {% if batch.created_by.profile_photo %}
+                                        <img src="{{ batch.created_by.profile_photo.url }}" alt="{{ batch.created_by.get_full_name|default:batch.created_by.username }}">
+                                    {% else %}
+                                        {{ batch.created_by.get_full_name|default:batch.created_by.username|slice:":2"|upper }}
+                                    {% endif %}
                                 </div>
                                 <span class="user-name">{{ batch.created_by.get_full_name|default:batch.created_by.username }}</span>
                             </div>
@@ -594,7 +616,11 @@ body[data-theme="light"] .tbl-btn.excel:hover {
                             {% if batch.signed_by %}
                             <div class="user-cell">
                                 <div class="user-mini-avatar" style="background: linear-gradient(135deg, var(--danger), #991b1b);">
-                                    {{ batch.signed_by.get_full_name|default:batch.signed_by.username|slice:":2"|upper }}
+                                    {% if batch.signed_by.profile_photo %}
+                                        <img src="{{ batch.signed_by.profile_photo.url }}" alt="{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}">
+                                    {% else %}
+                                        {{ batch.signed_by.get_full_name|default:batch.signed_by.username|slice:":2"|upper }}
+                                    {% endif %}
                                 </div>
                                 <span class="user-name">{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}</span>
                             </div>

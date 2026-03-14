@@ -1,0 +1,624 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Upload Profile Photo — Payment Voucher System{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ══════════════════════════════════════════════════════════
+   PROFILE PHOTO UPLOAD PAGE — Enterprise Dark Edition
+   Matches FinVault Design System
+══════════════════════════════════════════════════════════ */
+
+.sig-upload-root {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+/* ── Page Header ── */
+.sig-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.sig-page-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sig-title-icon {
+    width: 42px;
+    height: 42px;
+    background: rgba(6,182,212,0.12);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: var(--cyan-400);
+    flex-shrink: 0;
+}
+
+.sig-title-text {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+}
+
+.sig-title-sub {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ── Panel ── */
+.sig-panel {
+    background: var(--surface-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+.sig-panel:hover {
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-glow);
+}
+
+.sig-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+}
+
+.panel-icon-wrap {
+    width: 30px; height: 30px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; flex-shrink: 0;
+}
+.panel-icon-wrap.cyan   { background: rgba(6,182,212,0.12); color: var(--cyan-400); border: 1px solid var(--border-accent); }
+.panel-icon-wrap.yellow { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
+
+.sig-panel-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.sig-panel-body { padding: 20px 18px; }
+
+/* ── Current photo preview ── */
+.current-sig-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.sig-frame {
+    flex: 0 0 auto;
+    width: 180px;
+    height: 180px;
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+}
+
+.sig-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(1.05);
+}
+
+.sig-frame-label {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+    background: rgba(0,0,0,0.7);
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+}
+
+.sig-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sig-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+.sig-meta-row i { color: var(--cyan-400); font-size: 0.9rem; }
+
+/* ── Guidelines ── */
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.guideline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px 12px;
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    transition: all var(--transition-fast);
+}
+.guideline-item:hover {
+    border-color: var(--border-accent);
+    color: var(--text-primary);
+    background: var(--ink-750);
+}
+.guideline-item i {
+    color: var(--cyan-400);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ── Drop zone ── */
+.drop-zone {
+    position: relative;
+    background: var(--ink-800);
+    border: 1.5px dashed rgba(6,182,212,0.25);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-2xl) var(--spacing-xl);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    overflow: hidden;
+}
+
+/* Subtle glow pulse on idle */
+.drop-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(6,182,212,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    transition: opacity var(--transition-base);
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+    border-color: var(--cyan-500);
+    background: rgba(6,182,212,0.05);
+    box-shadow: 0 0 0 3px rgba(6,182,212,0.08), inset 0 0 30px rgba(6,182,212,0.04);
+}
+
+.drop-zone.drag-over {
+    border-style: solid;
+    transform: scale(1.01);
+}
+
+.drop-zone.has-file {
+    border-color: rgba(6,182,212,0.4);
+    background: rgba(6,182,212,0.04);
+}
+
+.dz-icon {
+    width: 56px; height: 56px;
+    background: rgba(6,182,212,0.08);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-xl);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    color: var(--cyan-400);
+    margin: 0 auto var(--spacing-md);
+    transition: all var(--transition-base);
+}
+.drop-zone:hover .dz-icon,
+.drop-zone.drag-over .dz-icon {
+    background: rgba(6,182,212,0.15);
+    box-shadow: 0 0 20px rgba(6,182,212,0.2);
+    transform: translateY(-3px);
+}
+.drop-zone.has-file .dz-icon {
+    background: rgba(6,182,212,0.15);
+    border-color: rgba(6,182,212,0.4);
+    color: var(--cyan-400);
+}
+
+.dz-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.dz-hint {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.dz-browse {
+    color: var(--cyan-400);
+    font-weight: 700;
+}
+
+/* Hidden file input over the whole zone */
+.dz-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* File name pill */
+.file-pill {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    background: var(--ink-700);
+    border: 1px solid rgba(6,182,212,0.3);
+    border-radius: var(--radius-full);
+    padding: 5px 14px;
+    font-size: 0.78rem;
+    color: var(--cyan-400);
+    font-weight: 600;
+    justify-content: center;
+}
+.file-pill.show { display: flex; }
+.file-pill i { font-size: 0.9rem; }
+
+/* Remove button in pill */
+.file-pill-remove {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 0.85rem;
+    transition: color var(--transition-fast);
+    margin-left: 2px;
+}
+.file-pill-remove:hover { color: var(--danger); }
+
+/* ── Image preview ── */
+.img-preview-wrap {
+    display: none;
+    margin-top: var(--spacing-lg);
+    background: var(--ink-800);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    text-align: center;
+    position: relative;
+}
+.img-preview-wrap.show { display: block; }
+
+.img-preview-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.img-preview-wrap img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+}
+
+/* ── Buttons ── */
+.sig-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: var(--spacing-lg);
+}
+
+.pv-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 20px;
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    border: none;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.pv-btn i { font-size: 0.9rem; }
+
+.pv-btn.primary {
+    background: linear-gradient(135deg, var(--cyan-600), var(--cyan-700));
+    color: white;
+    box-shadow: 0 2px 10px rgba(6,182,212,0.3);
+    flex: 1;
+}
+.pv-btn.primary:hover {
+    background: linear-gradient(135deg, var(--cyan-500), var(--cyan-600));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 18px rgba(6,182,212,0.4);
+    color: white;
+    filter: brightness(1.05);
+}
+
+.pv-btn.ghost {
+    background: var(--ink-700);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+.pv-btn.ghost:hover {
+    border-color: var(--border-accent);
+    color: var(--cyan-400);
+    background: var(--ink-600);
+}
+
+/* ── Responsive ── */
+@media (max-width: 576px) {
+    .sig-upload-root { padding: 0 12px; }
+    .guidelines-grid { grid-template-columns: 1fr; }
+    .sig-actions { flex-direction: column; }
+    .pv-btn.primary { flex: auto; width: 100%; }
+    .current-sig-wrap { flex-direction: column; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sig-upload-root">
+
+    <!-- ── Header ── -->
+    <div class="sig-page-header">
+        <div class="sig-page-title">
+            <div class="sig-title-icon"><i class="bi bi-person-circle"></i></div>
+            <div>
+                <div class="sig-title-text">Profile Photo</div>
+                <div class="sig-title-sub">Upload or replace your profile photo</div>
+            </div>
+        </div>
+        <a href="{% url 'accounts:profile' %}" class="pv-btn ghost">
+            <i class="bi bi-arrow-left"></i> Back to Profile
+        </a>
+    </div>
+
+    <!-- ── Current photo (if exists) ── -->
+    {% if user.profile_photo %}
+    <div class="sig-panel">
+        <div class="sig-panel-header">
+            <div class="panel-icon-wrap cyan"><i class="bi bi-check-circle-fill"></i></div>
+            <span class="sig-panel-title">Current Profile Photo</span>
+            <span style="margin-left:auto;font-size:0.68rem;font-weight:700;color:var(--cyan-400);background:rgba(6,182,212,0.12);border:1px solid var(--border-accent);padding:2px 9px;border-radius:var(--radius-full);">
+                <i class="bi bi-patch-check-fill"></i> Active
+            </span>
+        </div>
+        <div class="sig-panel-body">
+            <div class="current-sig-wrap">
+                <div class="sig-frame">
+                    <img src="{{ user.profile_photo.url }}" alt="Current profile photo">
+                </div>
+                <div class="sig-meta">
+                    <div class="sig-meta-row"><i class="bi bi-check-circle-fill"></i> Photo is active</div>
+                    <div class="sig-meta-row"><i class="bi bi-person-badge"></i> Displayed on your profile</div>
+                    <div class="sig-meta-row"><i class="bi bi-arrow-repeat"></i> Upload below to replace</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Guidelines ── -->
+    <div class="sig-panel">
+        <div class="sig-panel-header">
+            <div class="panel-icon-wrap yellow"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <span class="sig-panel-title">Upload Guidelines</span>
+        </div>
+        <div class="sig-panel-body">
+            <div class="guidelines-grid">
+                <div class="guideline-item">
+                    <i class="bi bi-check2-circle"></i>
+                    Clear photo showing your face
+                </div>
+                <div class="guideline-item">
+                    <i class="bi bi-file-image"></i>
+                    Supported formats: PNG, JPG, JPEG
+                </div>
+                <div class="guideline-item">
+                    <i class="bi bi-hdd"></i>
+                    Maximum file size: 2MB
+                </div>
+                <div class="guideline-item">
+                    <i class="bi bi-aspect-ratio"></i>
+                    Best quality: square aspect ratio
+                </div>
+                <div class="guideline-item" style="grid-column: 1 / -1;">
+                    <i class="bi bi-person-circle"></i>
+                    This photo will be displayed on your profile and throughout the system
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Upload form ── -->
+    <div class="sig-panel">
+        <div class="sig-panel-header">
+            <div class="panel-icon-wrap cyan"><i class="bi bi-cloud-upload"></i></div>
+            <span class="sig-panel-title">Upload New Profile Photo</span>
+        </div>
+        <div class="sig-panel-body">
+            <form method="post" enctype="multipart/form-data" id="sig-form">
+                {% csrf_token %}
+
+                <!-- Drop zone -->
+                <div class="drop-zone" id="dropZone">
+                    <div class="dz-icon" id="dzIcon">
+                        <i class="bi bi-cloud-upload" id="dzIconGlyph"></i>
+                    </div>
+                    <div class="dz-text" id="dzText">
+                        Drop your photo here, or <span class="dz-browse">browse</span>
+                    </div>
+                    <div class="dz-hint" id="dzHint">PNG · JPG · JPEG — max 2MB</div>
+                    {{ form.profile_photo }}
+                </div>
+
+                <!-- Selected file pill -->
+                <div class="file-pill" id="filePill">
+                    <i class="bi bi-file-image"></i>
+                    <span id="fileName">filename.png</span>
+                    <button type="button" class="file-pill-remove" id="removeFile" title="Remove">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Image preview -->
+                <div class="img-preview-wrap" id="imgPreviewWrap">
+                    <div class="img-preview-label">Preview</div>
+                    <img id="imgPreview" src="" alt="Photo preview">
+                </div>
+
+                <!-- Buttons -->
+                <div class="sig-actions">
+                    <button type="submit" class="pv-btn primary" id="submitBtn" disabled>
+                        <i class="bi bi-check2-circle"></i>
+                        {% if user.profile_photo %}Replace Photo{% else %}Upload Photo{% endif %}
+                    </button>
+                    <a href="{% url 'accounts:profile' %}" class="pv-btn ghost">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Wrap all functions in IIFE and attach to window for SPA navigation
+(function() {
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropZone    = document.getElementById('dropZone');
+        const fileInput   = document.querySelector('input[type="file"]');
+        const filePill    = document.getElementById('filePill');
+        const fileName    = document.getElementById('fileName');
+        const removeFile  = document.getElementById('removeFile');
+        const imgWrap     = document.getElementById('imgPreviewWrap');
+        const imgPreview  = document.getElementById('imgPreview');
+        const submitBtn   = document.getElementById('submitBtn');
+        const dzIcon      = document.getElementById('dzIcon');
+        const dzIconGlyph = document.getElementById('dzIconGlyph');
+        const dzText      = document.getElementById('dzText');
+        const dzHint      = document.getElementById('dzHint');
+
+        function applyFile(file) {
+            if (!file) return;
+
+            // Pill
+            fileName.textContent = file.name;
+            filePill.classList.add('show');
+
+            // Drop zone state
+            dropZone.classList.add('has-file');
+            dzIconGlyph.className = 'bi bi-file-image';
+            dzText.innerHTML = '<span style="color:var(--cyan-400)">File selected</span>';
+            dzHint.textContent = (file.size / 1024).toFixed(1) + ' KB — ' + file.type;
+
+            // Image preview
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                imgPreview.src = e.target.result;
+                imgWrap.classList.add('show');
+            };
+            reader.readAsDataURL(file);
+
+            // Enable submit
+            submitBtn.disabled = false;
+        }
+
+        function clearFile() {
+            fileInput.value = '';
+            filePill.classList.remove('show');
+            imgWrap.classList.remove('show');
+            dropZone.classList.remove('has-file');
+            dzIconGlyph.className = 'bi bi-cloud-upload';
+            dzText.innerHTML = 'Drop your photo here, or <span class="dz-browse">browse</span>';
+            dzHint.textContent = 'PNG · JPG · JPEG — max 2MB';
+            imgPreview.src = '';
+            submitBtn.disabled = true;
+        }
+
+        // File input change
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) applyFile(this.files[0]);
+            else clearFile();
+        });
+
+        // Remove
+        removeFile.addEventListener('click', clearFile);
+
+        // Drag & drop
+        dropZone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+        });
+        dropZone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                applyFile(files[0]);
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}

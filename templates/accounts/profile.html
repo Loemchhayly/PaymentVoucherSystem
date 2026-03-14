@@ -80,6 +80,13 @@
     flex-shrink: 0;
     box-shadow: 0 0 0 3px rgba(6,182,212,0.2), 0 0 24px rgba(6,182,212,0.2);
     position: relative;
+    overflow: hidden;
+}
+
+.hero-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* Online pulse ring */
@@ -502,7 +509,11 @@
     <div class="profile-hero">
         <div class="hero-inner">
             <div class="hero-avatar">
-                {{ user.get_full_name|default:user.username|slice:":2"|upper }}
+                {% if user.profile_photo %}
+                    <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name|default:user.username }}">
+                {% else %}
+                    {{ user.get_full_name|default:user.username|slice:":2"|upper }}
+                {% endif %}
             </div>
             <div class="hero-info">
                 <div class="hero-name">{{ user.get_full_name|default:user.username }}</div>
@@ -646,6 +657,9 @@
 
                 <!-- Quick actions -->
                 <div style="margin-top: var(--spacing-lg); display:flex; flex-direction:column; gap:8px;">
+                    <a href="{% url 'accounts:upload_profile_photo' %}" class="pv-btn ghost w-100">
+                        <i class="bi bi-person-circle"></i> {% if user.profile_photo %}Update Photo{% else %}Upload Photo{% endif %}
+                    </a>
                     <a href="{% url 'accounts:upload_signature' %}" class="pv-btn ghost w-100">
                         <i class="bi bi-pen"></i> Upload Signature
                     </a>

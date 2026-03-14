@@ -534,6 +534,13 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 0.7rem; font-weight: 700; color: white;
             flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .sidebar-user-info {
@@ -1383,7 +1390,11 @@
         <div class="sidebar-footer">
             <a class="sidebar-user" href="{% url 'accounts:profile' %}" data-tooltip="{{ user.get_full_name|default:user.username }}">
                 <div class="user-avatar">
-                    {{ user.get_full_name|default:user.username|slice:":2"|upper }}
+                    {% if user.profile_photo %}
+                        <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name|default:user.username }}">
+                    {% else %}
+                        {{ user.get_full_name|default:user.username|slice:":2"|upper }}
+                    {% endif %}
                 </div>
                 <div class="sidebar-user-info">
                     <div class="sidebar-user-name">{{ user.get_full_name|default:user.username }}</div>
@@ -1471,7 +1482,11 @@
                 <div style="position:relative;">
                     <button class="topbar-user" id="userBtn" onclick="window.toggleUserDropdown(event)">
                         <div class="user-avatar" style="width:26px;height:26px;font-size:0.62rem;">
-                            {{ user.get_full_name|default:user.username|slice:":2"|upper }}
+                            {% if user.profile_photo %}
+                                <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name|default:user.username }}">
+                            {% else %}
+                                {{ user.get_full_name|default:user.username|slice:":2"|upper }}
+                            {% endif %}
                         </div>
                         <div class="topbar-user-info d-none d-md-flex">
                             <span class="topbar-user-name">{{ user.get_full_name|default:user.username }}</span>
