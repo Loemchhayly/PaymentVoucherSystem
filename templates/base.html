@@ -1616,9 +1616,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const loadingIndicator = document.getElementById('navLoadingIndicator');
     let isNavigating = false;
 
-    // Intercept sidebar navigation links
+    // Intercept all internal navigation links
     function enableSmoothNavigation() {
-        const navLinks = document.querySelectorAll('.sidebar-link');
+        // Select sidebar links AND content area links
+        const navLinks = document.querySelectorAll('.sidebar-link, #mainContent a');
 
         navLinks.forEach(link => {
             // Skip if already processed
@@ -1632,10 +1633,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            // Skip external links, anchors, javascript links
+            if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('javascript:') || href.startsWith('mailto:')) {
+                return;
+            }
+
             // Only intercept internal links
-            if (href && !href.startsWith('#') && !href.startsWith('http') && !href.startsWith('javascript:')) {
+            if (href) {
                 link.addEventListener('click', function(e) {
-                    // Allow default behavior for Ctrl/Cmd/Shift clicks
+                    // Allow default behavior for Ctrl/Cmd/Shift clicks (open in new tab)
                     if (e.ctrlKey || e.metaKey || e.shiftKey) return;
 
                     e.preventDefault();
@@ -1886,6 +1892,11 @@ function executePageScripts(doc) {
 
     // Initialize smooth navigation on page load
     enableSmoothNavigation();
+
+    // Re-enable smooth navigation after SPA navigation completes
+    window.addEventListener('spa-navigation-complete', function() {
+        enableSmoothNavigation();
+    });
 
     // Store initial state for back button
     if (mainContent) {

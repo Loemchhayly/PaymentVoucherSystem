@@ -1271,24 +1271,33 @@ const donutData    = {{ donut_data|safe }};
   }
 })();
 
-// ── Clickable rows (initial) ──
-attachRowClickHandlers();
-
 // ── PV/PF filter chips ──
 let currentDocFilter = 'all';
 let originalTableRows = null; // Store original rows
 let isSearchActive = false;
 
-// Store original rows on page load
-document.addEventListener('DOMContentLoaded', function() {
-  const tbody = document.querySelector('.dt tbody');
-  if (tbody) {
-    originalTableRows = tbody.innerHTML;
-    console.log('Original table rows stored');
-  } else {
-    console.log('No table found on page load');
+// Store original rows - works with both normal load and SPA navigation
+(function() {
+  function initDashboard() {
+    const tbody = document.querySelector('.dt tbody');
+    if (tbody) {
+      originalTableRows = tbody.innerHTML;
+      console.log('Dashboard initialized - original table rows stored');
+    } else {
+      console.log('No table found on dashboard load');
+    }
+
+    // Attach click handlers
+    attachRowClickHandlers();
   }
-});
+
+  // Execute on both DOMContentLoaded and immediate
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDashboard);
+  } else {
+    initDashboard();
+  }
+})();
 
 function filterDocs(type) {
   currentDocFilter = type;
@@ -1509,15 +1518,24 @@ function attachRowClickHandlers() {
 }
 
 // ── Animate stat bars ──
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.stat-bar').forEach(bar => {
-    const w = bar.style.width;
-    bar.style.width = '0%';
-    setTimeout(() => {
-      bar.style.transition = 'width .9s cubic-bezier(.4,0,.2,1)';
-      bar.style.width = w;
-    }, 400);
-  });
-});
+(function() {
+  function animateStatBars() {
+    document.querySelectorAll('.stat-bar').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0%';
+      setTimeout(() => {
+        bar.style.transition = 'width .9s cubic-bezier(.4,0,.2,1)';
+        bar.style.width = w;
+      }, 400);
+    });
+  }
+
+  // Execute on both DOMContentLoaded and immediate
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', animateStatBars);
+  } else {
+    animateStatBars();
+  }
+})();
 </script>
 {% endblock %}
