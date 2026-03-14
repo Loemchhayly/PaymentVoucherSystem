@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}{{ payment_form.pf_number|default:"DRAFT" }} · Payment Form{% endblock %}
 
@@ -1161,8 +1162,47 @@ body[data-theme="light"] .vd-summary-amount-value {
                             <i class="bi bi-arrow-right-circle-fill"></i>
                             <span>Transfer</span>
                         </div>
-                        <div class="vd-transfer-bank">
+                        <div class="vd-transfer-bank" style="position:relative;">
                             <div class="vd-transfer-bank-label" style="color:rgba(16,185,129,0.8);"><i class="bi bi-person-fill"></i> Supplier (Transfer To)</div>
+                            {% if payment_form.bank_address %}
+                            <div style="position:absolute; top:8px; right:8px; width:90px; height:60px; display:flex; align-items:center; justify-content:center;">
+                                {% if 'ABA' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/aba.png' %}" alt="ABA Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'ACLEDA' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/acleda.png' %}" alt="ACLEDA Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'MAYBANK' in payment_form.bank_address|upper or 'MAY BANK' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/maybank.png' %}" alt="Maybank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'WING' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/wing.png' %}" alt="Wing Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'CANADIA' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/canadia.png' %}" alt="Canadia Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'PHILLIP' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/phillip.png' %}" alt="Phillip Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'VATTANAC' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/vattanac.png' %}" alt="Vattanac Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'PRASAC' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/prasac.png' %}" alt="PRASAC" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'SATHAPANA' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/sathapana.png' %}" alt="Sathapana Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'FTB' in payment_form.bank_address|upper or 'FOREIGN TRADE' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/ftb.png' %}" alt="FTB" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'BRED' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/bred.png' %}" alt="BRED Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'CHIP MONG' in payment_form.bank_address|upper or 'CHIPMONG' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/chipmong.png' %}" alt="Chip Mong Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'WOORI' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/woori.png' %}" alt="Woori Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'CAMBODIA PUBLIC' in payment_form.bank_address|upper or 'CPB' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/cpb.png' %}" alt="Cambodia Public Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'RHB' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/rhb.png' %}" alt="RHB Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'EMIRATES' in payment_form.bank_address|upper or 'NBD' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/emiratesnbd.png' %}" alt="Emirates NBD" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% elif 'HONG LEONG' in payment_form.bank_address|upper or 'HONGLEONG' in payment_form.bank_address|upper %}
+                                    <img src="{% static 'images/banks/hongleong.png' %}" alt="Hong Leong Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                {% endif %}
+                            </div>
+                            {% endif %}
                             <div class="vd-transfer-bank-name">{{ payment_form.bank_address|default:"Not specified" }}</div>
                             <div style="font-size:0.7rem;color:var(--v-muted);margin-bottom:4px;">{{ payment_form.bank_name|default:"—" }}</div>
                             {% if payment_form.bank_account_number %}
