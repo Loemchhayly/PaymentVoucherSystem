@@ -12,4 +12,6 @@ urlpatterns = [
     path('my-vouchers/', views.MyVouchersView.as_view(), name='my_vouchers'),
     path('my-drafts/', views.MyDraftsView.as_view(), name='my_drafts'),
     path('all-vouchers/', views.AllVouchersView.as_view(), name='all_vouchers'),
+    path('bulk-submit-drafts/', views.bulk_submit_drafts, name='bulk_submit_drafts'),
+    path('search/', views.dashboard_search, name='dashboard_search'),
 ]

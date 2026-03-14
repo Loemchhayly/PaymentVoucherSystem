@@ -1132,6 +1132,21 @@ body[data-theme="light"] .amount-cell {
         </div>
         {% endif %}
 
+        <!-- ── Bulk Action Bar for My Drafts (submit drafts) ── -->
+        {% if "Draft" in title %}
+        <div class="bulk-action-bar" id="bulkActionBar">
+            <div class="bulk-count-info">
+                <i class="bi bi-check2-square" style="font-size:0.9rem;"></i>
+                <span class="bulk-count-pill"><span id="selectedCount">0</span> selected</span>
+            </div>
+            <div class="bulk-btns">
+                <button type="button" class="bulk-btn-approve" onclick="showBulkModal('submit')" style="background: linear-gradient(135deg, var(--cyan-600), var(--cyan-700));">
+                    <i class="bi bi-send-check"></i> Submit Selected for Approval
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="table-container">
             <table class="pv-table" id="pvTable">
                 <thead>
@@ -1461,6 +1476,45 @@ body[data-theme="light"] .amount-cell {
 </form>
 
 {% endif %}
+
+<!-- ═══════════════════════════════════════════════════
+     BULK SUBMIT MODAL — only rendered on My Drafts page
+═══════════════════════════════════════════════════ -->
+{% if "Draft" in title %}
+
+<!-- Submit Modal -->
+<div id="submit-modal" class="bulk-modal-overlay">
+    <div class="bulk-modal">
+        <div class="bulk-modal-header">
+            <i class="bi bi-send-check-fill" style="color:var(--cyan-400); font-size:1.1rem;"></i>
+            <h5>Submit Documents for Approval</h5>
+        </div>
+        <div class="bulk-modal-body">
+            <p>You are about to submit <strong id="submit-count">0</strong> draft document(s) for approval. Once submitted, these documents will be locked for editing and sent to the approval workflow.</p>
+            <label class="form-label">
+                Comments
+                <span style="color:var(--text-muted); font-weight:400; text-transform:none; letter-spacing:0;">(Optional)</span>
+            </label>
+            <textarea id="submit-comments" class="form-control" rows="3"
+                      placeholder="Enter any comments for the approvers…"></textarea>
+        </div>
+        <div class="bulk-modal-footer">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="hideBulkModal('submit')">Cancel</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="confirmBulkSubmit()">
+                <i class="bi bi-send-check"></i> Confirm Submit
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden submission form for drafts -->
+<form id="bulk-submit-form" method="post" action="{% url 'dashboard:bulk_submit_drafts' %}" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="comments" id="submit-comments-input">
+    <div id="submit-hidden-inputs"></div>
+</form>
+
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -1525,102 +1579,104 @@ body[data-theme="light"] .amount-cell {
     };
 
     /* ═══════════════════════════════════════════
-       MULTI-FIELD CLIENT-SIDE SEARCH
+       CLIENT-SIDE SEARCH (CURRENT PAGE ONLY)
     ═══════════════════════════════════════════ */
     let activeSearchField = 'all';
 
     window.setSearchField = function(field) {
-    activeSearchField = field;
-    document.querySelectorAll('.search-pill').forEach(p => {
-        p.classList.toggle('active', p.dataset.field === field);
-    });
-    /* Update placeholder */
-    const placeholders = {
-        all:    'Search number, payee, amount, date…',
-        number: 'Search by doc number e.g. 2603-0004…',
-        payee:  'Search by payee name…',
-        amount: 'Search by amount e.g. 244.20…',
-        date:   'Search by date e.g. Mar 12 or 2026…'
-    };
-    const input = document.getElementById('searchInput');
-    input.placeholder = placeholders[field] || placeholders.all;
-    input.focus();
-    /* Re-run current search with new field */
-    clientSearch(input.value.trim());
+        activeSearchField = field;
+        document.querySelectorAll('.search-pill').forEach(p => {
+            p.classList.toggle('active', p.dataset.field === field);
+        });
+
+        /* Update placeholder */
+        const placeholders = {
+            all:    'Search number, payee, amount, date…',
+            number: 'Search by doc number e.g. 2603-0004…',
+            payee:  'Search by payee name…',
+            amount: 'Search by amount e.g. 244.20…',
+            date:   'Search by date e.g. Mar 12 or 2026…'
+        };
+        const input = document.getElementById('searchInput');
+        input.placeholder = placeholders[field] || placeholders.all;
+        input.focus();
+
+        // Re-run search with new field
+        clientSearch(input.value.trim());
     };
 
     window.clearSearch = function() {
-    const input = document.getElementById('searchInput');
-    input.value = '';
-    document.getElementById('searchClearBtn').style.display = 'none';
-    clientSearch('');
-    input.focus();
+        const input = document.getElementById('searchInput');
+        input.value = '';
+        document.getElementById('searchClearBtn').style.display = 'none';
+        clientSearch('');
+        input.focus();
     };
 
     let searchTimeout;
     window.liveSearch = function(val) {
-    const clearBtn = document.getElementById('searchClearBtn');
-    if (clearBtn) clearBtn.style.display = val.trim() ? 'flex' : 'none';
+        const clearBtn = document.getElementById('searchClearBtn');
+        if (clearBtn) clearBtn.style.display = val.trim() ? 'flex' : 'none';
 
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => clientSearch(val.trim()), 200);
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => clientSearch(val.trim()), 200);
     };
 
     function clientSearch(query) {
-    const rows      = document.querySelectorAll('.pv-table tbody tr');
-    const hasData   = rows.length && !rows[0].querySelector('td[colspan]');
-    if (!hasData) return;
+        const rows = document.querySelectorAll('.pv-table tbody tr');
+        const hasData = rows.length && !rows[0].querySelector('td[colspan]');
+        if (!hasData) return;
 
-    const q = query.toLowerCase();
+        const q = query.toLowerCase();
 
-    /* Column indices per field */
-    const fieldCols = {
-        number: [2],
-        payee:  [3],
-        amount: [4],
-        date:   [6],
-        all:    [2, 3, 4, 6]
-    };
-    const cols = fieldCols[activeSearchField] || fieldCols.all;
+        /* Column indices per field */
+        const fieldCols = {
+            number: [2],
+            payee:  [3],
+            amount: [4],
+            date:   [6],
+            all:    [2, 3, 4, 6]
+        };
+        const cols = fieldCols[activeSearchField] || fieldCols.all;
 
-    let visibleCount = 0;
+        let visibleCount = 0;
 
-    rows.forEach(row => {
-        if (!q) {
-            row.style.display = '';
-            removeHighlights(row);
-            visibleCount++;
-            return;
-        }
+        rows.forEach(row => {
+            if (!q) {
+                row.style.display = '';
+                removeHighlights(row);
+                visibleCount++;
+                return;
+            }
 
-        /* Collect text from relevant columns */
-        const cells = row.querySelectorAll('td');
-        let matched = false;
+            /* Collect text from relevant columns */
+            const cells = row.querySelectorAll('td');
+            let matched = false;
 
-        cols.forEach(idx => {
-            if (cells[idx]) {
-                const text = cells[idx].textContent.toLowerCase();
-                if (text.includes(q)) matched = true;
+            cols.forEach(idx => {
+                if (cells[idx]) {
+                    const text = cells[idx].textContent.toLowerCase();
+                    if (text.includes(q)) matched = true;
+                }
+            });
+
+            row.style.display = matched ? '' : 'none';
+            if (matched) {
+                visibleCount++;
+                highlightRow(row, cols, q);
+            } else {
+                removeHighlights(row);
             }
         });
 
-        row.style.display = matched ? '' : 'none';
-        if (matched) {
-            visibleCount++;
-            highlightRow(row, cols, q);
-        } else {
-            removeHighlights(row);
+        /* Update showing count */
+        const showingEl = document.querySelector('.showing-info');
+        if (showingEl && q) {
+            showingEl.innerHTML = `Showing <span>${visibleCount}</span> matching result${visibleCount !== 1 ? 's' : ''} on this page`;
+        } else if (showingEl && !q) {
+            showingEl.innerHTML = `Showing <span>${rows.length}</span> entries`;
         }
-    });
-
-    /* Update showing count */
-    const showingEl = document.querySelector('.showing-info');
-    if (showingEl && q) {
-        showingEl.innerHTML = `Showing <span>${visibleCount}</span> matching result${visibleCount !== 1 ? 's' : ''}`;
-    } else if (showingEl && !q) {
-        showingEl.innerHTML = `Showing <span>${rows.length}</span> entries`;
     }
-}
 
 function highlightRow(row, cols, q) {
     removeHighlights(row);
@@ -1727,9 +1783,12 @@ window.addEventListener('popstate', function(e) {
     if (type === 'approve') {
         document.getElementById('approve-count').textContent = n;
         document.getElementById('approve-comments').value = '';
-    } else {
+    } else if (type === 'reject') {
         document.getElementById('reject-count').textContent = n;
         document.getElementById('reject-comments').value = '';
+    } else if (type === 'submit') {
+        document.getElementById('submit-count').textContent = n;
+        document.getElementById('submit-comments').value = '';
     }
 
     document.getElementById(type + '-modal').classList.add('active');
@@ -1782,11 +1841,12 @@ window.addEventListener('popstate', function(e) {
     if (e.key === 'Escape') {
         hideBulkModal('approve');
         hideBulkModal('reject');
+        hideBulkModal('submit');
     }
 });
 
 /* Close on overlay click */
-['approve-modal', 'reject-modal'].forEach(id => {
+['approve-modal', 'reject-modal', 'submit-modal'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
         el.addEventListener('click', function(e) {
@@ -1794,6 +1854,31 @@ window.addEventListener('popstate', function(e) {
         });
     }
     });
+
+    /* ═══════════════════════════════════════════
+       BULK SUBMIT DRAFTS — Modal + Form Submission
+    ═══════════════════════════════════════════ */
+    window.confirmBulkSubmit = function() {
+        const commentsEl = document.getElementById('submit-comments');
+        const comments = commentsEl ? commentsEl.value.trim() : '';
+
+        const selected = document.querySelectorAll('.row-checkbox:checked');
+        if (!selected.length) return;
+
+        const hiddenInputs = document.getElementById('submit-hidden-inputs');
+        hiddenInputs.innerHTML = '';
+        document.getElementById('submit-comments-input').value = comments;
+
+        selected.forEach(cb => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = cb.dataset.doctype === 'pf' ? 'pf_ids[]' : 'pv_ids[]';
+            inp.value = cb.value;
+            hiddenInputs.appendChild(inp);
+        });
+
+        document.getElementById('bulk-submit-form').submit();
+    };
 
     // Execute immediately on page load
     if (document.readyState === 'loading') {

@@ -629,6 +629,24 @@ body[data-theme="light"] .live-data-label {
     color: #374151 !important;
 }
 
+/* Dashboard search input */
+#dashSearchInput:focus {
+  outline: none;
+  border-color: var(--cyan-600);
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+}
+
+body[data-theme="light"] #dashSearchInput {
+  background: #e8ebef;
+  border-color: rgba(0,0,0,0.15);
+  color: #0f172a;
+}
+
+body[data-theme="light"] #dashSearchInput:focus {
+  background: #e8ebef;
+  border-color: #0891b2;
+}
+
 /* Dashboard Header Elements */
 body[data-theme="light"] .dash-header {
   border-bottom-color: rgba(0,0,0,0.1);
@@ -961,10 +979,24 @@ body[data-theme="light"] .panel-title-sub {
         <h2 class="vp-title"><i class="bi bi-clock-history"></i> Recent Documents</h2>
         <div class="vp-sub">Payment Vouchers &amp; Payment Forms</div>
       </div>
-      <div class="filter-chips">
-        <button class="filter-chip active" data-f="all" onclick="filterDocs('all')">All</button>
-        <button class="filter-chip"        data-f="pv"  onclick="filterDocs('pv')">PV Only</button>
-        <button class="filter-chip"        data-f="pf"  onclick="filterDocs('pf')">PF Only</button>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div class="filter-chips">
+          <button class="filter-chip active" data-f="all" onclick="filterDocs('all')">All</button>
+          <button class="filter-chip"        data-f="pv"  onclick="filterDocs('pv')">PV Only</button>
+          <button class="filter-chip"        data-f="pf"  onclick="filterDocs('pf')">PF Only</button>
+        </div>
+        <div style="position:relative; display:flex; align-items:center;">
+          <i class="bi bi-search" style="position:absolute; left:10px; font-size:.75rem; color:var(--text-muted); pointer-events:none;"></i>
+          <input type="text" id="dashSearchInput" placeholder="Search documents…"
+                 style="background:var(--ink-750); border:1px solid var(--border); border-radius:var(--r-md); color:var(--text-primary); font-family:'Montserrat',sans-serif; font-size:.73rem; padding:5px 30px 5px 32px; width:220px; transition:all .2s ease;"
+                 onkeyup="searchDashDocs(this.value)" autocomplete="off">
+          <button type="button" id="dashSearchClear" onclick="clearDashSearch()"
+                  style="position:absolute; right:6px; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:.8rem; width:18px; height:18px; border-radius:50%; display:none; align-items:center; justify-content:center; transition:all .15s;"
+                  onmouseover="this.style.background='rgba(255,255,255,0.08)'"
+                  onmouseout="this.style.background='none'">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1239,22 +1271,240 @@ const donutData    = {{ donut_data|safe }};
   }
 })();
 
-// ── Clickable rows ──
-document.querySelectorAll('.doc-row').forEach(row => {
-  row.addEventListener('click', function(e) {
-    if (e.target.closest('a') || e.target.closest('button')) return;
-    const href = this.getAttribute('data-href');
-    if (href) window.location.href = href;
-  });
-});
+// ── Clickable rows (initial) ──
+attachRowClickHandlers();
 
 // ── PV/PF filter chips ──
+let currentDocFilter = 'all';
+let originalTableRows = null; // Store original rows
+let isSearchActive = false;
+
+// Store original rows on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const tbody = document.querySelector('.dt tbody');
+  if (tbody) {
+    originalTableRows = tbody.innerHTML;
+    console.log('Original table rows stored');
+  } else {
+    console.log('No table found on page load');
+  }
+});
+
 function filterDocs(type) {
+  currentDocFilter = type;
   document.querySelectorAll('.filter-chip').forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-f') === type);
   });
+
+  // If search is active, re-run server search with new filter
+  const searchInput = document.getElementById('dashSearchInput');
+  if (searchInput && searchInput.value.trim()) {
+    searchDashDocs(searchInput.value);
+  } else {
+    // Just apply client-side filter to original rows
+    applyClientFilter();
+  }
+}
+
+function applyClientFilter() {
+  const rows = document.querySelectorAll('.doc-row');
+  rows.forEach(row => {
+    const docType = row.getAttribute('data-type');
+    row.style.display = (currentDocFilter === 'all' || docType === currentDocFilter) ? '' : 'none';
+  });
+}
+
+// ── Search functionality ──
+let searchTimeout;
+function searchDashDocs(query) {
+  const q = query.trim();
+  const clearBtn = document.getElementById('dashSearchClear');
+  if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
+
+  // Clear previous timeout
+  clearTimeout(searchTimeout);
+
+  if (!q) {
+    // Restore original rows
+    restoreOriginalRows();
+    return;
+  }
+
+  // Debounce search - wait 300ms after user stops typing
+  searchTimeout = setTimeout(() => {
+    performServerSearch(q);
+  }, 300);
+}
+
+function clearDashSearch() {
+  const input = document.getElementById('dashSearchInput');
+  if (input) input.value = '';
+  const clearBtn = document.getElementById('dashSearchClear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  restoreOriginalRows();
+}
+
+function restoreOriginalRows() {
+  isSearchActive = false;
+  const tbody = document.querySelector('.dt tbody');
+  if (tbody && originalTableRows) {
+    tbody.innerHTML = originalTableRows;
+    // Re-attach click handlers
+    attachRowClickHandlers();
+    // Apply current doc type filter
+    applyClientFilter();
+  }
+  // Reset pagination info
+  const paginationInfo = document.querySelector('.pagination-info');
+  if (paginationInfo) {
+    const totalRows = document.querySelectorAll('.doc-row').length;
+    paginationInfo.innerHTML = `Showing <span>1–${totalRows}</span> of <span>${totalRows}</span> documents`;
+  }
+}
+
+function performServerSearch(query) {
+  let tbody = document.querySelector('.dt tbody');
+
+  // If table doesn't exist yet, create it
+  if (!tbody) {
+    const tableWrap = document.querySelector('.table-wrap');
+    const emptyState = document.querySelector('.empty-state');
+
+    if (emptyState && emptyState.parentElement) {
+      // Remove empty state and create table
+      emptyState.remove();
+
+      const tableWrap = document.createElement('div');
+      tableWrap.className = 'table-wrap';
+      tableWrap.innerHTML = `
+        <table class="dt">
+          <thead>
+            <tr>
+              <th>Type</th><th>Number</th><th>Payee</th><th>Amount</th>
+              <th>Status</th><th>Date</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      `;
+      document.querySelector('.vouchers-panel').appendChild(tableWrap);
+      tbody = document.querySelector('.dt tbody');
+    }
+
+    if (!tbody) {
+      console.error('Could not find or create table tbody');
+      return;
+    }
+  }
+
+  // Show loading state
+  tbody.style.opacity = '0.5';
+  tbody.style.pointerEvents = 'none';
+
+  // Call server endpoint - dashboard URLs are at root level
+  const url = `/search/?q=${encodeURIComponent(query)}&doc_type=${currentDocFilter}`;
+  console.log('Searching:', query, 'URL:', url);
+
+  fetch(url, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => {
+    console.log('Response status:', response.status);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('Search response:', data);
+    if (data.success) {
+      isSearchActive = true;
+      renderSearchResults(data.results, data.count);
+    } else {
+      console.error('Search failed:', data.error);
+      tbody.style.opacity = '1';
+      tbody.style.pointerEvents = 'auto';
+    }
+  })
+  .catch(error => {
+    console.error('Search error:', error);
+    if (tbody) {
+      tbody.style.opacity = '1';
+      tbody.style.pointerEvents = 'auto';
+    }
+  });
+}
+
+function renderSearchResults(results, count) {
+  const tbody = document.querySelector('.dt tbody');
+  if (!tbody) return;
+
+  if (results.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted)">
+          <i class="bi bi-search" style="font-size:2rem; display:block; margin-bottom:10px; opacity:0.3"></i>
+          <div style="font-size:.9rem">No documents found matching your search.</div>
+        </td>
+      </tr>
+    `;
+  } else {
+    tbody.innerHTML = results.map(doc => {
+      const statusBadgeClass = {
+        'DRAFT': 'draft',
+        'APPROVED': 'approved',
+        'REJECTED': 'rejected',
+        'ON_REVISION': 'revision'
+      }[doc.status] || 'pending';
+
+      const statusIcon = {
+        'DRAFT': 'pencil',
+        'APPROVED': 'check-circle',
+        'REJECTED': 'x-circle',
+        'ON_REVISION': 'arrow-counterclockwise'
+      }[doc.status] || 'clock';
+
+      return `
+        <tr class="doc-row" data-type="${doc.type}" data-href="${doc.detail_url}">
+          <td>${doc.type === 'pf' ? '<span class="doc-badge pf"><i class="bi bi-file-earmark-check"></i> PF</span>' : '<span class="doc-badge pv"><i class="bi bi-receipt"></i> PV</span>'}</td>
+          <td><span class="pv-num ${doc.type === 'pf' ? 'pf' : ''}">${doc.number}</span></td>
+          <td><span class="payee-name">${doc.payee}</span></td>
+          <td><span class="amount-val">${doc.amount}</span></td>
+          <td><span class="sbadge ${statusBadgeClass}"><i class="bi bi-${statusIcon}"></i> ${doc.status_display}</span></td>
+          <td><span class="date-val">${doc.date}</span></td>
+          <td>
+            <div class="btn-cell">
+              <a href="${doc.detail_url}" class="view-btn" onclick="event.stopPropagation()"><i class="bi bi-eye"></i> View</a>
+              <a href="${doc.repeat_url}" class="view-btn repeat" onclick="event.stopPropagation()"><i class="bi bi-arrow-repeat"></i> Repeat</a>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Re-attach click handlers
+  attachRowClickHandlers();
+
+  tbody.style.opacity = '1';
+  tbody.style.pointerEvents = 'auto';
+
+  // Update pagination info
+  const paginationInfo = document.querySelector('.pagination-info');
+  if (paginationInfo) {
+    paginationInfo.innerHTML = `Showing <span>${count}</span> matching result${count !== 1 ? 's' : ''} from all documents`;
+  }
+}
+
+function attachRowClickHandlers() {
   document.querySelectorAll('.doc-row').forEach(row => {
-    row.style.display = (type === 'all' || row.getAttribute('data-type') === type) ? '' : 'none';
+    row.addEventListener('click', function(e) {
+      if (e.target.closest('a') || e.target.closest('button')) return;
+      const href = this.getAttribute('data-href');
+      if (href) window.location.href = href;
+    });
   });
 }
 

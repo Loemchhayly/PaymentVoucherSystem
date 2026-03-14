@@ -1,8 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.views.generic import ListView
 from django.db.models import Q
+from django.http import JsonResponse
 from vouchers.models import PaymentVoucher, PaymentForm, SignatureBatch
+from workflow.state_machine import VoucherStateMachine, FormStateMachine
 from itertools import chain
 from operator import attrgetter
 from collections import defaultdict
@@ -19,7 +23,10 @@ class DashboardView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         doc_type = self.request.GET.get('doc_type', 'all')
+        search_query = self.request.GET.get('search', '').strip()
+        search_field = self.request.GET.get('search_field', 'all')
 
+        # Base querysets
         if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.all()
             pf_queryset = PaymentForm.objects.all()
@@ -35,6 +42,12 @@ class DashboardView(LoginRequiredMixin, ListView):
                 Q(approval_history__actor=user)
             ).distinct()
 
+        # Apply search filter BEFORE pagination
+        if search_query:
+            pv_queryset = self._apply_search_filter(pv_queryset, search_query, search_field, 'pv')
+            pf_queryset = self._apply_search_filter(pf_queryset, search_query, search_field, 'pf')
+
+        # Filter by doc_type
         if doc_type == 'pv':
             combined = sorted(pv_queryset, key=attrgetter('created_at'), reverse=True)
         elif doc_type == 'pf':
@@ -46,6 +59,66 @@ class DashboardView(LoginRequiredMixin, ListView):
                 reverse=True
             )
         return combined
+
+    def _apply_search_filter(self, queryset, query, field, doc_type):
+        """Apply search filters based on selected field"""
+        from decimal import Decimal, InvalidOperation
+
+        if field == 'number':
+            # Search in document number
+            if doc_type == 'pv':
+                return queryset.filter(pv_number__icontains=query)
+            else:
+                return queryset.filter(pf_number__icontains=query)
+
+        elif field == 'payee':
+            # Search in payee name
+            return queryset.filter(payee_name__icontains=query)
+
+        elif field == 'amount':
+            # Search in amount
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                return queryset.filter(
+                    Q(line_items__amount=amount_decimal) |
+                    Q(line_items__amount__icontains=query)
+                ).distinct()
+            except (InvalidOperation, ValueError):
+                return queryset.filter(line_items__amount__icontains=query).distinct()
+
+        elif field == 'date':
+            # Search in dates
+            return queryset.filter(
+                Q(created_at__icontains=query) |
+                Q(payment_date__icontains=query)
+            )
+
+        else:  # field == 'all'
+            # Search in all fields
+            q_filter = Q()
+
+            # Document number
+            if doc_type == 'pv':
+                q_filter |= Q(pv_number__icontains=query)
+            else:
+                q_filter |= Q(pf_number__icontains=query)
+
+            # Payee name
+            q_filter |= Q(payee_name__icontains=query)
+
+            # Amount
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                q_filter |= Q(line_items__amount=amount_decimal)
+            except (InvalidOperation, ValueError):
+                pass
+            q_filter |= Q(line_items__amount__icontains=query)
+
+            # Date
+            q_filter |= Q(created_at__icontains=query)
+            q_filter |= Q(payment_date__icontains=query)
+
+            return queryset.filter(q_filter).distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -272,6 +345,10 @@ class DashboardView(LoginRequiredMixin, ListView):
 
         context['donut_data'] = donut_data
         context['donut_grand_usd'] = float(grand_total)
+
+        # Add search parameters to context
+        context['search_query'] = self.request.GET.get('search', '')
+        context['search_field'] = self.request.GET.get('search_field', 'all')
 
         return context
 
@@ -616,3 +693,194 @@ class AllVouchersView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'All Recent Documents'
         return context
+
+
+@login_required
+def bulk_submit_drafts(request):
+    """Handle bulk submission of draft documents"""
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method")
+        return redirect('dashboard:my_drafts')
+
+    user = request.user
+    comments = request.POST.get('comments', '').strip()
+
+    # Get selected document IDs
+    pv_ids = request.POST.getlist('pv_ids[]')
+    pf_ids = request.POST.getlist('pf_ids[]')
+
+    if not pv_ids and not pf_ids:
+        messages.error(request, "No documents selected")
+        return redirect('dashboard:my_drafts')
+
+    success_count = 0
+    error_count = 0
+    errors = []
+
+    # Process Payment Vouchers
+    for pv_id in pv_ids:
+        try:
+            voucher = PaymentVoucher.objects.get(pk=pv_id)
+
+            # Security check: Only the creator can submit their own drafts
+            if voucher.created_by != user:
+                errors.append(f"PV {voucher.pv_number or pv_id}: You can only submit your own drafts")
+                error_count += 1
+                continue
+
+            # Check if document is in DRAFT or ON_REVISION status
+            if voucher.status not in ['DRAFT', 'ON_REVISION']:
+                errors.append(f"PV {voucher.pv_number or pv_id}: Not a draft (status: {voucher.get_status_display()})")
+                error_count += 1
+                continue
+
+            # Check if can submit
+            can_do, error = VoucherStateMachine.can_transition(voucher, 'submit', user)
+            if not can_do:
+                errors.append(f"PV {voucher.pv_number or pv_id}: {error}")
+                error_count += 1
+                continue
+
+            # Submit the document
+            VoucherStateMachine.transition(voucher, 'submit', user, comments)
+            success_count += 1
+
+        except PaymentVoucher.DoesNotExist:
+            errors.append(f"PV ID {pv_id}: Not found")
+            error_count += 1
+        except Exception as e:
+            errors.append(f"PV ID {pv_id}: {str(e)}")
+            error_count += 1
+
+    # Process Payment Forms
+    for pf_id in pf_ids:
+        try:
+            payment_form = PaymentForm.objects.get(pk=pf_id)
+
+            # Security check: Only the creator can submit their own drafts
+            if payment_form.created_by != user:
+                errors.append(f"PF {payment_form.pf_number or pf_id}: You can only submit your own drafts")
+                error_count += 1
+                continue
+
+            # Check if document is in DRAFT or ON_REVISION status
+            if payment_form.status not in ['DRAFT', 'ON_REVISION']:
+                errors.append(f"PF {payment_form.pf_number or pf_id}: Not a draft (status: {payment_form.get_status_display()})")
+                error_count += 1
+                continue
+
+            # Check if can submit
+            can_do, error = FormStateMachine.can_transition(payment_form, 'submit', user)
+            if not can_do:
+                errors.append(f"PF {payment_form.pf_number or pf_id}: {error}")
+                error_count += 1
+                continue
+
+            # Submit the document
+            FormStateMachine.transition(payment_form, 'submit', user, comments)
+            success_count += 1
+
+        except PaymentForm.DoesNotExist:
+            errors.append(f"PF ID {pf_id}: Not found")
+            error_count += 1
+        except Exception as e:
+            errors.append(f"PF ID {pf_id}: {str(e)}")
+            error_count += 1
+
+    # Display results
+    if success_count > 0:
+        messages.success(request, f"Successfully submitted {success_count} document(s) for approval")
+
+    if error_count > 0:
+        error_msg = f"{error_count} document(s) could not be submitted"
+        if errors:
+            error_msg += ":<br>" + "<br>".join(errors[:5])  # Show first 5 errors
+            if len(errors) > 5:
+                error_msg += f"<br>...and {len(errors) - 5} more error(s)"
+        messages.error(request, error_msg)
+
+    return redirect('dashboard:my_drafts')
+
+
+@login_required
+def dashboard_search(request):
+    """Search ALL documents the user has access to"""
+    query = request.GET.get('q', '').strip()
+    doc_type = request.GET.get('doc_type', 'all')
+
+    if not query:
+        return JsonResponse({'success': False, 'error': 'No search query provided'})
+
+    user = request.user
+
+    # Base querysets - same logic as DashboardView
+    if user.is_staff or user.role_level == 5:
+        pv_queryset = PaymentVoucher.objects.all()
+        pf_queryset = PaymentForm.objects.all()
+    else:
+        pv_queryset = PaymentVoucher.objects.filter(
+            Q(created_by=user) |
+            Q(current_approver=user) |
+            Q(approval_history__actor=user)
+        ).distinct()
+        pf_queryset = PaymentForm.objects.filter(
+            Q(created_by=user) |
+            Q(current_approver=user) |
+            Q(approval_history__actor=user)
+        ).distinct()
+
+    # Search across number and payee
+    # Search PV
+    pv_queryset = pv_queryset.filter(
+        Q(pv_number__icontains=query) |
+        Q(payee_name__icontains=query)
+    )
+
+    # Search PF
+    pf_queryset = pf_queryset.filter(
+        Q(pf_number__icontains=query) |
+        Q(payee_name__icontains=query)
+    )
+
+    # Filter by doc_type
+    if doc_type == 'pv':
+        combined = list(pv_queryset)
+    elif doc_type == 'pf':
+        combined = list(pf_queryset)
+    else:
+        combined = list(chain(pv_queryset, pf_queryset))
+
+    # Sort by created_at descending
+    combined = sorted(combined, key=attrgetter('created_at'), reverse=True)
+
+    # Limit to 100 results to avoid performance issues
+    combined = combined[:100]
+
+    # Build JSON response
+    results = []
+    for doc in combined:
+        is_pf = hasattr(doc, 'pf_number') and doc.pf_number
+
+        # Get currency from first line item
+        currency = 'USD'
+        if doc.line_items.exists():
+            currency = doc.line_items.first().currency
+
+        results.append({
+            'id': doc.pk,
+            'type': 'pf' if is_pf else 'pv',
+            'number': doc.pf_number if is_pf else doc.pv_number or 'DRAFT',
+            'payee': doc.payee_name,
+            'amount': doc.get_grand_total_display(),
+            'status': doc.status,
+            'status_display': doc.get_status_display(),
+            'date': doc.created_at.strftime('%b %d, %Y'),
+            'detail_url': f'/vouchers/pf/{doc.pk}/' if is_pf else f'/vouchers/{doc.pk}/',
+            'repeat_url': f'/vouchers/pf/{doc.pk}/repeat/' if is_pf else f'/vouchers/{doc.pk}/repeat/',
+        })
+
+    return JsonResponse({
+        'success': True,
+        'count': len(results),
+        'results': results
+    })
