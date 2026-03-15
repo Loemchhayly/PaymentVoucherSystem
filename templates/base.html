@@ -2132,6 +2132,114 @@ document.addEventListener('click', function(e) {
     notifDropdown && notifDropdown.classList.remove('show');
     userDropdown && userDropdown.classList.remove('show');
 });
+
+// ============================================================================
+// CSRF TOKEN KEEP-ALIVE SYSTEM
+// Prevents CSRF token staleness after page idle periods
+// ============================================================================
+
+(function() {
+    'use strict';
+
+    // Configuration
+    const KEEP_ALIVE_INTERVAL = 4 * 60 * 1000; // 4 minutes in milliseconds
+    const KEEP_ALIVE_URL = '/keep-alive/';
+
+    let keepAliveTimer = null;
+
+    /**
+     * Updates all CSRF tokens on the page with a fresh token
+     * @param {string} newToken - Fresh CSRF token from server
+     */
+    function updateCSRFTokens(newToken) {
+        // Update all hidden CSRF input fields
+        document.querySelectorAll('[name=csrfmiddlewaretoken]').forEach(input => {
+            input.value = newToken;
+        });
+
+        // Update CSRF cookie if it exists
+        document.cookie = `csrftoken=${newToken}; path=/; SameSite=Lax`;
+
+        // Update any global csrfToken variables used in inline scripts
+        if (typeof window.csrfToken !== 'undefined') {
+            window.csrfToken = newToken;
+        }
+    }
+
+    /**
+     * Pings the keep-alive endpoint to refresh session and CSRF token
+     */
+    function pingKeepAlive() {
+        fetch(KEEP_ALIVE_URL, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'ok' && data.csrf_token) {
+                updateCSRFTokens(data.csrf_token);
+                console.debug('[Keep-Alive] Session and CSRF token refreshed at', data.timestamp);
+            }
+        })
+        .catch(error => {
+            // Silent fail - don't alert user for network errors
+            console.debug('[Keep-Alive] Ping failed:', error.message);
+        });
+    }
+
+    /**
+     * Starts the keep-alive timer
+     */
+    function startKeepAlive() {
+        // Clear any existing timer
+        if (keepAliveTimer) {
+            clearInterval(keepAliveTimer);
+        }
+
+        // Ping immediately on start
+        pingKeepAlive();
+
+        // Set up periodic pings
+        keepAliveTimer = setInterval(pingKeepAlive, KEEP_ALIVE_INTERVAL);
+    }
+
+    /**
+     * Handles tab visibility changes
+     * Refreshes CSRF token when user returns to the tab
+     */
+    function handleVisibilityChange() {
+        if (!document.hidden) {
+            // User returned to tab - refresh token immediately
+            console.debug('[Keep-Alive] Tab became visible, refreshing token');
+            pingKeepAlive();
+        }
+    }
+
+    // Initialize keep-alive system when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startKeepAlive);
+    } else {
+        startKeepAlive();
+    }
+
+    // Refresh token when user returns to tab after being away
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (keepAliveTimer) {
+            clearInterval(keepAliveTimer);
+        }
+    });
+})();
 </script>
 
 {% block extra_js %}{% endblock %}

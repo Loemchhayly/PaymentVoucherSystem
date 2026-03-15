@@ -9,6 +9,19 @@
    ALL BATCHES PAGE — Enterprise Dark Edition
 ══════════════════════════════════════════════════════════ */
 
+/* ── Fade-up Animation ── */
+@keyframes abFadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.ab-fade { animation: abFadeUp 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+.ab-fade:nth-child(1) { animation-delay: 0.04s; }
+.ab-fade:nth-child(2) { animation-delay: 0.10s; }
+.ab-fade:nth-child(3) { animation-delay: 0.16s; }
+.ab-fade:nth-child(4) { animation-delay: 0.22s; }
+.ab-fade:nth-child(5) { animation-delay: 0.28s; }
+.ab-fade:nth-child(6) { animation-delay: 0.34s; }
+
 .batches-root {
     max-width: 1400px;
     margin: 0 auto;
@@ -384,7 +397,7 @@ body[data-theme="light"] .tbl-btn.excel:hover {
 <div class="batches-root">
 
     <!-- ── Page Header ── -->
-    <div class="page-header">
+    <div class="page-header ab-fade">
         <div>
             <div class="page-title">
                 <i class="bi bi-card-list"></i>
@@ -400,7 +413,7 @@ body[data-theme="light"] .tbl-btn.excel:hover {
     </div>
 
     <!-- ── Stats Strip ── */
-    <div class="stats-strip">
+    <div class="stats-strip ab-fade">
         <div class="stat-cell total">
             <div class="stat-icon"><i class="bi bi-folder2-open"></i></div>
             <div class="stat-info">
@@ -433,7 +446,7 @@ body[data-theme="light"] .tbl-btn.excel:hover {
 
     <!-- ══════════ PENDING ══════════ -->
     {% if pending_batches %}
-    <div class="batch-section">
+    <div class="batch-section ab-fade">
         <div class="batch-section-header">
             <div class="section-icon pending"><i class="bi bi-hourglass-split"></i></div>
             <span class="section-title">Pending MD Signature</span>
@@ -497,7 +510,7 @@ body[data-theme="light"] .tbl-btn.excel:hover {
 
     <!-- ══════════ SIGNED ══════════ -->
     {% if signed_batches %}
-    <div class="batch-section">
+    <div class="batch-section ab-fade">
         <div class="batch-section-header">
             <div class="section-icon signed"><i class="bi bi-check-circle-fill"></i></div>
             <span class="section-title">Signed Batches</span>
@@ -572,7 +585,7 @@ body[data-theme="light"] .tbl-btn.excel:hover {
 
     <!-- ══════════ REJECTED ══════════ -->
     {% if rejected_batches %}
-    <div class="batch-section">
+    <div class="batch-section ab-fade">
         <div class="batch-section-header">
             <div class="section-icon rejected"><i class="bi bi-x-circle-fill"></i></div>
             <span class="section-title">Rejected Batches</span>
@@ -657,7 +670,7 @@ body[data-theme="light"] .tbl-btn.excel:hover {
 
     <!-- ══════════ EMPTY STATE ══════════ -->
     {% if not pending_batches and not signed_batches and not rejected_batches %}
-    <div class="batch-section">
+    <div class="batch-section ab-fade">
         <div class="empty-state">
             <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
             <p style="font-size:0.875rem;color:var(--text-secondary);margin-bottom:4px;">No signature batches found</p>

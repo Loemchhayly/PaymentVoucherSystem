@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from accounts.views import keep_alive
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('vouchers/', include('vouchers.urls')),
     path('', include('dashboard.urls')),  # Dashboard at root
+    path('keep-alive/', keep_alive, name='keep_alive'),
 ]
 
 # Serve media files in development

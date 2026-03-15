@@ -9,9 +9,11 @@
 
 /**
  * Get CSRF token from Django
+ * IMPORTANT: Always reads fresh from DOM to get updated tokens from keep-alive system.
+ * DO NOT cache this value - it must be called fresh for each request.
  */
-// NEW - reads from Django's hidden input, guaranteed to exist
 function getCSRFToken() {
+    // Read from hidden input first (updated by keep-alive every 4 minutes)
     return document.querySelector('[name=csrfmiddlewaretoken]')?.value
         || document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1]
         || '';

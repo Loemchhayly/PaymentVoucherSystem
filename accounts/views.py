@@ -7,6 +7,9 @@ from django.views.generic import CreateView, UpdateView, TemplateView, FormView
 from django.urls import reverse_lazy
 from django.core.mail import send_mail
 from django.conf import settings
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+from django.utils import timezone
 from .models import User
 from .forms import UserRegistrationForm, UserLoginForm, SignatureUploadForm, ProfilePhotoUploadForm, ProfileUpdateForm, PasswordResetRequestForm, PasswordResetConfirmForm
 from .utils import send_verification_email, send_welcome_email, send_password_reset_email
@@ -407,3 +410,22 @@ class PasswordResetCompleteView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Password Reset Complete'
         return context
+
+
+@login_required
+def keep_alive(request):
+    """
+    Keep-alive endpoint to maintain session and refresh CSRF token.
+    Called periodically by JavaScript to prevent session timeout and CSRF token staleness.
+    """
+    # Touch session to prevent timeout
+    request.session.modified = True
+
+    # Generate fresh CSRF token
+    csrf_token = get_token(request)
+
+    return JsonResponse({
+        'status': 'ok',
+        'csrf_token': csrf_token,
+        'timestamp': timezone.now().isoformat()
+    })
