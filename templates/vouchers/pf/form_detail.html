@@ -1330,7 +1330,7 @@ body[data-theme="light"] .vd-btn-ghost:hover {
                         <div class="vd-empty"><i class="bi bi-file-earmark-x"></i><p>No attachments yet.</p></div>
                     {% endif %}
 
-                    {% if can_edit %}
+                    {% if can_upload_attachment %}
                     <div class="vd-upload-zone">
                         <form method="post" action="{% url 'vouchers:upload_form_attachment' pk=payment_form.pk %}" enctype="multipart/form-data">
                             {% csrf_token %}

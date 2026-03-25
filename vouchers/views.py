@@ -409,6 +409,15 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
         except Exception:
             context['approval_history'] = []
 
+        # Attachment upload permission
+        # Creator can upload if editable, AP users can upload if approved
+        is_creator = user == voucher.created_by
+        is_ap_user = user_role == 1
+        is_editable = voucher.is_editable()
+        is_approved = voucher.status == 'APPROVED'
+
+        context['can_upload_attachment'] = (is_creator and is_editable) or (is_ap_user and is_approved)
+
         return context
 
 
@@ -555,10 +564,25 @@ def form_approve(request, pk):
 @login_required
 def upload_attachment(request, pk):
     """Upload multiple attachments to voucher"""
-    voucher = get_object_or_404(PaymentVoucher, pk=pk, created_by=request.user)
+    voucher = get_object_or_404(PaymentVoucher, pk=pk)
 
-    if not voucher.is_editable():
-        messages.error(request, 'Cannot add attachments to locked vouchers')
+    # Permission check:
+    # 1. Document creator can upload if document is editable
+    # 2. Account Payable (role_level=1) can upload to approved documents
+    is_creator = voucher.created_by == request.user
+    is_ap_user = request.user.role_level == 1
+    is_editable = voucher.is_editable()
+    is_approved = voucher.status == 'APPROVED'
+
+    can_upload = (is_creator and is_editable) or (is_ap_user and is_approved)
+
+    if not can_upload:
+        if is_ap_user and not is_approved:
+            messages.error(request, 'Account Payable can only add attachments to fully approved documents')
+        elif not is_creator:
+            messages.error(request, 'You do not have permission to upload attachments')
+        else:
+            messages.error(request, 'Cannot add attachments to locked vouchers')
         return redirect('vouchers:detail', pk=pk)
 
     if request.method == 'POST':
@@ -649,10 +673,25 @@ def download_attachment(request, pk, attachment_id):
 @login_required
 def upload_form_attachment(request, pk):
     """Upload multiple attachments to payment form"""
-    payment_form = get_object_or_404(PaymentForm, pk=pk, created_by=request.user)
+    payment_form = get_object_or_404(PaymentForm, pk=pk)
 
-    if not payment_form.is_editable():
-        messages.error(request, 'Cannot add attachments to locked forms')
+    # Permission check:
+    # 1. Document creator can upload if document is editable
+    # 2. Account Payable (role_level=1) can upload to approved documents
+    is_creator = payment_form.created_by == request.user
+    is_ap_user = request.user.role_level == 1
+    is_editable = payment_form.is_editable()
+    is_approved = payment_form.status == 'APPROVED'
+
+    can_upload = (is_creator and is_editable) or (is_ap_user and is_approved)
+
+    if not can_upload:
+        if is_ap_user and not is_approved:
+            messages.error(request, 'Account Payable can only add attachments to fully approved forms')
+        elif not is_creator:
+            messages.error(request, 'You do not have permission to upload attachments')
+        else:
+            messages.error(request, 'Cannot add attachments to locked forms')
         return redirect('vouchers:pf_detail', pk=pk)
 
     if request.method == 'POST':
@@ -1251,6 +1290,15 @@ class FormDetailView(LoginRequiredMixin, DetailView):
             context['approval_history'] = payment_form.approval_history.all().order_by('timestamp')
         except Exception:
             context['approval_history'] = []
+
+        # Attachment upload permission
+        # Creator can upload if editable, AP users can upload if approved
+        is_creator = user == payment_form.created_by
+        is_ap_user = user_role == 1
+        is_editable = payment_form.is_editable()
+        is_approved = payment_form.status == 'APPROVED'
+
+        context['can_upload_attachment'] = (is_creator and is_editable) or (is_ap_user and is_approved)
 
         return context
 

@@ -2275,7 +2275,7 @@
                                         <p>No attachments yet.</p></div>
                                 {% endif %}
 
-                                {% if can_edit %}
+                                {% if can_upload_attachment %}
                                     <div class="vd-upload-zone">
                                         <form method="post" action="{% url 'vouchers:upload_attachment' voucher.pk %}"
                                               enctype="multipart/form-data">
