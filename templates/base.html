@@ -2027,6 +2027,11 @@ function executePageScripts(doc) {
     const toggleBtn      = document.getElementById('sidebarToggle');
     const toggleIcon     = document.getElementById('toggleIcon');
     const COLLAPSED_KEY  = 'sidebar_collapsed';
+    const PINNED_KEY     = 'sidebar_pinned';
+    const IDLE_TIMEOUT   = 5 * 60 * 1000; // 5 minutes
+
+    let idleTimer = null;
+    let wasAutoCollapsed = false;
 
     function applyCollapsed(collapsed) {
         if (!sidebar) return;
@@ -2041,13 +2046,112 @@ function executePageScripts(doc) {
     // Restore saved state
     applyCollapsed(localStorage.getItem(COLLAPSED_KEY) === 'true');
 
+    // Manual toggle button
     if (toggleBtn) {
         toggleBtn.addEventListener('click', function () {
             const isCollapsed = sidebar.classList.contains('collapsed');
             applyCollapsed(!isCollapsed);
             localStorage.setItem(COLLAPSED_KEY, !isCollapsed);
+
+            // If user manually toggles, mark as pinned to prevent auto-collapse
+            localStorage.setItem(PINNED_KEY, 'true');
+            wasAutoCollapsed = false;
+
+            // Restart idle timer
+            resetIdleTimer();
         });
     }
+
+    /* ═══════════════════════════════════════════════════════════
+       AUTO-COLLAPSE SIDEBAR AFTER 5 MINUTES OF INACTIVITY
+    ═══════════════════════════════════════════════════════════ */
+
+    function autoCollapseSidebar() {
+        // Don't auto-collapse if user manually pinned it open
+        const isPinned = localStorage.getItem(PINNED_KEY) === 'true';
+        if (isPinned) return;
+
+        // Don't auto-collapse if already collapsed
+        if (sidebar && sidebar.classList.contains('collapsed')) return;
+
+        // Don't auto-collapse if user is typing in input
+        const activeElement = document.activeElement;
+        if (activeElement && (
+            activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.isContentEditable
+        )) {
+            resetIdleTimer(); // Restart timer if typing
+            return;
+        }
+
+        // Auto-collapse
+        applyCollapsed(true);
+        wasAutoCollapsed = true;
+    }
+
+    function autoExpandSidebar() {
+        // Only expand if it was auto-collapsed (not manually collapsed)
+        if (wasAutoCollapsed && sidebar && sidebar.classList.contains('collapsed')) {
+            applyCollapsed(false);
+            wasAutoCollapsed = false;
+        }
+        resetIdleTimer();
+    }
+
+    function resetIdleTimer() {
+        // Clear existing timer
+        if (idleTimer) {
+            clearTimeout(idleTimer);
+        }
+
+        // Set new timer
+        idleTimer = setTimeout(autoCollapseSidebar, IDLE_TIMEOUT);
+    }
+
+    // Track user activity to reset idle timer
+    const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+    activityEvents.forEach(event => {
+        document.addEventListener(event, function(e) {
+            // Don't reset timer for sidebar hover (we want to allow expansion)
+            if (event === 'mousemove' && e.target.closest('#sidebar')) {
+                return;
+            }
+
+            // If user clicks anywhere and sidebar was auto-collapsed, expand it
+            if (event === 'click' && wasAutoCollapsed) {
+                autoExpandSidebar();
+            } else {
+                resetIdleTimer();
+            }
+        }, { passive: event !== 'click' });
+    });
+
+    // Expand sidebar on hover (if auto-collapsed)
+    if (sidebar) {
+        sidebar.addEventListener('mouseenter', function() {
+            autoExpandSidebar();
+        });
+
+        // Optional: Re-collapse on mouse leave if was auto-collapsed
+        sidebar.addEventListener('mouseleave', function() {
+            if (wasAutoCollapsed) {
+                // Give a short delay before re-collapsing
+                setTimeout(() => {
+                    if (wasAutoCollapsed && !sidebar.matches(':hover')) {
+                        applyCollapsed(true);
+                    }
+                }, 300);
+            }
+        });
+    }
+
+    // Start idle timer on page load
+    resetIdleTimer();
+
+    // Reset pinned state on page load (optional - remove if you want pin to persist across sessions)
+    // localStorage.removeItem(PINNED_KEY);
 
     /* ── Mobile sidebar ── */
     const mobileToggle  = document.getElementById('mobileToggle');
