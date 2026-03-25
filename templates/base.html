@@ -1766,17 +1766,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const newContent = doc.querySelector('#mainContent');
 
             if (newContent && mainContent) {
-                // Reset scroll position before content swap
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
-
+                // Swap content first
                 mainContent.innerHTML = newContent.innerHTML;
                 mainContent.setAttribute('data-url', url);
 
                 // Remove old page-specific styles and scripts
                 cleanupOldPageResources();
-
-                // Swap the content
 
                 // Load page-specific CSS
                 loadPageStyles(doc);
@@ -1794,23 +1789,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Execute page-specific scripts first
                 executePageScripts(doc);
 
-                // Force layout recalculation and proper positioning
+                // CRITICAL: Fix scroll and layout in proper sequence
+                // Step 1: Reset scroll immediately to prevent any scroll position issues
+                window.scrollTo(0, 0);
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+
+                // Step 2: Force complete layout recalculation
                 requestAnimationFrame(() => {
-                    // Force reflow by reading offsetHeight
-                    const reflow = document.body.offsetHeight;
+                    // Force browser to recalculate all layouts
+                    const topbar = document.querySelector('.topbar');
+                    const sidebar = document.querySelector('.sidebar');
+                    const contentWrapper = document.querySelector('.content-wrapper');
 
+                    // Force reflow by reading dimensions
+                    if (topbar) {
+                        const topbarHeight = topbar.offsetHeight;
+                    }
+                    if (sidebar) {
+                        const sidebarWidth = sidebar.offsetWidth;
+                    }
+                    if (contentWrapper) {
+                        const contentHeight = contentWrapper.offsetHeight;
+                    }
+
+                    // Step 3: Reset scroll again after layout recalculation
                     requestAnimationFrame(() => {
-                        // Ensure scroll is at top
-                        window.scrollTo({top: 0, behavior: 'instant'});
+                        window.scrollTo(0, 0);
+                        document.documentElement.scrollTop = 0;
+                        document.body.scrollTop = 0;
 
-                        // Force resize event to recalculate all fixed/sticky positions
+                        // Force all fixed/sticky elements to recalculate
                         window.dispatchEvent(new Event('resize'));
-
-                        // Force content wrapper to recalculate
-                        const contentWrapper = document.querySelector('.content-wrapper');
-                        if (contentWrapper) {
-                            contentWrapper.style.marginTop = 'var(--topbar-h)';
-                        }
+                        window.dispatchEvent(new Event('scroll'));
                     });
                 });
             } else {
@@ -2062,6 +2073,64 @@ function executePageScripts(doc) {
 
     mobileToggle && mobileToggle.addEventListener('click', toggleMobileSidebar);
     overlay      && overlay.addEventListener('click', closeMobileSidebar);
+
+    /* ═══════════════════════════════════════════════════════════
+       FIX HEADER POSITION AFTER IDLE/INACTIVITY
+       When page is idle for long time, header can get cut off
+    ═══════════════════════════════════════════════════════════ */
+    function fixHeaderPosition() {
+        // Reset scroll to top
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+
+        // Force layout recalculation
+        requestAnimationFrame(() => {
+            const topbar = document.querySelector('.topbar');
+            const sidebar = document.querySelector('.sidebar');
+            const contentWrapper = document.querySelector('.content-wrapper');
+
+            // Force reflow by reading dimensions
+            if (topbar) {
+                const h = topbar.offsetHeight;
+                topbar.style.top = '0';
+                topbar.style.position = 'fixed';
+            }
+            if (sidebar) {
+                const w = sidebar.offsetWidth;
+                sidebar.style.top = 'var(--topbar-h)';
+            }
+            if (contentWrapper) {
+                const h = contentWrapper.offsetHeight;
+                contentWrapper.style.marginTop = 'var(--topbar-h)';
+            }
+
+            // Dispatch events to recalculate everything
+            requestAnimationFrame(() => {
+                window.dispatchEvent(new Event('resize'));
+                window.dispatchEvent(new Event('scroll'));
+            });
+        });
+    }
+
+    // Fix header when page becomes visible again after being hidden
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            fixHeaderPosition();
+        }
+    });
+
+    // Fix header when window regains focus
+    window.addEventListener('focus', function() {
+        fixHeaderPosition();
+    });
+
+    // Fix header when returning from browser back/forward
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            fixHeaderPosition();
+        }
+    });
 
     /* ═══════════════════════════════════════════════════════════
        GLOBAL CLICK HANDLER — Handles all topbar interactions
