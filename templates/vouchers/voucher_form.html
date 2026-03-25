@@ -9,6 +9,7 @@
        FINVAULT — Exact match to screenshot
     ═══════════════════════════════════════════════ */
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap&v=3');
+    @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap');
 
     :root {
         --bg:          #0d1520;
@@ -31,8 +32,8 @@
         --amber:       #f59e0b;
         --red:         #ef4444;
         --violet:      #a78bfa;
-        --font:        'Montserrat', sans-serif;
-        --mono:        'Montserrat', sans-serif;
+        --font:        'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
+        --mono:        'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
         --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 18px;
     }
 
@@ -207,15 +208,31 @@
 
     .fv-tbl td input[type=text],
     .fv-tbl td input[type=number],
+    .fv-tbl td textarea,
     .fv-tbl td select {
         background:transparent !important; border:1px solid transparent !important; color:var(--text-1) !important;
         font-size:.8375rem !important; padding:5px 8px !important; height:32px !important; width:100% !important;
         border-radius:5px !important; font-family:var(--font) !important; transition:border-color .15s, background .15s !important;
     }
-    .fv-tbl td input:focus,.fv-tbl td select:focus { border-color:var(--teal) !important; background:var(--bg-input) !important; outline:none !important; box-shadow:0 0 0 2px var(--teal-glow) !important; }
+    .fv-tbl td textarea {
+        height: auto !important;
+        min-height: 32px !important;
+        resize: vertical !important;
+    }
+    .fv-tbl td input:focus,.fv-tbl td textarea:focus,.fv-tbl td select:focus { border-color:var(--teal) !important; background:var(--bg-input) !important; outline:none !important; box-shadow:0 0 0 2px var(--teal-glow) !important; }
     .fv-tbl td input::placeholder { color:var(--text-3) !important; }
     .fv-tbl td select { appearance:none !important; -webkit-appearance:none !important; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important; background-repeat:no-repeat !important; background-position:right 7px center !important; padding-right:22px !important; cursor:pointer !important; background-color:transparent !important; }
     .fv-tbl td select option { background:var(--bg-card); }
+
+    /* Kantumruy Pro font for description fields - Multiple selectors for maximum specificity */
+    table.fv-tbl td input[type=text][name$="-description"],
+    table.fv-tbl td textarea[name$="-description"],
+    .fv-tbl td textarea.form-control[name$="-description"],
+    #line-items-table td textarea[name$="-description"] {
+        font-family: 'Kantumruy Pro', 'Battambang', sans-serif !important;
+        font-size: 0.95rem !important;
+        line-height: 1.5 !important;
+    }
 
     .line-number-badge { width:24px; height:24px; border-radius:6px; background:var(--teal-dim); color:var(--teal); border:1px solid var(--border-active); display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:.72rem; font-family:var(--mono); }
 

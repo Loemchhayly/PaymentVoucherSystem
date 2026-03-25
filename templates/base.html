@@ -11,7 +11,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Battambang:wght@400;700&display=swap&v=3" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap&v=3" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -108,9 +108,9 @@
             --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
             --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827;
 
-            --font-heading: 'Montserrat', 'Battambang', sans-serif;
-            --font-body:    'Montserrat', 'Battambang', sans-serif;
-            --font-mono:    'Montserrat', 'Battambang', sans-serif;
+            --font-heading: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
+            --font-body:    'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
+            --font-mono:    'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
 
             --spacing-xs:  0.25rem; --spacing-sm:  0.5rem;  --spacing-md:  1rem;
             --spacing-lg:  1.5rem;  --spacing-xl:  2rem;    --spacing-2xl: 3rem; --spacing-3xl: 4rem;
@@ -1682,6 +1682,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const newContent = doc.querySelector('#mainContent');
 
             if (newContent && mainContent) {
+                // Reset scroll position before content swap
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+
                 mainContent.innerHTML = newContent.innerHTML;
                 mainContent.setAttribute('data-url', url);
 
@@ -1703,11 +1707,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Update active nav state
                 updateActiveNav(url);
 
-                // Scroll to top
-                window.scrollTo({top: 0, behavior: 'instant'});
-
-                // Execute page-specific scripts
+                // Execute page-specific scripts first
                 executePageScripts(doc);
+
+                // Force layout recalculation and proper positioning
+                requestAnimationFrame(() => {
+                    // Force reflow by reading offsetHeight
+                    const reflow = document.body.offsetHeight;
+
+                    requestAnimationFrame(() => {
+                        // Ensure scroll is at top
+                        window.scrollTo({top: 0, behavior: 'instant'});
+
+                        // Force resize event to recalculate all fixed/sticky positions
+                        window.dispatchEvent(new Event('resize'));
+
+                        // Force content wrapper to recalculate
+                        const contentWrapper = document.querySelector('.content-wrapper');
+                        if (contentWrapper) {
+                            contentWrapper.style.marginTop = 'var(--topbar-h)';
+                        }
+                    });
+                });
             } else {
                 // Fallback to full page load
                 window.location.href = url;

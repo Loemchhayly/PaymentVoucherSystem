@@ -261,7 +261,13 @@ def md_dashboard(request):
     for batch in recent_signed:
         activity_feed.append({
             'type': 'signed',
-            'description': f'<strong>{batch.signed_by.get_full_name() if batch.signed_by else "MD"}</strong> signed batch <strong>{batch.batch_number}</strong>',
+            'action': 'Approved',
+            'user_name': batch.signed_by.get_full_name() if batch.signed_by else "MD",
+            'user_initials': ''.join([n[0].upper() for n in batch.signed_by.get_full_name().split()[:2]]) if batch.signed_by else "MD",
+            'batch_number': batch.batch_number,
+            'batch_id': batch.id,
+            'doc_count': batch.get_document_count(),
+            'total_amount': batch.get_total_amount_display(),
             'timestamp': batch.signed_at
         })
 
@@ -273,7 +279,13 @@ def md_dashboard(request):
     for batch in recent_rejected:
         activity_feed.append({
             'type': 'rejected',
-            'description': f'<strong>{batch.signed_by.get_full_name() if batch.signed_by else "MD"}</strong> rejected batch <strong>{batch.batch_number}</strong>',
+            'action': 'Rejected',
+            'user_name': batch.signed_by.get_full_name() if batch.signed_by else "MD",
+            'user_initials': ''.join([n[0].upper() for n in batch.signed_by.get_full_name().split()[:2]]) if batch.signed_by else "MD",
+            'batch_number': batch.batch_number,
+            'batch_id': batch.id,
+            'doc_count': batch.get_document_count(),
+            'total_amount': batch.get_total_amount_display(),
             'timestamp': batch.signed_at
         })
 
@@ -285,7 +297,13 @@ def md_dashboard(request):
     for batch in recent_created:
         activity_feed.append({
             'type': 'created',
-            'description': f'<strong>{batch.created_by.get_full_name() if batch.created_by else "Finance"}</strong> created batch <strong>{batch.batch_number}</strong>',
+            'action': 'Created',
+            'user_name': batch.created_by.get_full_name() if batch.created_by else "Finance",
+            'user_initials': ''.join([n[0].upper() for n in batch.created_by.get_full_name().split()[:2]]) if batch.created_by else "FN",
+            'batch_number': batch.batch_number,
+            'batch_id': batch.id,
+            'doc_count': batch.get_document_count(),
+            'total_amount': batch.get_total_amount_display(),
             'timestamp': batch.created_at
         })
 

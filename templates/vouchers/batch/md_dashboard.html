@@ -5,6 +5,12 @@
 
 {% block extra_css %}
 <style>
+.page-header {
+    margin-top: -0.70rem !important;
+    margin-bottom: 0.75rem !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
 /* ── Animations ── */
 @keyframes mdUp {
     from { opacity: 0; transform: translateY(14px); }
@@ -65,8 +71,9 @@
 }
 .md-vel-num.urgent { color: var(--warning); animation: mdPulse 2.5s ease infinite; display: inline-block; border-radius: 4px; }
 .md-vel-label {
-    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 1px; color: var(--text-muted); margin-top: 4px;
+    font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
 }
 .md-vel-delta {
     font-size: 0.62rem; font-weight: 700; margin-top: 6px;
@@ -101,7 +108,7 @@
     background: rgba(255,255,255,0.02);
     flex-wrap: wrap;
 }
-.md-queue-title { font-size: 0.8125rem; font-weight: 700; color: var(--text-primary); flex: 1; }
+.md-queue-title { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); flex: 1; font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif; }
 
 /* Filter tabs */
 .md-filter-tabs {
@@ -114,10 +121,10 @@
 .md-filter-tab {
     padding: 4px 10px;
     border-radius: 3px;
-    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.5px;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;
     text-transform: uppercase; cursor: pointer;
     border: none; background: transparent;
-    color: var(--text-muted); font-family: var(--font-body);
+    color: var(--text-muted); font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
     transition: all var(--transition-fast);
 }
 .md-filter-tab.active {
@@ -165,29 +172,31 @@
 
 
 .md-q-num {
-    font-size: 0.8125rem; font-weight: 700; color: var(--text-primary);
+    font-size: 1rem; font-weight: 700; color: var(--text-primary);
     display: flex; align-items: center; gap: 6px;
+    font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
 }
 .md-q-meta {
-    font-size: 0.67rem; color: var(--text-muted); margin-top: 2px;
+    font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;
     display: flex; align-items: center; gap: 6px;
+    font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
 }
 
 /* Aging badge */
 .md-age {
     display: inline-flex; align-items: center; gap: 3px;
-    padding: 1px 7px; border-radius: var(--radius-full);
-    font-size: 0.58rem; font-weight: 800;
+    padding: 2px 8px; border-radius: var(--radius-full);
+    font-size: 0.7rem; font-weight: 800;
     text-transform: uppercase; letter-spacing: 0.4px;
 }
 .md-age.fresh { background: var(--success-light); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
 .md-age.warm  { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
 .md-age.hot   { background: var(--danger-light);  color: var(--danger);  border: 1px solid rgba(239,68,68,0.25); }
 
-.md-q-docs { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
-.md-q-amount { font-size: 0.8rem; font-weight: 800; color: var(--success); white-space: nowrap; text-align: right; }
+.md-q-docs { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif; }
+.md-q-amount { font-size: 0.95rem; font-weight: 800; color: var(--success); white-space: nowrap; text-align: right; font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif; }
 
-.md-q-idx { font-size: 0.58rem; font-weight: 800; color: var(--text-muted); text-align: center; }
+.md-q-idx { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-align: center; }
 
 /* Row quick-action buttons */
 .md-q-actions { display: flex; gap: 4px; flex-shrink: 0; opacity: 0; transition: opacity var(--transition-fast); }
@@ -236,34 +245,165 @@
     overflow: hidden;
 }
 .md-feed-head {
-    padding: 12px 16px;
+    padding: 10px 14px;
     border-bottom: 1px solid var(--border);
     background: rgba(255,255,255,0.02);
     font-size: 0.75rem; font-weight: 700; color: var(--text-primary);
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
 }
-.md-feed-head i { color: var(--cyan-400); }
+.md-feed-head i { color: var(--cyan-400); font-size: 0.8rem; }
 .md-feed-list { padding: 4px 0; }
 
 .md-feed-item {
-    display: grid; grid-template-columns: 30px 1fr;
-    gap: 10px; padding: 9px 16px; align-items: flex-start;
-    transition: background var(--transition-fast);
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 10px;
+    padding: 10px 14px;
+    align-items: flex-start;
+    transition: all var(--transition-fast);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
 }
-.md-feed-item:hover { background: rgba(6,182,212,0.04); }
-
-.md-feed-dot {
-    width: 28px; height: 28px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.6rem; flex-shrink: 0; margin-top: 1px;
+.md-feed-item:last-child { border-bottom: none; }
+.md-feed-item:hover {
+    background: rgba(6,182,212,0.05);
+    transform: translateX(2px);
 }
-.md-feed-dot.signed   { background: var(--success-light); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
-.md-feed-dot.rejected { background: var(--danger-light);  color: var(--danger);  border: 1px solid rgba(239,68,68,0.25); }
-.md-feed-dot.created  { background: var(--info-light);    color: var(--info);    border: 1px solid rgba(59,130,246,0.25); }
 
-.md-feed-text { font-size: 0.7rem; color: var(--text-secondary); line-height: 1.5; }
-.md-feed-text strong { font-weight: 700; color: var(--text-primary); }
-.md-feed-time { font-size: 0.6rem; color: var(--text-muted); margin-top: 2px; display: block; }
+/* User Avatar */
+.md-feed-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    border: 2px solid;
+}
+.md-feed-avatar.signed {
+    background: var(--success-light);
+    color: var(--success);
+    border-color: rgba(34,197,94,0.4);
+}
+.md-feed-avatar.rejected {
+    background: var(--danger-light);
+    color: var(--danger);
+    border-color: rgba(239,68,68,0.4);
+}
+.md-feed-avatar.created {
+    background: var(--info-light);
+    color: var(--info);
+    border-color: rgba(59,130,246,0.4);
+}
+
+/* Content */
+.md-feed-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+/* Header: User + Action */
+.md-feed-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.md-feed-user {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
+}
+.md-feed-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.md-feed-action.signed {
+    background: var(--success-light);
+    color: var(--success);
+    border: 1px solid rgba(34,197,94,0.3);
+}
+.md-feed-action.rejected {
+    background: var(--danger-light);
+    color: var(--danger);
+    border: 1px solid rgba(239,68,68,0.3);
+}
+.md-feed-action.created {
+    background: var(--info-light);
+    color: var(--info);
+    border: 1px solid rgba(59,130,246,0.3);
+}
+
+/* Batch Number */
+.md-feed-batch {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 1px;
+}
+.md-feed-batch i {
+    color: var(--cyan-400);
+    font-size: 0.7rem;
+}
+.md-feed-batch-code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.2px;
+}
+
+/* Metadata Row */
+.md-feed-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+}
+.md-feed-docs {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-weight: 600;
+}
+.md-feed-docs i {
+    font-size: 0.65rem;
+}
+.md-feed-sep {
+    color: var(--border);
+    font-weight: 700;
+}
+.md-feed-total {
+    font-weight: 700;
+    color: var(--success);
+    font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
+}
+.md-feed-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-weight: 500;
+}
+.md-feed-time i {
+    font-size: 0.6rem;
+}
+
 
 
 
@@ -465,6 +605,17 @@ body[data-theme="light"] .md-hist-head,
 body[data-theme="light"] .md-drawer-top,
 body[data-theme="light"] .md-drawer-foot { background: rgba(0,0,0,0.02); }
 
+body[data-theme="light"] .md-feed-head {
+    color: #0f172a;
+    font-weight: 800;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body[data-theme="light"] .md-feed-head i {
+    color: #0891b2;
+}
+
 body[data-theme="light"] .md-qbtn.view { background: rgba(0,0,0,0.04); }
 body[data-theme="light"] .md-drawer-overlay { background: rgba(0,0,0,0.4); }
 
@@ -476,33 +627,52 @@ body[data-theme="light"] .md-dw-note {
 /* Velocity cards - numbers and text */
 body[data-theme="light"] .md-vel-num {
     color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body[data-theme="light"] .md-vel-num.urgent {
     color: #d97706;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Queue rows - batch number and metadata */
 body[data-theme="light"] .md-q-num {
     color: #0c7792;
     font-weight: 800;
+    font-size: 1rem;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body[data-theme="light"] .md-q-meta {
-    color: #64748b;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.85rem;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body[data-theme="light"] .md-q-idx {
     color: #64748b;
+    font-weight: 700;
 }
 
 body[data-theme="light"] .md-q-docs {
-    color: #64748b;
+    color: #475569;
+    font-weight: 700;
+    font-size: 0.8rem;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body[data-theme="light"] .md-q-amount {
     color: #15803d;
     font-weight: 800;
+    font-size: 0.95rem;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Age badges - proper dark colors for light mode */
@@ -528,11 +698,13 @@ body[data-theme="light"] .md-age.hot {
 body[data-theme="light"] .md-vel-delta.up {
     background: rgba(34,197,94,0.15);
     color: #15803d;
+    font-weight: 700;
 }
 
 body[data-theme="light"] .md-vel-delta.warn {
     background: rgba(245,158,11,0.15);
     color: #d97706;
+    font-weight: 700;
 }
 
 /* Queue search input */
@@ -558,13 +730,19 @@ body[data-theme="light"] .md-filter-tabs {
 }
 
 body[data-theme="light"] .md-filter-tab {
-    color: #64748b;
+    color: #475569;
+    font-weight: 700;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body[data-theme="light"] .md-filter-tab.active {
     background: #f2f4f7;
     color: #0c7792;
     border-color: rgba(6,182,212,0.4);
+    font-weight: 800;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* History table */
@@ -593,18 +771,6 @@ body[data-theme="light"] .md-hist-table td[style*="color:var(--success)"] {
     font-weight: 800 !important;
 }
 
-/* Activity feed */
-body[data-theme="light"] .md-feed-text {
-    color: #4a5568;
-}
-
-body[data-theme="light"] .md-feed-text strong {
-    color: #0f172a;
-}
-
-body[data-theme="light"] .md-feed-time {
-    color: #64748b;
-}
 
 body[data-theme="light"] .md-feed-dot.signed {
     background: rgba(34,197,94,0.15);
@@ -739,6 +905,9 @@ body[data-theme="light"] .md-reject-textarea:focus {
 body[data-theme="light"] .md-queue-title,
 body[data-theme="light"] .md-hist-title {
     color: #0f172a;
+    font-weight: 800;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Feed head title and icon */
@@ -807,17 +976,61 @@ body[data-theme="light"] .md-feed-item:hover {
     background: rgba(6,182,212,0.08);
 }
 
-body[data-theme="light"] .md-feed-item .md-feed-text {
-    color: #4a5568;
+/* Light mode overrides for activity feed */
+body[data-theme="light"] .md-feed-avatar.signed {
+    background: rgba(34,197,94,0.15);
+    color: #15803d;
+    border-color: rgba(34,197,94,0.5);
+}
+body[data-theme="light"] .md-feed-avatar.rejected {
+    background: rgba(239,68,68,0.15);
+    color: #dc2626;
+    border-color: rgba(239,68,68,0.5);
+}
+body[data-theme="light"] .md-feed-avatar.created {
+    background: rgba(59,130,246,0.15);
+    color: #2563eb;
+    border-color: rgba(59,130,246,0.5);
 }
 
-body[data-theme="light"] .md-feed-item .md-feed-text strong {
+body[data-theme="light"] .md-feed-user {
     color: #0f172a;
-    font-weight: 700;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-body[data-theme="light"] .md-feed-item .md-feed-time {
+body[data-theme="light"] .md-feed-action.signed {
+    background: rgba(34,197,94,0.15);
+    color: #15803d;
+    border-color: rgba(34,197,94,0.4);
+}
+body[data-theme="light"] .md-feed-action.rejected {
+    background: rgba(239,68,68,0.15);
+    color: #dc2626;
+    border-color: rgba(239,68,68,0.4);
+}
+body[data-theme="light"] .md-feed-action.created {
+    background: rgba(59,130,246,0.15);
+    color: #2563eb;
+    border-color: rgba(59,130,246,0.4);
+}
+
+body[data-theme="light"] .md-feed-batch i {
+    color: #0891b2;
+}
+
+body[data-theme="light"] .md-feed-batch-code {
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body[data-theme="light"] .md-feed-meta {
     color: #64748b;
+}
+
+body[data-theme="light"] .md-feed-total {
+    color: #15803d;
 }
 
 /* Activity feed empty state */
@@ -884,18 +1097,16 @@ body[data-theme="light"] .md-dw-doc-row:hover {
 {% endblock %}
 
 {% block content %}
-<div class="content-container-wide" style="padding-top: 0.25rem;">
+<div class="content-container-wide" style="padding-top: 0;">
 
     <!-- ── Page Header ── -->
-    <div class="page-header md-fade">
-        <div>
-            <h1 class="page-title">
-                <i class="bi bi-pen-fill"></i>
-                Approval Dashboard
-            </h1>
-            <p class="page-subtitle">Review and sign batches submitted by Finance</p>
-        </div>
 
+    <div class="page-header md-fade" style="margin:0 0 0.75rem;padding:0;">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+            <i class="bi bi-pen-fill" style="font-size:0.85rem;color:var(--cyan-400);"></i>
+            <h1 class="page-title" style="font-size:0.95rem;margin:0;">Approval Dashboard</h1>
+            <span style="color:var(--text-muted);font-size:0.75rem;font-weight:400;">— Review and sign batches submitted by Finance</span>
+        </div>
     </div>
 
     <!-- ── Velocity Stats ── -->
@@ -1077,20 +1288,41 @@ body[data-theme="light"] .md-dw-doc-row:hover {
                 </div>
                 <div class="md-feed-list" id="activity-feed">
                     {% for event in activity_feed %}
-                    <div class="md-feed-item">
-                        <div class="md-feed-dot {{ event.type }}">
-                            {% if event.type == 'signed' %}<i class="bi bi-check-lg"></i>
-                            {% elif event.type == 'rejected' %}<i class="bi bi-x-lg"></i>
-                            {% else %}<i class="bi bi-plus-lg"></i>{% endif %}
+                    <a href="{% url 'vouchers:batch_detail' event.batch_id %}" class="md-feed-item" style="text-decoration:none;color:inherit;cursor:pointer;">
+                        <div class="md-feed-avatar {{ event.type }}">
+                            <span>{{ event.user_initials }}</span>
                         </div>
-                        <div class="md-feed-text">
-                            {{ event.description }}
-                            <span class="md-feed-time">{{ event.timestamp|timesince }} ago</span>
+                        <div class="md-feed-content">
+                            <div class="md-feed-header">
+                                <span class="md-feed-user">{{ event.user_name }}</span>
+                                <span class="md-feed-action {{ event.type }}">{{ event.action }}</span>
+                            </div>
+                            <div class="md-feed-batch">
+                                <i class="bi bi-folder2-open"></i>
+                                <span class="md-feed-batch-code">{{ event.batch_number }}</span>
+                            </div>
+                            <div class="md-feed-meta">
+                                <span class="md-feed-docs">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                    {{ event.doc_count }} doc{{ event.doc_count|pluralize }}
+                                </span>
+                                <span class="md-feed-sep">·</span>
+                                <span class="md-feed-total">{{ event.total_amount }}</span>
+                                <span class="md-feed-sep">·</span>
+                                <span class="md-feed-time">
+                                    <i class="bi bi-clock"></i>
+                                    {{ event.timestamp|timesince }} ago
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                     {% empty %}
-                    <div style="padding:20px 16px;text-align:center;color:var(--text-muted);font-size:0.7rem;">
-                        No recent activity
+                    <div style="padding:24px 14px;text-align:center;">
+                        <div style="width:40px;height:40px;background:rgba(6,182,212,0.08);border:1px solid var(--border-accent);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
+                            <i class="bi bi-activity" style="font-size:1rem;color:var(--cyan-400);"></i>
+                        </div>
+                        <div style="font-size:0.75rem;font-weight:600;color:var(--text-primary);margin-bottom:3px;">No Recent Activity</div>
+                        <div style="font-size:0.65rem;color:var(--text-muted);">Activity will appear here</div>
                     </div>
                     {% endfor %}
                 </div>

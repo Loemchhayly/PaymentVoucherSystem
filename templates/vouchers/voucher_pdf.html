@@ -19,6 +19,42 @@
             src: url('https://fonts.gstatic.com/s/battambang/v24/uk-lEGe7raEw-HjkzZabNsmMxyRa8oZK9I0.woff2') format('woff2');
         }
 
+        /* Khmer Font Support - Kantumruy Pro (for descriptions) */
+        @font-face {
+            font-family: 'Kantumruy Pro';
+            font-style: normal;
+            font-weight: 300;
+            src: url('https://fonts.gstatic.com/s/kantumruypro/v9/1q2TY5aECkp34vEBSPFOmJxwvk_pilU8OGNfyg1urUs0M34dR6dW.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Kantumruy Pro';
+            font-style: normal;
+            font-weight: 400;
+            src: url('https://fonts.gstatic.com/s/kantumruypro/v9/1q2TY5aECkp34vEBSPFOmJxwvk_pilU8OGNfyg1urUs0M37dR6dW.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Kantumruy Pro';
+            font-style: normal;
+            font-weight: 500;
+            src: url('https://fonts.gstatic.com/s/kantumruypro/v9/1q2TY5aECkp34vEBSPFOmJxwvk_pilU8OGNfyg1urUs0M35pR6dW.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Kantumruy Pro';
+            font-style: normal;
+            font-weight: 600;
+            src: url('https://fonts.gstatic.com/s/kantumruypro/v9/1q2TY5aECkp34vEBSPFOmJxwvk_pilU8OGNfyg1urUs0M36dQKdW.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Kantumruy Pro';
+            font-style: normal;
+            font-weight: 700;
+            src: url('https://fonts.gstatic.com/s/kantumruypro/v9/1q2TY5aECkp34vEBSPFOmJxwvk_pilU8OGNfyg1urUs0M36kQKdW.woff2') format('woff2');
+        }
+
         @page {
             size: A4;
             margin: 1cm;
@@ -31,7 +67,7 @@
         }
 
         body {
-            font-family: 'Battambang', 'Arial', sans-serif;
+            font-family: 'Kantumruy Pro', 'Battambang', 'Arial', sans-serif;
             font-size: 9pt;
             line-height: 1.3;
             color: #000;
@@ -207,6 +243,13 @@
 
         .line-items-table tfoot {
             page-break-inside: avoid;
+        }
+
+        /* Description cell with Kantumruy Pro font for Khmer text */
+        .description-cell {
+            font-family: 'Kantumruy Pro', 'Battambang', 'Arial', sans-serif;
+            font-size: 9pt;
+            line-height: 1.4;
         }
 
         /* Signatures - Fixed at bottom */
@@ -415,7 +458,7 @@
                     <td class="text-center">{{ item.line_number }}</td>
                     <td>{{ item.department.name }}</td>
                     <td>{{ item.program|default:"-" }}</td>
-                    <td>{{ item.description }}</td>
+                    <td class="description-cell">{{ item.description }}</td>
                     <td class="text-right">{{ item.amount|floatformat:2 }}</td>
                     <td class="text-center"><strong>{{ item.currency }}</strong></td>
                     <td class="text-center">{% if item.vat_applicable %}10%{% else %}-{% endif %}</td>

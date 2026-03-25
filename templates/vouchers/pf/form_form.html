@@ -10,6 +10,7 @@
    Merged from voucher_form.html (doc3) + pf_form.html (doc4)
 ═══════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap');
 
 :root {
     --bg:          #0a0e1a;
@@ -32,8 +33,8 @@
     --red:         #ef4444;
     --blue:        #3b82f6;
     --violet:      #8b5cf6;
-    --font:        'Montserrat', sans-serif;
-    --mono:        'Montserrat', sans-serif;
+    --font:        'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
+    --mono:        'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
     --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 18px;
 }
 
@@ -289,6 +290,7 @@ details > div {
 
 .line-items-table td input[type=text],
 .line-items-table td input[type=number],
+.line-items-table td textarea,
 .line-items-table td select {
     background: transparent !important;
     border: 1px solid transparent !important;
@@ -301,7 +303,13 @@ details > div {
     font-family: var(--font) !important;
     transition: border-color .15s, background .15s !important;
 }
+.line-items-table td textarea {
+    height: auto !important;
+    min-height: 32px !important;
+    resize: vertical !important;
+}
 .line-items-table td input:focus,
+.line-items-table td textarea:focus,
 .line-items-table td select:focus {
     border-color: var(--teal) !important;
     background: var(--bg-input) !important;
@@ -319,6 +327,16 @@ details > div {
     background-color: transparent !important;
 }
 .line-items-table td select option { background: var(--bg-card); }
+
+/* Kantumruy Pro font for description fields - Multiple selectors for maximum specificity */
+table.line-items-table td input[type="text"][name$="-description"],
+table.line-items-table td textarea[name$="-description"],
+.line-items-table td textarea.form-control[name$="-description"],
+#line-items-table td textarea[name$="-description"] {
+    font-family: 'Kantumruy Pro', 'Battambang', sans-serif !important;
+    font-size: 0.95rem !important;
+    line-height: 1.5 !important;
+}
 
 .line-number-badge {
     width: 24px; height: 24px; border-radius: 6px;
