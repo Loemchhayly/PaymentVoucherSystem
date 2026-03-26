@@ -680,10 +680,12 @@ class SignatureBatch(models.Model):
         """
         Generate unique batch number: BATCH-YYYYMMDD-NNN
         Uses PostgreSQL advisory lock to prevent race conditions
+        Finds MAX number instead of COUNT to handle deleted batches
         """
         from datetime import date
         from django.db import connection
         import hashlib
+        import re
 
         today = date.today()
         date_str = today.strftime('%Y%m%d')
@@ -696,13 +698,23 @@ class SignatureBatch(models.Model):
             # Acquire advisory lock (blocks until available)
             cursor.execute("SELECT pg_advisory_xact_lock(%s)", [lock_key])
 
-            # Now count batches for today (lock ensures no concurrent access)
-            today_count = SignatureBatch.objects.filter(
+            # Find the MAXIMUM sequence number used today (not count)
+            # This handles cases where batches are deleted
+            batches_today = SignatureBatch.objects.filter(
                 batch_number__startswith=f'BATCH-{date_str}'
-            ).count()
+            ).values_list('batch_number', flat=True)
 
-            # Generate new number
-            new_number = f'BATCH-{date_str}-{(today_count + 1):03d}'
+            max_sequence = 0
+            for batch_num in batches_today:
+                # Extract sequence number from BATCH-20260326-005 format
+                match = re.search(r'-(\d{3})$', batch_num)
+                if match:
+                    seq = int(match.group(1))
+                    if seq > max_sequence:
+                        max_sequence = seq
+
+            # Generate new number (max + 1)
+            new_number = f'BATCH-{date_str}-{(max_sequence + 1):03d}'
 
         # Lock is automatically released when transaction commits
         return new_number
