@@ -293,6 +293,14 @@
             z-index: 1040;
             transition: width var(--transition-base), transform var(--transition-base);
             overflow: hidden;
+            padding: 0; /* Ensure no top padding */
+            margin: 0;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-w-collapsed);
+            padding: 0; /* Maintain no padding when collapsed */
+            margin: 0;
         }
 
         /* Right-edge teal accent line */
@@ -304,9 +312,6 @@
             background: linear-gradient(180deg, var(--cyan-600) 0%, var(--cyan-400) 40%, transparent 100%);
             pointer-events: none;
         }
-
-        /* Collapsed state (desktop) */
-        .sidebar.collapsed { width: var(--sidebar-w-collapsed); }
 
         /* ── Brand ── */
         .sidebar-brand {
@@ -320,6 +325,14 @@
             text-decoration: none;
             overflow: hidden;
             position: relative;
+            margin: 0; /* Ensure no margin accumulation */
+        }
+
+        /* Ensure brand height stays consistent when collapsed/expanded */
+        .sidebar.collapsed .sidebar-brand {
+            height: 60px;
+            padding: 0 14px;
+            margin: 0;
         }
 
         .brand-mark {
@@ -329,6 +342,16 @@
             border-radius: 0;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Ensure logo stays consistent in collapsed state */
+        .sidebar.collapsed .brand-mark {
+            width: 80px;
+            height: 80px;
+            margin: 0;
+            padding: 0;
         }
 
         .brand-text {
@@ -344,7 +367,8 @@
         /* ── Collapse toggle button ── */
         .sidebar-toggle {
             position: absolute;
-            top: 65px; right: 10px;
+            top: 12px;
+            right: -12px;
             width: 26px; height: 26px;
             background: var(--ink-700);
             border: 1px solid var(--border);
@@ -2035,12 +2059,31 @@ function executePageScripts(doc) {
 
     function applyCollapsed(collapsed) {
         if (!sidebar) return;
+
+        // Apply collapsed state
         sidebar.classList.toggle('collapsed', collapsed);
         contentWrapper && contentWrapper.classList.toggle('sidebar-collapsed', collapsed);
         topbar         && topbar.classList.toggle('sidebar-collapsed', collapsed);
         if (toggleIcon) {
             toggleIcon.className = collapsed ? 'bi bi-chevron-right' : 'bi bi-chevron-left';
         }
+
+        // Force layout recalculation to prevent ghost spacing
+        requestAnimationFrame(() => {
+            // Force reflow by reading offsetHeight
+            if (sidebar) {
+                const h = sidebar.offsetHeight;
+                const brandElement = sidebar.querySelector('.sidebar-brand');
+                const navElement = sidebar.querySelector('.sidebar-nav');
+
+                if (brandElement) {
+                    const brandHeight = brandElement.offsetHeight;
+                }
+                if (navElement) {
+                    const navHeight = navElement.offsetHeight;
+                }
+            }
+        });
     }
 
     // Restore saved state
@@ -2202,7 +2245,7 @@ function executePageScripts(doc) {
             }
             if (sidebar) {
                 const w = sidebar.offsetWidth;
-                sidebar.style.top = 'var(--topbar-h)';
+                sidebar.style.top = '0';
             }
             if (contentWrapper) {
                 const h = contentWrapper.offsetHeight;
