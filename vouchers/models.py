@@ -679,25 +679,32 @@ class SignatureBatch(models.Model):
     def generate_batch_number(self):
         """
         Generate unique batch number: BATCH-YYYYMMDD-NNN
-        Uses row-level locking to prevent race conditions in multi-worker environments
+        Uses PostgreSQL advisory lock to prevent race conditions
         """
         from datetime import date
-        from django.db import transaction
+        from django.db import connection
+        import hashlib
 
         today = date.today()
         date_str = today.strftime('%Y%m%d')
 
-        # Use select_for_update() to lock rows and prevent race conditions
-        # This ensures only one worker can read and increment at a time
-        with transaction.atomic():
-            # Lock the rows while counting to prevent concurrent access
-            today_count = SignatureBatch.objects.select_for_update().filter(
+        # Use PostgreSQL advisory lock for this date
+        # Convert date string to integer for advisory lock key
+        lock_key = int(hashlib.md5(f'batch_{date_str}'.encode()).hexdigest()[:8], 16)
+
+        with connection.cursor() as cursor:
+            # Acquire advisory lock (blocks until available)
+            cursor.execute("SELECT pg_advisory_xact_lock(%s)", [lock_key])
+
+            # Now count batches for today (lock ensures no concurrent access)
+            today_count = SignatureBatch.objects.filter(
                 batch_number__startswith=f'BATCH-{date_str}'
             ).count()
 
             # Generate new number
             new_number = f'BATCH-{date_str}-{(today_count + 1):03d}'
 
+        # Lock is automatically released when transaction commits
         return new_number
 
     def get_vouchers(self):
@@ -749,20 +756,28 @@ class SignatureBatch(models.Model):
         # Generate batch number if not set
         if not self.batch_number:
             from django.db import transaction, IntegrityError
+            import time
             max_retries = 10
             retry_count = 0
 
             while retry_count < max_retries:
                 try:
+                    # Wrap BOTH generation and save in a single atomic block
+                    # This keeps the lock held from count to save completion
                     with transaction.atomic():
+                        # Generate number while holding lock
                         self.batch_number = self.generate_batch_number()
+                        # Save immediately before releasing lock
                         super().save(*args, **kwargs)
                     break  # Success, exit loop
+
                 except IntegrityError as e:
                     if 'batch_number' in str(e) and retry_count < max_retries - 1:
                         # Batch number collision, retry with new number
                         self.batch_number = None
                         retry_count += 1
+                        # Small delay before retry to reduce contention
+                        time.sleep(0.01 * (retry_count + 1))  # Exponential backoff
                         continue
                     else:
                         # Different integrity error or max retries reached, re-raise
