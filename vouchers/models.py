@@ -677,18 +677,27 @@ class SignatureBatch(models.Model):
         return f"{self.batch_number} - {self.get_status_display()}"
 
     def generate_batch_number(self):
-        """Generate unique batch number: BATCH-YYYYMMDD-NNN"""
+        """
+        Generate unique batch number: BATCH-YYYYMMDD-NNN
+        Uses row-level locking to prevent race conditions in multi-worker environments
+        """
         from datetime import date
+        from django.db import transaction
+
         today = date.today()
         date_str = today.strftime('%Y%m%d')
 
-        # Count batches created today
-        today_count = SignatureBatch.objects.filter(
-            batch_number__startswith=f'BATCH-{date_str}'
-        ).count()
+        # Use select_for_update() to lock rows and prevent race conditions
+        # This ensures only one worker can read and increment at a time
+        with transaction.atomic():
+            # Lock the rows while counting to prevent concurrent access
+            today_count = SignatureBatch.objects.select_for_update().filter(
+                batch_number__startswith=f'BATCH-{date_str}'
+            ).count()
 
-        # Generate new number
-        new_number = f'BATCH-{date_str}-{(today_count + 1):03d}'
+            # Generate new number
+            new_number = f'BATCH-{date_str}-{(today_count + 1):03d}'
+
         return new_number
 
     def get_vouchers(self):
@@ -739,8 +748,28 @@ class SignatureBatch(models.Model):
     def save(self, *args, **kwargs):
         # Generate batch number if not set
         if not self.batch_number:
-            self.batch_number = self.generate_batch_number()
-        super().save(*args, **kwargs)
+            from django.db import transaction, IntegrityError
+            max_retries = 10
+            retry_count = 0
+
+            while retry_count < max_retries:
+                try:
+                    with transaction.atomic():
+                        self.batch_number = self.generate_batch_number()
+                        super().save(*args, **kwargs)
+                    break  # Success, exit loop
+                except IntegrityError as e:
+                    if 'batch_number' in str(e) and retry_count < max_retries - 1:
+                        # Batch number collision, retry with new number
+                        self.batch_number = None
+                        retry_count += 1
+                        continue
+                    else:
+                        # Different integrity error or max retries reached, re-raise
+                        raise
+        else:
+            # Batch number already set, just save normally
+            super().save(*args, **kwargs)
 
 
 class BatchVoucherItem(models.Model):
