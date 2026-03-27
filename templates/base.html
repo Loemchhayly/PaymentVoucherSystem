@@ -1807,6 +1807,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Update URL
                 window.history.pushState({url: url}, '', url);
 
+                // Store current SPA URL for visibility/bfcache restoration
+                window.currentSPAUrl = url;
+
                 // Update active nav state
                 updateActiveNav(url);
 
@@ -2261,9 +2264,22 @@ function executePageScripts(doc) {
     }
 
     // Fix header when page becomes visible again after being hidden
+    // ALSO reload SPA content to prevent stale state after idle
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
             fixHeaderPosition();
+
+            // Reload current SPA page content if user returns after being idle
+            if (window.currentSPAUrl && mainContent) {
+                // Only reload if we're on an SPA page (not initial load)
+                const currentPath = window.location.pathname;
+                if (window.currentSPAUrl === currentPath) {
+                    // Reload content silently without changing URL
+                    navigateToPage(currentPath, null).catch(function(err) {
+                        console.warn('Failed to reload content on visibility change:', err);
+                    });
+                }
+            }
         }
     });
 
@@ -2272,10 +2288,13 @@ function executePageScripts(doc) {
         fixHeaderPosition();
     });
 
-    // Fix header when returning from browser back/forward
+    // Fix header when returning from browser back/forward (bfcache restoration)
+    // Page restored from bfcache means stale state - force full reload
     window.addEventListener('pageshow', function(event) {
         if (event.persisted) {
-            fixHeaderPosition();
+            // Page was restored from bfcache - reload to get fresh state
+            console.log('Page restored from bfcache - reloading for fresh state');
+            window.location.reload();
         }
     });
 
