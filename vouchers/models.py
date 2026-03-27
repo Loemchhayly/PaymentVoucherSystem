@@ -680,7 +680,7 @@ class SignatureBatch(models.Model):
         """
         Generate unique batch number: BATCH-YYYYMMDD-NNN
         Uses PostgreSQL advisory lock to prevent race conditions (PostgreSQL only)
-        Finds MAX number instead of COUNT to handle deleted batches
+        Reuses deleted batch numbers by finding first gap in sequence
         """
         from datetime import date
         from django.db import connection
@@ -702,41 +702,59 @@ class SignatureBatch(models.Model):
                 # Acquire advisory lock (blocks until available)
                 cursor.execute("SELECT pg_advisory_xact_lock(%s)", [lock_key])
 
-                # Find the MAXIMUM sequence number used today (not count)
-                # This handles cases where batches are deleted
+                # Get all existing batch numbers for today
                 batches_today = SignatureBatch.objects.filter(
                     batch_number__startswith=f'BATCH-{date_str}'
                 ).values_list('batch_number', flat=True)
 
-                max_sequence = 0
+                # Extract sequence numbers
+                existing_sequences = []
                 for batch_num in batches_today:
-                    # Extract sequence number from BATCH-20260326-005 format
                     match = re.search(r'-(\d{3})$', batch_num)
                     if match:
-                        seq = int(match.group(1))
-                        if seq > max_sequence:
-                            max_sequence = seq
+                        existing_sequences.append(int(match.group(1)))
 
-                # Generate new number (max + 1)
-                new_number = f'BATCH-{date_str}-{(max_sequence + 1):03d}'
+                # Sort sequences
+                existing_sequences.sort()
+
+                # Find first missing number (gap in sequence)
+                next_sequence = 1
+                for seq in existing_sequences:
+                    if seq == next_sequence:
+                        next_sequence += 1
+                    elif seq > next_sequence:
+                        # Found a gap, use it
+                        break
+
+                # Generate new number
+                new_number = f'BATCH-{date_str}-{next_sequence:03d}'
         else:
             # SQLite or other databases - use select_for_update
-            # Find the MAXIMUM sequence number used today (not count)
             batches_today = SignatureBatch.objects.filter(
                 batch_number__startswith=f'BATCH-{date_str}'
             ).select_for_update().values_list('batch_number', flat=True)
 
-            max_sequence = 0
+            # Extract sequence numbers
+            existing_sequences = []
             for batch_num in batches_today:
-                # Extract sequence number from BATCH-20260326-005 format
                 match = re.search(r'-(\d{3})$', batch_num)
                 if match:
-                    seq = int(match.group(1))
-                    if seq > max_sequence:
-                        max_sequence = seq
+                    existing_sequences.append(int(match.group(1)))
 
-            # Generate new number (max + 1)
-            new_number = f'BATCH-{date_str}-{(max_sequence + 1):03d}'
+            # Sort sequences
+            existing_sequences.sort()
+
+            # Find first missing number (gap in sequence)
+            next_sequence = 1
+            for seq in existing_sequences:
+                if seq == next_sequence:
+                    next_sequence += 1
+                elif seq > next_sequence:
+                    # Found a gap, use it
+                    break
+
+            # Generate new number
+            new_number = f'BATCH-{date_str}-{next_sequence:03d}'
 
         # Lock is automatically released when transaction commits
         return new_number
