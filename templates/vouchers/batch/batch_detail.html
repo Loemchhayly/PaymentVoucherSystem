@@ -1119,15 +1119,9 @@ body[data-theme="light"] .ob-m-btn.amber     { color: #ffffff; }
         <i class="bi bi-file-earmark-excel"></i> Export Excel
       </a>
       {% endif %}
-      {% if user.role_level == 5 %}
-      <a href="{% url 'vouchers:md_dashboard' %}" class="ob-btn ob-btn-ghost">
-        <i class="bi bi-arrow-left"></i> MD Dashboard
+      <a href="{% url 'vouchers:all_batches_list' %}" class="ob-btn ob-btn-ghost">
+        <i class="bi bi-arrow-left"></i> All Signature Batches
       </a>
-      {% else %}
-      <a href="{% url 'dashboard:home' %}" class="ob-btn ob-btn-ghost">
-        <i class="bi bi-arrow-left"></i> Dashboard
-      </a>
-      {% endif %}
     </div>
   </div>
 
