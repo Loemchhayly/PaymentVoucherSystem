@@ -1109,7 +1109,7 @@ body[data-theme="light"] .amount-cell {
                     <input type="text" id="searchInput"
                            class="multi-search-input"
                            placeholder="Search number, payee, description, amount, date…"
-                           value="{{ request.GET.search|default:'' }}"
+                           value="{{ search_query|default:'' }}"
                            onkeyup="liveSearch(this.value)"
                            autocomplete="off">
                     <button type="button" class="search-clear-btn" id="searchClearBtn"
@@ -1539,11 +1539,18 @@ body[data-theme="light"] .amount-cell {
 {% block extra_js %}
 <script>
 // Wrap in IIFE and attach to window to ensure functions are available during SPA navigation
+// Prevent multiple executions
+if (window._voucherListScriptLoaded) {
+    console.warn('Voucher list script already loaded, skipping re-initialization');
+} else {
+    window._voucherListScriptLoaded = true;
+
 (function() {
     // Make all functions globally available
     window.currentFilters = {
         doc_type: '{{ request.GET.doc_type|default:"all" }}',
         search:   '{{ request.GET.search|default:"" }}',
+        search_field: '{{ request.GET.search_field|default:"all" }}',
         page:     {{ page_obj.number|default:1 }}
     };
 
@@ -1598,9 +1605,45 @@ body[data-theme="light"] .amount-cell {
     };
 
     /* ═══════════════════════════════════════════
-       CLIENT-SIDE SEARCH (CURRENT PAGE ONLY)
+       SERVER-SIDE SEARCH (ALL PAGES)
     ═══════════════════════════════════════════ */
-    let activeSearchField = 'all';
+    let activeSearchField = '{{ search_field|default:"all" }}';
+
+    // Initialize active search field pill and clear button - prevent duplicate execution
+    function initializeSearchUI() {
+        if (window._searchUIInitialized) return;
+        window._searchUIInitialized = true;
+
+        document.querySelectorAll('.search-pill').forEach(p => {
+            p.classList.toggle('active', p.dataset.field === activeSearchField);
+        });
+
+        // Show clear button if there's an initial search query
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('searchClearBtn');
+        if (searchInput && clearBtn && searchInput.value.trim()) {
+            clearBtn.style.display = 'flex';
+        }
+
+        // Set correct placeholder based on active field
+        const placeholders = {
+            all:    'Search number, payee, description, amount, date…',
+            number: 'Search by doc number e.g. 2603-0004…',
+            payee:  'Search by payee name…',
+            description: 'Search by line item description…',
+            amount: 'Search by amount e.g. 244.20…',
+            date:   'Search by date e.g. Mar 12 or 2026…'
+        };
+        if (searchInput) {
+            searchInput.placeholder = placeholders[activeSearchField] || placeholders.all;
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeSearchUI);
+    } else {
+        initializeSearchUI();
+    }
 
     window.setSearchField = function(field) {
         activeSearchField = field;
@@ -1610,9 +1653,10 @@ body[data-theme="light"] .amount-cell {
 
         /* Update placeholder */
         const placeholders = {
-            all:    'Search number, payee, amount, date…',
+            all:    'Search number, payee, description, amount, date…',
             number: 'Search by doc number e.g. 2603-0004…',
             payee:  'Search by payee name…',
+            description: 'Search by line item description…',
             amount: 'Search by amount e.g. 244.20…',
             date:   'Search by date e.g. Mar 12 or 2026…'
         };
@@ -1621,14 +1665,19 @@ body[data-theme="light"] .amount-cell {
         input.focus();
 
         // Re-run search with new field
-        clientSearch(input.value.trim());
+        const query = input.value.trim();
+        if (query) {
+            serverSearch(query);
+        }
     };
 
     window.clearSearch = function() {
         const input = document.getElementById('searchInput');
         input.value = '';
         document.getElementById('searchClearBtn').style.display = 'none';
-        clientSearch('');
+        currentFilters.search = '';
+        currentFilters.page = 1;
+        applyFilters();
         input.focus();
     };
 
@@ -1638,105 +1687,15 @@ body[data-theme="light"] .amount-cell {
         if (clearBtn) clearBtn.style.display = val.trim() ? 'flex' : 'none';
 
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => clientSearch(val.trim()), 200);
+        searchTimeout = setTimeout(() => serverSearch(val.trim()), 400); // 400ms debounce
     };
 
-    function clientSearch(query) {
-        const rows = document.querySelectorAll('.pv-table tbody tr');
-        const hasData = rows.length && !rows[0].querySelector('td[colspan]');
-        if (!hasData) return;
-
-        const q = query.toLowerCase();
-
-        /* Column indices per field */
-        const fieldCols = {
-            number: [2],
-            payee:  [3],
-            description: [], // Search in data-descriptions attribute
-            amount: [4],
-            date:   [6],
-            all:    [2, 3, 4, 6] // Include description in 'all' search
-        };
-        const cols = fieldCols[activeSearchField] || fieldCols.all;
-
-        let visibleCount = 0;
-
-        rows.forEach(row => {
-            if (!q) {
-                row.style.display = '';
-                removeHighlights(row);
-                visibleCount++;
-                return;
-            }
-
-            /* Collect text from relevant columns */
-            const cells = row.querySelectorAll('td');
-            let matched = false;
-
-            // Check column cells
-            cols.forEach(idx => {
-                if (cells[idx]) {
-                    const text = cells[idx].textContent.toLowerCase();
-                    if (text.includes(q)) matched = true;
-                }
-            });
-
-            // Check description data attribute
-            if (activeSearchField === 'description' || activeSearchField === 'all') {
-                const descriptions = row.getAttribute('data-descriptions') || '';
-                if (descriptions.includes(q)) matched = true;
-            }
-
-            row.style.display = matched ? '' : 'none';
-            if (matched) {
-                visibleCount++;
-                highlightRow(row, cols, q);
-            } else {
-                removeHighlights(row);
-            }
-        });
-
-        /* Update showing count */
-        const showingEl = document.querySelector('.showing-info');
-        if (showingEl && q) {
-            showingEl.innerHTML = `Showing <span>${visibleCount}</span> matching result${visibleCount !== 1 ? 's' : ''} on this page`;
-        } else if (showingEl && !q) {
-            showingEl.innerHTML = `Showing <span>${rows.length}</span> entries`;
-        }
+    function serverSearch(query) {
+        currentFilters.search = query;
+        currentFilters.search_field = activeSearchField;
+        currentFilters.page = 1; // Reset to page 1 when searching
+        applyFilters();
     }
-
-function highlightRow(row, cols, q) {
-    removeHighlights(row);
-    const cells = row.querySelectorAll('td');
-
-    cols.forEach(idx => {
-        if (!cells[idx]) return;
-
-        /* Only highlight text nodes inside safe elements */
-        const targets = cells[idx].querySelectorAll(
-            '.pv-number-link, .payee-cell strong, .amount-cell, .date-cell'
-        );
-
-        targets.forEach(el => {
-            const original = el.dataset.originalText || el.textContent;
-            el.dataset.originalText = original;
-
-            const regex = new RegExp('(' + escapeRegex(q) + ')', 'gi');
-            el.innerHTML = original.replace(regex, '<mark class="search-highlight">$1</mark>');
-        });
-    });
-}
-
-function removeHighlights(row) {
-    row.querySelectorAll('[data-original-text]').forEach(el => {
-        el.textContent = el.dataset.originalText;
-        delete el.dataset.originalText;
-    });
-}
-
-function escapeRegex(str) {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 
 function applyFilters() {
     const tableBody = document.querySelector('.pv-table tbody');
@@ -1748,6 +1707,8 @@ function applyFilters() {
         params.set('doc_type', currentFilters.doc_type);
     if (currentFilters.search)
         params.set('search', currentFilters.search);
+    if (currentFilters.search_field && currentFilters.search_field !== 'all')
+        params.set('search_field', currentFilters.search_field);
     if (currentFilters.page > 1)
         params.set('page', currentFilters.page);
 
@@ -1795,10 +1756,18 @@ function applyFilters() {
         });
 }
 
-window.addEventListener('popstate', function(e) {
-    if (e.state && e.state.filters) { currentFilters = e.state.filters; applyFilters(); }
-    else location.reload();
-});
+// Prevent multiple popstate listeners
+if (!window._popstateListenerAdded) {
+    window._popstateListenerAdded = true;
+    window.addEventListener('popstate', function(e) {
+        if (e.state && e.state.filters) {
+            currentFilters = e.state.filters;
+            applyFilters();
+        } else {
+            location.reload();
+        }
+    });
+}
 
     /* ═══════════════════════════════════════════
        BULK APPROVAL — Modal + Form Submission
@@ -1878,24 +1847,30 @@ window.addEventListener('popstate', function(e) {
     document.getElementById('bulk-action-form').submit();
     };
 
-    /* Close on Escape */
-    document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-        hideBulkModal('approve');
-        hideBulkModal('reject');
-        hideBulkModal('submit');
-    }
-});
-
-/* Close on overlay click */
-['approve-modal', 'reject-modal', 'submit-modal'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.addEventListener('click', function(e) {
-            if (e.target === this) hideBulkModal(id.replace('-modal', ''));
+    /* Close on Escape - prevent duplicate listeners */
+    if (!window._escapeListenerAdded) {
+        window._escapeListenerAdded = true;
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                hideBulkModal('approve');
+                hideBulkModal('reject');
+                hideBulkModal('submit');
+            }
         });
     }
-    });
+
+    /* Close on overlay click - prevent duplicate listeners */
+    if (!window._modalClickListenersAdded) {
+        window._modalClickListenersAdded = true;
+        ['approve-modal', 'reject-modal', 'submit-modal'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('click', function(e) {
+                    if (e.target === this) hideBulkModal(id.replace('-modal', ''));
+                });
+            }
+        });
+    }
 
     /* ═══════════════════════════════════════════
        BULK SUBMIT DRAFTS — Modal + Form Submission
@@ -1951,5 +1926,7 @@ window.addEventListener('popstate', function(e) {
         updateBulkBar();
     }
 })();
+
+} // End of script loaded check
 </script>
 {% endblock %}

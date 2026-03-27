@@ -373,9 +373,18 @@ class PendingActionView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         doc_type = self.request.GET.get('doc_type', 'all')
+        search_query = self.request.GET.get('search', '').strip()
+        search_field = self.request.GET.get('search_field', 'all')
+
         pv_queryset = PaymentVoucher.objects.filter(current_approver=user, status__startswith='PENDING')
         pf_queryset = PaymentForm.objects.filter(current_approver=user, status__startswith='PENDING')
 
+        # Apply search filter BEFORE pagination
+        if search_query:
+            pv_queryset = self._apply_search_filter(pv_queryset, search_query, search_field, 'pv')
+            pf_queryset = self._apply_search_filter(pf_queryset, search_query, search_field, 'pf')
+
+        # Legacy filters
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
             pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
@@ -403,9 +412,56 @@ class PendingActionView(LoginRequiredMixin, ListView):
             return sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
         return sorted(chain(pv_queryset, pf_queryset), key=attrgetter('created_at'), reverse=True)
 
+    def _apply_search_filter(self, queryset, query, field, doc_type):
+        """Apply search filters based on selected field"""
+        from decimal import Decimal, InvalidOperation
+
+        if field == 'number':
+            if doc_type == 'pv':
+                return queryset.filter(pv_number__icontains=query)
+            else:
+                return queryset.filter(pf_number__icontains=query)
+        elif field == 'payee':
+            return queryset.filter(payee_name__icontains=query)
+        elif field == 'description':
+            return queryset.filter(line_items__description__icontains=query).distinct()
+        elif field == 'amount':
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                return queryset.filter(
+                    Q(line_items__amount=amount_decimal) |
+                    Q(line_items__amount__icontains=query)
+                ).distinct()
+            except (InvalidOperation, ValueError):
+                return queryset.filter(line_items__amount__icontains=query).distinct()
+        elif field == 'date':
+            return queryset.filter(
+                Q(created_at__icontains=query) |
+                Q(payment_date__icontains=query)
+            )
+        else:  # field == 'all'
+            q_filter = Q()
+            if doc_type == 'pv':
+                q_filter |= Q(pv_number__icontains=query)
+            else:
+                q_filter |= Q(pf_number__icontains=query)
+            q_filter |= Q(payee_name__icontains=query)
+            q_filter |= Q(line_items__description__icontains=query)
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                q_filter |= Q(line_items__amount=amount_decimal)
+            except (InvalidOperation, ValueError):
+                pass
+            q_filter |= Q(line_items__amount__icontains=query)
+            q_filter |= Q(created_at__icontains=query)
+            q_filter |= Q(payment_date__icontains=query)
+            return queryset.filter(q_filter).distinct()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Pending My Action'
+        context['search_query'] = self.request.GET.get('search', '')
+        context['search_field'] = self.request.GET.get('search_field', 'all')
         return context
 
 
@@ -417,6 +473,9 @@ class InProgressView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         doc_type = self.request.GET.get('doc_type', 'all')
+        search_query = self.request.GET.get('search', '').strip()
+        search_field = self.request.GET.get('search_field', 'all')
+
         if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.filter(status__startswith='PENDING')
             pf_queryset = PaymentForm.objects.filter(status__startswith='PENDING')
@@ -428,6 +487,12 @@ class InProgressView(LoginRequiredMixin, ListView):
                 Q(created_by=user)|Q(current_approver=user)|Q(approval_history__actor=user)
             ).filter(status__startswith='PENDING').distinct()
 
+        # Apply search filter BEFORE pagination
+        if search_query:
+            pv_queryset = self._apply_search_filter(pv_queryset, search_query, search_field, 'pv')
+            pf_queryset = self._apply_search_filter(pf_queryset, search_query, search_field, 'pf')
+
+        # Legacy filters
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
             pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
@@ -455,9 +520,56 @@ class InProgressView(LoginRequiredMixin, ListView):
             return sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
         return sorted(chain(pv_queryset, pf_queryset), key=attrgetter('created_at'), reverse=True)
 
+    def _apply_search_filter(self, queryset, query, field, doc_type):
+        """Apply search filters based on selected field"""
+        from decimal import Decimal, InvalidOperation
+
+        if field == 'number':
+            if doc_type == 'pv':
+                return queryset.filter(pv_number__icontains=query)
+            else:
+                return queryset.filter(pf_number__icontains=query)
+        elif field == 'payee':
+            return queryset.filter(payee_name__icontains=query)
+        elif field == 'description':
+            return queryset.filter(line_items__description__icontains=query).distinct()
+        elif field == 'amount':
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                return queryset.filter(
+                    Q(line_items__amount=amount_decimal) |
+                    Q(line_items__amount__icontains=query)
+                ).distinct()
+            except (InvalidOperation, ValueError):
+                return queryset.filter(line_items__amount__icontains=query).distinct()
+        elif field == 'date':
+            return queryset.filter(
+                Q(created_at__icontains=query) |
+                Q(payment_date__icontains=query)
+            )
+        else:  # field == 'all'
+            q_filter = Q()
+            if doc_type == 'pv':
+                q_filter |= Q(pv_number__icontains=query)
+            else:
+                q_filter |= Q(pf_number__icontains=query)
+            q_filter |= Q(payee_name__icontains=query)
+            q_filter |= Q(line_items__description__icontains=query)
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                q_filter |= Q(line_items__amount=amount_decimal)
+            except (InvalidOperation, ValueError):
+                pass
+            q_filter |= Q(line_items__amount__icontains=query)
+            q_filter |= Q(created_at__icontains=query)
+            q_filter |= Q(payment_date__icontains=query)
+            return queryset.filter(q_filter).distinct()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'In Progress'
+        context['search_query'] = self.request.GET.get('search', '')
+        context['search_field'] = self.request.GET.get('search_field', 'all')
         return context
 
 
@@ -469,6 +581,9 @@ class ApprovedView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         doc_type = self.request.GET.get('doc_type', 'all')
+        search_query = self.request.GET.get('search', '').strip()
+        search_field = self.request.GET.get('search_field', 'all')
+
         if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.filter(status='APPROVED')
             pf_queryset = PaymentForm.objects.filter(status='APPROVED')
@@ -480,6 +595,12 @@ class ApprovedView(LoginRequiredMixin, ListView):
                 Q(created_by=user)|Q(current_approver=user)|Q(approval_history__actor=user)
             ).filter(status='APPROVED').distinct()
 
+        # Apply search filter BEFORE pagination
+        if search_query:
+            pv_queryset = self._apply_search_filter(pv_queryset, search_query, search_field, 'pv')
+            pf_queryset = self._apply_search_filter(pf_queryset, search_query, search_field, 'pf')
+
+        # Legacy filters
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
             pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
@@ -503,9 +624,56 @@ class ApprovedView(LoginRequiredMixin, ListView):
             return sorted(pf_queryset, key=attrgetter('pf_number'), reverse=False)
         return sorted(chain(pv_queryset, pf_queryset), key=attrgetter('created_at'), reverse=False)
 
+    def _apply_search_filter(self, queryset, query, field, doc_type):
+        """Apply search filters based on selected field"""
+        from decimal import Decimal, InvalidOperation
+
+        if field == 'number':
+            if doc_type == 'pv':
+                return queryset.filter(pv_number__icontains=query)
+            else:
+                return queryset.filter(pf_number__icontains=query)
+        elif field == 'payee':
+            return queryset.filter(payee_name__icontains=query)
+        elif field == 'description':
+            return queryset.filter(line_items__description__icontains=query).distinct()
+        elif field == 'amount':
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                return queryset.filter(
+                    Q(line_items__amount=amount_decimal) |
+                    Q(line_items__amount__icontains=query)
+                ).distinct()
+            except (InvalidOperation, ValueError):
+                return queryset.filter(line_items__amount__icontains=query).distinct()
+        elif field == 'date':
+            return queryset.filter(
+                Q(created_at__icontains=query) |
+                Q(payment_date__icontains=query)
+            )
+        else:  # field == 'all'
+            q_filter = Q()
+            if doc_type == 'pv':
+                q_filter |= Q(pv_number__icontains=query)
+            else:
+                q_filter |= Q(pf_number__icontains=query)
+            q_filter |= Q(payee_name__icontains=query)
+            q_filter |= Q(line_items__description__icontains=query)
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                q_filter |= Q(line_items__amount=amount_decimal)
+            except (InvalidOperation, ValueError):
+                pass
+            q_filter |= Q(line_items__amount__icontains=query)
+            q_filter |= Q(created_at__icontains=query)
+            q_filter |= Q(payment_date__icontains=query)
+            return queryset.filter(q_filter).distinct()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Approved Vouchers & Forms'
+        context['search_query'] = self.request.GET.get('search', '')
+        context['search_field'] = self.request.GET.get('search_field', 'all')
         return context
 
 
@@ -517,6 +685,9 @@ class CancelledView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         doc_type = self.request.GET.get('doc_type', 'all')
+        search_query = self.request.GET.get('search', '').strip()
+        search_field = self.request.GET.get('search_field', 'all')
+
         if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.filter(status='REJECTED')
             pf_queryset = PaymentForm.objects.filter(status='REJECTED')
@@ -528,6 +699,12 @@ class CancelledView(LoginRequiredMixin, ListView):
                 Q(created_by=user)|Q(current_approver=user)|Q(approval_history__actor=user)
             ).filter(status='REJECTED').distinct()
 
+        # Apply search filter BEFORE pagination
+        if search_query:
+            pv_queryset = self._apply_search_filter(pv_queryset, search_query, search_field, 'pv')
+            pf_queryset = self._apply_search_filter(pf_queryset, search_query, search_field, 'pf')
+
+        # Legacy filters
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
             pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
@@ -551,9 +728,56 @@ class CancelledView(LoginRequiredMixin, ListView):
             return sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
         return sorted(chain(pv_queryset, pf_queryset), key=attrgetter('created_at'), reverse=True)
 
+    def _apply_search_filter(self, queryset, query, field, doc_type):
+        """Apply search filters based on selected field"""
+        from decimal import Decimal, InvalidOperation
+
+        if field == 'number':
+            if doc_type == 'pv':
+                return queryset.filter(pv_number__icontains=query)
+            else:
+                return queryset.filter(pf_number__icontains=query)
+        elif field == 'payee':
+            return queryset.filter(payee_name__icontains=query)
+        elif field == 'description':
+            return queryset.filter(line_items__description__icontains=query).distinct()
+        elif field == 'amount':
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                return queryset.filter(
+                    Q(line_items__amount=amount_decimal) |
+                    Q(line_items__amount__icontains=query)
+                ).distinct()
+            except (InvalidOperation, ValueError):
+                return queryset.filter(line_items__amount__icontains=query).distinct()
+        elif field == 'date':
+            return queryset.filter(
+                Q(created_at__icontains=query) |
+                Q(payment_date__icontains=query)
+            )
+        else:  # field == 'all'
+            q_filter = Q()
+            if doc_type == 'pv':
+                q_filter |= Q(pv_number__icontains=query)
+            else:
+                q_filter |= Q(pf_number__icontains=query)
+            q_filter |= Q(payee_name__icontains=query)
+            q_filter |= Q(line_items__description__icontains=query)
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                q_filter |= Q(line_items__amount=amount_decimal)
+            except (InvalidOperation, ValueError):
+                pass
+            q_filter |= Q(line_items__amount__icontains=query)
+            q_filter |= Q(created_at__icontains=query)
+            q_filter |= Q(payment_date__icontains=query)
+            return queryset.filter(q_filter).distinct()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Rejected Vouchers & Forms'
+        context['search_query'] = self.request.GET.get('search', '')
+        context['search_field'] = self.request.GET.get('search_field', 'all')
         return context
 
 
@@ -564,9 +788,18 @@ class MyVouchersView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         doc_type = self.request.GET.get('doc_type', 'all')
+        search_query = self.request.GET.get('search', '').strip()
+        search_field = self.request.GET.get('search_field', 'all')
+
         pv_queryset = PaymentVoucher.objects.filter(created_by=self.request.user)
         pf_queryset = PaymentForm.objects.filter(created_by=self.request.user)
 
+        # Apply search filter BEFORE pagination
+        if search_query:
+            pv_queryset = self._apply_search_filter(pv_queryset, search_query, search_field, 'pv')
+            pf_queryset = self._apply_search_filter(pf_queryset, search_query, search_field, 'pf')
+
+        # Legacy filters
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
             pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
@@ -594,9 +827,56 @@ class MyVouchersView(LoginRequiredMixin, ListView):
             return sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
         return sorted(chain(pv_queryset, pf_queryset), key=attrgetter('created_at'), reverse=True)
 
+    def _apply_search_filter(self, queryset, query, field, doc_type):
+        """Apply search filters based on selected field"""
+        from decimal import Decimal, InvalidOperation
+
+        if field == 'number':
+            if doc_type == 'pv':
+                return queryset.filter(pv_number__icontains=query)
+            else:
+                return queryset.filter(pf_number__icontains=query)
+        elif field == 'payee':
+            return queryset.filter(payee_name__icontains=query)
+        elif field == 'description':
+            return queryset.filter(line_items__description__icontains=query).distinct()
+        elif field == 'amount':
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                return queryset.filter(
+                    Q(line_items__amount=amount_decimal) |
+                    Q(line_items__amount__icontains=query)
+                ).distinct()
+            except (InvalidOperation, ValueError):
+                return queryset.filter(line_items__amount__icontains=query).distinct()
+        elif field == 'date':
+            return queryset.filter(
+                Q(created_at__icontains=query) |
+                Q(payment_date__icontains=query)
+            )
+        else:  # field == 'all'
+            q_filter = Q()
+            if doc_type == 'pv':
+                q_filter |= Q(pv_number__icontains=query)
+            else:
+                q_filter |= Q(pf_number__icontains=query)
+            q_filter |= Q(payee_name__icontains=query)
+            q_filter |= Q(line_items__description__icontains=query)
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                q_filter |= Q(line_items__amount=amount_decimal)
+            except (InvalidOperation, ValueError):
+                pass
+            q_filter |= Q(line_items__amount__icontains=query)
+            q_filter |= Q(created_at__icontains=query)
+            q_filter |= Q(payment_date__icontains=query)
+            return queryset.filter(q_filter).distinct()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'My Vouchers & Forms'
+        context['search_query'] = self.request.GET.get('search', '')
+        context['search_field'] = self.request.GET.get('search_field', 'all')
         return context
 
 
@@ -607,9 +887,18 @@ class MyDraftsView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         doc_type = self.request.GET.get('doc_type', 'all')
+        search_query = self.request.GET.get('search', '').strip()
+        search_field = self.request.GET.get('search_field', 'all')
+
         pv_queryset = PaymentVoucher.objects.filter(created_by=self.request.user, status__in=['DRAFT', 'ON_REVISION'])
         pf_queryset = PaymentForm.objects.filter(created_by=self.request.user, status__in=['DRAFT', 'ON_REVISION'])
 
+        # Apply search filter BEFORE pagination
+        if search_query:
+            pv_queryset = self._apply_search_filter(pv_queryset, search_query, search_field, 'pv')
+            pf_queryset = self._apply_search_filter(pf_queryset, search_query, search_field, 'pf')
+
+        # Legacy filters
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
             pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
@@ -637,9 +926,56 @@ class MyDraftsView(LoginRequiredMixin, ListView):
             return sorted(pf_queryset, key=attrgetter('updated_at'), reverse=True)
         return sorted(chain(pv_queryset, pf_queryset), key=attrgetter('updated_at'), reverse=True)
 
+    def _apply_search_filter(self, queryset, query, field, doc_type):
+        """Apply search filters based on selected field"""
+        from decimal import Decimal, InvalidOperation
+
+        if field == 'number':
+            if doc_type == 'pv':
+                return queryset.filter(pv_number__icontains=query)
+            else:
+                return queryset.filter(pf_number__icontains=query)
+        elif field == 'payee':
+            return queryset.filter(payee_name__icontains=query)
+        elif field == 'description':
+            return queryset.filter(line_items__description__icontains=query).distinct()
+        elif field == 'amount':
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                return queryset.filter(
+                    Q(line_items__amount=amount_decimal) |
+                    Q(line_items__amount__icontains=query)
+                ).distinct()
+            except (InvalidOperation, ValueError):
+                return queryset.filter(line_items__amount__icontains=query).distinct()
+        elif field == 'date':
+            return queryset.filter(
+                Q(created_at__icontains=query) |
+                Q(payment_date__icontains=query)
+            )
+        else:  # field == 'all'
+            q_filter = Q()
+            if doc_type == 'pv':
+                q_filter |= Q(pv_number__icontains=query)
+            else:
+                q_filter |= Q(pf_number__icontains=query)
+            q_filter |= Q(payee_name__icontains=query)
+            q_filter |= Q(line_items__description__icontains=query)
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                q_filter |= Q(line_items__amount=amount_decimal)
+            except (InvalidOperation, ValueError):
+                pass
+            q_filter |= Q(line_items__amount__icontains=query)
+            q_filter |= Q(created_at__icontains=query)
+            q_filter |= Q(payment_date__icontains=query)
+            return queryset.filter(q_filter).distinct()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'My Drafts'
+        context['search_query'] = self.request.GET.get('search', '')
+        context['search_field'] = self.request.GET.get('search_field', 'all')
         return context
 
 
@@ -651,6 +987,10 @@ class AllVouchersView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         doc_type = self.request.GET.get('doc_type', 'all')
+        search_query = self.request.GET.get('search', '').strip()
+        search_field = self.request.GET.get('search_field', 'all')
+
+        # Base querysets
         if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.all()
             pf_queryset = PaymentForm.objects.all()
@@ -662,6 +1002,12 @@ class AllVouchersView(LoginRequiredMixin, ListView):
                 Q(created_by=user)|Q(current_approver=user)|Q(approval_history__actor=user)
             ).distinct()
 
+        # Apply search filter BEFORE pagination
+        if search_query:
+            pv_queryset = self._apply_search_filter(pv_queryset, search_query, search_field, 'pv')
+            pf_queryset = self._apply_search_filter(pf_queryset, search_query, search_field, 'pf')
+
+        # Legacy filters (for backward compatibility)
         pv_number = self.request.GET.get('pv_number', '').strip()
         if pv_number:
             pv_queryset = pv_queryset.filter(pv_number__icontains=pv_number)
@@ -689,9 +1035,78 @@ class AllVouchersView(LoginRequiredMixin, ListView):
             return sorted(pf_queryset, key=attrgetter('created_at'), reverse=True)
         return sorted(chain(pv_queryset, pf_queryset), key=attrgetter('created_at'), reverse=True)
 
+    def _apply_search_filter(self, queryset, query, field, doc_type):
+        """Apply search filters based on selected field"""
+        from decimal import Decimal, InvalidOperation
+
+        if field == 'number':
+            # Search in document number
+            if doc_type == 'pv':
+                return queryset.filter(pv_number__icontains=query)
+            else:
+                return queryset.filter(pf_number__icontains=query)
+
+        elif field == 'payee':
+            # Search in payee name
+            return queryset.filter(payee_name__icontains=query)
+
+        elif field == 'description':
+            # Search in line item descriptions
+            return queryset.filter(line_items__description__icontains=query).distinct()
+
+        elif field == 'amount':
+            # Search in amount
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                return queryset.filter(
+                    Q(line_items__amount=amount_decimal) |
+                    Q(line_items__amount__icontains=query)
+                ).distinct()
+            except (InvalidOperation, ValueError):
+                return queryset.filter(line_items__amount__icontains=query).distinct()
+
+        elif field == 'date':
+            # Search in dates
+            return queryset.filter(
+                Q(created_at__icontains=query) |
+                Q(payment_date__icontains=query)
+            )
+
+        else:  # field == 'all'
+            # Search in all fields
+            q_filter = Q()
+
+            # Document number
+            if doc_type == 'pv':
+                q_filter |= Q(pv_number__icontains=query)
+            else:
+                q_filter |= Q(pf_number__icontains=query)
+
+            # Payee name
+            q_filter |= Q(payee_name__icontains=query)
+
+            # Description
+            q_filter |= Q(line_items__description__icontains=query)
+
+            # Amount
+            try:
+                amount_decimal = Decimal(query.replace(',', ''))
+                q_filter |= Q(line_items__amount=amount_decimal)
+            except (InvalidOperation, ValueError):
+                pass
+            q_filter |= Q(line_items__amount__icontains=query)
+
+            # Date
+            q_filter |= Q(created_at__icontains=query)
+            q_filter |= Q(payment_date__icontains=query)
+
+            return queryset.filter(q_filter).distinct()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'All Recent Documents'
+        context['search_query'] = self.request.GET.get('search', '')
+        context['search_field'] = self.request.GET.get('search_field', 'all')
         return context
 
 
