@@ -316,7 +316,7 @@
 /* Highlight matched text in table */
 .search-highlight {
     background: rgba(6,182,212,0.22);
-    color: var(--cyan-300);
+    color: #0a3d47;  /* Dark teal for contrast */
     border-radius: 2px;
     padding: 0 1px;
     font-weight: 700;
@@ -867,6 +867,10 @@ body[data-theme="light"] .payee-cell strong {
     font-weight: 700;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+body[data-theme="light"] .search-highlight {
+    background: rgba(6,182,212,0.25);
+    color: #0e4a5c;  /* Dark teal for contrast against light cyan background */
 }
 body[data-theme="light"] .search-box input {
     background: #f2f4f7;
