@@ -2271,34 +2271,10 @@ function executePageScripts(doc) {
     }
 
     // Fix header when page becomes visible again after being hidden
-    // ALSO reload SPA content to prevent stale state after idle
-    let pageHiddenTime = null;
-    const RELOAD_THRESHOLD = 60000; // Only reload if user was away for 60+ seconds
-
     document.addEventListener('visibilitychange', function() {
-        if (document.hidden) {
-            // Track when page was hidden
-            pageHiddenTime = Date.now();
-        } else {
-            // Page became visible
+        if (!document.hidden) {
+            // Only fix header position, no auto-reload
             fixHeaderPosition();
-
-            // Only reload if user was away for significant time
-            if (pageHiddenTime && (Date.now() - pageHiddenTime) >= RELOAD_THRESHOLD) {
-                // Reload current SPA page content if user returns after being idle
-                if (window.currentSPAUrl && mainContent) {
-                    // Only reload if we're on an SPA page (not initial load)
-                    const currentPath = window.location.pathname;
-                    if (window.currentSPAUrl === currentPath) {
-                        console.log('Reloading page content after extended absence');
-                        // Reload content silently without changing URL
-                        navigateToPage(currentPath, null).catch(function(err) {
-                            console.warn('Failed to reload content on visibility change:', err);
-                        });
-                    }
-                }
-            }
-            pageHiddenTime = null;
         }
     });
 
