@@ -1104,7 +1104,7 @@ body[data-theme="light"] .amount-cell {
                     <i class="bi bi-search multi-search-icon"></i>
                     <input type="text" id="searchInput"
                            class="multi-search-input"
-                           placeholder="Search number, payee, amount, date…"
+                           placeholder="Search number, payee, description, amount, date…"
                            value="{{ request.GET.search|default:'' }}"
                            onkeyup="liveSearch(this.value)"
                            autocomplete="off">
@@ -1114,11 +1114,12 @@ body[data-theme="light"] .amount-cell {
                     </button>
                 </div>
                 <div class="search-field-pills">
-                    <span class="search-pill active" data-field="all"     onclick="setSearchField('all')">All</span>
-                    <span class="search-pill"         data-field="number" onclick="setSearchField('number')"># Number</span>
-                    <span class="search-pill"         data-field="payee"  onclick="setSearchField('payee')">Payee</span>
-                    <span class="search-pill"         data-field="amount" onclick="setSearchField('amount')">Amount</span>
-                    <span class="search-pill"         data-field="date"   onclick="setSearchField('date')">Date</span>
+                    <span class="search-pill active" data-field="all"         onclick="setSearchField('all')">All</span>
+                    <span class="search-pill"         data-field="number"     onclick="setSearchField('number')"># Number</span>
+                    <span class="search-pill"         data-field="payee"      onclick="setSearchField('payee')">Payee</span>
+                    <span class="search-pill"         data-field="description" onclick="setSearchField('description')">Description</span>
+                    <span class="search-pill"         data-field="amount"     onclick="setSearchField('amount')">Amount</span>
+                    <span class="search-pill"         data-field="date"       onclick="setSearchField('date')">Date</span>
                 </div>
             </div>
         </div>
@@ -1199,7 +1200,8 @@ body[data-theme="light"] .amount-cell {
                     {% with is_pf=voucher.pf_number %}
                     <tr onclick="goToVoucher(event, '{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}')"
                         data-id="{{ voucher.pk }}"
-                        data-doctype="{% if voucher.pf_number %}pf{% else %}pv{% endif %}">
+                        data-doctype="{% if voucher.pf_number %}pf{% else %}pv{% endif %}"
+                        data-descriptions="{% for item in voucher.line_items.all %}{{ item.description|lower }}{% if not forloop.last %} | {% endif %}{% endfor %}">
 
                         <td onclick="event.stopPropagation()">
                             <input type="checkbox" class="pv-checkbox row-checkbox"
@@ -1646,9 +1648,10 @@ body[data-theme="light"] .amount-cell {
         const fieldCols = {
             number: [2],
             payee:  [3],
+            description: [], // Search in data-descriptions attribute
             amount: [4],
             date:   [6],
-            all:    [2, 3, 4, 6]
+            all:    [2, 3, 4, 6] // Include description in 'all' search
         };
         const cols = fieldCols[activeSearchField] || fieldCols.all;
 
@@ -1666,12 +1669,19 @@ body[data-theme="light"] .amount-cell {
             const cells = row.querySelectorAll('td');
             let matched = false;
 
+            // Check column cells
             cols.forEach(idx => {
                 if (cells[idx]) {
                     const text = cells[idx].textContent.toLowerCase();
                     if (text.includes(q)) matched = true;
                 }
             });
+
+            // Check description data attribute
+            if (activeSearchField === 'description' || activeSearchField === 'all') {
+                const descriptions = row.getAttribute('data-descriptions') || '';
+                if (descriptions.includes(q)) matched = true;
+            }
 
             row.style.display = matched ? '' : 'none';
             if (matched) {
