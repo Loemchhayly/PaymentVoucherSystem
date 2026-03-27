@@ -1737,6 +1737,9 @@
                 this.classList.toggle('is-scrolled', this.scrollTop > 10);
             });
         }
+
+        // Initialize charts after DOM is ready
+        initCharts();
     }
 
     // ── Chart.js: theme-aware palette helpers ──
@@ -1752,8 +1755,22 @@
         borderWidth: 1
     };
 
-    // Monthly Trends
-    new Chart(document.getElementById('monthlyChart').getContext('2d'), {
+    // ── Initialize all charts ──
+    function initCharts() {
+        // Check if Chart.js is loaded
+        if (!window.Chart) {
+            console.warn('Chart.js not loaded');
+            return;
+        }
+
+        // Monthly Trends
+        const monthlyCanvas = document.getElementById('monthlyChart');
+        if (!monthlyCanvas) {
+            console.warn('monthlyChart canvas not found');
+            return;
+        }
+
+        new Chart(monthlyCanvas.getContext('2d'), {
         type: 'bar',
         data: {
             labels: {{ monthly_labels|safe }},
@@ -1796,8 +1813,14 @@
         }
     });
 
-    // Doughnut: Doc Types
-    new Chart(document.getElementById('pieChart').getContext('2d'), {
+        // Doughnut: Doc Types
+        const pieCanvas = document.getElementById('pieChart');
+        if (!pieCanvas) {
+            console.warn('pieChart canvas not found');
+            return;
+        }
+
+        new Chart(pieCanvas.getContext('2d'), {
         type: 'doughnut',
         data: {
             labels: ['Payment Vouchers', 'Payment Forms'],
@@ -1816,8 +1839,14 @@
         }
     });
 
-    // Doughnut: Currency
-    new Chart(document.getElementById('currencyChart').getContext('2d'), {
+        // Doughnut: Currency
+        const currencyCanvas = document.getElementById('currencyChart');
+        if (!currencyCanvas) {
+            console.warn('currencyChart canvas not found');
+            return;
+        }
+
+        new Chart(currencyCanvas.getContext('2d'), {
         type: 'doughnut',
         data: {
             labels: ['USD ($)', 'KHR (៛)', 'THB (฿)'],
@@ -1836,8 +1865,14 @@
         }
     });
 
-    // Line: Approval Activity
-    new Chart(document.getElementById('activityChart').getContext('2d'), {
+        // Line: Approval Activity
+        const activityCanvas = document.getElementById('activityChart');
+        if (!activityCanvas) {
+            console.warn('activityChart canvas not found');
+            return;
+        }
+
+        new Chart(activityCanvas.getContext('2d'), {
         type: 'line',
         data: {
             labels: {{ monthly_labels|safe }},
@@ -1860,7 +1895,8 @@
             },
             animation: { duration: 1200, easing: 'easeInOutQuart' }
         }
-    });
+        });
+    } // End initCharts
 
     // Execute init on page load and SPA navigation
     if (document.readyState === 'loading') {
