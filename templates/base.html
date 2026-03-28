@@ -1987,11 +1987,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // Only intercept internal links
-// Normal full page navigation - SPA disabled
             if (href) {
                 link.addEventListener('click', function(e) {
+                    // Allow default behavior for Ctrl/Cmd/Shift clicks (open in new tab)
                     if (e.ctrlKey || e.metaKey || e.shiftKey) return;
-                    // Allow normal browser navigation - no SPA interception
+
+                    e.preventDefault();
+                    navigateToPage(href, link);
                 });
             }
         });
