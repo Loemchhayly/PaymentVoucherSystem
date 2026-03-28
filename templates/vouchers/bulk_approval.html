@@ -377,39 +377,267 @@
         background: var(--primary-700);
     }
 
+    /* ══════════════════════════════════════════════════════════
+       ENHANCED MOBILE RESPONSIVENESS
+    ══════════════════════════════════════════════════════════ */
+
+    /* Tablets */
+    @media (max-width: 991px) {
+        .bulk-approval-container {
+            padding: var(--spacing-lg);
+        }
+
+        /* Touch-friendly checkboxes */
+        .select-all-checkbox {
+            width: 24px;
+            height: 24px;
+        }
+
+        .row-checkbox {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Larger touch targets for buttons */
+        .bulk-btn {
+            min-height: 44px;
+            padding: var(--spacing-md) var(--spacing-xl);
+        }
+    }
+
+    /* Mobile devices */
     @media (max-width: 768px) {
         .bulk-approval-container {
             padding: var(--spacing-md);
         }
 
+        /* Page header mobile */
         .page-title {
             font-size: 1.5rem;
+            gap: var(--spacing-sm);
         }
 
+        .page-title i {
+            font-size: 1.25rem;
+        }
+
+        .page-subtitle {
+            font-size: 0.875rem;
+        }
+
+        /* Action bar stack vertically */
         .action-bar {
             flex-direction: column;
             align-items: stretch;
+            gap: var(--spacing-md);
         }
 
+        /* Selection info stack */
         .selection-info {
             flex-direction: column;
             align-items: flex-start;
-        }
-
-        .action-buttons {
+            gap: var(--spacing-sm);
             width: 100%;
         }
 
-        .bulk-btn {
-            flex: 1;
+        .select-all-container {
+            width: 100%;
         }
 
+        .selected-count {
+            align-self: flex-start;
+        }
+
+        /* Action buttons full width */
+        .action-buttons {
+            width: 100%;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .bulk-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Table horizontal scroll with indicators */
         .documents-table-container {
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+
+        /* Scroll shadow indicators */
+        .documents-table-container::before,
+        .documents-table-container::after {
+            content: '';
+            position: sticky;
+            width: 20px;
+            top: 0;
+            bottom: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .documents-table-container::before {
+            left: 0;
+            background: linear-gradient(90deg, white 0%, transparent 100%);
+        }
+        .documents-table-container::after {
+            right: 0;
+            background: linear-gradient(270deg, white 0%, transparent 100%);
         }
 
         .documents-table {
             min-width: 800px;
+        }
+
+        /* Table cells compact */
+        .documents-table th,
+        .documents-table td {
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: 0.8125rem;
+        }
+
+        /* Badges smaller */
+        .doc-type-badge,
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+        }
+
+        /* Modal responsive */
+        .modal-dialog {
+            max-width: 90%;
+            margin: var(--spacing-md);
+        }
+
+        .modal-header {
+            padding: var(--spacing-md);
+        }
+
+        .modal-header h3 {
+            font-size: 1.125rem;
+        }
+
+        .modal-body {
+            padding: var(--spacing-lg);
+        }
+
+        .modal-body textarea {
+            min-height: 120px;
+            font-size: 16px; /* Prevents iOS zoom */
+        }
+
+        .modal-footer {
+            padding: var(--spacing-md) var(--spacing-lg);
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .modal-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Small phones */
+    @media (max-width: 576px) {
+        .bulk-approval-container {
+            padding: var(--spacing-sm);
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+        }
+
+        /* Action bar more compact */
+        .action-bar {
+            padding: var(--spacing-md);
+        }
+
+        /* Table minimum width adjusted */
+        .documents-table {
+            min-width: 700px;
+        }
+
+        .documents-table th,
+        .documents-table td {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            font-size: 0.75rem;
+        }
+
+        /* Hide less critical columns on very small screens */
+        .documents-table th:nth-child(5), /* Payment Date */
+        .documents-table td:nth-child(5),
+        .documents-table th:nth-child(8), /* Created By */
+        .documents-table td:nth-child(8) {
+            display: none;
+        }
+
+        /* Adjust table min-width after hiding columns */
+        .documents-table {
+            min-width: 550px;
+        }
+
+        /* View link more compact */
+        .view-link {
+            font-size: 0.75rem;
+        }
+
+        /* Empty state compact */
+        .empty-state {
+            padding: var(--spacing-2xl);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.125rem;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+        }
+    }
+
+    /* Landscape phones */
+    @media (max-width: 768px) and (orientation: landscape) {
+        .modal-dialog {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .action-bar {
+            padding: var(--spacing-sm) var(--spacing-md);
+        }
+    }
+
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+        .bulk-btn:hover,
+        .modal-btn:hover,
+        .view-link:hover {
+            transform: none;
+        }
+
+        .bulk-btn:active {
+            transform: scale(0.97);
+        }
+
+        .modal-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Remove hover state on rows */
+        .documents-table tbody tr:hover {
+            background: transparent;
+        }
+
+        /* Active state instead */
+        .documents-table tbody tr:active {
+            background: var(--primary-50);
         }
     }
 </style>
