@@ -627,6 +627,61 @@
     .print-header p { color: var(--text-muted); font-size: 0.875rem; }
 
     /* ══════════════════════════════════════════════════════════
+       MOBILE CARD LAYOUT (NO HORIZONTAL SCROLL)
+    ══════════════════════════════════════════════════════════ */
+
+    /* Mobile card container */
+    .mobile-cards {
+        display: none;
+    }
+
+    .mobile-card {
+        background: var(--surface-800);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .mobile-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .mobile-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .mobile-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.25rem 0;
+    }
+
+    .mobile-card-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        letter-spacing: 0.5px;
+    }
+
+    .mobile-card-value {
+        font-size: 0.8125rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        text-align: right;
+    }
+
+    /* ══════════════════════════════════════════════════════════
        ENHANCED MOBILE RESPONSIVENESS
     ══════════════════════════════════════════════════════════ */
 
@@ -657,9 +712,13 @@
         }
     }
 
-    /* Mobile devices */
+    /* Mobile devices - CARD LAYOUT (NO HORIZONTAL SCROLL) */
     @media (max-width: 768px) {
-        .report-container { padding: 0 0.75rem; }
+        .report-container {
+            padding: 0 0.75rem;
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
 
         /* Page header mobile */
         .report-page-header .page-title {
@@ -716,39 +775,13 @@
             font-size: 14px;
         }
 
-        /* Data table mobile */
-        .data-table {
-            font-size: 0.775rem;
-        }
-        .data-table th, .data-table td {
-            padding: 0.5rem 0.6rem;
-        }
-
-        /* Scroll container with indicators */
+        /* HIDE TABLE ON MOBILE - SHOW CARDS INSTEAD */
         .table-scroll-container {
-            max-height: 450px;
-            position: relative;
+            display: none !important;
         }
 
-        /* Scroll shadow indicators */
-        .table-scroll-container::before,
-        .table-scroll-container::after {
-            content: '';
-            position: sticky;
-            width: 30px;
-            top: 0;
-            bottom: 0;
-            z-index: 5;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        .table-scroll-container::before {
-            left: 0;
-            background: linear-gradient(90deg, var(--surface-800) 0%, transparent 100%);
-        }
-        .table-scroll-container::after {
-            right: 0;
-            background: linear-gradient(270deg, var(--surface-800) 0%, transparent 100%);
+        .mobile-cards {
+            display: block !important;
         }
 
         /* Pagination mobile */
@@ -764,11 +797,66 @@
             min-width: 36px;
             min-height: 36px;
         }
+
+        /* Breakdown tables - make them card-like */
+        .breakdown-table {
+            display: block;
+            overflow-x: hidden;
+        }
+        .breakdown-table thead {
+            display: none;
+        }
+        .breakdown-table tbody,
+        .breakdown-table tr {
+            display: block;
+            width: 100%;
+        }
+        .breakdown-table tr {
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--surface-800);
+        }
+        .breakdown-table td {
+            display: block;
+            text-align: left !important;
+            padding: 0.25rem 0;
+            border: none;
+        }
+        .breakdown-table td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
     }
 
-    /* Small phones */
+    /* Small phones - NO HORIZONTAL SCROLL */
     @media (max-width: 576px) {
-        .report-container { padding: 0 0.5rem; }
+        body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        .report-container {
+            padding: 0 0.5rem;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        /* All cards constrained */
+        .filter-card,
+        .stat-card,
+        .chart-card,
+        .table-card,
+        .mobile-card {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
 
         /* Filter form full-width */
         .filter-card-body .row > div {
@@ -805,6 +893,7 @@
         }
         .chart-card canvas {
             max-height: 180px;
+            max-width: 100%;
         }
 
         /* Table card header stack */
@@ -828,16 +917,27 @@
             width: 100%;
         }
 
-        /* Compact table mobile */
-        .data-table {
-            font-size: 0.75rem;
+        /* Mobile cards more compact */
+        .mobile-card {
+            padding: 0.875rem;
+            margin-bottom: 0.625rem;
         }
-        .data-table th {
-            font-size: 0.625rem;
-            padding: 0.4rem 0.5rem;
+
+        .mobile-card-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
         }
-        .data-table td {
-            padding: 0.4rem 0.5rem;
+
+        .mobile-card-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+
+        .mobile-card-value {
+            text-align: left;
+            width: 100%;
         }
 
         /* Badges smaller */
@@ -846,25 +946,10 @@
             padding: 0.15rem 0.5rem;
         }
 
-        /* Breakdown tables mobile */
-        .breakdown-table {
-            font-size: 0.75rem;
-        }
-        .breakdown-table th,
-        .breakdown-table td {
-            padding: 0.5rem 0.6rem;
-        }
-
         /* Progress bar smaller */
         .progress-mini {
             width: 50px;
             margin-left: 0.25rem;
-        }
-
-        /* Hide less critical table columns on very small screens */
-        .data-table th:nth-child(5), /* Description */
-        .data-table td:nth-child(5) {
-            display: none;
         }
     }
 
@@ -1297,6 +1382,24 @@
     body[data-theme="light"] .form-label i {
         color: #0891b2;
     }
+
+    /* Mobile Cards Light Mode */
+    body[data-theme="light"] .mobile-card {
+        background: #ffffff;
+        border-color: rgba(0,0,0,0.1);
+    }
+
+    body[data-theme="light"] .mobile-card-header {
+        border-bottom-color: rgba(0,0,0,0.1);
+    }
+
+    body[data-theme="light"] .mobile-card-label {
+        color: #64748b;
+    }
+
+    body[data-theme="light"] .mobile-card-value {
+        color: #0f172a;
+    }
 </style>
 {% endblock %}
 
@@ -1511,10 +1614,10 @@
                         <tbody>
                             {% for dept in dept_breakdown %}
                             <tr>
-                                <td><strong>{{ dept.name }}</strong></td>
-                                <td>{{ dept.count }}</td>
-                                <td class="amount-cell usd">${{ dept.total_usd|floatformat:2 }}</td>
-                                <td>
+                                <td data-label="Department"><strong>{{ dept.name }}</strong></td>
+                                <td data-label="Docs">{{ dept.count }}</td>
+                                <td data-label="Total (USD)" class="amount-cell usd">${{ dept.total_usd|floatformat:2 }}</td>
+                                <td data-label="Share">
                                     {{ dept.percentage|floatformat:1 }}%
                                     <span class="progress-mini">
                                         <span class="progress-mini-fill" style="width:{{ dept.percentage }}%"></span>
@@ -1553,10 +1656,10 @@
                         <tbody>
                             {% for creator in creator_breakdown %}
                             <tr>
-                                <td><strong>{{ creator.name }}</strong></td>
-                                <td>{{ creator.pv_count }}</td>
-                                <td>{{ creator.pf_count }}</td>
-                                <td class="amount-cell usd">${{ creator.total_usd|floatformat:2 }}</td>
+                                <td data-label="Creator"><strong>{{ creator.name }}</strong></td>
+                                <td data-label="PV">{{ creator.pv_count }}</td>
+                                <td data-label="PF">{{ creator.pf_count }}</td>
+                                <td data-label="Total (USD)" class="amount-cell usd">${{ creator.total_usd|floatformat:2 }}</td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -1686,6 +1789,100 @@
                     </tr>
                 </tfoot>
             </table>
+        </div>
+
+        <!-- MOBILE CARD LAYOUT (Visible on mobile only) -->
+        <div class="mobile-cards" id="mobileCards">
+            {% for record in records %}
+            <div class="mobile-card">
+                <div class="mobile-card-header">
+                    <div>
+                        <strong style="color:var(--cyan-400);font-family:var(--font-mono);font-size:0.875rem;">{{ record.doc_number }}</strong>
+                        <div style="margin-top:0.25rem;">
+                            {% if record.doc_type == 'PV' %}
+                                <span class="doc-badge pv"><i class="bi bi-receipt"></i> PV</span>
+                            {% else %}
+                                <span class="doc-badge pf"><i class="bi bi-file-earmark-check"></i> PF</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        {% if record.status == 'APPROVED' %}
+                            <span class="status-badge approved"><i class="bi bi-check-circle"></i> Approved</span>
+                        {% elif record.status == 'PENDING' %}
+                            <span class="status-badge pending"><i class="bi bi-clock"></i> Pending</span>
+                        {% elif record.status == 'DRAFT' %}
+                            <span class="status-badge draft"><i class="bi bi-pencil"></i> Draft</span>
+                        {% elif record.status == 'REJECTED' %}
+                            <span class="status-badge rejected"><i class="bi bi-x-circle"></i> Rejected</span>
+                        {% elif record.status == 'ON_REVISION' %}
+                            <span class="status-badge revision"><i class="bi bi-arrow-counterclockwise"></i> Revision</span>
+                        {% else %}
+                            <span class="status-badge pending">{{ record.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mobile-card-body">
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Payee</span>
+                        <span class="mobile-card-value"><strong>{{ record.payee_name }}</strong></span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Department</span>
+                        <span class="mobile-card-value">{{ record.department|default:"-" }}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Payment Date</span>
+                        <span class="mobile-card-value">{{ record.payment_date|date:"d M Y" }}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Created By</span>
+                        <span class="mobile-card-value">{{ record.created_by|default:"-" }}</span>
+                    </div>
+                    {% if record.description %}
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Description</span>
+                        <span class="mobile-card-value" style="text-align:left;">{{ record.description }}</span>
+                    </div>
+                    {% endif %}
+                    <div style="border-top:1px solid var(--border);margin:0.5rem 0;padding-top:0.5rem;"></div>
+                    {% if record.total_usd %}
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">USD</span>
+                        <span class="mobile-card-value amount-cell usd"><strong>${{ record.total_usd|floatformat:2 }}</strong></span>
+                    </div>
+                    {% endif %}
+                    {% if record.total_khr %}
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">KHR</span>
+                        <span class="mobile-card-value amount-cell khr"><strong>៛{{ record.total_khr|floatformat:0 }}</strong></span>
+                    </div>
+                    {% endif %}
+                    {% if record.total_thb %}
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">THB</span>
+                        <span class="mobile-card-value amount-cell thb"><strong>฿{{ record.total_thb|floatformat:2 }}</strong></span>
+                    </div>
+                    {% endif %}
+                    <div style="margin-top:0.75rem;">
+                        {% if record.doc_type == 'PV' %}
+                            <a href="{% url 'vouchers:detail' record.pk %}" class="view-link" style="font-size:0.8125rem;">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        {% else %}
+                            <a href="{% url 'vouchers:pf_detail' record.pk %}" class="view-link" style="font-size:0.8125rem;">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+                <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.4;"></i>
+                No records found matching the current filters.
+            </div>
+            {% endfor %}
         </div>
 
         <div class="table-footer">

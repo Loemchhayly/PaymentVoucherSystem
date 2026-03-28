@@ -136,6 +136,14 @@
             --sidebar-w:          240px;
             --sidebar-w-collapsed: 64px;
             --topbar-h:           52px;
+
+            /* ── Breakpoint variables ── */
+            --bp-xs:  375px;
+            --bp-sm:  576px;
+            --bp-md:  768px;
+            --bp-lg:  1024px;
+            --bp-xl:  1280px;
+            --bp-2xl: 1440px;
         }
 
         /* ══════════════════════════════════════════════════════════
@@ -1604,6 +1612,73 @@
             .btn:active {
                 transform: scale(0.95);
             }
+        }
+
+        /* ══════════════════════════════════════════════
+           GLOBAL RESPONSIVE SYSTEM
+           Single source of truth for all breakpoints
+        ══════════════════════════════════════════════ */
+
+        /* ── Extra Small: phones portrait (< 576px) ── */
+        @media (max-width: 575px) {
+            .hide-xs { display: none !important; }
+            .col-xs-12 { width: 100% !important; }
+
+            .page-header {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .page-actions {
+                width: 100%;
+            }
+            .page-actions .btn {
+                flex: 1;
+            }
+
+            main { padding: 1rem 0; }
+            .content-container,
+            .content-container-wide { padding: 0 12px; }
+        }
+
+        /* ── Small: phones landscape (576px–767px) ── */
+        @media (min-width: 576px) and (max-width: 767px) {
+            .hide-sm { display: none !important; }
+
+            .content-container,
+            .content-container-wide { padding: 0 16px; }
+        }
+
+        /* ── Medium: tablets (768px–1023px) ── */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .hide-md { display: none !important; }
+
+            .content-container,
+            .content-container-wide { padding: 0 20px; }
+        }
+
+        /* ── Large: small laptops (1024px–1279px) ── */
+        @media (min-width: 1024px) and (max-width: 1279px) {
+            .hide-lg { display: none !important; }
+        }
+
+        /* ── Extra Large: desktops (≥ 1280px) ── */
+        @media (min-width: 1280px) {
+            .hide-xl { display: none !important; }
+        }
+
+        /* ── Shared mobile (< 768px) ── */
+        @media (max-width: 767px) {
+            .table-responsive-stack { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .card-grid { grid-template-columns: 1fr !important; }
+            .form-row { flex-direction: column; }
+            .modal-dialog { margin: 0; max-width: 100%; }
+            .modal-content { border-radius: 0; min-height: 100vh; }
+        }
+
+        /* ── Shared tablet and below (< 1024px) ── */
+        @media (max-width: 1023px) {
+            .hide-below-lg { display: none !important; }
+            .grid-2col { grid-template-columns: 1fr !important; }
         }
 
         @media print {
