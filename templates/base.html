@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <!-- Prevent white flash - apply background immediately -->
-    <style>
+    <style data-base>
         /* Prevent white flash on page load */
         html, body {
             margin: 0;
@@ -50,7 +50,7 @@
         })();
     </script>
 
-    <style>
+    <style data-base>
         /* ══════════════════════════════════════════════════════════
            FINVAULT DESIGN SYSTEM — Enterprise Dark
            SAP Fiori × Bloomberg Terminal aesthetic
@@ -2109,23 +2109,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Clean up old page-specific resources
     function cleanupOldPageResources() {
-        // ✅ Destroy ALL Chart.js instances, not just hardcoded IDs
         if (window.Chart) {
-            // Chart.js 4.x: Chart.instances is a plain object keyed by internal ID
             Object.values(Chart.instances).forEach(chart => {
                 try { chart.destroy(); } catch(e) {}
             });
         }
 
-        // Reset page-specific script flags to allow fresh initialization
         delete window._voucherListScriptLoaded;
         delete window._popstateListenerAdded;
         delete window._escapeListenerAdded;
         delete window._modalClickListenersAdded;
         delete window._searchUIInitialized;
 
-        document.querySelectorAll('style[data-page-specific], link[data-page-specific]').forEach(el => el.remove());
+        // Remove ALL page styles before loading new page — prevents CSS pileup
+        document.querySelectorAll('style[data-page-specific]').forEach(el => el.remove());
+        document.querySelectorAll('link[data-page-specific]').forEach(el => el.remove());
         document.querySelectorAll('script[data-page-specific]').forEach(el => el.remove());
+
+        // Also remove any styles that were NOT marked but still page-specific
+        // by removing all styles added after the base styles
+        document.querySelectorAll('head style:not([data-base])').forEach(el => el.remove());
     }
 
     // Load page-specific CSS from the fetched document
