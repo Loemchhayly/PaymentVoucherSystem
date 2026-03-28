@@ -1966,7 +1966,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Intercept all internal navigation links
     function enableSmoothNavigation() {
+        // Select sidebar links AND content area links
+        const navLinks = document.querySelectorAll('.sidebar-link, #mainContent a');
 
+        navLinks.forEach(link => {
+            // Skip if already processed
+            if (link.hasAttribute('data-spa-enabled')) return;
+            link.setAttribute('data-spa-enabled', 'true');
+
+            const href = link.getAttribute('href');
+
+            // Skip SPA navigation if data-spa-reload="false" is set (force full reload)
+            if (link.getAttribute('data-spa-reload') === 'false') {
+                return;
+            }
+
+            // Skip external links, anchors, javascript links
+            if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('javascript:') || href.startsWith('mailto:')) {
+                return;
+            }
+
+            // Only intercept internal links
+// Normal full page navigation - SPA disabled
+            if (href) {
+                link.addEventListener('click', function(e) {
+                    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+                    // Allow normal browser navigation - no SPA interception
+                });
+            }
+        });
     }
 
     // Navigate to a new page via AJAX
@@ -2245,7 +2273,9 @@ function executePageScripts(doc) {
 
     // Handle browser back/forward buttons
     window.addEventListener('popstate', function(event) {
-
+        if (event.state && event.state.url) {
+            navigateToPage(event.state.url);
+        }
     });
 
     // Initialize smooth navigation on page load
@@ -2256,7 +2286,11 @@ function executePageScripts(doc) {
         enableSmoothNavigation();
     });
 
-
+    // Store initial state for back button
+    if (mainContent) {
+        const initialUrl = mainContent.getAttribute('data-url') || window.location.pathname;
+        window.history.replaceState({url: initialUrl}, '', initialUrl);
+    }
 
     /* ── Sidebar collapse (desktop) ── */
     const sidebar        = document.getElementById('sidebar');
