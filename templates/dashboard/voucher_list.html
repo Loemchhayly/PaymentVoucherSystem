@@ -1078,6 +1078,8 @@
         padding: 16px;
         border-radius: 16px;
         border: 1.5px solid var(--border-color);
+        position: relative;
+        z-index: 1;
     }
 
     .toolbar-left,
@@ -1113,6 +1115,9 @@
         padding: 4px 0;
         margin: 0 -16px;
         padding: 4px 16px;
+        position: relative;
+        z-index: 5;
+        pointer-events: auto;
     }
 
     .filter-tabs::-webkit-scrollbar {
@@ -1127,6 +1132,11 @@
         border-radius: 10px;
         min-height: 44px;
         white-space: nowrap;
+        position: relative;
+        z-index: 10;
+        pointer-events: auto;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(6,182,212,0.2);
     }
 
     /* ── Bulk Action Bar Mobile ── */
@@ -2097,6 +2107,42 @@ if (window._voucherListScriptLoaded) {
     applyFilters();
     };
 
+    /* ─── Initialize Filter Buttons with proper event listeners for mobile ─── */
+    function initializeFilterButtons() {
+        document.querySelectorAll('.filter-tab').forEach(btn => {
+            // Remove any existing listeners to avoid duplicates
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+
+            // Add proper event listener that works on both desktop and mobile
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const type = this.getAttribute('data-type');
+                if (type) {
+                    window.filterByDocType(type);
+                }
+            }, { passive: false });
+
+            // Also add touch event for better mobile responsiveness
+            newBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const type = this.getAttribute('data-type');
+                if (type) {
+                    window.filterByDocType(type);
+                }
+            }, { passive: false });
+        });
+    }
+
+    // Initialize filter buttons on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeFilterButtons);
+    } else {
+        initializeFilterButtons();
+    }
+
     /* ═══════════════════════════════════════════
        SERVER-SIDE SEARCH (ALL PAGES)
     ═══════════════════════════════════════════ */
@@ -2192,8 +2238,17 @@ if (window._voucherListScriptLoaded) {
 
 function applyFilters() {
     const tableBody = document.querySelector('.pv-table tbody');
-    tableBody.style.opacity = '0.4';
-    tableBody.style.pointerEvents = 'none';
+    const mobileCards = document.getElementById('mobileVoucherCards');
+
+    // Dim both desktop table and mobile cards
+    if (tableBody) {
+        tableBody.style.opacity = '0.4';
+        tableBody.style.pointerEvents = 'none';
+    }
+    if (mobileCards) {
+        mobileCards.style.opacity = '0.4';
+        mobileCards.style.pointerEvents = 'none';
+    }
 
     const params = new URLSearchParams();
     if (currentFilters.doc_type && currentFilters.doc_type !== 'all')
@@ -2214,13 +2269,23 @@ function applyFilters() {
             const parser  = new DOMParser();
             const doc     = parser.parseFromString(html, 'text/html');
 
+            // Update desktop table
             const newTbody = doc.querySelector('.pv-table tbody');
-            if (newTbody) {
+            if (newTbody && tableBody) {
                 tableBody.innerHTML = newTbody.innerHTML;
                 tableBody.style.opacity = '1';
                 tableBody.style.pointerEvents = 'auto';
             }
 
+            // Update mobile cards
+            const newMobileCards = doc.getElementById('mobileVoucherCards');
+            if (newMobileCards && mobileCards) {
+                mobileCards.innerHTML = newMobileCards.innerHTML;
+                mobileCards.style.opacity = '1';
+                mobileCards.style.pointerEvents = 'auto';
+            }
+
+            // Update pagination footer
             const newFooter     = doc.querySelector('.table-footer');
             const currentFooter = document.querySelector('.table-footer');
             if (newFooter) {
@@ -2230,6 +2295,7 @@ function applyFilters() {
                 currentFooter.remove();
             }
 
+            // Update active filter tab
             document.querySelectorAll('.filter-tab').forEach(tab => {
                 tab.classList.toggle('active',
                     tab.getAttribute('data-type') === currentFilters.doc_type ||
@@ -2244,8 +2310,14 @@ function applyFilters() {
             document.querySelector('.vouchers-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
         })
         .catch(() => {
-            tableBody.style.opacity = '1';
-            tableBody.style.pointerEvents = 'auto';
+            if (tableBody) {
+                tableBody.style.opacity = '1';
+                tableBody.style.pointerEvents = 'auto';
+            }
+            if (mobileCards) {
+                mobileCards.style.opacity = '1';
+                mobileCards.style.pointerEvents = 'auto';
+            }
         });
 }
 
