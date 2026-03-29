@@ -4,7 +4,7 @@
 <head>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>{% block title %}Payment Voucher System{% endblock %}</title>
 
     {% block extra_head %}{% endblock %}
@@ -241,7 +241,13 @@
 
         /* ══════════════ RESET & BASE ══════════════ */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; background: var(--ink-950); transition: background-color 0.3s ease; }
+        html {
+            scroll-behavior: smooth;
+            background: var(--ink-950);
+            transition: background-color 0.3s ease;
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
 
         body {
             font-family: var(--font-body);
@@ -253,6 +259,9 @@
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            max-width: 100vw;
+            position: relative;
         }
 
         body::before {
@@ -287,6 +296,8 @@
             min-height: 100vh;
             position: relative;
             z-index: auto;
+            max-width: 100vw;
+            overflow-x: hidden;
         }
 
         /* ══════════════ SIDEBAR ══════════════ */
@@ -1193,6 +1204,8 @@
             display: flex;
             flex-direction: column;
             transition: margin-left var(--transition-base);
+            max-width: calc(100vw - var(--sidebar-w));
+            overflow-x: hidden;
         }
         .content-wrapper.sidebar-collapsed { margin-left: var(--sidebar-w-collapsed); }
 
@@ -1363,7 +1376,11 @@
             .sidebar.mobile-open { transform: translateX(0); }
 
             .topbar { left: 0 !important; }
-            .content-wrapper { margin-left: 0 !important; }
+            .content-wrapper {
+                margin-left: 0 !important;
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+            }
             .topbar-toggle { display: flex; }
             .topbar-breadcrumb { display: none; }
 
@@ -1621,6 +1638,24 @@
 
         /* ── Extra Small: phones portrait (< 576px) ── */
         @media (max-width: 575px) {
+            /* CRITICAL: Prevent horizontal scroll */
+            html, body {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+                width: 100% !important;
+            }
+
+            /* Constrain all major containers */
+            .app-shell,
+            .content-wrapper,
+            main,
+            .content-container,
+            .content-container-wide,
+            .content-container-narrow {
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+            }
+
             .hide-xs { display: none !important; }
             .col-xs-12 { width: 100% !important; }
 
@@ -1637,7 +1672,26 @@
 
             main { padding: 1rem 0; }
             .content-container,
-            .content-container-wide { padding: 0 12px; }
+            .content-container-wide { padding: 0 12px; max-width: 100%; }
+
+            /* Force all cards and panels to fit */
+            .card,
+            .card-modern,
+            .table-card,
+            .filter-card,
+            .stat-card,
+            .chart-card {
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            /* Ensure tables don't overflow */
+            .table-wrapper,
+            .table-scroll-container,
+            .table-card {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+            }
         }
 
         /* ── Small: phones landscape (576px–767px) ── */
@@ -1668,11 +1722,42 @@
 
         /* ── Shared mobile (< 768px) ── */
         @media (max-width: 767px) {
-            .table-responsive-stack { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            /* CRITICAL: Prevent horizontal scroll on all mobile devices */
+            html, body {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+            }
+
+            /* Constrain all containers */
+            * {
+                max-width: 100vw;
+            }
+
+            .app-shell,
+            .content-wrapper,
+            main {
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+            }
+
+            .table-responsive-stack { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
             .card-grid { grid-template-columns: 1fr !important; }
             .form-row { flex-direction: column; }
             .modal-dialog { margin: 0; max-width: 100%; }
             .modal-content { border-radius: 0; min-height: 100vh; }
+
+            /* Images and media */
+            img, video, iframe {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+
+            /* Prevent text overflow */
+            pre, code {
+                max-width: 100%;
+                overflow-x: auto;
+                word-wrap: break-word;
+            }
         }
 
         /* ── Shared tablet and below (< 1024px) ── */
@@ -2250,10 +2335,15 @@ function executePageScripts(doc) {
         const src = oldScript.getAttribute('src');
         if (src) {
             if (src.includes('bootstrap.bundle')) return;
-            if (src.includes('chart.umd') && window.Chart) return;
+            // Always reload Chart.js to ensure it's available
+            if (src.includes('chart.umd')) {
+                // Remove old Chart.js if it exists
+                const oldChart = document.querySelector('script[src*="chart.umd"]');
+                if (oldChart) oldChart.remove();
+            }
             externalScripts.push(src);
         } else {
-            inlineScripts.push(oldScript.textContent);  // ← THIS LINE IS MISSING
+            inlineScripts.push(oldScript.textContent);
         }
     });
 
@@ -2265,15 +2355,44 @@ function executePageScripts(doc) {
         }
         const src = srcs[index];
         const existing = document.querySelector(`script[src="${src}"]`);
-        if (existing) {
+        if (existing && !src.includes('chart.umd')) {
+            // Skip if already loaded (except Chart.js which we always reload)
             loadScriptsSequentially(srcs, index + 1, callback);
             return;
         }
+
         const s = document.createElement('script');
         s.src = src;
         s.setAttribute('data-page-specific', 'true');
-        s.onload = () => loadScriptsSequentially(srcs, index + 1, callback);
-        s.onerror = () => loadScriptsSequentially(srcs, index + 1, callback);
+
+        let scriptLoaded = false;
+        const timeout = setTimeout(() => {
+            if (!scriptLoaded) {
+                console.warn(`Script loading timeout: ${src}`);
+                loadScriptsSequentially(srcs, index + 1, callback);
+            }
+        }, 10000); // 10 second timeout
+
+        s.onload = () => {
+            scriptLoaded = true;
+            clearTimeout(timeout);
+            // Wait a bit for Chart.js to fully initialize
+            if (src.includes('chart.umd')) {
+                setTimeout(() => {
+                    loadScriptsSequentially(srcs, index + 1, callback);
+                }, 100);
+            } else {
+                loadScriptsSequentially(srcs, index + 1, callback);
+            }
+        };
+
+        s.onerror = () => {
+            scriptLoaded = true;
+            clearTimeout(timeout);
+            console.error(`Failed to load script: ${src}`);
+            loadScriptsSequentially(srcs, index + 1, callback);
+        };
+
         document.body.appendChild(s);
     }
 
@@ -2364,6 +2483,10 @@ function executePageScripts(doc) {
     // Re-enable smooth navigation after SPA navigation completes
     window.addEventListener('spa-navigation-complete', function() {
         enableSmoothNavigation();
+        // Re-initialize mobile navigation toggle
+        if (typeof initMobileNav === 'function') {
+            initMobileNav();
+        }
     });
 
     // Store initial state for back button
@@ -2525,20 +2648,24 @@ function executePageScripts(doc) {
     // localStorage.removeItem(PINNED_KEY);
 
     /* ── Mobile sidebar ── */
-    const mobileToggle  = document.getElementById('mobileToggle');
-    const overlay       = document.getElementById('sidebarOverlay');
-
     function openMobileSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
         sidebar  && sidebar.classList.add('mobile-open');
         overlay  && overlay.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
+
     function closeMobileSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
         sidebar  && sidebar.classList.remove('mobile-open');
         overlay  && overlay.classList.remove('show');
         document.body.style.overflow = '';
     }
+
     function toggleMobileSidebar() {
+        const sidebar = document.getElementById('sidebar');
         if (sidebar && sidebar.classList.contains('mobile-open')) {
             closeMobileSidebar();
         } else {
@@ -2546,8 +2673,27 @@ function executePageScripts(doc) {
         }
     }
 
-    mobileToggle && mobileToggle.addEventListener('click', toggleMobileSidebar);
-    overlay      && overlay.addEventListener('click', closeMobileSidebar);
+    // Initialize mobile navigation toggle
+    function initMobileNav() {
+        const mobileToggle = document.getElementById('mobileToggle');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        // Remove existing listeners to prevent duplicates
+        if (mobileToggle) {
+            const newMobileToggle = mobileToggle.cloneNode(true);
+            mobileToggle.parentNode.replaceChild(newMobileToggle, mobileToggle);
+            newMobileToggle.addEventListener('click', toggleMobileSidebar);
+        }
+
+        if (overlay) {
+            const newOverlay = overlay.cloneNode(true);
+            overlay.parentNode.replaceChild(newOverlay, overlay);
+            newOverlay.addEventListener('click', closeMobileSidebar);
+        }
+    }
+
+    // Initialize on page load
+    initMobileNav();
 
     /* ═══════════════════════════════════════════════════════════
        FIX HEADER POSITION AFTER IDLE/INACTIVITY

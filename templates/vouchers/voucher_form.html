@@ -380,18 +380,98 @@
     .loading-spinner p { margin:0; font-size:.875rem; font-weight:600; color:var(--text-2); }
     @keyframes spin { to{transform:rotate(360deg)} }
 
-    /* ── Responsive ── */
-    @media(max-width:1100px) { .fv-layout{grid-template-columns:1fr;} .fv-sidebar{position:static;} .fv-g4{grid-template-columns:repeat(2,1fr);} }
-    @media(max-width:768px) {
-        .fv-wrap{padding:14px 14px 48px;} .fv-title{font-size:1.3rem;}
-        .fv-g3,.fv-g4,.fv-g2{grid-template-columns:1fr;}
-        .form-row-12col,.form-row,.form-row-3col,.form-row-2col{grid-template-columns:1fr;}
-        .form-row-12col .form-group{grid-column:span 1!important;}
-        .fv-action-bar{flex-direction:column;}
-        .save-btn,.btn-green,.btn-amber-ghost,.btn-gray-ghost,.btn-red-ghost{width:100%;justify-content:center;min-height:44px;}
-        .toast-notification{right:10px;left:10px;min-width:auto;max-width:none;}
+    /* ══════════════════════════════════════════════════════════
+       RESPONSIVE - MOBILE FIRST
+    ══════════════════════════════════════════════════════════ */
+    @media(max-width:1100px) {
+        .fv-layout{grid-template-columns:1fr;}
+        .fv-sidebar{position:static;}
+        .fv-g4{grid-template-columns:repeat(2,1fr);}
     }
-    @media(max-width:576px) { .fv-wrap{padding:10px 10px 40px;} .fv-title{font-size:1.1rem;} }
+
+    @media(max-width:768px) {
+        /* CRITICAL: Prevent horizontal scroll */
+        * { max-width: 100vw !important; }
+
+        .fv-wrap {
+            padding: 14px 14px 48px;
+            overflow-x: hidden !important;
+        }
+
+        .fv-title { font-size: 1.3rem; }
+
+        /* Stack all grids vertically on mobile */
+        .fv-g3, .fv-g4, .fv-g2 { grid-template-columns: 1fr; }
+        .form-row-12col, .form-row, .form-row-3col, .form-row-2col { grid-template-columns: 1fr; }
+        .form-row-12col .form-group { grid-column: span 1 !important; }
+
+        /* Touch-friendly inputs */
+        .fv-input, .fv-select, .fv-textarea, select, input[type="text"], input[type="number"], input[type="date"], textarea {
+            font-size: 16px !important; /* Prevent iOS zoom */
+            min-height: 44px !important; /* Touch target */
+            padding: 10px 12px !important;
+        }
+
+        textarea.fv-textarea {
+            min-height: 100px !important;
+        }
+
+        /* Action bar stacks vertically */
+        .fv-action-bar {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Full-width touch-friendly buttons */
+        .save-btn, .btn-green, .btn-amber-ghost, .btn-gray-ghost, .btn-red-ghost {
+            width: 100%;
+            justify-content: center;
+            min-height: 48px;
+            font-size: 0.875rem;
+        }
+
+        /* Toast notifications */
+        .toast-notification {
+            right: 10px;
+            left: 10px;
+            min-width: auto;
+            max-width: none;
+        }
+
+        /* Line items table - horizontal scroll */
+        .fv-items-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Card headers */
+        .fv-card-head {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 10px;
+        }
+    }
+
+    @media(max-width:576px) {
+        .fv-wrap {
+            padding: 10px 10px 40px;
+        }
+
+        .fv-title {
+            font-size: 1.1rem;
+        }
+
+        /* Smaller cards on small phones */
+        .fv-card {
+            border-radius: 12px;
+        }
+
+        /* Buttons slightly smaller */
+        .save-btn, .btn-green, .btn-amber-ghost, .btn-gray-ghost, .btn-red-ghost {
+            min-height: 44px;
+            font-size: 0.8125rem;
+        }
+    }
 
     /* ══════════════════════════════════════════════════════════
        LIGHT MODE OVERRIDES — Perfect Light Colors

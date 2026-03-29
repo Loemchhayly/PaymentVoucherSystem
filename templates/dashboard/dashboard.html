@@ -238,6 +238,27 @@
 .filter-chip:hover { border-color:var(--border-accent); color:var(--text-primary); }
 .filter-chip.active { background:rgba(6,182,212,.14); border-color:var(--cyan-600); color:var(--cyan-400); }
 .table-wrap { overflow-x:auto; }
+
+/* ── MOBILE CARDS (for Recent Documents) ── */
+.mobile-docs-cards { display:none; }
+.mobile-doc-item {
+  background:var(--ink-750); border:1px solid var(--border); border-radius:var(--r-lg);
+  padding:12px; margin:10px; transition:all var(--t-fast); cursor:pointer;
+}
+.mobile-doc-item:hover { border-color:var(--border-accent); background:rgba(6,182,212,.03); }
+.mobile-doc-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.mobile-doc-type { font-size:.65rem; font-weight:700; padding:3px 8px; border-radius:var(--r-sm); text-transform:uppercase; }
+.mobile-doc-type.pv-type { background:rgba(6,182,212,.15); color:var(--cyan-400); }
+.mobile-doc-type.pf-type { background:rgba(139,92,246,.15); color:var(--violet-500); }
+.mobile-doc-number { font-family:'Kantumruy Pro','Montserrat',monospace; font-size:.85rem; font-weight:700; color:var(--text-primary); margin-bottom:4px; }
+.mobile-doc-body { display:flex; flex-direction:column; gap:6px; }
+.mobile-doc-row { display:flex; justify-content:space-between; align-items:center; font-size:.75rem; }
+.mobile-doc-label { color:var(--text-muted); font-weight:600; }
+.mobile-doc-value { color:var(--text-secondary); text-align:right; font-weight:500; }
+.mobile-doc-footer { margin-top:8px; padding-top:8px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.mobile-view-btn { background:var(--cyan-700); color:white; border:none; padding:5px 12px; border-radius:var(--r-sm); font-size:.7rem; font-weight:600; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
+.mobile-view-btn:hover { background:var(--cyan-600); }
+
 .dt { width:100%; border-collapse:collapse; font-family:'Montserrat',sans-serif; }
 .dt thead tr { background:var(--ink-800); border-bottom:1px solid var(--border); }
 .dt th { font-size:.67rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.8px; padding:9px 15px; text-align:left; white-space:nowrap; }
@@ -292,6 +313,20 @@
 
 /* Tablet portrait (< 768px) */
 @media (max-width: 767px) {
+    /* CRITICAL: Prevent horizontal scroll */
+    .dash,
+    .panel,
+    .stats-grid,
+    .charts-row,
+    .activity-row {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+
+    /* HIDE TABLE - SHOW CARDS ON MOBILE/TABLET */
+    .table-wrap { display:none !important; }
+    .mobile-docs-cards { display:block !important; }
+
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .charts-row { grid-template-columns: 1fr; }
     .activity-row { grid-template-columns: 1fr; }
@@ -322,7 +357,11 @@
         justify-content: flex-start;
     }
     .dt { min-width: 560px; }
-    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-wrap {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        max-width: 100% !important;
+    }
     .pagination-bar {
         flex-direction: column;
         align-items: flex-start;
@@ -332,6 +371,21 @@
 
 /* Phone portrait (< 576px) */
 @media (max-width: 575px) {
+    /* CRITICAL: Prevent horizontal scroll */
+    .dash,
+    .dash-header,
+    .stats-grid,
+    .panel,
+    .table-wrap,
+    .vp-header {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+
+    /* HIDE TABLE - SHOW CARDS ON MOBILE */
+    .table-wrap { display:none !important; }
+    .mobile-docs-cards { display:block !important; }
+
     .stats-grid { grid-template-columns: 1fr 1fr; }
     .stat-value { font-size: 1.6rem; }
     .stat-icon { width: 34px; height: 34px; font-size: 1rem; }
@@ -347,6 +401,13 @@
     .dt th, .dt td { padding: 7px 10px; font-size: 0.72rem; }
     .view-btn { padding: 3px 7px; font-size: 0.68rem; }
     .btn-cell { gap: 3px; }
+
+    /* Force table container to scroll, not body */
+    .table-wrap {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        max-width: 100% !important;
+    }
 }
 
 /* Very small phones (< 400px) */
@@ -1113,6 +1174,58 @@ body[data-theme="light"] .panel-title-sub {
         </tbody>
       </table>
     </div>
+
+    <!-- MOBILE CARDS LAYOUT (Visible on mobile only) -->
+    <div class="mobile-docs-cards">
+      {% for voucher in vouchers %}
+      <div class="mobile-doc-item doc-row"
+           data-type="{% if voucher.pf_number %}pf{% else %}pv{% endif %}"
+           onclick="window.location.href='{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}'">
+        <div class="mobile-doc-header">
+          <div>
+            <div class="mobile-doc-type {% if voucher.pf_number %}pf-type{% else %}pv-type{% endif %}">
+              {% if voucher.pf_number %}<i class="bi bi-file-earmark-check"></i> PF{% else %}<i class="bi bi-receipt"></i> PV{% endif %}
+            </div>
+            <div class="mobile-doc-number">
+              {% if voucher.pf_number %}{{ voucher.pf_number|default:"DRAFT" }}{% else %}{{ voucher.pv_number|default:"DRAFT" }}{% endif %}
+            </div>
+          </div>
+          <div>
+            {% if voucher.status == 'DRAFT' %}<span class="sbadge draft"><i class="bi bi-pencil"></i> {{ voucher.get_status_display }}</span>
+            {% elif voucher.status == 'APPROVED' %}<span class="sbadge approved"><i class="bi bi-check-circle"></i> {{ voucher.get_status_display }}</span>
+            {% elif voucher.status == 'REJECTED' %}<span class="sbadge rejected"><i class="bi bi-x-circle"></i> {{ voucher.get_status_display }}</span>
+            {% elif voucher.status == 'ON_REVISION' %}<span class="sbadge revision"><i class="bi bi-arrow-counterclockwise"></i> {{ voucher.get_status_display }}</span>
+            {% else %}<span class="sbadge pending"><i class="bi bi-clock"></i> {{ voucher.get_status_display }}</span>{% endif %}
+          </div>
+        </div>
+        <div class="mobile-doc-body">
+          <div class="mobile-doc-row">
+            <span class="mobile-doc-label">Payee</span>
+            <span class="mobile-doc-value payee-name"><strong>{{ voucher.payee_name }}</strong></span>
+          </div>
+          <div class="mobile-doc-row">
+            <span class="mobile-doc-label">Amount</span>
+            <span class="mobile-doc-value amount-val"><strong>{{ voucher.get_grand_total_display }}</strong></span>
+          </div>
+          <div class="mobile-doc-row">
+            <span class="mobile-doc-label">Date</span>
+            <span class="mobile-doc-value date-val">{{ voucher.created_at|date:"M d, Y" }}</span>
+          </div>
+        </div>
+        <div class="mobile-doc-footer">
+          <a href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}"
+             class="mobile-view-btn" onclick="event.stopPropagation()">
+            <i class="bi bi-eye"></i> View Details
+          </a>
+          <a href="{% if voucher.pf_number %}{% url 'vouchers:pf_repeat' voucher.pk %}{% else %}{% url 'vouchers:repeat' voucher.pk %}{% endif %}"
+             class="mobile-view-btn" style="background:var(--ink-700);" onclick="event.stopPropagation()">
+            <i class="bi bi-arrow-repeat"></i> Repeat
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
     {% if is_paginated %}
     <div class="pagination-bar">
       <div class="pagination-info">Showing <span>{{ page_obj.start_index }}–{{ page_obj.end_index }}</span> of <span>{{ page_obj.paginator.count }}</span> documents</div>
@@ -1145,51 +1258,68 @@ body[data-theme="light"] .panel-title-sub {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-// Destroy old Chart.js instances
-if (window.Chart) {
-    ['barChart', 'donutChart'].forEach(id => {
-        const existing = Chart.getChart(id);
-        if (existing) existing.destroy();
-    });
+// Helper function to wait for Chart.js to be available
+function waitForChart(callback, maxAttempts = 50) {
+    let attempts = 0;
+    const checkChart = setInterval(() => {
+        attempts++;
+        if (window.Chart) {
+            clearInterval(checkChart);
+            callback();
+        } else if (attempts >= maxAttempts) {
+            clearInterval(checkChart);
+            console.error('Chart.js failed to load after', maxAttempts, 'attempts');
+        }
+    }, 100); // Check every 100ms
 }
 
-// Replace canvas with fresh clone to fully reset any stale binding
-['barChart', 'donutChart'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-        const clone = el.cloneNode(true);
-        el.parentNode.replaceChild(clone, el);
+// Wait for Chart.js, then initialize charts
+waitForChart(function() {
+    // Destroy old Chart.js instances
+    if (window.Chart) {
+        ['barChart', 'donutChart'].forEach(id => {
+            const existing = Chart.getChart(id);
+            if (existing) existing.destroy();
+        });
     }
-});
 
-// ── Data from Django ──
-const chartLabels  = {{ chart_labels|safe }};
-const chartData    = {{ chart_data|safe }};
-const currentMonth = "{{ chart_current_month }}";
-const donutData    = {{ donut_data|safe }};
+    // Replace canvas with fresh clone to fully reset any stale binding
+    ['barChart', 'donutChart'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            const clone = el.cloneNode(true);
+            el.parentNode.replaceChild(clone, el);
+        }
+    });
 
-// ════════════════════════════════════════
-// BAR CHART — Monthly Disbursement
-// ════════════════════════════════════════
-(function() {
-  const ctx = document.getElementById('barChart');
-  if (!ctx) return;
+    // ── Data from Django ──
+    const chartLabels  = {{ chart_labels|safe }};
+    const chartData    = {{ chart_data|safe }};
+    const currentMonth = "{{ chart_current_month }}";
+    const donutData    = {{ donut_data|safe }};
 
-  const maxVal = Math.max(...chartData, 1);
+    // ════════════════════════════════════════
+    // BAR CHART — Monthly Disbursement
+    // ════════════════════════════════════════
+    (function() {
+      const ctx = document.getElementById('barChart');
+      if (!ctx) return;
 
-  // Highlight current month bar
-  const barColors = chartLabels.map(label =>
-    label.toUpperCase() === currentMonth.toUpperCase()
-      ? 'rgba(34,211,238,0.9)'
-      : 'rgba(6,182,212,0.45)'
-  );
-  const borderColors = chartLabels.map(label =>
-    label.toUpperCase() === currentMonth.toUpperCase()
-      ? 'rgba(34,211,238,1)'
-      : 'rgba(6,182,212,0.7)'
-  );
+      const maxVal = Math.max(...chartData, 1);
 
-  new Chart(ctx, {
+      // Highlight current month bar
+      const barColors = chartLabels.map(label =>
+        label.toUpperCase() === currentMonth.toUpperCase()
+          ? 'rgba(34,211,238,0.9)'
+          : 'rgba(6,182,212,0.45)'
+      );
+      const borderColors = chartLabels.map(label =>
+        label.toUpperCase() === currentMonth.toUpperCase()
+          ? 'rgba(34,211,238,1)'
+          : 'rgba(6,182,212,0.7)'
+      );
+
+      new Chart(ctx, {
     type: 'bar',
     data: {
       labels: chartLabels,
@@ -1346,6 +1476,8 @@ const donutData    = {{ donut_data|safe }};
     `).join('');
   }
 })();
+
+}); // End of waitForChart callback
 
 // ── PV/PF filter chips ──
 let currentDocFilter = 'all';

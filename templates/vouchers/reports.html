@@ -714,10 +714,25 @@
 
     /* Mobile devices - CARD LAYOUT (NO HORIZONTAL SCROLL) */
     @media (max-width: 768px) {
+        /* CRITICAL: Prevent ALL horizontal scroll */
+        * {
+            max-width: 100vw !important;
+        }
+
+        .report-container,
+        .filter-card,
+        .stat-card,
+        .chart-card,
+        .table-card,
+        .mobile-card {
+            padding: 0 0.75rem;
+            overflow-x: hidden !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
         .report-container {
             padding: 0 0.75rem;
-            overflow-x: hidden;
-            max-width: 100vw;
         }
 
         /* Page header mobile */

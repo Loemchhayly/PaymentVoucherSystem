@@ -403,6 +403,180 @@
 /* ── Data Table ── */
 .table-container { overflow-x: auto; }
 
+/* ═══════════════════════════════════════════════════════
+   MOBILE CARD DESIGN - Exact Dashboard Style
+   Matching dashboard "Recent Documents" mobile cards
+═══════════════════════════════════════════════════════ */
+
+.mobile-voucher-cards {
+    display: none;
+}
+
+.mobile-voucher-card {
+    background: var(--ink-750);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 12px;
+    margin: 10px;
+    transition: all var(--t-fast);
+    cursor: pointer;
+}
+
+.mobile-voucher-card:hover {
+    border-color: var(--border-accent);
+    background: rgba(6,182,212,.03);
+}
+
+.mobile-voucher-card.selected {
+    background: rgba(6,182,212,.06);
+    border-color: var(--cyan-500);
+}
+
+/* Card Header */
+.mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.mobile-card-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.mobile-card-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--cyan-500);
+}
+
+.mobile-card-type-number {
+    flex: 1;
+}
+
+.mobile-card-number {
+    font-family: 'Kantumruy Pro', 'Montserrat', monospace;
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+/* Card Body - All Info Visible */
+.mobile-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mobile-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .75rem;
+}
+
+.mobile-card-label {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.mobile-card-value {
+    color: var(--text-secondary);
+    text-align: right;
+    font-weight: 500;
+}
+
+.mobile-card-value strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Card Footer */
+.mobile-card-footer {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mobile-view-btn {
+    background: var(--cyan-700);
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: var(--r-sm);
+    font-size: .7rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.mobile-view-btn:hover {
+    background: var(--cyan-600);
+}
+
+.mobile-view-btn.repeat {
+    background: rgba(34,197,94,.1);
+    color: var(--green-400);
+    border: 1px solid rgba(34,197,94,.2);
+}
+
+.mobile-view-btn.repeat:hover {
+    background: rgba(34,197,94,.18);
+    border-color: var(--green-500);
+}
+
+/* Badge Styles - Match Dashboard */
+.doc-type-badge {
+    font-size: .65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--r-sm);
+    text-transform: uppercase;
+}
+
+.doc-type-badge.pv {
+    background: rgba(6,182,212,.15);
+    color: var(--cyan-400);
+}
+
+.doc-type-badge.pf {
+    background: rgba(139,92,246,.15);
+    color: var(--violet-500);
+}
+
+.status-badge {
+    font-size: 0.7rem;
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.currency-badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-weight: 600;
+    background: rgba(0,0,0,0.05);
+    color: var(--text-secondary);
+}
+
 .pv-table {
     width: 100%;
     border-collapse: collapse;
@@ -836,16 +1010,221 @@
     .search-box { min-width: 180px; }
 }
 @media (max-width: 768px) {
-    .vouchers-container { padding: 0 12px 28px; }
-    .vouchers-toolbar { flex-direction: column; align-items: flex-start; }
-    .toolbar-right { width: 100%; }
-    .search-box { flex: 1; min-width: 0; }
-    .pv-page-title { font-size: 1.2rem; }
-    .header-actions { width: 100%; }
-    .btn-primary-action { flex: 1; justify-content: center; }
-    .bulk-action-bar { flex-direction: column; align-items: flex-start; }
-    .bulk-btns { width: 100%; }
-    .bulk-btns button { flex: 1; justify-content: center; }
+    /* ═══════════════════════════════════════════════════════
+       MOBILE-FIRST RESPONSIVE DESIGN
+    ═══════════════════════════════════════════════════════ */
+
+    /* CRITICAL: Prevent horizontal scroll */
+    * { max-width: 100vw !important; }
+
+    .vouchers-container {
+        padding: 0 16px 24px;
+        max-width: 100%;
+        overflow-x: hidden !important;
+    }
+
+    /* HIDE TABLE - SHOW CARDS ON MOBILE */
+    .table-container,
+    .pv-table {
+        display: none !important;
+    }
+
+    .mobile-voucher-cards {
+        display: block !important;
+    }
+
+    /* ── Page Header Mobile ── */
+    .pv-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .pv-page-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .header-actions {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-primary-action {
+        flex: 1;
+        justify-content: center;
+        min-height: 48px;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        border-radius: 12px;
+    }
+
+    .btn-export {
+        min-height: 48px;
+        padding: 0 20px;
+        border-radius: 12px;
+    }
+
+    /* ── Toolbar Mobile (Search & Filters) ── */
+    .vouchers-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 16px;
+        background: var(--card-bg);
+        padding: 16px;
+        border-radius: 16px;
+        border: 1.5px solid var(--border-color);
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+        width: 100%;
+    }
+
+    /* Search Box Mobile */
+    .search-box {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        height: 48px;
+        font-size: 16px;
+        border-radius: 12px;
+        padding: 0 16px 0 44px;
+    }
+
+    .search-box:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+    }
+
+    /* Filter Tabs Mobile - Horizontal Scroll */
+    .filter-tabs {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding: 4px 0;
+        margin: 0 -16px;
+        padding: 4px 16px;
+    }
+
+    .filter-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .filter-tab {
+        flex-shrink: 0;
+        padding: 10px 18px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-radius: 10px;
+        min-height: 44px;
+        white-space: nowrap;
+    }
+
+    /* ── Bulk Action Bar Mobile ── */
+    .bulk-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .bulk-info {
+        width: 100%;
+        text-align: center;
+    }
+
+    .bulk-btns {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+    }
+
+    .bulk-btns button {
+        flex: 1;
+        justify-content: center;
+        min-height: 48px;
+        font-size: 0.875rem;
+        border-radius: 12px;
+    }
+
+    /* ── Pagination Mobile ── */
+    .table-footer {
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px;
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1.5px solid var(--border-color);
+        margin-top: 16px;
+    }
+
+    .showing-info {
+        text-align: center;
+        font-size: 0.875rem;
+    }
+
+    .pagination-wrap {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .page-btn {
+        min-height: 44px;
+        padding: 0 16px;
+        font-size: 0.875rem;
+        border-radius: 10px;
+    }
+}
+
+/* ── Small Phones (< 576px) ── */
+@media (max-width: 575px) {
+    .vouchers-container {
+        padding: 0 12px 20px;
+    }
+
+    .pv-page-title {
+        font-size: 1.375rem;
+    }
+
+    .vouchers-toolbar {
+        padding: 14px;
+    }
+
+    /* Keep dashboard style on tiny screens */
+    .mobile-voucher-card {
+        padding: 12px;
+        margin: 8px;
+    }
+
+    .status-badge {
+        font-size: 0.6875rem;
+        padding: 5px 10px;
+    }
+
+    .mobile-card-action-btn {
+        padding: 9px 16px;
+        font-size: 0.8125rem;
+    }
+
+    /* Header actions stack on very small screens */
+    .header-actions {
+        flex-direction: column;
+    }
+
+    .btn-primary-action {
+        width: 100%;
+    }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1375,6 +1754,99 @@ body[data-theme="light"] .amount-cell {
             </table>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════════
+             MOBILE CARDS LAYOUT - Simple Dashboard Style
+        ═══════════════════════════════════════════════════════ -->
+        <div class="mobile-voucher-cards" id="mobileVoucherCards">
+            {% for voucher in vouchers %}
+            <div class="mobile-voucher-card"
+                 data-id="{{ voucher.pk }}"
+                 data-doctype="{% if voucher.pf_number %}pf{% else %}pv{% endif %}"
+                 onclick="window.location.href='{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}'">
+
+                <!-- Card Header -->
+                <div class="mobile-card-header">
+                    <div class="mobile-card-left">
+                        <input type="checkbox" class="mobile-card-checkbox row-checkbox"
+                               value="{{ voucher.pk }}"
+                               data-doctype="{% if voucher.pf_number %}pf{% else %}pv{% endif %}"
+                               onchange="updateBulkBar()"
+                               onclick="event.stopPropagation()">
+                        <div class="mobile-card-type-number">
+                            {% if voucher.pf_number %}
+                                <span class="doc-type-badge pf">PF</span>
+                            {% else %}
+                                <span class="doc-type-badge pv">PV</span>
+                            {% endif %}
+                            <div class="mobile-card-number">
+                                {% if voucher.pf_number %}
+                                    {{ voucher.pf_number|default:"DRAFT" }}
+                                {% else %}
+                                    {{ voucher.pv_number|default:"DRAFT" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        {% if voucher.status == 'DRAFT' %}
+                            <span class="status-badge status-draft">Draft</span>
+                        {% elif voucher.status == 'APPROVED' %}
+                            <span class="status-badge status-approved">Approved</span>
+                        {% elif voucher.status == 'REJECTED' %}
+                            <span class="status-badge status-rejected">Rejected</span>
+                        {% elif voucher.status == 'ON_REVISION' %}
+                            <span class="status-badge status-revision">Revision</span>
+                        {% else %}
+                            <span class="status-badge status-pending">Pending</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Card Body - All Info Visible -->
+                <div class="mobile-card-body">
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Payee</span>
+                        <span class="mobile-card-value"><strong>{{ voucher.payee_name }}</strong></span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Amount</span>
+                        <span class="mobile-card-value"><strong>{{ voucher.get_grand_total_display }}</strong></span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Currency</span>
+                        <span class="mobile-card-value">
+                            {% with currency=voucher.line_items.first.currency|default:"USD" %}
+                                <span class="currency-badge">{{ currency }}</span>
+                            {% endwith %}
+                        </span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Date</span>
+                        <span class="mobile-card-value">{{ voucher.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">Prepared By</span>
+                        <span class="mobile-card-value">{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</span>
+                    </div>
+                </div>
+
+                <!-- Card Footer -->
+                <div class="mobile-card-footer">
+                    <a href="{% if voucher.pf_number %}{% url 'vouchers:pf_detail' voucher.pk %}{% else %}{% url 'vouchers:detail' voucher.pk %}{% endif %}"
+                       class="mobile-view-btn"
+                       onclick="event.stopPropagation()">
+                        <i class="bi bi-eye"></i> View Details
+                    </a>
+                    <a href="{% if voucher.pf_number %}{% url 'vouchers:pf_repeat' voucher.pk %}{% else %}{% url 'vouchers:repeat' voucher.pk %}{% endif %}"
+                       class="mobile-view-btn repeat"
+                       onclick="event.stopPropagation()">
+                        <i class="bi bi-arrow-repeat"></i> Repeat
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
         <!-- ── Table Footer / Pagination ── -->
         {% if vouchers %}
         <div class="table-footer">
@@ -1566,7 +2038,18 @@ if (window._voucherListScriptLoaded) {
     window.toggleSelectAll = function(master) {
     document.querySelectorAll('.row-checkbox').forEach(cb => {
         cb.checked = master.checked;
-        cb.closest('tr').classList.toggle('row-selected', master.checked);
+
+        // Desktop: highlight table row
+        const tableRow = cb.closest('tr');
+        if (tableRow) {
+            tableRow.classList.toggle('row-selected', master.checked);
+        }
+
+        // Mobile: highlight card
+        const mobileCard = cb.closest('.mobile-voucher-card');
+        if (mobileCard) {
+            mobileCard.classList.toggle('selected', master.checked);
+        }
     });
     updateBulkBar();
     };
@@ -1586,9 +2069,19 @@ if (window._voucherListScriptLoaded) {
         master.checked       = checked.length === all.length && all.length > 0;
     }
 
-    /* Highlight selected rows */
+    /* Highlight selected rows/cards (works for both desktop and mobile) */
     document.querySelectorAll('.row-checkbox').forEach(cb => {
-        cb.closest('tr').classList.toggle('row-selected', cb.checked);
+        // Desktop: highlight table row
+        const tableRow = cb.closest('tr');
+        if (tableRow) {
+            tableRow.classList.toggle('row-selected', cb.checked);
+        }
+
+        // Mobile: highlight card
+        const mobileCard = cb.closest('.mobile-voucher-card');
+        if (mobileCard) {
+            mobileCard.classList.toggle('selected', cb.checked);
+        }
     });
     };
 

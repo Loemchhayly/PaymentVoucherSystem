@@ -497,15 +497,28 @@
 
     /* Mobile devices - CARD LAYOUT (NO HORIZONTAL SCROLL) */
     @media (max-width: 768px) {
+        /* CRITICAL: Prevent ALL horizontal scroll */
+        * {
+            max-width: 100vw !important;
+        }
+
         body {
-            overflow-x: hidden;
-            max-width: 100vw;
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+        }
+
+        .bulk-approval-container,
+        .action-bar,
+        .mobile-doc-card,
+        .modal-dialog {
+            padding: var(--spacing-md);
+            max-width: 100% !important;
+            overflow-x: hidden !important;
+            box-sizing: border-box !important;
         }
 
         .bulk-approval-container {
             padding: var(--spacing-md);
-            max-width: 100%;
-            overflow-x: hidden;
         }
 
         /* Page header mobile */

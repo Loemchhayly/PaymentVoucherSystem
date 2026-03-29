@@ -827,6 +827,14 @@
             border: 1px solid var(--v-border);
             border-radius: 8px;
             padding: 12px;
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-rows: auto auto;
+            gap: 8px 12px;
+            align-items: start;
+            min-height: unset;
+            height: auto;
         }
 
         .vd-transfer-bank-label {
@@ -835,10 +843,74 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--v-muted);
-            margin-bottom: 5px;
+            margin-bottom: 0;
             display: flex;
             align-items: center;
             gap: 4px;
+            grid-column: 1 / -1;
+        }
+
+        /* Bank logo (right side) - override inline absolute positioning */
+        .vd-transfer-bank div[style*="position:absolute"] {
+            position: relative !important;
+            top: auto !important;
+            right: auto !important;
+            width: auto !important;
+            height: auto !important;
+            grid-column: 2;
+            grid-row: 2;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            flex-shrink: 0;
+            align-self: start;
+            margin-bottom: 0;
+        }
+
+        .vd-transfer-bank div[style*="position:absolute"] img {
+            max-width: 52px;
+            max-height: 52px;
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+            border-radius: 8px;
+            display: block;
+        }
+
+        /* Bank details (left side) */
+        .vd-transfer-bank-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--v-text);
+            margin-bottom: 3px;
+            grid-column: 1;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        /* Additional text elements also go to left column */
+        .vd-transfer-bank > div:not([class]):not([style*="position:absolute"]) {
+            grid-column: 1;
+            margin-bottom: 0;
+        }
+
+        /* Remove margin from last child elements */
+        .vd-transfer-bank > *:last-child:not([style*="position:absolute"]),
+        .vd-transfer-bank > span:last-child {
+            margin-bottom: 0 !important;
+        }
+
+        .vd-transfer-bank-account {
+            font-family: 'Courier New', monospace;
+            font-size: 0.72rem;
+            color: var(--v-cyan);
+            background: rgba(6, 182, 212, 0.06);
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            grid-column: 1;
+            word-break: break-all;
+            margin-bottom: 0;
         }
 
         .vd-transfer-bank-logo {
@@ -1689,6 +1761,93 @@
             overflow: hidden;
         }
 
+        /* ══════════════════════════════════════════════════════════
+           MOBILE CARDS FOR LINE ITEMS TABLE
+        ══════════════════════════════════════════════════════════ */
+        .vd-mobile-items {
+            display: none;
+        }
+
+        .vd-mobile-item {
+            background: var(--v-card);
+            border: 1px solid var(--v-border);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .vd-mobile-item:hover {
+            border-color: var(--v-border-bright);
+            background: rgba(6,182,212,0.03);
+        }
+
+        .vd-mobile-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--v-border);
+        }
+
+        .vd-mobile-item-num {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: var(--v-muted);
+            font-size: 0.7rem;
+        }
+
+        .vd-mobile-item-total {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: 800;
+            color: var(--v-cyan);
+            font-size: 0.9rem;
+        }
+
+        .vd-mobile-item-desc {
+            color: var(--v-text);
+            font-weight: 500;
+            line-height: 1.5;
+            font-family: 'Kantumruy Pro', 'Battambang', sans-serif;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .vd-mobile-item-body {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .vd-mobile-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+        }
+
+        .vd-mobile-item-label {
+            color: var(--v-muted);
+            font-weight: 600;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .vd-mobile-item-value {
+            color: var(--v-text);
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .vd-mobile-item-value.amount {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: var(--v-cyan);
+        }
+
         /* ── Responsive ── */
         @media (max-width: 1199px) {
             .vd-layout {
@@ -1723,29 +1882,569 @@
             }
         }
 
-        @media (max-width: 576px) {
+        @media (max-width: 768px) {
+            /* CRITICAL: Prevent horizontal scroll */
+            * {
+                max-width: 100vw !important;
+            }
+
             .vd-wrap {
                 padding: 12px 12px 32px;
+                overflow-x: hidden !important;
+            }
+
+            /* ── BREADCRUMB - Better wrapping on mobile ── */
+            .vd-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .vd-breadcrumb {
+                font-size: 0.7rem;
+                flex-wrap: wrap;
+                gap: 4px;
+                line-height: 1.4;
+            }
+
+            .vd-back-btn {
+                min-height: 44px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* ── HERO SECTION - Better mobile layout ── */
+            .vd-hero {
+                padding: 16px;
+            }
+
+            .vd-hero-body {
+                gap: 16px;
+            }
+
+            .vd-doc-type {
+                font-size: 0.55rem;
             }
 
             .vd-pv-number {
-                font-size: 1.6rem;
+                font-size: 1.5rem;
+            }
+
+            .pv-prefix, .pv-id {
+                font-size: inherit;
+            }
+
+            /* ── META CELLS - Compact 2-column grid on mobile ── */
+            .vd-hero-meta {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px 16px;
+                margin-top: 14px;
+            }
+
+            .vd-meta-cell {
+                padding: 0;
+                margin-right: 0;
+                border-right: none;
+                border-bottom: none;
+            }
+
+            .vd-meta-cell:last-child {
+                grid-column: auto;
+            }
+
+            .vd-meta-label {
+                font-size: 0.7rem;
+                color: var(--v-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 2px;
+            }
+
+            .vd-meta-value {
+                font-size: 0.95rem;
+                font-weight: 600;
+            }
+
+            /* ── STATUS HUD - Compact inline layout ── */
+            .vd-status-hud {
+                width: 100%;
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+            }
+
+            .vd-status-label {
+                font-size: 0.7rem;
+                margin-bottom: 0;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .vd-status-chip {
+                padding: 4px 12px;
+                font-size: 0.8rem;
+                width: auto !important;
+                height: auto !important;
+                border-radius: 999px;
+                gap: 6px;
+            }
+
+            .vd-status-chip .chip-dot {
+                width: 6px;
+                height: 6px;
+            }
+
+            /* ── ACTIONS - Normal sized buttons ── */
+            .vd-hero-right {
+                width: 100%;
+                align-items: stretch;
             }
 
             .vd-actions {
-                flex-wrap: wrap;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                width: 100%;
             }
 
-            .vd-info-grid {
-                grid-template-columns: 1fr 1fr;
+            .vd-btn {
+                min-height: 40px;
+                width: 100%;
+                justify-content: center;
+                font-size: 0.85rem;
+                padding: 10px 16px;
+                height: auto;
             }
 
+            /* Download PDF button - normal size, not oversized */
+            .vd-btn-primary[href*="pdf"] {
+                background: linear-gradient(135deg, #10b981, #059669);
+                box-shadow: 0 3px 12px rgba(16,185,129,0.3);
+                min-height: 42px;
+                font-size: 0.9rem;
+            }
+
+            /* ── HIDE TABLE - SHOW CARDS ON MOBILE ── */
+            .vd-table-wrap {
+                display: none !important;
+            }
+
+            .vd-mobile-items {
+                display: block !important;
+            }
+
+            /* ── CARDS - Compact padding for more space ── */
+            .vd-card,
+            .vd-items-card,
+            .vd-history-card,
+            .vd-audit-card {
+                max-width: 100%;
+                overflow-x: hidden !important;
+                padding: 16px;
+            }
+
+            .vd-card-head {
+                padding: 0 0 12px 0;
+            }
+
+            .vd-card-body {
+                padding: 12px 0 0 0;
+            }
+
+            /* ── APPROVAL WORKFLOW - Horizontally scrollable, no clipping ── */
+            .vd-progress-bar {
+                padding: 16px;
+            }
+
+            .vd-steps {
+                overflow-x: auto;
+                padding-bottom: 8px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .vd-steps::-webkit-scrollbar {
+                display: none;
+            }
+
+            .vd-step {
+                min-width: 64px;
+                flex-shrink: 0;
+            }
+
+            .vd-step-label {
+                font-size: 0.65rem;
+            }
+
+            .vd-step-sub {
+                font-size: 0.6rem;
+            }
+
+            /* ── TRANSFER SECTION - Logo on right, details on left ── */
             .vd-transfer {
                 flex-direction: column;
+                overflow: visible;
             }
 
             .vd-transfer-arrow {
                 flex-direction: row;
+                justify-content: center;
+            }
+
+            .vd-transfer-bank {
+                /* Grid layout already set in main CSS - works on mobile too */
+                width: 100% !important;
+                box-sizing: border-box;
+                grid-template-columns: 1fr auto;
+                grid-template-rows: auto auto;
+                gap: 8px 10px;
+                padding: 12px;
+                min-height: unset;
+                height: auto;
+            }
+
+            .vd-transfer-bank-label {
+                white-space: normal;
+                word-break: break-word;
+                font-size: 0.7rem;
+                line-height: 1.3;
+            }
+
+            /* Logo stays on right on mobile - single row only */
+            .vd-transfer-bank div[style*="position:absolute"] {
+                grid-column: 2;
+                grid-row: 2;
+                margin-bottom: 0;
+            }
+
+            /* Remove extra spacing from last elements */
+            .vd-transfer-bank > *:last-child:not([style*="position:absolute"]),
+            .vd-transfer-bank > span:last-child {
+                margin-bottom: 0 !important;
+            }
+
+            .vd-transfer-bank div[style*="position:absolute"] img {
+                max-width: 48px;
+                max-height: 48px;
+                width: 48px;
+                height: 48px;
+            }
+
+            .vd-transfer-bank-name {
+                font-size: 0.9rem;
+                margin-bottom: 4px;
+            }
+
+            .vd-transfer-bank-account {
+                font-size: 0.75rem;
+                word-break: break-all;
+            }
+
+            /* ── INFO GRID - Group into single card with 2-column layout ── */
+            .vd-info-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+                padding: 16px;
+                background: var(--v-card);
+                border-radius: 10px;
+                border: 1px solid var(--v-border);
+            }
+
+            .vd-info-cell {
+                background: none !important;
+                border: none !important;
+                padding: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                border-left: none !important;
+            }
+
+            .vd-info-cell:hover {
+                background: none !important;
+            }
+
+            .vd-info-cell dt {
+                font-size: 0.68rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--v-muted);
+                margin-bottom: 3px;
+            }
+
+            .vd-info-cell dd {
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
+
+            /* Payee name spans full width since it can be long */
+            .vd-info-cell:first-child {
+                grid-column: 1 / -1;
+            }
+
+            /* ── SIDEBAR CARDS - Better spacing ── */
+            .vd-layout > div:last-child {
+                margin-top: 20px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .vd-wrap {
+                padding: 10px 10px 28px;
+            }
+
+            .vd-hero {
+                padding: 14px;
+            }
+
+            .vd-pv-number {
+                font-size: 1.3rem;
+            }
+
+            /* Info grid stays 2-column for efficiency */
+            .vd-info-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+                padding: 14px;
+            }
+
+            .vd-info-cell dt {
+                font-size: 0.65rem;
+            }
+
+            .vd-info-cell dd {
+                font-size: 0.85rem;
+            }
+
+            /* Bank card logo on right - consistent sizing */
+            .vd-transfer-bank div[style*="position:absolute"] img {
+                max-width: 46px;
+                max-height: 46px;
+                width: 46px;
+                height: 46px;
+            }
+
+            .vd-transfer-bank-name {
+                font-size: 0.88rem;
+            }
+
+            .vd-transfer-bank-account {
+                font-size: 0.72rem;
+            }
+
+            /* Ensure both bank cards same height */
+            .vd-transfer-bank {
+                padding: 12px;
+                min-height: unset;
+                height: auto;
+            }
+
+            .vd-transfer-bank > *:last-child:not([style*="position:absolute"]) {
+                margin-bottom: 0 !important;
+            }
+
+            /* Status chip stays compact */
+            .vd-status-chip {
+                padding: 4px 10px;
+                font-size: 0.75rem;
+            }
+
+            /* Buttons stay normal sized */
+            .vd-btn {
+                min-height: 38px;
+                font-size: 0.8rem;
+            }
+
+            .vd-btn-primary[href*="pdf"] {
+                min-height: 40px;
+                font-size: 0.85rem;
+            }
+
+            /* Card padding consistent */
+            .vd-card {
+                padding: 14px;
+            }
+
+            .vd-card-head {
+                padding: 0 0 10px 0;
+            }
+
+            .vd-card-body {
+                padding: 10px 0 0 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* ── WORKFLOW STEPS - Smaller on tiny phones ── */
+            .vd-step-dot {
+                width: 32px;
+                height: 32px;
+                font-size: 0.7rem;
+            }
+
+            .vd-step-label {
+                font-size: 0.6rem;
+            }
+
+            .vd-step-sub {
+                font-size: 0.55rem;
+            }
+
+            .vd-step {
+                min-width: 60px;
+            }
+
+            /* Progress bar title */
+            .vd-progress-title {
+                font-size: 0.75rem;
+            }
+
+            /* Breadcrumb even smaller */
+            .vd-breadcrumb {
+                font-size: 0.65rem;
+            }
+
+            /* ── META CELLS - Keep 2-column grid ── */
+            .vd-hero-meta {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px 14px;
+            }
+
+            .vd-meta-label {
+                font-size: 0.65rem;
+            }
+
+            .vd-meta-value {
+                font-size: 0.85rem;
+            }
+
+            /* ── INFO GRID - Keep 2-column layout on small phones ── */
+            .vd-info-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px 14px;
+                padding: 12px;
+            }
+
+            /* Payee name still spans full width */
+            .vd-info-cell:first-child {
+                grid-column: 1 / -1;
+            }
+
+            .vd-info-cell dt {
+                font-size: 0.62rem;
+            }
+
+            .vd-info-cell dd {
+                font-size: 0.8rem;
+            }
+
+            /* ── BANK CARDS - Consistent height ── */
+            .vd-transfer-bank {
+                padding: 10px;
+                grid-template-rows: auto auto;
+            }
+
+            .vd-transfer-bank > *:last-child:not([style*="position:absolute"]),
+            .vd-transfer-bank > span:last-child {
+                margin-bottom: 0 !important;
+            }
+        }
+
+        @media (max-width: 390px) {
+            /* ── OPTIMIZE FOR iPhone 14 and smaller ── */
+            .vd-wrap {
+                padding: 8px 8px 24px;
+            }
+
+            .vd-pv-number {
+                font-size: 1.2rem;
+            }
+
+            /* Status chip stays compact */
+            .vd-status-chip {
+                font-size: 0.7rem;
+                padding: 3px 10px;
+            }
+
+            .vd-btn {
+                min-height: 36px;
+                font-size: 0.75rem;
+            }
+
+            .vd-btn-primary[href*="pdf"] {
+                min-height: 38px;
+            }
+
+            .vd-card-title {
+                font-size: 0.85rem;
+            }
+
+            .vd-mobile-item {
+                padding: 10px;
+            }
+
+            .vd-meta-label {
+                font-size: 0.6rem;
+            }
+
+            .vd-meta-value {
+                font-size: 0.8rem;
+            }
+
+            .vd-step {
+                min-width: 58px;
+            }
+
+            /* Info grid tighter padding - keep 2-column layout */
+            .vd-info-grid {
+                padding: 10px;
+                gap: 10px 12px;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            /* Payee name full width */
+            .vd-info-cell:first-child {
+                grid-column: 1 / -1;
+            }
+
+            .vd-info-cell dt {
+                font-size: 0.6rem;
+            }
+
+            .vd-info-cell dd {
+                font-size: 0.75rem;
+            }
+
+            /* Bank logo smaller on tiny screens */
+            .vd-transfer-bank div[style*="position:absolute"] img {
+                max-width: 42px;
+                max-height: 42px;
+                width: 42px;
+                height: 42px;
+            }
+
+            .vd-transfer-bank-name {
+                font-size: 0.85rem;
+            }
+
+            .vd-transfer-bank-account {
+                font-size: 0.7rem;
+            }
+
+            /* ── BANK CARDS - Tight compact layout ── */
+            .vd-transfer-bank {
+                padding: 10px;
+                grid-template-rows: auto auto;
+                gap: 6px 8px;
+            }
+
+            .vd-transfer-bank > *:last-child:not([style*="position:absolute"]),
+            .vd-transfer-bank > span:last-child,
+            .vd-transfer-bank > div:not([style*="position:absolute"]):last-child {
+                margin-bottom: 0 !important;
             }
         }
 
@@ -2109,6 +2808,49 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            <!-- MOBILE CARDS LAYOUT (Visible on mobile only) -->
+                            <div class="vd-mobile-items">
+                                {% for item in voucher.line_items.all %}
+                                <div class="vd-mobile-item">
+                                    <!-- Header -->
+                                    <div class="vd-mobile-item-header">
+                                        <div class="vd-mobile-item-num">#{{ item.line_number }}</div>
+                                        <div class="vd-mobile-item-total">{{ item.get_total_with_currency }}</div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="vd-mobile-item-desc">{{ item.description }}</div>
+
+                                    <!-- Details -->
+                                    <div class="vd-mobile-item-body">
+                                        <div class="vd-mobile-item-row">
+                                            <span class="vd-mobile-item-label">Department</span>
+                                            <span class="vd-mobile-item-value">{{ item.department.name }}</span>
+                                        </div>
+                                        <div class="vd-mobile-item-row">
+                                            <span class="vd-mobile-item-label">Program</span>
+                                            <span class="vd-mobile-item-value">{{ item.program|default:"—" }}</span>
+                                        </div>
+                                        <div class="vd-mobile-item-row">
+                                            <span class="vd-mobile-item-label">Amount</span>
+                                            <span class="vd-mobile-item-value amount">{{ item.get_currency_symbol }}{{ item.amount|floatformat:2 }}</span>
+                                        </div>
+                                        <div class="vd-mobile-item-row">
+                                            <span class="vd-mobile-item-label">VAT</span>
+                                            <span class="vd-mobile-item-value">
+                                                {% if item.vat_applicable %}
+                                                    <span class="vd-vat yes"><i class="bi bi-check"></i> Yes (+{{ item.get_currency_symbol }}{{ item.get_vat_amount|floatformat:2 }})</span>
+                                                {% else %}
+                                                    <span class="vd-vat no">No</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
                             <div class="vd-table-footer">
                                 <div class="vd-total-label">Grand Total</div>
                                 <div class="vd-total-value">{{ voucher.get_grand_total_display }}</div>
@@ -2139,55 +2881,59 @@
                                             <i class="bi bi-arrow-right-circle-fill"></i>
                                             <span>Transfer</span>
                                         </div>
-                                        <div class="vd-transfer-bank" style="position:relative;">
-                                            <div class="vd-transfer-bank-label" style="color:rgba(16,185,129,0.8);"><i
-                                                    class="bi bi-person-fill"></i> Supplier (Transfer To)
+                                        <div class="vd-transfer-bank">
+                                            <div class="vd-transfer-bank-label" style="color:rgba(16,185,129,0.8);">
+                                                <i class="bi bi-person-fill"></i> Supplier (Transfer To)
                                             </div>
-                                            {% if voucher.bank_address %}
-                                            <div style="position:absolute; top:8px; right:8px; width:90px; height:60px; display:flex; align-items:center; justify-content:center;">
-                                                {% if 'ABA' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/aba.png' %}" alt="ABA Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'ACLEDA' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/acleda.png' %}" alt="ACLEDA Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'MAYBANK' in voucher.bank_address|upper or 'MAY BANK' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/maybank.png' %}" alt="Maybank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'WING' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/wing.png' %}" alt="Wing Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'CANADIA' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/canadia.png' %}" alt="Canadia Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'PHILLIP' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/phillip.png' %}" alt="Phillip Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'VATTANAC' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/vattanac.png' %}" alt="Vattanac Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'PRASAC' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/prasac.png' %}" alt="PRASAC" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'SATHAPANA' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/sathapana.png' %}" alt="Sathapana Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'FTB' in voucher.bank_address|upper or 'FOREIGN TRADE' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/ftb.png' %}" alt="FTB" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'BRED' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/bred.png' %}" alt="BRED Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'CHIP MONG' in voucher.bank_address|upper or 'CHIPMONG' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/chipmong.png' %}" alt="Chip Mong Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'WOORI' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/woori.png' %}" alt="Woori Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'CAMBODIA PUBLIC' in voucher.bank_address|upper or 'CPB' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/cpb.png' %}" alt="Cambodia Public Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'RHB' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/rhb.png' %}" alt="RHB Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'EMIRATES' in voucher.bank_address|upper or 'NBD' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/emiratesnbd.png' %}" alt="Emirates NBD" style="max-height:55px; max-width:85px; object-fit:contain;">
-                                                {% elif 'HONG LEONG' in voucher.bank_address|upper or 'HONGLEONG' in voucher.bank_address|upper %}
-                                                    <img src="{% static 'images/banks/hongleong.png' %}" alt="Hong Leong Bank" style="max-height:55px; max-width:85px; object-fit:contain;">
+                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                                                <div style="flex:1; min-width:0;">
+                                                    <div class="vd-transfer-bank-name">{{ voucher.bank_address|default:"Not specified" }}</div>
+                                                    <div style="font-size:0.7rem;color:var(--v-muted);margin-bottom:4px;">{{ voucher.bank_name|default:"—" }}</div>
+                                                    {% if voucher.bank_account_number %}
+                                                        <span class="vd-transfer-bank-account"
+                                                              style="border-color:rgba(16,185,129,0.3);color:var(--v-green);">{{ voucher.bank_account_number }}</span>
+                                                    {% endif %}
+                                                </div>
+                                                {% if voucher.bank_address %}
+                                                <div style="flex-shrink:0;">
+                                                    {% if 'ABA' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/aba.png' %}" alt="ABA Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'ACLEDA' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/acleda.png' %}" alt="ACLEDA Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'MAYBANK' in voucher.bank_address|upper or 'MAY BANK' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/maybank.png' %}" alt="Maybank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'WING' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/wing.png' %}" alt="Wing Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'CANADIA' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/canadia.png' %}" alt="Canadia Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'PHILLIP' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/phillip.png' %}" alt="Phillip Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'VATTANAC' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/vattanac.png' %}" alt="Vattanac Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'PRASAC' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/prasac.png' %}" alt="PRASAC" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'SATHAPANA' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/sathapana.png' %}" alt="Sathapana Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'FTB' in voucher.bank_address|upper or 'FOREIGN TRADE' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/ftb.png' %}" alt="FTB" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'BRED' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/bred.png' %}" alt="BRED Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'CHIP MONG' in voucher.bank_address|upper or 'CHIPMONG' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/chipmong.png' %}" alt="Chip Mong Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'WOORI' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/woori.png' %}" alt="Woori Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'CAMBODIA PUBLIC' in voucher.bank_address|upper or 'CPB' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/cpb.png' %}" alt="Cambodia Public Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'RHB' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/rhb.png' %}" alt="RHB Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'EMIRATES' in voucher.bank_address|upper or 'NBD' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/emiratesnbd.png' %}" alt="Emirates NBD" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% elif 'HONG LEONG' in voucher.bank_address|upper or 'HONGLEONG' in voucher.bank_address|upper %}
+                                                        <img src="{% static 'images/banks/hongleong.png' %}" alt="Hong Leong Bank" style="width:48px; height:48px; object-fit:contain; border-radius:6px;">
+                                                    {% endif %}
+                                                </div>
                                                 {% endif %}
                                             </div>
-                                            {% endif %}
-                                            <div class="vd-transfer-bank-name">{{ voucher.bank_address|default:"Not specified" }}</div>
-                                            <div style="font-size:0.7rem;color:var(--v-muted);margin-bottom:4px;">{{ voucher.bank_name|default:"—" }}</div>
-                                            {% if voucher.bank_account_number %}
-                                                <span class="vd-transfer-bank-account"
-                                                      style="border-color:rgba(16,185,129,0.3);color:var(--v-green);">{{ voucher.bank_account_number }}</span>
-                                            {% endif %}
                                         </div>
                                     </div>
                                 {% endif %}
