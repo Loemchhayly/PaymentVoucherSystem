@@ -315,6 +315,248 @@ body[data-theme="light"] .selectable-row:has(.doc-checkbox:checked) td {
 body[data-theme="light"] .selectable-row:has(.doc-checkbox:checked) td:first-child {
     border-left: 3px solid #0891b2;
 }
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE DOCUMENT CARDS (hidden on desktop)
+══════════════════════════════════════════════════════════ */
+.mobile-documents-cards { display: none; }
+
+.mobile-doc-card {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+}
+
+.mobile-doc-card.selected {
+    border-color: var(--cyan-400);
+    background: rgba(6,182,212,0.07);
+    border-left: 3px solid var(--cyan-400);
+}
+
+.mobile-doc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.mobile-doc-checkbox-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mobile-doc-checkbox-wrap input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--cyan-500);
+    cursor: pointer;
+}
+
+.mobile-doc-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mobile-doc-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8125rem;
+}
+
+.mobile-doc-field-label {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mobile-doc-field-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE BREAKPOINTS
+══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    /* Prevent horizontal scroll */
+    * {
+        max-width: 100vw !important;
+    }
+
+    .content-container-wide {
+        padding: 12px !important;
+        overflow-x: hidden !important;
+    }
+
+    /* Page Header */
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .page-title {
+        font-size: 1.35rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.8125rem;
+    }
+
+    .page-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .page-actions .btn {
+        width: 100%;
+        min-height: 48px;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    /* Summary Card */
+    .summary-card {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .summary-card > div {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 1rem !important;
+    }
+
+    .summary-card > div > div:first-child {
+        gap: 1rem !important;
+        justify-content: space-around;
+    }
+
+    .summary-stat .label {
+        font-size: 0.625rem;
+    }
+
+    .summary-stat .value {
+        font-size: 1.25rem;
+    }
+
+    #create-batch-btn {
+        width: 100%;
+        min-height: 48px;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    /* Card Header */
+    .card-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        padding: 12px 14px !important;
+    }
+
+    .card-header span:first-child {
+        font-size: 0.875rem !important;
+    }
+
+    .card-header .badge {
+        font-size: 0.625rem !important;
+    }
+
+    /* Hide DataTables controls and table on mobile */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        display: none !important;
+    }
+
+    .table-responsive {
+        display: none !important;
+    }
+
+    /* Show mobile cards */
+    .mobile-documents-cards {
+        display: block;
+    }
+
+    /* Empty State */
+    .empty-state {
+        padding: 3rem 1.5rem;
+    }
+
+    .empty-state i {
+        font-size: 2.5rem;
+    }
+
+    .empty-state .empty-title {
+        font-size: 0.875rem;
+    }
+
+    .empty-state .empty-sub {
+        font-size: 0.75rem;
+    }
+
+    /* Modal */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    .modal-content {
+        border-radius: 12px;
+    }
+
+    .modal-body textarea {
+        font-size: 16px !important;
+        min-height: 120px !important;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        gap: 8px !important;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+        min-height: 48px;
+        justify-content: center;
+    }
+
+    /* Select All Mobile */
+    .mobile-select-all {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .mobile-select-all input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--cyan-500);
+        cursor: pointer;
+    }
+}
 </style>
 {% endblock %}
 
@@ -432,6 +674,81 @@ body[data-theme="light"] .selectable-row:has(.doc-checkbox:checked) td:first-chi
                 </table>
             </div>
 
+            <!-- Mobile Cards (shown only on mobile) -->
+            <div class="mobile-documents-cards">
+                <!-- Select All Mobile -->
+                <div class="mobile-select-all">
+                    <input type="checkbox" id="select-all-mobile" onchange="toggleAllMobile(this)">
+                    <span>Select All</span>
+                </div>
+
+                <!-- Vouchers -->
+                {% for voucher in vouchers %}
+                <div class="mobile-doc-card" data-type="voucher" data-id="{{ voucher.id }}" data-amount="{{ voucher.calculate_grand_total.USD|default:0 }}">
+                    <div class="mobile-doc-header">
+                        <div class="mobile-doc-checkbox-wrap">
+                            <input type="checkbox" class="mobile-doc-checkbox" onchange="updateMobileSelection(this)">
+                            <div>
+                                <span class="badge badge-primary">PV</span>
+                                <strong style="color:var(--text-primary); margin-left:5px;">{{ voucher.pv_number }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mobile-doc-body">
+                        <div class="mobile-doc-field">
+                            <span class="mobile-doc-field-label">Payee</span>
+                            <span class="mobile-doc-field-value">{{ voucher.payee_name }}</span>
+                        </div>
+                        <div class="mobile-doc-field">
+                            <span class="mobile-doc-field-label">Payment Date</span>
+                            <span class="mobile-doc-field-value">{{ voucher.payment_date|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="mobile-doc-field">
+                            <span class="mobile-doc-field-label">Amount</span>
+                            <span class="mobile-doc-field-value" style="color: var(--success); font-weight: 700;">{{ voucher.get_grand_total_display }}</span>
+                        </div>
+                        <div class="mobile-doc-field">
+                            <span class="mobile-doc-field-label">Created By</span>
+                            <span class="mobile-doc-field-value">{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Forms -->
+                {% for form in forms %}
+                <div class="mobile-doc-card" data-type="form" data-id="{{ form.id }}" data-amount="{{ form.calculate_grand_total.USD|default:0 }}">
+                    <div class="mobile-doc-header">
+                        <div class="mobile-doc-checkbox-wrap">
+                            <input type="checkbox" class="mobile-doc-checkbox" onchange="updateMobileSelection(this)">
+                            <div>
+                                <span class="badge badge-success">PF</span>
+                                <strong style="color:var(--text-primary); margin-left:5px;">{{ form.pf_number }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mobile-doc-body">
+                        <div class="mobile-doc-field">
+                            <span class="mobile-doc-field-label">Payee</span>
+                            <span class="mobile-doc-field-value">{{ form.payee_name }}</span>
+                        </div>
+                        <div class="mobile-doc-field">
+                            <span class="mobile-doc-field-label">Payment Date</span>
+                            <span class="mobile-doc-field-value">{{ form.payment_date|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="mobile-doc-field">
+                            <span class="mobile-doc-field-label">Amount</span>
+                            <span class="mobile-doc-field-value" style="color: var(--success); font-weight: 700;">{{ form.get_grand_total_display }}</span>
+                        </div>
+                        <div class="mobile-doc-field">
+                            <span class="mobile-doc-field-label">Created By</span>
+                            <span class="mobile-doc-field-value">{{ form.created_by.get_full_name|default:form.created_by.username }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
             {% else %}
             <div class="empty-state">
                 <i class="bi bi-inbox"></i>
@@ -516,6 +833,93 @@ $(document).ready(function () {
         cb.prop('checked', !cb.prop('checked'));
         updateSelection();
     });
+
+    /* Mobile card selection handling */
+    window.updateMobileSelection = function(checkbox) {
+        const card = checkbox.closest('.mobile-doc-card');
+        if (checkbox.checked) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+
+        // Update summary counters
+        updateMobileSummary();
+    };
+
+    window.toggleAllMobile = function(checkbox) {
+        const mobileCheckboxes = document.querySelectorAll('.mobile-doc-checkbox');
+        mobileCheckboxes.forEach(cb => {
+            cb.checked = checkbox.checked;
+            updateMobileSelection(cb);
+        });
+    };
+
+    window.updateMobileSummary = function() {
+        const mobileCheckboxes = document.querySelectorAll('.mobile-doc-checkbox:checked');
+        let count = 0;
+        let total = 0;
+
+        mobileCheckboxes.forEach(cb => {
+            const card = cb.closest('.mobile-doc-card');
+            count++;
+            total += parseFloat(card.dataset.amount || 0);
+        });
+
+        document.getElementById('selected-count').textContent = count;
+        document.getElementById('selected-total').textContent = '$' + total.toFixed(2);
+        document.getElementById('create-batch-btn').disabled = (count === 0);
+
+        // Update "select all" checkbox state
+        const selectAllMobile = document.getElementById('select-all-mobile');
+        const allMobileCheckboxes = document.querySelectorAll('.mobile-doc-checkbox');
+        if (selectAllMobile && allMobileCheckboxes.length > 0) {
+            selectAllMobile.checked = (mobileCheckboxes.length === allMobileCheckboxes.length);
+        }
+    };
+
+    /* Override the createBatch function to work with mobile */
+    window.createBatch = function() {
+        // Get selected items from either desktop table or mobile cards
+        const desktopSelected = document.querySelectorAll('.doc-checkbox:checked');
+        const mobileSelected = document.querySelectorAll('.mobile-doc-checkbox:checked');
+
+        const selected = desktopSelected.length > 0 ? desktopSelected : mobileSelected;
+
+        if (selected.length === 0) {
+            alert('Please select at least one document');
+            return;
+        }
+
+        // Show the notes modal
+        const modal = new bootstrap.Modal(document.getElementById('notesModal'));
+        modal.show();
+    };
+
+    /* Update submitBatch to use mobile data if on mobile */
+    const originalSubmitBatch = window.submitBatch;
+    window.submitBatch = function() {
+        const desktopSelected = document.querySelectorAll('.doc-checkbox:checked');
+        const mobileSelected = document.querySelectorAll('.mobile-doc-checkbox:checked');
+
+        const selected = desktopSelected.length > 0 ? desktopSelected :
+                        Array.from(mobileSelected).map(cb => {
+                            const card = cb.closest('.mobile-doc-card');
+                            // Create a pseudo checkbox element with the data attributes
+                            const pseudoCb = {
+                                dataset: {
+                                    type: card.dataset.type,
+                                    id: card.dataset.id,
+                                    amount: card.dataset.amount
+                                }
+                            };
+                            return pseudoCb;
+                        });
+
+        if (typeof originalSubmitBatch === 'function') {
+            originalSubmitBatch(selected);
+        }
+    };
 });
 </script>
 {% endblock %}

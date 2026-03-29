@@ -230,11 +230,221 @@
 .mb-empty h5 { font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
 .mb-empty p  { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 20px; }
 
+/* ── Mobile Batch Cards (hidden on desktop) ── */
+.mb-mobile-cards { display: none; }
+
+.mb-mobile-card {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+}
+
+.mb-mobile-card:hover {
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-glow);
+}
+
+.mb-mobile-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.mb-mobile-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mb-mobile-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8125rem;
+}
+
+.mb-mobile-field-label {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mb-mobile-field-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.mb-mobile-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.mb-mobile-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+    min-height: 48px;
+}
+
+.mb-mobile-btn.view-amber {
+    background: var(--warning-light);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: var(--warning);
+}
+
+.mb-mobile-btn.view-green {
+    background: var(--success-light);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--success);
+}
+
+.mb-mobile-btn.view-red {
+    background: var(--danger-light);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: var(--danger);
+}
+
+.mb-mobile-btn.excel {
+    background: var(--success-light);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--success);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
-    .mb-stats { grid-template-columns: 1fr; }
-    .mb-table { font-size: 0.72rem; }
-    .mb-table td, .mb-table th { padding: 8px 10px; }
+    /* Prevent horizontal scroll */
+    * {
+        max-width: 100vw !important;
+    }
+
+    .content-container-wide {
+        padding: 12px !important;
+        overflow-x: hidden !important;
+    }
+
+    /* Page Header */
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .page-title {
+        font-size: 1.35rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.8125rem;
+    }
+
+    .page-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .page-actions .btn {
+        width: 100%;
+        min-height: 48px;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    /* Stats - Stack on mobile */
+    .mb-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .mb-stat {
+        padding: 14px 16px;
+    }
+
+    .mb-stat-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    .mb-stat-val {
+        font-size: 1.5rem;
+    }
+
+    .mb-stat-label {
+        font-size: 0.625rem;
+    }
+
+    /* Section Headers */
+    .mb-section-head {
+        padding: 10px 14px;
+    }
+
+    .mb-section-title {
+        font-size: 0.75rem;
+    }
+
+    .mb-section-count {
+        font-size: 0.625rem;
+        padding: 2px 8px;
+    }
+
+    /* Hide tables on mobile */
+    .mb-table {
+        display: none !important;
+    }
+
+    /* Show mobile cards */
+    .mb-mobile-cards {
+        display: block;
+        padding: 14px;
+    }
+
+    /* Empty State */
+    .mb-empty {
+        padding: 40px 20px;
+    }
+
+    .mb-empty-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+
+    .mb-empty h5 {
+        font-size: 0.875rem;
+    }
+
+    .mb-empty p {
+        font-size: 0.75rem;
+    }
+
+    .mb-empty .btn {
+        min-height: 48px;
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>
 {% endblock %}
@@ -338,6 +548,48 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- Mobile Cards (shown only on mobile) -->
+        <div class="mb-mobile-cards">
+            {% for batch in pending_batches %}
+            <div class="mb-mobile-card" onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
+                <div class="mb-mobile-card-header">
+                    <div class="mb-batch-num">
+                        <i class="bi bi-folder"></i>
+                        {{ batch.batch_number }}
+                    </div>
+                </div>
+                <div class="mb-mobile-card-body">
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Created</span>
+                        <span class="mb-mobile-field-value">{{ batch.created_at|date:"d M Y · H:i" }}</span>
+                    </div>
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Documents</span>
+                        <span class="mb-doc-count"><i class="bi bi-files"></i> {{ batch.get_document_count }}</span>
+                    </div>
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Total</span>
+                        <span class="mb-amount">{{ batch.get_total_amount_display }}</span>
+                    </div>
+                    {% if batch.fm_notes %}
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Notes</span>
+                        <span class="mb-note">{{ batch.fm_notes|truncatewords:5 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="mb-mobile-actions" onclick="event.stopPropagation()">
+                    <a href="{% url 'vouchers:batch_detail' batch.id %}" class="mb-mobile-btn view-amber">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                    <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="mb-mobile-btn excel">
+                        <i class="bi bi-file-earmark-excel"></i> Excel
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
 
@@ -394,6 +646,53 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- Mobile Cards (shown only on mobile) -->
+        <div class="mb-mobile-cards">
+            {% for batch in signed_batches %}
+            <div class="mb-mobile-card" onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
+                <div class="mb-mobile-card-header">
+                    <div class="mb-batch-num">
+                        <i class="bi bi-folder-check"></i>
+                        {{ batch.batch_number }}
+                    </div>
+                </div>
+                <div class="mb-mobile-card-body">
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Created</span>
+                        <span class="mb-mobile-field-value">{{ batch.created_at|date:"d M Y" }}</span>
+                    </div>
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Signed</span>
+                        <span class="mb-date accent-green">{{ batch.signed_at|date:"d M Y · H:i" }}</span>
+                    </div>
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Documents</span>
+                        <span class="mb-doc-count"><i class="bi bi-files"></i> {{ batch.get_document_count }}</span>
+                    </div>
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Total</span>
+                        <span class="mb-amount">{{ batch.get_total_amount_display }}</span>
+                    </div>
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Signed By</span>
+                        <div class="mb-signed-by">
+                            <div class="mb-mini-avatar">{{ batch.signed_by.get_full_name|default:batch.signed_by.username|slice:":2" }}</div>
+                            <span class="mb-signed-name">{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-mobile-actions" onclick="event.stopPropagation()">
+                    <a href="{% url 'vouchers:batch_detail' batch.id %}" class="mb-mobile-btn view-green">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                    <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="mb-mobile-btn excel">
+                        <i class="bi bi-file-earmark-excel"></i> Excel
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
 
@@ -451,6 +750,52 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- Mobile Cards (shown only on mobile) -->
+        <div class="mb-mobile-cards">
+            {% for batch in rejected_batches %}
+            <div class="mb-mobile-card" onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
+                <div class="mb-mobile-card-header">
+                    <div class="mb-batch-num">
+                        <i class="bi bi-folder-x"></i>
+                        {{ batch.batch_number }}
+                    </div>
+                </div>
+                <div class="mb-mobile-card-body">
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Created</span>
+                        <span class="mb-mobile-field-value">{{ batch.created_at|date:"d M Y" }}</span>
+                    </div>
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Rejected</span>
+                        <span class="mb-date accent-red">{{ batch.signed_at|date:"d M Y · H:i" }}</span>
+                    </div>
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Documents</span>
+                        <span class="mb-doc-count"><i class="bi bi-files"></i> {{ batch.get_document_count }}</span>
+                    </div>
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">Total</span>
+                        <span class="mb-amount muted">{{ batch.get_total_amount_display }}</span>
+                    </div>
+                    {% if batch.md_comments %}
+                    <div class="mb-mobile-field">
+                        <span class="mb-mobile-field-label">MD Reason</span>
+                        <span class="mb-note red-note">{{ batch.md_comments|truncatewords:8 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="mb-mobile-actions" onclick="event.stopPropagation()">
+                    <a href="{% url 'vouchers:batch_detail' batch.id %}" class="mb-mobile-btn view-red">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                    <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="mb-mobile-btn excel">
+                        <i class="bi bi-file-earmark-excel"></i> Excel
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
 

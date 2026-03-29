@@ -888,17 +888,447 @@
 .ob-m-btn.amber { background: linear-gradient(135deg, var(--amber-500), #b8722a); color: #1a0f00; font-weight: 800; }
 .ob-m-btn.amber:hover { transform: translateY(-1px); filter: brightness(1.05); }
 
+/* ── Mobile Document Cards (hidden on desktop) ── */
+.ob-mobile-docs {
+  display: none;
+}
+
+.ob-mobile-doc-card {
+  background: var(--ob-800);
+  border: 1px solid var(--ob-700);
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 8px;
+}
+
+.ob-mobile-doc-card:hover {
+  border-color: var(--ob-600);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+
+.ob-mobile-doc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ob-700);
+}
+
+.ob-mobile-doc-number {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ob-mobile-doc-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.ob-mobile-doc-badge.pv {
+  background: rgba(6,182,212,0.15);
+  color: var(--cyan-400);
+  border: 1px solid rgba(6,182,212,0.35);
+}
+
+.ob-mobile-doc-badge.pf {
+  background: rgba(34,197,94,0.15);
+  color: var(--success);
+  border: 1px solid rgba(34,197,94,0.35);
+}
+
+.ob-mobile-doc-body {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 10px;
+}
+
+.ob-mobile-doc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ob-mobile-doc-field.full-width {
+  grid-column: span 3;
+}
+
+.ob-mobile-doc-field.span-2 {
+  grid-column: span 2;
+}
+
+.ob-mobile-doc-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ob-text-400);
+  line-height: 1;
+}
+
+.ob-mobile-doc-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ob-text-100);
+  line-height: 1.3;
+}
+
+.ob-mobile-doc-amount {
+  color: var(--success);
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.ob-mobile-doc-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.35);
+  color: var(--danger);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+}
+
+.ob-mobile-doc-remove:hover {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+
+.ob-mobile-bank-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ob-mobile-bank-name {
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.ob-mobile-bank-detail {
+  font-size: 0.65rem;
+  color: var(--ob-text-400);
+  line-height: 1.3;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .ob-layout { grid-template-columns: 1fr; }
   .ob-info-card { position: static; }
 }
+
+@media (max-width: 768px) {
+    .ob-total-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 14px 16px;
+    }
+
+    .ob-total-amount {
+        font-size: 1.1rem;
+        letter-spacing: -0.3px;
+        word-break: break-word;
+        width: 100%;
+    }
+
+    .ob-total-left {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+  /* Prevent horizontal scroll */
+  * {
+    max-width: 100vw !important;
+  }
+
+  .ob-page {
+    padding: 0 12px 40px;
+    overflow-x: hidden !important;
+  }
+
+  /* Page Header */
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .page-title {
+    font-size: 1.35rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .page-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .page-actions .btn {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    font-size: 0.875rem;
+  }
+
+  /* Batch title */
+  .ob-batch-title {
+    font-size: 1.25rem;
+  }
+
+  /* Stats/Info cards */
+  .ob-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .ob-stat-card {
+    padding: 12px 14px;
+  }
+
+  /* Layout - stack vertically */
+  .ob-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .ob-info-card {
+    position: static;
+    border-radius: 12px;
+  }
+
+  /* Panels */
+  .ob-panel {
+    width: 100%;
+    border-radius: 12px;
+  }
+
+  .ob-panel-header {
+    padding: 12px 14px;
+  }
+
+  .ob-panel-title {
+    font-size: 0.8125rem;
+  }
+
+  .ob-panel-body {
+    padding: 14px;
+  }
+
+  /* Tables - hide on mobile, show cards */
+  .ob-table {
+    display: none !important;
+  }
+
+  /* Show mobile document cards */
+  .ob-mobile-docs {
+    display: block;
+  }
+
+  .ob-mobile-doc-card {
+    margin-bottom: 8px;
+  }
+
+  /* Document section labels - more compact */
+  .ob-doc-section {
+    margin-bottom: 12px;
+  }
+
+  .ob-doc-section-label {
+    font-size: 0.75rem;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+  }
+
+  .ob-doc-section-label .count {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+
+  /* Buttons - touch-friendly */
+  .ob-btn,
+  .ob-action-btn {
+    min-height: 48px;
+    font-size: 0.875rem;
+    padding: 12px 18px;
+  }
+
+  /* Forms and inputs - touch-friendly */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: 48px;
+    padding: 12px 14px;
+  }
+
+  textarea {
+    min-height: 120px;
+  }
+
+  /* Status badges */
+  .ob-status-badge {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+
+  /* Document items */
+  .ob-doc-item {
+    padding: 12px;
+    flex-wrap: wrap;
+  }
+
+  .ob-doc-num {
+    font-size: 0.8125rem;
+  }
+
+  .ob-doc-meta {
+    font-size: 0.7rem;
+  }
+
+  /* Timeline */
+  .ob-timeline-item {
+    padding: 12px;
+  }
+
+  .ob-timeline-content {
+    font-size: 0.8125rem;
+  }
+
+  /* Modal */
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+
+  .modal-content {
+    border-radius: 12px;
+  }
+
+  .modal-body textarea {
+    font-size: 16px !important;
+    min-height: 120px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+  }
+}
+
+/* Small phones - 2 column for fields */
+@media (max-width: 480px) {
+  .ob-mobile-doc-body {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px 8px;
+  }
+
+  .ob-mobile-doc-field.full-width {
+    grid-column: span 3;
+  }
+
+  .ob-mobile-doc-field.span-2 {
+    grid-column: span 1;
+  }
+
+  .ob-mobile-doc-card {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+
+  .ob-mobile-doc-header {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+  }
+
+  .ob-mobile-doc-label {
+    font-size: 0.625rem;
+  }
+
+  .ob-mobile-doc-value {
+    font-size: 0.7rem;
+  }
+
+  .ob-mobile-doc-amount {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Very small phones - single column */
+@media (max-width: 360px) {
+  .ob-mobile-doc-body {
+    grid-template-columns: 1fr;
+  }
+
+  .ob-mobile-doc-field.full-width {
+    grid-column: span 1;
+  }
+
+  .ob-mobile-doc-field.span-2 {
+    grid-column: span 1;
+  }
+
+  .ob-mobile-doc-amount {
+    font-size: 0.875rem;
+  }
+}
+
 @media (max-width: 576px) {
-  .ob-page { padding: 0 14px 40px; }
-  .ob-panel { width: 100%; }
-  .ob-table { font-size: 0.7rem; }
-  .ob-table td, .ob-table th { padding: 7px 8px; }
-  .ob-batch-title { font-size: 1.3rem; }
+  .ob-page {
+    padding: 0 12px 40px;
+  }
+
+  .ob-panel {
+    width: 100%;
+  }
+
+  .ob-table {
+    font-size: 0.7rem;
+  }
+
+  .ob-table td,
+  .ob-table th {
+    padding: 7px 8px;
+  }
+
+  .ob-batch-title {
+    font-size: 1.2rem;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1083,6 +1513,50 @@ body[data-theme="light"] .ob-m-btn.sec       { background: #e2e8f0; border-color
 body[data-theme="light"] .ob-m-btn.sec:hover { background: #cbd5e1; color: #0f172a; }
 body[data-theme="light"] .ob-m-btn.jade      { color: #ffffff; }
 body[data-theme="light"] .ob-m-btn.amber     { color: #ffffff; }
+
+/* ── Mobile Document Cards (Light Mode) ── */
+body[data-theme="light"] .ob-mobile-doc-card {
+  background: #ffffff;
+  border-color: rgba(0,0,0,0.1);
+}
+body[data-theme="light"] .ob-mobile-doc-card:hover {
+  border-color: rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+body[data-theme="light"] .ob-mobile-doc-header {
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+body[data-theme="light"] .ob-mobile-doc-label {
+  color: #64748b;
+}
+body[data-theme="light"] .ob-mobile-doc-value {
+  color: #0f172a;
+}
+body[data-theme="light"] .ob-mobile-doc-badge.pv {
+  background: rgba(6,182,212,0.15);
+  color: #0891b2;
+  border-color: rgba(6,182,212,0.4);
+}
+body[data-theme="light"] .ob-mobile-doc-badge.pf {
+  background: rgba(34,197,94,0.15);
+  color: #15803d;
+  border-color: rgba(34,197,94,0.4);
+}
+body[data-theme="light"] .ob-mobile-doc-amount {
+  color: #15803d;
+}
+body[data-theme="light"] .ob-mobile-doc-remove {
+  background: rgba(239,68,68,0.15);
+  border-color: rgba(239,68,68,0.35);
+  color: #dc2626;
+}
+body[data-theme="light"] .ob-mobile-doc-remove:hover {
+  background: #dc2626;
+  color: white;
+}
+body[data-theme="light"] .ob-mobile-bank-detail {
+  color: #64748b;
+}
 
 </style>
 {% endblock %}
@@ -1281,6 +1755,65 @@ body[data-theme="light"] .ob-m-btn.amber     { color: #ffffff; }
             {% endfor %}
           </tbody>
         </table>
+
+        <!-- Mobile Cards (shown only on mobile) -->
+        <div class="ob-mobile-docs">
+          {% for item in batch.voucher_items.all %}
+          {% if item.voucher %}
+          <div class="ob-mobile-doc-card" onclick="openPanel('pv',{{ item.voucher.id }},'{{ item.voucher.pv_number }}')">
+            <div class="ob-mobile-doc-header">
+              <div class="ob-mobile-doc-number">
+                <span class="ob-mobile-doc-badge pv">PV</span>
+                <strong style="color: var(--cyan-400); font-size: 0.8125rem; font-weight: 700;">{{ item.voucher.pv_number }}</strong>
+              </div>
+              {% if user.role_level == 5 and batch.status == 'PENDING' %}
+              <button class="ob-mobile-doc-remove" onclick="event.stopPropagation(); showRemoveModal('voucher',{{ item.voucher.id }},'{{ item.voucher.pv_number }}')">
+                <i class="bi bi-x-lg"></i>
+              </button>
+              {% endif %}
+            </div>
+            <div class="ob-mobile-doc-body">
+              <div class="ob-mobile-doc-field">
+                <span class="ob-mobile-doc-label">Payee</span>
+                <span class="ob-mobile-doc-value">{{ item.voucher.payee_name }}</span>
+              </div>
+              <div class="ob-mobile-doc-field">
+                <span class="ob-mobile-doc-label">Date</span>
+                <span class="ob-mobile-doc-value">{{ item.voucher.payment_date|date:"d M Y" }}</span>
+              </div>
+              <div class="ob-mobile-doc-field">
+                <span class="ob-mobile-doc-label">Amount</span>
+                <span class="ob-mobile-doc-amount">{{ item.voucher.get_grand_total_display }}</span>
+              </div>
+              <div class="ob-mobile-doc-field full-width">
+                <span class="ob-mobile-doc-label">Description</span>
+                <div class="ob-mobile-doc-value">
+                  {% for li in item.voucher.line_items.all %}
+                  <span>{{ li.description }}</span>{% if not forloop.last %}<br>{% endif %}
+                  {% empty %}<span style="color:var(--ob-text-600);font-style:italic;">—</span>{% endfor %}
+                </div>
+              </div>
+              {% if item.voucher.company_bank_account %}
+              <div class="ob-mobile-doc-field full-width">
+                <span class="ob-mobile-doc-label">Bank</span>
+                <div class="ob-mobile-bank-info">
+                  <span class="ob-mobile-bank-name">{{ item.voucher.company_bank_account.bank }}</span>
+                  <span class="ob-mobile-bank-detail">{{ item.voucher.company_bank_account.company_name }}</span>
+                  <span class="ob-mobile-bank-detail">{{ item.voucher.company_bank_account.account_number }}</span>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% else %}
+          <div class="ob-mobile-doc-card" style="opacity: 0.5; cursor: default;">
+            <div style="text-align: center; color: var(--danger); padding: 10px;">
+              <i class="bi bi-exclamation-triangle-fill"></i> Document deleted
+            </div>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
       </div>
       {% endif %}
 
@@ -1338,6 +1871,65 @@ body[data-theme="light"] .ob-m-btn.amber     { color: #ffffff; }
             {% endfor %}
           </tbody>
         </table>
+
+        <!-- Mobile Cards (shown only on mobile) -->
+        <div class="ob-mobile-docs">
+          {% for item in batch.form_items.all %}
+          {% if item.payment_form %}
+          <div class="ob-mobile-doc-card" onclick="openPanel('pf',{{ item.payment_form.id }},'{{ item.payment_form.pf_number }}')">
+            <div class="ob-mobile-doc-header">
+              <div class="ob-mobile-doc-number">
+                <span class="ob-mobile-doc-badge pf">PF</span>
+                <strong style="color: var(--success); font-size: 0.8125rem; font-weight: 700;">{{ item.payment_form.pf_number }}</strong>
+              </div>
+              {% if user.role_level == 5 and batch.status == 'PENDING' %}
+              <button class="ob-mobile-doc-remove" onclick="event.stopPropagation(); showRemoveModal('form',{{ item.payment_form.id }},'{{ item.payment_form.pf_number }}')">
+                <i class="bi bi-x-lg"></i>
+              </button>
+              {% endif %}
+            </div>
+            <div class="ob-mobile-doc-body">
+              <div class="ob-mobile-doc-field">
+                <span class="ob-mobile-doc-label">Payee</span>
+                <span class="ob-mobile-doc-value">{{ item.payment_form.payee_name }}</span>
+              </div>
+              <div class="ob-mobile-doc-field">
+                <span class="ob-mobile-doc-label">Date</span>
+                <span class="ob-mobile-doc-value">{{ item.payment_form.payment_date|date:"d M Y" }}</span>
+              </div>
+              <div class="ob-mobile-doc-field">
+                <span class="ob-mobile-doc-label">Amount</span>
+                <span class="ob-mobile-doc-amount">{{ item.payment_form.get_grand_total_display }}</span>
+              </div>
+              <div class="ob-mobile-doc-field full-width">
+                <span class="ob-mobile-doc-label">Description</span>
+                <div class="ob-mobile-doc-value">
+                  {% for li in item.payment_form.line_items.all %}
+                  <span>{{ li.description }}</span>{% if not forloop.last %}<br>{% endif %}
+                  {% empty %}<span style="color:var(--ob-text-600);font-style:italic;">—</span>{% endfor %}
+                </div>
+              </div>
+              {% if item.payment_form.company_bank_account %}
+              <div class="ob-mobile-doc-field full-width">
+                <span class="ob-mobile-doc-label">Bank</span>
+                <div class="ob-mobile-bank-info">
+                  <span class="ob-mobile-bank-name">{{ item.payment_form.company_bank_account.bank }}</span>
+                  <span class="ob-mobile-bank-detail">{{ item.payment_form.company_bank_account.company_name }}</span>
+                  <span class="ob-mobile-bank-detail">{{ item.payment_form.company_bank_account.account_number }}</span>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% else %}
+          <div class="ob-mobile-doc-card" style="opacity: 0.5; cursor: default;">
+            <div style="text-align: center; color: var(--danger); padding: 10px;">
+              <i class="bi bi-exclamation-triangle-fill"></i> Document deleted
+            </div>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
       </div>
       {% endif %}
 

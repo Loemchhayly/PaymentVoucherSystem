@@ -287,15 +287,218 @@
     }
     .empty-state p { font-size: 0.875rem; margin: 0; }
 
+    /* ── Mobile Batch Cards (hidden on desktop) ── */
+    .ab-mobile-cards { display: none; }
+
+    .ab-mobile-card {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+    }
+
+    .ab-mobile-card:hover {
+        border-color: var(--border-accent);
+        box-shadow: var(--shadow-glow);
+    }
+
+    .ab-mobile-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .ab-mobile-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .ab-mobile-field {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8125rem;
+    }
+
+    .ab-mobile-field-label {
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .ab-mobile-field-value {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .ab-mobile-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+    }
+
+    .ab-mobile-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s;
+        min-height: 48px;
+    }
+
+    .ab-mobile-btn.view-amber {
+        background: var(--warning-light);
+        border: 1px solid rgba(245,158,11,0.3);
+        color: var(--warning);
+    }
+
+    .ab-mobile-btn.view-green {
+        background: var(--success-light);
+        border: 1px solid rgba(34,197,94,0.3);
+        color: var(--success);
+    }
+
+    .ab-mobile-btn.view-red {
+        background: var(--danger-light);
+        border: 1px solid rgba(239,68,68,0.3);
+        color: var(--danger);
+    }
+
+    .ab-mobile-btn.excel {
+        background: var(--success-light);
+        border: 1px solid rgba(34,197,94,0.3);
+        color: var(--success);
+    }
+
     /* ── Responsive ── */
     @media (max-width: 768px) {
-        .stats-strip { grid-template-columns: 1fr 1fr; }
-        .batches-root { padding: 0 12px; }
+        /* Prevent horizontal scroll */
+        * {
+            max-width: 100vw !important;
+        }
+
+        .batches-root {
+            padding: 0 12px;
+            overflow-x: hidden !important;
+        }
+
+        /* Page Header */
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .page-title {
+            font-size: 1.35rem;
+        }
+
+        .page-subtitle {
+            font-size: 0.8125rem;
+        }
+
+        .page-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .page-actions .btn {
+            width: 100%;
+            min-height: 48px;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        /* Stats - 2 column grid */
+        .stats-strip {
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            border-radius: 12px;
+        }
+
+        .stat-cell {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 12px 14px;
+        }
+
+        .stat-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 0.875rem;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.625rem;
+        }
+
+        /* Section Headers */
+        .batch-section-header {
+            padding: 10px 14px;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+        }
+
+        .section-count {
+            font-size: 0.625rem;
+            padding: 2px 8px;
+        }
+
+        /* Hide tables on mobile */
+        .batches-table {
+            display: none !important;
+        }
+
+        /* Show mobile cards */
+        .ab-mobile-cards {
+            display: block;
+            padding: 14px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 40px 20px;
+        }
+
+        .empty-state i {
+            font-size: 2rem;
+        }
     }
+
     @media (max-width: 480px) {
-        .stats-strip { grid-template-columns: 1fr 1fr; }
-        .batches-table { font-size: 0.75rem; }
-        .batches-table td, .batches-table th { padding: 8px 10px; }
+        .stats-strip {
+            grid-template-columns: 1fr;
+        }
+
+        .stat-cell {
+            flex-direction: row;
+            align-items: center;
+        }
     }
 
     /* ══════════════════════════════════════════════════════════
@@ -505,6 +708,55 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Mobile Cards (shown only on mobile) -->
+            <div class="ab-mobile-cards">
+                {% for batch in pending_batches %}
+                <div class="ab-mobile-card" onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
+                    <div class="ab-mobile-card-header">
+                        <div class="batch-num">
+                            <i class="bi bi-folder"></i>
+                            {{ batch.batch_number }}
+                        </div>
+                    </div>
+                    <div class="ab-mobile-card-body">
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Created By</span>
+                            <div class="user-cell">
+                                <div class="user-mini-avatar">
+                                    {% if batch.created_by.profile_photo %}
+                                        <img src="{{ batch.created_by.profile_photo.url }}" alt="{{ batch.created_by.get_full_name|default:batch.created_by.username }}">
+                                    {% else %}
+                                        {{ batch.created_by.get_full_name|default:batch.created_by.username|slice:":2"|upper }}
+                                    {% endif %}
+                                </div>
+                                <span class="user-name">{{ batch.created_by.get_full_name|default:batch.created_by.username }}</span>
+                            </div>
+                        </div>
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Created At</span>
+                            <span class="ab-mobile-field-value">{{ batch.created_at|date:"d M Y, H:i" }}</span>
+                        </div>
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Documents</span>
+                            <span class="doc-badge"><i class="bi bi-files"></i>{{ batch.get_document_count }}</span>
+                        </div>
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Total Amount</span>
+                            <span class="amount-cell">{{ batch.get_total_amount_display }}</span>
+                        </div>
+                    </div>
+                    <div class="ab-mobile-actions" onclick="event.stopPropagation()">
+                        <a href="{% url 'vouchers:batch_detail' batch.id %}" class="ab-mobile-btn view-amber">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                        <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="ab-mobile-btn excel">
+                            <i class="bi bi-file-earmark-excel"></i> Excel
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
 
@@ -579,6 +831,68 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Cards (shown only on mobile) -->
+            <div class="ab-mobile-cards">
+                {% for batch in signed_batches %}
+                <div class="ab-mobile-card" onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
+                    <div class="ab-mobile-card-header">
+                        <div class="batch-num">
+                            <i class="bi bi-folder-check"></i>
+                            {{ batch.batch_number }}
+                        </div>
+                    </div>
+                    <div class="ab-mobile-card-body">
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Created By</span>
+                            <div class="user-cell">
+                                <div class="user-mini-avatar">
+                                    {% if batch.created_by.profile_photo %}
+                                        <img src="{{ batch.created_by.profile_photo.url }}" alt="{{ batch.created_by.get_full_name|default:batch.created_by.username }}">
+                                    {% else %}
+                                        {{ batch.created_by.get_full_name|default:batch.created_by.username|slice:":2"|upper }}
+                                    {% endif %}
+                                </div>
+                                <span class="user-name">{{ batch.created_by.get_full_name|default:batch.created_by.username }}</span>
+                            </div>
+                        </div>
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Signed By</span>
+                            <div class="user-cell">
+                                <div class="user-mini-avatar" style="background: linear-gradient(135deg, var(--success), #15803d);">
+                                    {% if batch.signed_by.profile_photo %}
+                                        <img src="{{ batch.signed_by.profile_photo.url }}" alt="{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}">
+                                    {% else %}
+                                        {{ batch.signed_by.get_full_name|default:batch.signed_by.username|slice:":2"|upper }}
+                                    {% endif %}
+                                </div>
+                                <span class="user-name">{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}</span>
+                            </div>
+                        </div>
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Signed At</span>
+                            <span class="ab-mobile-field-value" style="color: var(--success);">{{ batch.signed_at|date:"d M Y, H:i" }}</span>
+                        </div>
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Documents</span>
+                            <span class="doc-badge"><i class="bi bi-files"></i>{{ batch.get_document_count }}</span>
+                        </div>
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Total Amount</span>
+                            <span class="amount-cell">{{ batch.get_total_amount_display }}</span>
+                        </div>
+                    </div>
+                    <div class="ab-mobile-actions" onclick="event.stopPropagation()">
+                        <a href="{% url 'vouchers:batch_detail' batch.id %}" class="ab-mobile-btn view-green">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                        <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="ab-mobile-btn excel">
+                            <i class="bi bi-file-earmark-excel"></i> Excel
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
         {% endif %}
@@ -664,6 +978,72 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Cards (shown only on mobile) -->
+            <div class="ab-mobile-cards">
+                {% for batch in rejected_batches %}
+                <div class="ab-mobile-card" onclick="window.location='{% url 'vouchers:batch_detail' batch.id %}'">
+                    <div class="ab-mobile-card-header">
+                        <div class="batch-num">
+                            <i class="bi bi-folder-x"></i>
+                            {{ batch.batch_number }}
+                        </div>
+                    </div>
+                    <div class="ab-mobile-card-body">
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Created By</span>
+                            <div class="user-cell">
+                                <div class="user-mini-avatar">
+                                    {% if batch.created_by.profile_photo %}
+                                        <img src="{{ batch.created_by.profile_photo.url }}" alt="{{ batch.created_by.get_full_name|default:batch.created_by.username }}">
+                                    {% else %}
+                                        {{ batch.created_by.get_full_name|default:batch.created_by.username|slice:":2"|upper }}
+                                    {% endif %}
+                                </div>
+                                <span class="user-name">{{ batch.created_by.get_full_name|default:batch.created_by.username }}</span>
+                            </div>
+                        </div>
+                        {% if batch.signed_by %}
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Rejected By</span>
+                            <div class="user-cell">
+                                <div class="user-mini-avatar" style="background: linear-gradient(135deg, var(--danger), #991b1b);">
+                                    {% if batch.signed_by.profile_photo %}
+                                        <img src="{{ batch.signed_by.profile_photo.url }}" alt="{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}">
+                                    {% else %}
+                                        {{ batch.signed_by.get_full_name|default:batch.signed_by.username|slice:":2"|upper }}
+                                    {% endif %}
+                                </div>
+                                <span class="user-name">{{ batch.signed_by.get_full_name|default:batch.signed_by.username }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if batch.signed_at %}
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Rejected At</span>
+                            <span class="ab-mobile-field-value" style="color: var(--danger);">{{ batch.signed_at|date:"d M Y, H:i" }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Documents</span>
+                            <span class="doc-badge"><i class="bi bi-files"></i>{{ batch.get_document_count }}</span>
+                        </div>
+                        <div class="ab-mobile-field">
+                            <span class="ab-mobile-field-label">Total Amount</span>
+                            <span class="amount-cell">{{ batch.get_total_amount_display }}</span>
+                        </div>
+                    </div>
+                    <div class="ab-mobile-actions" onclick="event.stopPropagation()">
+                        <a href="{% url 'vouchers:batch_detail' batch.id %}" class="ab-mobile-btn view-red">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                        <a href="{% url 'vouchers:batch_export_excel' batch.id %}" class="ab-mobile-btn excel">
+                            <i class="bi bi-file-earmark-excel"></i> Excel
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
         {% endif %}
