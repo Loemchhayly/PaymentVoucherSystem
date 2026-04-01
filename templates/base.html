@@ -2188,15 +2188,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const html = await response.text();
 
-            // Detect session expiry - if response contains login page, do full redirect
-            if (html.includes('id="loginForm"') ||
-                html.includes('accounts:login') ||
-                html.includes('SIGN IN') ||
-                html.includes('/accounts/login/')) {
-                window.location.href = '/accounts/login/';
-                return;
-            }
-
             // Parse the HTML
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
