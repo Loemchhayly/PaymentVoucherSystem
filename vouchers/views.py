@@ -112,6 +112,7 @@ def voucher_repeat(request, pk):
 
     # Check if user has access to this voucher
     if not (request.user.is_staff or
+            request.user.role_level in [1, 5] or  # Account Payable and MD see all
             source_voucher.created_by == request.user or
             source_voucher.current_approver == request.user or
             source_voucher.approval_history.filter(actor=request.user).exists()):
@@ -349,10 +350,11 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
         """Filter to only vouchers user has access to"""
         user = self.request.user
 
-        if user.is_staff:
+        # Account Payable (role 1), MD (role 5), and staff see ALL vouchers
+        if user.is_staff or user.role_level in [1, 5]:
             return PaymentVoucher.objects.all()
 
-        # User can see if: creator, current approver, or in approval history
+        # Other roles can see if: creator, current approver, or in approval history
         return PaymentVoucher.objects.filter(
             Q(created_by=user) |
             Q(current_approver=user) |
@@ -654,7 +656,8 @@ def download_attachment(request, pk, attachment_id):
         voucher.created_by == user or
         voucher.current_approver == user or
         voucher.approval_history.filter(actor=user).exists() or
-        user.is_staff
+        user.is_staff or
+        user.role_level in [1, 5]  # Account Payable and MD see all
     )
 
     if not has_access:
@@ -780,7 +783,8 @@ def download_form_attachment(request, pk, attachment_id):
                 payment_form.created_by == user or
                 payment_form.current_approver == user or
                 payment_form.approval_history.filter(actor=user).exists() or
-                user.is_staff
+                user.is_staff or
+                user.role_level in [1, 5]  # Account Payable and MD see all
         )
 
         if not has_access:
@@ -842,7 +846,8 @@ def voucher_pdf(request, pk):
         voucher.created_by == user or
         voucher.current_approver == user or
         voucher.approval_history.filter(actor=user).exists() or
-        user.is_staff
+        user.is_staff or
+        user.role_level in [1, 5]  # Account Payable and MD see all
     )
 
     if not has_access:
@@ -993,6 +998,7 @@ def form_repeat(request, pk):
 
     # Check if user has access to this form
     if not (request.user.is_staff or
+            request.user.role_level in [1, 5] or  # Account Payable and MD see all
             source_form.created_by == request.user or
             source_form.current_approver == request.user or
             source_form.approval_history.filter(actor=request.user).exists()):
@@ -1231,10 +1237,11 @@ class FormDetailView(LoginRequiredMixin, DetailView):
         """Filter to only forms user has access to"""
         user = self.request.user
 
-        if user.is_staff:
+        # Account Payable (role 1), MD (role 5), and staff see ALL forms
+        if user.is_staff or user.role_level in [1, 5]:
             return PaymentForm.objects.all()
 
-        # User can see if: creator, current approver, or in approval history
+        # Other roles can see if: creator, current approver, or in approval history
         return PaymentForm.objects.filter(
             Q(created_by=user) |
             Q(current_approver=user) |

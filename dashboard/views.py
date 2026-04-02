@@ -27,10 +27,12 @@ class DashboardView(LoginRequiredMixin, ListView):
         search_field = self.request.GET.get('search_field', 'all')
 
         # Base querysets
-        if user.is_staff or user.role_level == 5:
+        # Account Payable (role 1), MD (role 5), and staff see ALL documents
+        if user.is_staff or user.role_level in [1, 5]:
             pv_queryset = PaymentVoucher.objects.all()
             pf_queryset = PaymentForm.objects.all()
         else:
+            # Other roles only see documents they're involved with
             pv_queryset = PaymentVoucher.objects.filter(
                 Q(created_by=user) |
                 Q(current_approver=user) |
