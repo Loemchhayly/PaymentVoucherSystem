@@ -1731,82 +1731,7 @@ body[data-theme="light"] .file-upload-container:hover {
                             </table>
                         </div>
 
-                        <!-- Mobile Line Items Cards (shown only on mobile) -->
-                        <div class="fv-mobile-line-items" id="mobile-line-items">
-                            {% for form in formset %}
-                            <div class="fv-mobile-line-item" data-form-index="{{ forloop.counter0 }}">
-                                <div class="fv-mobile-line-header">
-                                    <div class="fv-mobile-line-number">{{ forloop.counter }}</div>
-                                    <button type="button" class="fv-mobile-line-delete" onclick="removeLineItem(this)" title="Remove">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-
-                                <div class="fv-mobile-line-fields">
-                                    <!-- Hidden fields -->
-                                    <div style="display:none;">
-                                        {{ form.line_number }}
-                                        {{ form.id }}
-                                        {{ form.DELETE }}
-                                    </div>
-
-                                    <!-- Description -->
-                                    <div class="fv-mobile-field">
-                                        <label for="{{ form.description.id_for_label }}">Description</label>
-                                        {{ form.description }}
-                                        {% if form.description.errors %}<span style="color:var(--red);font-size:0.75rem;">{{ form.description.errors|first }}</span>{% endif %}
-                                    </div>
-
-                                    <!-- Department -->
-                                    <div class="fv-mobile-field">
-                                        <label for="{{ form.department.id_for_label }}">Department</label>
-                                        {{ form.department }}
-                                        {% if form.department.errors %}<span style="color:var(--red);font-size:0.75rem;">{{ form.department.errors|first }}</span>{% endif %}
-                                    </div>
-
-                                    <!-- Program -->
-                                    <div class="fv-mobile-field">
-                                        <label for="{{ form.program.id_for_label }}">Program</label>
-                                        {{ form.program }}
-                                        {% if form.program.errors %}<span style="color:var(--red);font-size:0.75rem;">{{ form.program.errors|first }}</span>{% endif %}
-                                    </div>
-
-                                    <!-- Amount & Currency Row -->
-                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                                        <div class="fv-mobile-field">
-                                            <label for="{{ form.amount.id_for_label }}">Amount</label>
-                                            {{ form.amount }}
-                                            {% if form.amount.errors %}<span style="color:var(--red);font-size:0.75rem;">{{ form.amount.errors|first }}</span>{% endif %}
-                                        </div>
-                                        <div class="fv-mobile-field">
-                                            <label for="{{ form.currency.id_for_label }}">Currency</label>
-                                            {{ form.currency }}
-                                        </div>
-                                    </div>
-
-                                    <!-- VAT Checkbox -->
-                                    <div class="fv-mobile-vat">
-                                        {{ form.vat_applicable }}
-                                        <label for="{{ form.vat_applicable.id_for_label }}">
-                                            <i class="bi bi-calculator"></i> Apply VAT 10%
-                                        </label>
-                                    </div>
-
-                                    <!-- Line Total -->
-                                    <div class="fv-mobile-line-total">
-                                        <span class="fv-mobile-line-total-label">Line Total</span>
-                                        <span class="fv-mobile-line-total-value line-total">$0.00</span>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Mobile Grand Total -->
-                        <div class="fv-mobile-grand-total">
-                            <span class="fv-mobile-grand-total-label"><i class="bi bi-receipt"></i> Grand Total</span>
-                            <span class="fv-mobile-grand-total-value" id="mobile-grand-total">$0.00</span>
-                        </div>
+                        <!-- Mobile forms removed to fix duplicate field submission issues -->
 
                         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                             <button type="button" class="add-line-btn" onclick="addLineItem()">
@@ -2097,7 +2022,13 @@ window.updateSidebar = function(totals, sym) {
     if (bankEl && bankEl.selectedOptions[0]) document.getElementById('sidebar-bank').textContent = bankEl.selectedOptions[0].text || '—';
 };
 
-document.addEventListener('DOMContentLoaded', function () {
+// Initialize form - can be called on DOMContentLoaded or immediately for SPA navigation
+function initializeFormHandlers() {
+    const form = document.getElementById('form-form');
+    if (!form) return; // Form not ready yet
+
+    console.log('Initializing form handlers...');
+
     window.calculateLineTotals();
 
     document.querySelectorAll('[name$="-amount"],[name$="-currency"],[name$="-vat_applicable"]').forEach(el => {
@@ -2114,11 +2045,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('[name$="-vat_applicable"]').forEach(cb => cb.classList.add('vat-checkbox'));
 
-    const form      = document.getElementById('form-form');
     const submitBtn = form.querySelector('.save-btn');
+
+    // Skip if handler already attached
+    if (form.dataset.handlerAttached) {
+        console.log('Submit handler already attached, skipping');
+        return;
+    }
+    form.dataset.handlerAttached = 'true';
+
     form.addEventListener('submit', function (e) {
         const hi = document.getElementById('deleted-attachments');
         if (!hi) { e.preventDefault(); alert('Form error: Please refresh and try again.'); return false; }
+
         document.getElementById('loading-overlay').classList.add('active');
         submitBtn.classList.add('submitting');
         submitBtn.disabled = true;
@@ -2133,7 +2072,13 @@ document.addEventListener('DOMContentLoaded', function () {
         ['dragleave','drop'].forEach(ev => lbl.addEventListener(ev, () => { lbl.style.borderColor=''; lbl.style.background=''; }));
         lbl.addEventListener('drop', e => { fi.files = e.dataTransfer.files; window.displaySelectedFiles(fi); if(fi.files.length) window.showNotification(`${fi.files.length} file(s) selected.`,'success'); });
     }
-});
+}
+
+// Call on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', initializeFormHandlers);
+
+// Also call immediately in case page is loaded via SPA navigation
+initializeFormHandlers();
 
 window.addLineItem = function() {
     const tbody          = document.getElementById('line-items-body');

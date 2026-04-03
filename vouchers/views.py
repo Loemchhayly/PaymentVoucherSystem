@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.db import transaction
 from django.db.models import Q
 from django.http import FileResponse, Http404, JsonResponse
-from .models import PaymentVoucher, VoucherAttachment, PaymentForm, FormAttachment
+from .models import PaymentVoucher, VoucherLineItem, VoucherAttachment, PaymentForm, FormLineItem, FormAttachment
 from .forms import (PaymentVoucherForm, VoucherLineItemFormSet, VoucherAttachmentForm, ApprovalActionForm,
                    PaymentFormForm, FormLineItemFormSet, FormAttachmentForm)
 from workflow.state_machine import VoucherStateMachine, FormStateMachine
@@ -41,19 +41,13 @@ class VoucherCreateView(LoginRequiredMixin, CreateView):
         if self.request.POST:
             context['formset'] = VoucherLineItemFormSet(self.request.POST, instance=self.object)
         else:
-            context['formset'] = VoucherLineItemFormSet(instance=self.object)
+            # For GET requests in CreateView, create formset with empty queryset
+            context['formset'] = VoucherLineItemFormSet(queryset=VoucherLineItem.objects.none())
 
         return context
 
     @transaction.atomic
     def form_valid(self, form):
-        context = self.get_context_data()
-        formset = context['formset']
-
-        # Validate formset
-        if not formset.is_valid():
-            return self.form_invalid(form)
-
         # Set creator
         form.instance.created_by = self.request.user
 
@@ -61,18 +55,19 @@ class VoucherCreateView(LoginRequiredMixin, CreateView):
         from workflow.state_machine import VoucherStateMachine
         form.instance.pv_number = VoucherStateMachine.generate_pv_number(form.instance)
 
+        # Save parent first to get the object
         self.object = form.save()
 
-        # Save line items with auto-numbered lines
-        formset.instance = self.object
+        # NOW create formset with the saved object instance
+        formset = VoucherLineItemFormSet(self.request.POST, instance=self.object)
 
-        # Debug: Print formset info
-        print(f"\n=== CREATE PV FORMSET DEBUG ===")
-        print(f"Total forms: {len(formset)}")
+        # Validate formset
+        if not formset.is_valid():
+            return self.form_invalid(form)
 
-        # Force save all line items (including drafts with partial data)
+        # Save all line items (including drafts with partial data)
         saved_count = 0
-        for i, form_item in enumerate(formset, start=1):
+        for form_item in formset:
             if hasattr(form_item, 'cleaned_data') and form_item.cleaned_data:
                 if not form_item.cleaned_data.get('DELETE', False):
                     # Skip completely empty forms
@@ -80,21 +75,11 @@ class VoucherCreateView(LoginRequiredMixin, CreateView):
                         form_item.cleaned_data.get('description'),
                         form_item.cleaned_data.get('amount'),
                     ]):
-                        print(f"CREATE PV line {i}: desc='{form_item.cleaned_data.get('description')}' amount={form_item.cleaned_data.get('amount')}")
-
                         line_item = form_item.save(commit=False)
                         line_item.voucher = self.object
                         line_item.line_number = saved_count + 1
                         line_item.save()
                         saved_count += 1
-
-                        print(f"✓ Saved: {line_item.description} / {line_item.amount}")
-
-        print(f"Total saved: {saved_count}\n")
-
-        # Handle deletions
-        for obj in formset.deleted_objects:
-            obj.delete()
 
         # Handle file uploads
         files = self.request.FILES.getlist('attachments')
@@ -150,18 +135,6 @@ def voucher_repeat(request, pk):
                 # Now create formset with the new instance
                 formset = VoucherLineItemFormSet(request.POST, instance=new_voucher)
 
-                # Debug: Print formset info
-                print(f"\n=== FORMSET DEBUG ===")
-                print(f"Total forms: {len(formset)}")
-                print(f"Is valid: {formset.is_valid()}")
-                if not formset.is_valid():
-                    print(f"Formset errors: {formset.errors}")
-                    print(f"Non-form errors: {formset.non_form_errors()}")
-
-                for idx, f in enumerate(formset):
-                    print(f"Form {idx}: has_changed={f.has_changed()}, cleaned_data={f.cleaned_data if hasattr(f, 'cleaned_data') else 'NO CLEANED DATA'}")
-                print(f"=== END DEBUG ===\n")
-
                 if not formset.is_valid():
                     # Rollback will happen automatically due to transaction.atomic
                     return render(request, 'vouchers/voucher_form.html', {
@@ -171,24 +144,16 @@ def voucher_repeat(request, pk):
                         'source_voucher': source_voucher,
                     })
 
-                # Force save all line items (including changes user made)
+                # Save all line items (including changes user made)
                 saved_count = 0
-                for i, form_item in enumerate(formset, start=1):
+                for form_item in formset:
                     if hasattr(form_item, 'cleaned_data') and form_item.cleaned_data:
                         if not form_item.cleaned_data.get('DELETE', False):
-                            # Debug: print what we're saving
-                            print(f"Saving line {i}: desc='{form_item.cleaned_data.get('description')}' amount={form_item.cleaned_data.get('amount')}")
-
                             line_item = form_item.save(commit=False)
                             line_item.voucher = new_voucher
                             line_item.line_number = saved_count + 1
                             line_item.save()
                             saved_count += 1
-
-                            # Debug: verify what was saved
-                            print(f"✓ Saved to DB: desc='{line_item.description}' amount={line_item.amount}")
-
-                print(f"Total line items saved: {saved_count}")
 
                 # Handle attachments
                 files = request.FILES.getlist('attachments')
@@ -308,14 +273,22 @@ class VoucherEditView(LoginRequiredMixin, UpdateView):
         # Set the formset instance
         formset.instance = self.object
 
-        # Save the formset completely (this saves all changes including edits)
-        formset.save()
+        # Manually save line items with proper line_number assignment
+        saved_items = formset.save(commit=False)
 
         # Delete items marked for deletion
         for obj in formset.deleted_objects:
             obj.delete()
 
-        # Renumber ALL remaining items sequentially from 1
+        # Save new/modified items with sequential line numbers
+        line_num = 1
+        for item in saved_items:
+            item.voucher = self.object
+            item.line_number = line_num
+            item.save()
+            line_num += 1
+
+        # Renumber ALL remaining items sequentially from 1 (including unchanged ones)
         all_remaining_items = self.object.line_items.all().order_by('id')
         for i, item in enumerate(all_remaining_items, start=1):
             if item.line_number != i:
@@ -961,37 +934,32 @@ class FormCreateView(LoginRequiredMixin, CreateView):
         if self.request.POST:
             context['formset'] = FormLineItemFormSet(self.request.POST, instance=self.object)
         else:
-            context['formset'] = FormLineItemFormSet(instance=self.object)
+            # For GET requests in CreateView, create formset with empty queryset
+            context['formset'] = FormLineItemFormSet(queryset=FormLineItem.objects.none())
 
         return context
 
     @transaction.atomic
     def form_valid(self, form):
-        context = self.get_context_data()
-        formset = context['formset']
-
-        # Validate formset
-        if not formset.is_valid():
-            return self.form_invalid(form)
-
         # Set creator
         form.instance.created_by = self.request.user
 
         # Generate PF number immediately upon creation (using payment_date)
         form.instance.pf_number = VoucherStateMachine.generate_pf_number(form.instance)
 
+        # Save parent first to get the object
         self.object = form.save()
 
-        # Save line items with auto-numbered lines
-        formset.instance = self.object
+        # NOW create formset with the saved object instance
+        formset = FormLineItemFormSet(self.request.POST, instance=self.object)
 
-        # Debug: Print formset info
-        print(f"\n=== CREATE PF FORMSET DEBUG ===")
-        print(f"Total forms: {len(formset)}")
+        # Validate formset
+        if not formset.is_valid():
+            return self.form_invalid(form)
 
-        # Force save all line items (including drafts with partial data)
+        # Save all line items (including drafts with partial data)
         saved_count = 0
-        for i, form_item in enumerate(formset, start=1):
+        for form_item in formset:
             if hasattr(form_item, 'cleaned_data') and form_item.cleaned_data:
                 if not form_item.cleaned_data.get('DELETE', False):
                     # Skip completely empty forms
@@ -999,21 +967,11 @@ class FormCreateView(LoginRequiredMixin, CreateView):
                         form_item.cleaned_data.get('description'),
                         form_item.cleaned_data.get('amount'),
                     ]):
-                        print(f"CREATE PF line {i}: desc='{form_item.cleaned_data.get('description')}' amount={form_item.cleaned_data.get('amount')}")
-
                         line_item = form_item.save(commit=False)
                         line_item.payment_form = self.object
                         line_item.line_number = saved_count + 1
                         line_item.save()
                         saved_count += 1
-
-                        print(f"✓ Saved: {line_item.description} / {line_item.amount}")
-
-        print(f"Total saved: {saved_count}\n")
-
-        # Handle deletions
-        for obj in formset.deleted_objects:
-            obj.delete()
 
         # Handle file uploads
         files = self.request.FILES.getlist('attachments')
@@ -1069,17 +1027,6 @@ def form_repeat(request, pk):
                 # Now create formset with the new instance
                 formset = FormLineItemFormSet(request.POST, instance=new_form)
 
-                # Debug: Print formset info
-                print(f"\n=== PF FORMSET DEBUG ===")
-                print(f"Total forms: {len(formset)}")
-                print(f"Is valid: {formset.is_valid()}")
-                if not formset.is_valid():
-                    print(f"Formset errors: {formset.errors}")
-
-                for idx, f in enumerate(formset):
-                    print(f"Form {idx}: has_changed={f.has_changed()}, cleaned_data={f.cleaned_data if hasattr(f, 'cleaned_data') else 'NO CLEANED DATA'}")
-                print(f"=== END DEBUG ===\n")
-
                 if not formset.is_valid():
                     # Rollback will happen automatically due to transaction.atomic
                     return render(request, 'vouchers/pf/form_form.html', {
@@ -1089,22 +1036,16 @@ def form_repeat(request, pk):
                         'source_form': source_form,
                     })
 
-                # Force save all line items (including changes user made)
+                # Save all line items (including changes user made)
                 saved_count = 0
-                for i, form_item in enumerate(formset, start=1):
+                for form_item in formset:
                     if hasattr(form_item, 'cleaned_data') and form_item.cleaned_data:
                         if not form_item.cleaned_data.get('DELETE', False):
-                            print(f"Saving PF line {i}: desc='{form_item.cleaned_data.get('description')}' amount={form_item.cleaned_data.get('amount')}")
-
                             line_item = form_item.save(commit=False)
                             line_item.payment_form = new_form
                             line_item.line_number = saved_count + 1
                             line_item.save()
                             saved_count += 1
-
-                            print(f"✓ Saved to DB: desc='{line_item.description}' amount={line_item.amount}")
-
-                print(f"Total PF line items saved: {saved_count}")
 
                 # Handle attachments
                 files = request.FILES.getlist('attachments')
@@ -1224,14 +1165,22 @@ class FormEditView(LoginRequiredMixin, UpdateView):
         # Set the formset instance
         formset.instance = self.object
 
-        # Save the formset completely (this saves all changes including edits)
-        formset.save()
+        # Manually save line items with proper line_number assignment
+        saved_items = formset.save(commit=False)
 
         # Delete items marked for deletion
         for obj in formset.deleted_objects:
             obj.delete()
 
-        # Renumber ALL remaining items sequentially from 1
+        # Save new/modified items with sequential line numbers
+        line_num = 1
+        for item in saved_items:
+            item.payment_form = self.object
+            item.line_number = line_num
+            item.save()
+            line_num += 1
+
+        # Renumber ALL remaining items sequentially from 1 (including unchanged ones)
         all_remaining_items = self.object.line_items.all().order_by('id')
         for i, item in enumerate(all_remaining_items, start=1):
             if item.line_number != i:
