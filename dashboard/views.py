@@ -1292,8 +1292,8 @@ def dashboard_search(request):
             'status': doc.status,
             'status_display': doc.get_status_display(),
             'date': doc.created_at.strftime('%b %d, %Y'),
-            'detail_url': f'/vouchers/pf/{doc.pk}/' if is_pf else f'/vouchers/{doc.pk}/',
-            'repeat_url': f'/vouchers/pf/{doc.pk}/repeat/' if is_pf else f'/vouchers/{doc.pk}/repeat/',
+            'detail_url': f'/vouchers/pf/{doc.pk}/' if is_pf else f'/vouchers/pv/{doc.pk}/',
+            'repeat_url': f'/vouchers/pf/{doc.pk}/repeat/' if is_pf else f'/vouchers/pv/{doc.pk}/repeat/',
         })
 
     return JsonResponse({

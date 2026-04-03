@@ -149,7 +149,7 @@ VoucherLineItemFormSet = inlineformset_factory(
     extra=2,  # Start with 2 empty forms (user can add more dynamically)
     can_delete=True,
     min_num=1,
-    validate_min=True,
+    validate_min=False,  # Allow drafts without line items
     max_num=50  # Maximum 50 line items
 )
 
@@ -366,7 +366,7 @@ FormLineItemFormSet = inlineformset_factory(
     extra=2,  # Start with 2 empty forms
     can_delete=True,
     min_num=1,
-    validate_min=True,
+    validate_min=False,  # Allow drafts without line items
     max_num=50  # Maximum 50 line items
 )
 
