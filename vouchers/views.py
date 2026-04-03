@@ -65,12 +65,9 @@ class VoucherCreateView(LoginRequiredMixin, CreateView):
 
         # Save line items with auto-numbered lines
         formset.instance = self.object
-        line_items = formset.save(commit=False)
 
-        # Auto-number line items
-        for i, item in enumerate(line_items, start=1):
-            item.line_number = i
-            item.save()
+        # Save the formset completely (including partial data for drafts)
+        formset.save()
 
         # Handle deletions
         for obj in formset.deleted_objects:
@@ -90,9 +87,9 @@ class VoucherCreateView(LoginRequiredMixin, CreateView):
                     file_size=file.size,
                     uploaded_by=self.request.user
                 )
-            messages.success(self.request, f'Voucher created successfully with {len(files)} attachment(s)!')
+            messages.success(self.request, f'Payment Voucher {self.object.pv_number} saved as draft with {len(files)} attachment(s)!')
         else:
-            messages.success(self.request, f'Voucher created successfully! You can add attachments from the detail page.')
+            messages.success(self.request, f'Payment Voucher {self.object.pv_number} saved as draft successfully!')
 
         return redirect('vouchers:detail', pk=self.object.pk)
 
@@ -121,18 +118,28 @@ def voucher_repeat(request, pk):
 
     if request.method == 'POST':
         form = PaymentVoucherForm(request.POST, user=request.user)
-        formset = VoucherLineItemFormSet(request.POST)
 
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             with transaction.atomic():
-                # Create new voucher
+                # Create new voucher first
                 new_voucher = form.save(commit=False)
                 new_voucher.created_by = request.user
                 new_voucher.pv_number = VoucherStateMachine.generate_pv_number(new_voucher)
                 new_voucher.save()
 
+                # Now create formset with the new instance
+                formset = VoucherLineItemFormSet(request.POST, instance=new_voucher)
+
+                if not formset.is_valid():
+                    # Rollback will happen automatically due to transaction.atomic
+                    return render(request, 'vouchers/voucher_form.html', {
+                        'form': form,
+                        'formset': formset,
+                        'title': f'Repeat Voucher from PV {source_voucher.pv_number}',
+                        'source_voucher': source_voucher,
+                    })
+
                 # Save line items
-                formset.instance = new_voucher
                 line_items = formset.save(commit=False)
                 for i, item in enumerate(line_items, start=1):
                     item.line_number = i
@@ -951,12 +958,9 @@ class FormCreateView(LoginRequiredMixin, CreateView):
 
         # Save line items with auto-numbered lines
         formset.instance = self.object
-        line_items = formset.save(commit=False)
 
-        # Auto-number line items
-        for i, item in enumerate(line_items, start=1):
-            item.line_number = i
-            item.save()
+        # Save the formset completely (including partial data for drafts)
+        formset.save()
 
         # Handle deletions
         for obj in formset.deleted_objects:
@@ -976,9 +980,9 @@ class FormCreateView(LoginRequiredMixin, CreateView):
                     file_size=file.size,
                     uploaded_by=self.request.user
                 )
-            messages.success(self.request, f'Payment Form created successfully with {len(files)} attachment(s)!')
+            messages.success(self.request, f'Payment Form {self.object.pf_number} saved as draft with {len(files)} attachment(s)!')
         else:
-            messages.success(self.request, f'Payment Form created successfully! You can add attachments from the detail page.')
+            messages.success(self.request, f'Payment Form {self.object.pf_number} saved as draft successfully!')
 
         return redirect('vouchers:pf_detail', pk=self.object.pk)
 
@@ -1007,18 +1011,28 @@ def form_repeat(request, pk):
 
     if request.method == 'POST':
         form = PaymentFormForm(request.POST, user=request.user)
-        formset = FormLineItemFormSet(request.POST)
 
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             with transaction.atomic():
-                # Create new form
+                # Create new form first
                 new_form = form.save(commit=False)
                 new_form.created_by = request.user
                 new_form.pf_number = VoucherStateMachine.generate_pf_number(new_form)
                 new_form.save()
 
+                # Now create formset with the new instance
+                formset = FormLineItemFormSet(request.POST, instance=new_form)
+
+                if not formset.is_valid():
+                    # Rollback will happen automatically due to transaction.atomic
+                    return render(request, 'vouchers/pf/form_form.html', {
+                        'form': form,
+                        'formset': formset,
+                        'title': f'Repeat Form from PF {source_form.pf_number}',
+                        'source_form': source_form,
+                    })
+
                 # Save line items
-                formset.instance = new_form
                 line_items = formset.save(commit=False)
                 for i, item in enumerate(line_items, start=1):
                     item.line_number = i
