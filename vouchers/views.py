@@ -139,14 +139,13 @@ def voucher_repeat(request, pk):
                         'source_voucher': source_voucher,
                     })
 
-                # Save line items completely (saves all changes)
-                formset.save()
-
-                # Renumber line items
-                for i, item in enumerate(new_voucher.line_items.all().order_by('id'), start=1):
-                    if item.line_number != i:
-                        item.line_number = i
-                        item.save(update_fields=['line_number'])
+                # Force save all line items (including changes user made)
+                for i, form_item in enumerate(formset, start=1):
+                    if form_item.cleaned_data and not form_item.cleaned_data.get('DELETE', False):
+                        line_item = form_item.save(commit=False)
+                        line_item.voucher = new_voucher
+                        line_item.line_number = i
+                        line_item.save()
 
                 # Handle attachments
                 files = request.FILES.getlist('attachments')
@@ -1016,14 +1015,13 @@ def form_repeat(request, pk):
                         'source_form': source_form,
                     })
 
-                # Save line items completely (saves all changes)
-                formset.save()
-
-                # Renumber line items
-                for i, item in enumerate(new_form.line_items.all().order_by('id'), start=1):
-                    if item.line_number != i:
-                        item.line_number = i
-                        item.save(update_fields=['line_number'])
+                # Force save all line items (including changes user made)
+                for i, form_item in enumerate(formset, start=1):
+                    if form_item.cleaned_data and not form_item.cleaned_data.get('DELETE', False):
+                        line_item = form_item.save(commit=False)
+                        line_item.payment_form = new_form
+                        line_item.line_number = i
+                        line_item.save()
 
                 # Handle attachments
                 files = request.FILES.getlist('attachments')
