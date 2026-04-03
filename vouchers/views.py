@@ -139,11 +139,14 @@ def voucher_repeat(request, pk):
                         'source_voucher': source_voucher,
                     })
 
-                # Save line items
-                line_items = formset.save(commit=False)
-                for i, item in enumerate(line_items, start=1):
-                    item.line_number = i
-                    item.save()
+                # Save line items completely (saves all changes)
+                formset.save()
+
+                # Renumber line items
+                for i, item in enumerate(new_voucher.line_items.all().order_by('id'), start=1):
+                    if item.line_number != i:
+                        item.line_number = i
+                        item.save(update_fields=['line_number'])
 
                 # Handle attachments
                 files = request.FILES.getlist('attachments')
@@ -1013,11 +1016,14 @@ def form_repeat(request, pk):
                         'source_form': source_form,
                     })
 
-                # Save line items
-                line_items = formset.save(commit=False)
-                for i, item in enumerate(line_items, start=1):
-                    item.line_number = i
-                    item.save()
+                # Save line items completely (saves all changes)
+                formset.save()
+
+                # Renumber line items
+                for i, item in enumerate(new_form.line_items.all().order_by('id'), start=1):
+                    if item.line_number != i:
+                        item.line_number = i
+                        item.save(update_fields=['line_number'])
 
                 # Handle attachments
                 files = request.FILES.getlist('attachments')
