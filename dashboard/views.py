@@ -14,6 +14,23 @@ from datetime import date
 import json
 
 
+def apply_month_filter(queryset, month_str):
+    """
+    Helper function to filter queryset by month.
+    month_str format: "YYYY-MM" (e.g., "2026-04")
+    """
+    if not month_str:
+        return queryset
+
+    try:
+        year, month = month_str.split('-')
+        year = int(year)
+        month = int(month)
+        return queryset.filter(payment_date__year=year, payment_date__month=month)
+    except (ValueError, AttributeError):
+        return queryset
+
+
 class DashboardView(LoginRequiredMixin, ListView):
     """Main dashboard - MD/Admins see ALL vouchers, regular users see their own"""
     template_name = 'dashboard/dashboard.html'
@@ -25,6 +42,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         doc_type = self.request.GET.get('doc_type', 'all')
         search_query = self.request.GET.get('search', '').strip()
         search_field = self.request.GET.get('search_field', 'all')
+        month_filter = self.request.GET.get('month', '').strip()
 
         # Base querysets
         # Account Payable (role 1), MD (role 5), and staff see ALL documents
@@ -43,6 +61,11 @@ class DashboardView(LoginRequiredMixin, ListView):
                 Q(current_approver=user) |
                 Q(approval_history__actor=user)
             ).distinct()
+
+        # Apply month filter
+        if month_filter:
+            pv_queryset = apply_month_filter(pv_queryset, month_filter)
+            pf_queryset = apply_month_filter(pf_queryset, month_filter)
 
         # Apply search filter BEFORE pagination
         if search_query:
@@ -377,9 +400,15 @@ class PendingActionView(LoginRequiredMixin, ListView):
         doc_type = self.request.GET.get('doc_type', 'all')
         search_query = self.request.GET.get('search', '').strip()
         search_field = self.request.GET.get('search_field', 'all')
+        month_filter = self.request.GET.get('month', '').strip()
 
         pv_queryset = PaymentVoucher.objects.filter(current_approver=user, status__startswith='PENDING')
         pf_queryset = PaymentForm.objects.filter(current_approver=user, status__startswith='PENDING')
+
+        # Apply month filter
+        if month_filter:
+            pv_queryset = apply_month_filter(pv_queryset, month_filter)
+            pf_queryset = apply_month_filter(pf_queryset, month_filter)
 
         # Apply search filter BEFORE pagination
         if search_query:
@@ -477,6 +506,7 @@ class InProgressView(LoginRequiredMixin, ListView):
         doc_type = self.request.GET.get('doc_type', 'all')
         search_query = self.request.GET.get('search', '').strip()
         search_field = self.request.GET.get('search_field', 'all')
+        month_filter = self.request.GET.get('month', '').strip()
 
         if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.filter(status__startswith='PENDING')
@@ -488,6 +518,11 @@ class InProgressView(LoginRequiredMixin, ListView):
             pf_queryset = PaymentForm.objects.filter(
                 Q(created_by=user)|Q(current_approver=user)|Q(approval_history__actor=user)
             ).filter(status__startswith='PENDING').distinct()
+
+        # Apply month filter
+        if month_filter:
+            pv_queryset = apply_month_filter(pv_queryset, month_filter)
+            pf_queryset = apply_month_filter(pf_queryset, month_filter)
 
         # Apply search filter BEFORE pagination
         if search_query:
@@ -585,6 +620,7 @@ class ApprovedView(LoginRequiredMixin, ListView):
         doc_type = self.request.GET.get('doc_type', 'all')
         search_query = self.request.GET.get('search', '').strip()
         search_field = self.request.GET.get('search_field', 'all')
+        month_filter = self.request.GET.get('month', '').strip()
 
         if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.filter(status='APPROVED')
@@ -596,6 +632,11 @@ class ApprovedView(LoginRequiredMixin, ListView):
             pf_queryset = PaymentForm.objects.filter(
                 Q(created_by=user)|Q(current_approver=user)|Q(approval_history__actor=user)
             ).filter(status='APPROVED').distinct()
+
+        # Apply month filter
+        if month_filter:
+            pv_queryset = apply_month_filter(pv_queryset, month_filter)
+            pf_queryset = apply_month_filter(pf_queryset, month_filter)
 
         # Apply search filter BEFORE pagination
         if search_query:
@@ -689,6 +730,7 @@ class CancelledView(LoginRequiredMixin, ListView):
         doc_type = self.request.GET.get('doc_type', 'all')
         search_query = self.request.GET.get('search', '').strip()
         search_field = self.request.GET.get('search_field', 'all')
+        month_filter = self.request.GET.get('month', '').strip()
 
         if user.is_staff or user.role_level == 5:
             pv_queryset = PaymentVoucher.objects.filter(status='REJECTED')
@@ -700,6 +742,11 @@ class CancelledView(LoginRequiredMixin, ListView):
             pf_queryset = PaymentForm.objects.filter(
                 Q(created_by=user)|Q(current_approver=user)|Q(approval_history__actor=user)
             ).filter(status='REJECTED').distinct()
+
+        # Apply month filter
+        if month_filter:
+            pv_queryset = apply_month_filter(pv_queryset, month_filter)
+            pf_queryset = apply_month_filter(pf_queryset, month_filter)
 
         # Apply search filter BEFORE pagination
         if search_query:
@@ -792,9 +839,15 @@ class MyVouchersView(LoginRequiredMixin, ListView):
         doc_type = self.request.GET.get('doc_type', 'all')
         search_query = self.request.GET.get('search', '').strip()
         search_field = self.request.GET.get('search_field', 'all')
+        month_filter = self.request.GET.get('month', '').strip()
 
         pv_queryset = PaymentVoucher.objects.filter(created_by=self.request.user)
         pf_queryset = PaymentForm.objects.filter(created_by=self.request.user)
+
+        # Apply month filter
+        if month_filter:
+            pv_queryset = apply_month_filter(pv_queryset, month_filter)
+            pf_queryset = apply_month_filter(pf_queryset, month_filter)
 
         # Apply search filter BEFORE pagination
         if search_query:
@@ -891,9 +944,15 @@ class MyDraftsView(LoginRequiredMixin, ListView):
         doc_type = self.request.GET.get('doc_type', 'all')
         search_query = self.request.GET.get('search', '').strip()
         search_field = self.request.GET.get('search_field', 'all')
+        month_filter = self.request.GET.get('month', '').strip()
 
         pv_queryset = PaymentVoucher.objects.filter(created_by=self.request.user, status__in=['DRAFT', 'ON_REVISION'])
         pf_queryset = PaymentForm.objects.filter(created_by=self.request.user, status__in=['DRAFT', 'ON_REVISION'])
+
+        # Apply month filter
+        if month_filter:
+            pv_queryset = apply_month_filter(pv_queryset, month_filter)
+            pf_queryset = apply_month_filter(pf_queryset, month_filter)
 
         # Apply search filter BEFORE pagination
         if search_query:
@@ -991,6 +1050,7 @@ class AllVouchersView(LoginRequiredMixin, ListView):
         doc_type = self.request.GET.get('doc_type', 'all')
         search_query = self.request.GET.get('search', '').strip()
         search_field = self.request.GET.get('search_field', 'all')
+        month_filter = self.request.GET.get('month', '').strip()
 
         # Base querysets
         if user.is_staff or user.role_level == 5:
@@ -1003,6 +1063,11 @@ class AllVouchersView(LoginRequiredMixin, ListView):
             pf_queryset = PaymentForm.objects.filter(
                 Q(created_by=user)|Q(current_approver=user)|Q(approval_history__actor=user)
             ).distinct()
+
+        # Apply month filter
+        if month_filter:
+            pv_queryset = apply_month_filter(pv_queryset, month_filter)
+            pf_queryset = apply_month_filter(pf_queryset, month_filter)
 
         # Apply search filter BEFORE pagination
         if search_query:

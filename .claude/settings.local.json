@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python manage.py:*)",
       "Bash(pip install:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(ls -la \"C:\\\\1work\\\\learndjango\\\\PaymentVoucherSystem\\\\static\"\" 2>&1 || echo \"Static directory not found \")"
     ]
   }
 }
