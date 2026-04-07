@@ -244,12 +244,13 @@ class DashboardView(LoginRequiredMixin, ListView):
         )
 
         # ── Monthly Disbursement ──
+        # Show all documents (not just approved) to include drafts and pending
         pv_monthly = (
             PaymentVoucher.objects.filter(
-                status='APPROVED',
                 payment_date__gte=fy_start,
                 payment_date__lte=fy_end
             )
+            .exclude(status='REJECTED')  # Exclude rejected documents
             .annotate(month=TruncMonth('payment_date'))
             .values('month')
             .annotate(total=Sum(
@@ -268,10 +269,10 @@ class DashboardView(LoginRequiredMixin, ListView):
 
         pf_monthly = (
             PaymentForm.objects.filter(
-                status='APPROVED',
                 payment_date__gte=fy_start,
                 payment_date__lte=fy_end
             )
+            .exclude(status='REJECTED')  # Exclude rejected documents
             .annotate(month=TruncMonth('payment_date'))
             .values('month')
             .annotate(total=Sum(
@@ -305,7 +306,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         context['chart_data'] = [float(monthly_totals[m]) for m in fiscal_months]
         context['chart_current_month'] = month_abbr[today.month]
 
-        # ── By Department Donut (current month, approved, USD) ──
+        # ── By Department Donut (current month, all statuses except rejected, USD) ──
         month_start = date(today.year, today.month, 1)
         if today.month == 12:
             month_end = date(today.year + 1, 1, 1)
@@ -317,11 +318,11 @@ class DashboardView(LoginRequiredMixin, ListView):
         pv_dept = (
             VoucherLineItem.objects
             .filter(
-                voucher__status='APPROVED',
                 voucher__payment_date__gte=month_start,
                 voucher__payment_date__lt=month_end,
                 currency='USD'
             )
+            .exclude(voucher__status='REJECTED')  # Exclude rejected documents
             .values('department__name')
             .annotate(total=vat_expr)
             .order_by('-total')
@@ -330,11 +331,11 @@ class DashboardView(LoginRequiredMixin, ListView):
         pf_dept = (
             FormLineItem.objects
             .filter(
-                payment_form__status='APPROVED',
                 payment_form__payment_date__gte=month_start,
                 payment_form__payment_date__lt=month_end,
                 currency='USD'
             )
+            .exclude(payment_form__status='REJECTED')  # Exclude rejected documents
             .values('department__name')
             .annotate(total=vat_expr)
             .order_by('-total')
