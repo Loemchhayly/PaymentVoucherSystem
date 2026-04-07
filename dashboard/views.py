@@ -243,70 +243,82 @@ class DashboardView(LoginRequiredMixin, ListView):
             )
         )
 
-        # ── Monthly Disbursement ──
-        # Show all documents (not just approved) to include drafts and pending
-        pv_monthly = (
-            PaymentVoucher.objects.filter(
-                payment_date__gte=fy_start,
-                payment_date__lte=fy_end
-            )
-            .exclude(status='REJECTED')  # Exclude rejected documents
-            .annotate(month=TruncMonth('payment_date'))
-            .values('month')
-            .annotate(total=Sum(
-                Case(
-                    When(
-                        line_items__vat_applicable=True,
-                        then=F('line_items__amount') * Decimal('1.1')
-                    ),
-                    default=F('line_items__amount'),
-                    output_field=DecimalField(max_digits=14, decimal_places=2)
-                ),
-                filter=__import__('django.db.models', fromlist=['Q']).Q(line_items__currency='USD')
-            ))
-            .values('month', 'total')
-        )
+        # ── Monthly Disbursement (Multi-Currency) ──
+        # Show submitted documents (in workflow or approved), exclude drafts and rejected
+        # Calculate for each currency: USD, KHR, THB
 
-        pf_monthly = (
-            PaymentForm.objects.filter(
-                payment_date__gte=fy_start,
-                payment_date__lte=fy_end
-            )
-            .exclude(status='REJECTED')  # Exclude rejected documents
-            .annotate(month=TruncMonth('payment_date'))
-            .values('month')
-            .annotate(total=Sum(
-                Case(
-                    When(
-                        line_items__vat_applicable=True,
-                        then=F('line_items__amount') * Decimal('1.1')
+        def get_monthly_by_currency(currency_code):
+            """Get monthly totals for a specific currency"""
+            pv_monthly = (
+                PaymentVoucher.objects.filter(
+                    payment_date__gte=fy_start,
+                    payment_date__lte=fy_end,
+                    status__in=['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED']
+                )
+                .annotate(month=TruncMonth('payment_date'))
+                .values('month')
+                .annotate(total=Sum(
+                    Case(
+                        When(
+                            line_items__vat_applicable=True,
+                            then=F('line_items__amount') * Decimal('1.1')
+                        ),
+                        default=F('line_items__amount'),
+                        output_field=DecimalField(max_digits=14, decimal_places=2)
                     ),
-                    default=F('line_items__amount'),
-                    output_field=DecimalField(max_digits=14, decimal_places=2)
-                ),
-                filter=__import__('django.db.models', fromlist=['Q']).Q(line_items__currency='USD')
-            ))
-            .values('month', 'total')
-        )
+                    filter=__import__('django.db.models', fromlist=['Q']).Q(line_items__currency=currency_code)
+                ))
+                .values('month', 'total')
+            )
 
-        # Combine into dict keyed by month number
-        monthly_totals = {m: Decimal('0') for m in fiscal_months}
-        for row in pv_monthly:
-            if row['month'] and row['total']:
-                monthly_totals[row['month'].month] = (
-                        monthly_totals.get(row['month'].month, Decimal('0')) + row['total']
+            pf_monthly = (
+                PaymentForm.objects.filter(
+                    payment_date__gte=fy_start,
+                    payment_date__lte=fy_end,
+                    status__in=['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED']
                 )
-        for row in pf_monthly:
-            if row['month'] and row['total']:
-                monthly_totals[row['month'].month] = (
-                        monthly_totals.get(row['month'].month, Decimal('0')) + row['total']
-                )
+                .annotate(month=TruncMonth('payment_date'))
+                .values('month')
+                .annotate(total=Sum(
+                    Case(
+                        When(
+                            line_items__vat_applicable=True,
+                            then=F('line_items__amount') * Decimal('1.1')
+                        ),
+                        default=F('line_items__amount'),
+                        output_field=DecimalField(max_digits=14, decimal_places=2)
+                    ),
+                    filter=__import__('django.db.models', fromlist=['Q']).Q(line_items__currency=currency_code)
+                ))
+                .values('month', 'total')
+            )
+
+            # Combine into dict keyed by month number
+            monthly_totals = {m: Decimal('0') for m in fiscal_months}
+            for row in pv_monthly:
+                if row['month'] and row['total']:
+                    monthly_totals[row['month'].month] = (
+                            monthly_totals.get(row['month'].month, Decimal('0')) + row['total']
+                    )
+            for row in pf_monthly:
+                if row['month'] and row['total']:
+                    monthly_totals[row['month'].month] = (
+                            monthly_totals.get(row['month'].month, Decimal('0')) + row['total']
+                    )
+            return monthly_totals
+
+        # Get totals for each currency
+        monthly_usd = get_monthly_by_currency('USD')
+        monthly_khr = get_monthly_by_currency('KHR')
+        monthly_thb = get_monthly_by_currency('THB')
 
         context['chart_labels'] = [month_abbr[m] for m in fiscal_months]
-        context['chart_data'] = [float(monthly_totals[m]) for m in fiscal_months]
+        context['chart_data_usd'] = [float(monthly_usd[m]) for m in fiscal_months]
+        context['chart_data_khr'] = [float(monthly_khr[m]) for m in fiscal_months]
+        context['chart_data_thb'] = [float(monthly_thb[m]) for m in fiscal_months]
         context['chart_current_month'] = month_abbr[today.month]
 
-        # ── By Department Donut (current month, all statuses except rejected, USD) ──
+        # ── By Department Donut (current month, submitted/approved docs, Multi-Currency) ──
         month_start = date(today.year, today.month, 1)
         if today.month == 12:
             month_end = date(today.year + 1, 1, 1)
@@ -315,62 +327,78 @@ class DashboardView(LoginRequiredMixin, ListView):
 
         from vouchers.models import VoucherLineItem, FormLineItem
 
-        pv_dept = (
-            VoucherLineItem.objects
-            .filter(
-                voucher__payment_date__gte=month_start,
-                voucher__payment_date__lt=month_end,
-                currency='USD'
+        def get_dept_totals_by_currency(currency_code):
+            """Get department breakdown for a specific currency"""
+            pv_dept = (
+                VoucherLineItem.objects
+                .filter(
+                    voucher__payment_date__gte=month_start,
+                    voucher__payment_date__lt=month_end,
+                    voucher__status__in=['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED'],
+                    currency=currency_code
+                )
+                .values('department__name')
+                .annotate(total=vat_expr)
+                .order_by('-total')
             )
-            .exclude(voucher__status='REJECTED')  # Exclude rejected documents
-            .values('department__name')
-            .annotate(total=vat_expr)
-            .order_by('-total')
-        )
 
-        pf_dept = (
-            FormLineItem.objects
-            .filter(
-                payment_form__payment_date__gte=month_start,
-                payment_form__payment_date__lt=month_end,
-                currency='USD'
+            pf_dept = (
+                FormLineItem.objects
+                .filter(
+                    payment_form__payment_date__gte=month_start,
+                    payment_form__payment_date__lt=month_end,
+                    payment_form__status__in=['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED'],
+                    currency=currency_code
+                )
+                .values('department__name')
+                .annotate(total=vat_expr)
+                .order_by('-total')
             )
-            .exclude(payment_form__status='REJECTED')  # Exclude rejected documents
-            .values('department__name')
-            .annotate(total=vat_expr)
-            .order_by('-total')
-        )
 
-        # Merge department totals
-        dept_totals = {}
-        for row in list(pv_dept) + list(pf_dept):
-            name = row['department__name'] or 'Unknown'
-            dept_totals[name] = dept_totals.get(name, Decimal('0')) + (row['total'] or Decimal('0'))
+            # Merge department totals
+            dept_totals = {}
+            for row in list(pv_dept) + list(pf_dept):
+                name = row['department__name'] or 'Unknown'
+                dept_totals[name] = dept_totals.get(name, Decimal('0')) + (row['total'] or Decimal('0'))
 
-        # Sort, top 5 + Other
-        sorted_depts = sorted(dept_totals.items(), key=lambda x: x[1], reverse=True)
-        top5 = sorted_depts[:5]
-        others = sorted_depts[5:]
-        if others:
-            other_total = sum(v for _, v in others)
-            top5.append(('Other', other_total))
+            # Sort, top 5 + Other
+            sorted_depts = sorted(dept_totals.items(), key=lambda x: x[1], reverse=True)
+            top5 = sorted_depts[:5]
+            others = sorted_depts[5:]
+            if others:
+                other_total = sum(v for _, v in others)
+                top5.append(('Other', other_total))
 
-        grand_total = sum(v for _, v in top5) or Decimal('1')
+            return top5
+
+        # Calculate for each currency
+        dept_usd = get_dept_totals_by_currency('USD')
+        dept_khr = get_dept_totals_by_currency('KHR')
+        dept_thb = get_dept_totals_by_currency('THB')
+
+        # Build donut data for USD (primary display)
+        grand_total_usd = sum(v for _, v in dept_usd) or Decimal('1')
         colors = ['#06b6d4', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#3b82f6']
 
         donut_data = [
             {
                 'name': name,
                 'total': float(total),
-                'pct': round(float(total / grand_total * 100), 1),
+                'pct': round(float(total / grand_total_usd * 100), 1),
                 'color': colors[i % len(colors)],
             }
-            for i, (name, total) in enumerate(top5)
+            for i, (name, total) in enumerate(dept_usd)
             if total > 0
         ]
 
         context['donut_data'] = donut_data
-        context['donut_grand_usd'] = float(grand_total)
+        context['donut_grand_usd'] = float(grand_total_usd)
+
+        # Add KHR and THB totals for display
+        grand_total_khr = sum(v for _, v in dept_khr)
+        grand_total_thb = sum(v for _, v in dept_thb)
+        context['donut_grand_khr'] = float(grand_total_khr)
+        context['donut_grand_thb'] = float(grand_total_thb)
 
         # Add search parameters to context
         context['search_query'] = self.request.GET.get('search', '')

@@ -951,7 +951,7 @@ body[data-theme="light"] .panel-title-sub {
       <div class="panel-head">
         <div>
           <div class="panel-title">Monthly Disbursement</div>
-          <div class="panel-title-sub">ការទូទាត់ប្រចាំខែ · USD only</div>
+          <div class="panel-title-sub">ការទូទាត់ប្រចាំខែ · USD, KHR, THB</div>
         </div>
         <span class="live-data-label" style="font-size:10px;display:flex;align-items:center;gap:5px">
           <span style="width:6px;height:6px;border-radius:50%;background:var(--green-500);display:inline-block;box-shadow:0 0 5px var(--green-500)"></span>
@@ -970,11 +970,11 @@ body[data-theme="light"] .panel-title-sub {
       <div class="panel-head">
         <div>
           <div class="panel-title">By Department</div>
-          <div class="panel-title-sub">តាមនាយកដ្ឋាន · All docs (excl. rejected)</div>
+          <div class="panel-title-sub">តាមនាយកដ្ឋាន · USD ({% if donut_grand_khr > 0 %}KHR: {{ donut_grand_khr|floatformat:0 }} {% endif %}{% if donut_grand_thb > 0 %}THB: {{ donut_grand_thb|floatformat:0 }}{% endif %})</div>
         </div>
       </div>
       <div class="panel-body">
-        {% if donut_grand_usd > 0 %}
+        {% if donut_grand_usd > 0 or donut_grand_khr > 0 or donut_grand_thb > 0 %}
         <div class="donut-wrap">
           <canvas id="donutChart" width="100" height="100" style="flex-shrink:0;width:100px;height:100px"></canvas>
           <div class="donut-legend" id="donutLegend"></div>
@@ -1290,49 +1290,84 @@ waitForChart(function() {
 
     // ── Data from Django ──
     const chartLabels  = {{ chart_labels|safe }};
-    const chartData    = {{ chart_data|safe }};
+    const chartDataUSD = {{ chart_data_usd|safe }};
+    const chartDataKHR = {{ chart_data_khr|safe }};
+    const chartDataTHB = {{ chart_data_thb|safe }};
     const currentMonth = "{{ chart_current_month }}";
     const donutData    = {{ donut_data|safe }};
 
     // ════════════════════════════════════════
-    // BAR CHART — Monthly Disbursement
+    // BAR CHART — Monthly Disbursement (Multi-Currency Stacked)
     // ════════════════════════════════════════
     (function() {
       const ctx = document.getElementById('barChart');
       if (!ctx) return;
 
-      const maxVal = Math.max(...chartData, 1);
+      // Check if we have any data
+      const hasUSD = chartDataUSD.some(v => v > 0);
+      const hasKHR = chartDataKHR.some(v => v > 0);
+      const hasTHB = chartDataTHB.some(v => v > 0);
 
-      // Highlight current month bar
-      const barColors = chartLabels.map(label =>
-        label.toUpperCase() === currentMonth.toUpperCase()
-          ? 'rgba(34,211,238,0.9)'
-          : 'rgba(6,182,212,0.45)'
-      );
-      const borderColors = chartLabels.map(label =>
-        label.toUpperCase() === currentMonth.toUpperCase()
-          ? 'rgba(34,211,238,1)'
-          : 'rgba(6,182,212,0.7)'
-      );
+      // Build datasets array dynamically
+      const datasets = [];
+
+      if (hasUSD) {
+        datasets.push({
+          label: 'USD ($)',
+          data: chartDataUSD,
+          backgroundColor: 'rgba(6,182,212,0.8)',
+          borderColor: 'rgba(6,182,212,1)',
+          borderWidth: 1,
+          borderRadius: 4,
+          borderSkipped: false,
+        });
+      }
+
+      if (hasKHR) {
+        datasets.push({
+          label: 'KHR (៛)',
+          data: chartDataKHR,
+          backgroundColor: 'rgba(34,197,94,0.8)',
+          borderColor: 'rgba(34,197,94,1)',
+          borderWidth: 1,
+          borderRadius: 4,
+          borderSkipped: false,
+        });
+      }
+
+      if (hasTHB) {
+        datasets.push({
+          label: 'THB (฿)',
+          data: chartDataTHB,
+          backgroundColor: 'rgba(245,158,11,0.8)',
+          borderColor: 'rgba(245,158,11,1)',
+          borderWidth: 1,
+          borderRadius: 4,
+          borderSkipped: false,
+        });
+      }
 
       new Chart(ctx, {
     type: 'bar',
     data: {
       labels: chartLabels,
-      datasets: [{
-        data: chartData,
-        backgroundColor: barColors,
-        borderColor: borderColors,
-        borderWidth: 1,
-        borderRadius: 4,
-        borderSkipped: false,
-      }]
+      datasets: datasets
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: datasets.length > 1,  // Show legend only if multiple currencies
+          position: 'top',
+          labels: {
+            color: document.body.getAttribute('data-theme') === 'light' ? '#374151' : '#94a3b8',
+            font: { family: 'Montserrat', size: 10, weight: '600' },
+            padding: 8,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
         tooltip: {
           backgroundColor: '#0891b2',
           titleColor: '#fff',
@@ -1340,7 +1375,11 @@ waitForChart(function() {
           padding: 8,
           cornerRadius: 4,
           callbacks: {
-            label: ctx => '$' + ctx.parsed.y.toLocaleString(undefined, {maximumFractionDigits:0})
+            label: function(ctx) {
+              const currencyMap = { 'USD ($)': '$', 'KHR (៛)': '៛', 'THB (฿)': '฿' };
+              const symbol = currencyMap[ctx.dataset.label] || '$';
+              return ctx.dataset.label + ': ' + symbol + ctx.parsed.y.toLocaleString(undefined, {maximumFractionDigits:0});
+            }
           }
         }
       },
@@ -1374,7 +1413,13 @@ waitForChart(function() {
                 size: 10,     // ✅ was 9 — slightly bigger
                 weight: '600' // ✅ add weight for crispness
             },
-            callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)
+            callback: function(v) {
+              // Show appropriate symbol based on which currency has data
+              if (hasUSD && !hasKHR && !hasTHB) return '$' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
+              if (!hasUSD && hasKHR && !hasTHB) return '៛' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
+              if (!hasUSD && !hasKHR && hasTHB) return '฿' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
+              return (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);  // No symbol for mixed
+            }
         },
         border: { display: false }
     },
