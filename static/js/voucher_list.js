@@ -2,7 +2,10 @@
 // Wrap in IIFE and attach to window to ensure functions are available during SPA navigation
 // Prevent multiple executions
 if (window._voucherListScriptLoaded) {
-    console.warn('Voucher list script already loaded, skipping re-initialization');
+    // Re-sync filters from current page config on SPA navigation
+    if (window.voucherListConfig) {
+        window.currentFilters = window.voucherListConfig;
+    }
 } else {
     window._voucherListScriptLoaded = true;
 
@@ -10,12 +13,12 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
 (function() {
     // currentFilters will be initialized from template via window.voucherListConfig
-    window.currentFilters = window.voucherListConfig || {
-        doc_type: 'all',
-        search: '',
-        search_field: 'all',
-        month: '',
-        page: 1
+    window.currentFilters = {
+        doc_type: window.voucherListConfig?.doc_type || 'all',
+        search: window.voucherListConfig?.search || '',
+        search_field: window.voucherListConfig?.search_field || 'all',
+        month: window.voucherListConfig?.month || '',
+        page: window.voucherListConfig?.page || 1
     };
 
     /* ─── Save scroll before navigating away ─── */
