@@ -602,6 +602,7 @@
   transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
   display: flex; flex-direction: column;
   box-shadow: -12px 0 48px rgba(0,0,0,0.6);
+  will-change: transform;
 }
 .ob-overlay.active .ob-panel { transform: translateX(0); }
 .ob-panel::before {
@@ -649,6 +650,7 @@
 .ob-panel-body {
   flex: 1; overflow-y: auto; padding: 18px;
   display: flex; flex-direction: column; gap: 20px;
+  transition: opacity 0.18s ease;
 }
 .ob-panel-body::-webkit-scrollbar { width: 4px; }
 .ob-panel-body::-webkit-scrollbar-thumb { background: var(--ob-600); border-radius: 99px; }
@@ -2141,20 +2143,33 @@ function deleteBatch(){
 }
 
 // ── Side Panel ──
+function setPanelContent(html){
+  const body=document.getElementById('panelBody');
+  body.style.opacity='0';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    body.innerHTML=html;
+    body.scrollTop=0;
+    body.style.opacity='1';
+  }));
+}
 function openPanel(docType,docId,docNumber){
   document.getElementById('panelTitle').textContent=(docType==='pv'?'PV ':'PF ')+docNumber;
   document.getElementById('panelSub').textContent=docType==='pv'?'Payment Voucher':'Payment Form';
   document.getElementById('panelFullLink').href=docType==='pv'?`/vouchers/pv/${docId}/`:`/vouchers/pf/${docId}/`;
-  document.getElementById('panelBody').innerHTML='<div class="ob-panel-loading"><div class="ob-spinner"></div><p>Loading…</p></div>';
+  const body=document.getElementById('panelBody');
+  body.style.opacity='1';
+  body.innerHTML='<div class="ob-panel-loading"><div class="ob-spinner"></div><p>Loading…</p></div>';
+  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+  document.body.style.paddingRight = scrollbarWidth + 'px';
+  document.body.style.overflow = 'hidden';
   document.getElementById('obOverlay').classList.add('active');
-  document.body.style.overflow='hidden';
   const url=docType==='pv'?`/vouchers/${docId}/api/details/`:`/vouchers/pf/${docId}/api/details/`;
   fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'}})
     .then(r=>r.json()).then(d=>{ if(d.success) renderPanel(d.document); else renderPanelError('Failed to load document.'); })
     .catch(()=>renderPanelError('Network error.'));
 }
-function closePanel(){ document.getElementById('obOverlay').classList.remove('active'); document.body.style.overflow=''; }
-function renderPanelError(msg){ document.getElementById('panelBody').innerHTML=`<div class="ob-panel-empty"><i class="bi bi-exclamation-triangle"></i><span>${msg}</span></div>`; }
+function closePanel(){ document.getElementById('obOverlay').classList.remove('active'); document.body.style.overflow=''; document.body.style.paddingRight=''; }
+function renderPanelError(msg){ setPanelContent(`<div class="ob-panel-empty"><i class="bi bi-exclamation-triangle"></i><span>${msg}</span></div>`); }
 
 function getBankLogo(bankAddress){
   if(!bankAddress) return '';
@@ -2174,7 +2189,6 @@ function getBankLogo(bankAddress){
 }
 
 function renderPanel(doc){
-  const body=document.getElementById('panelBody');
   const liHTML=doc.line_items&&doc.line_items.length
     ? doc.line_items.map(i=>`<div class="ob-line-item"><div class="ob-li-desc">${i.description||'No description'}</div><div class="ob-li-grid"><div class="ob-li-field"><span class="ob-li-label">Department</span><span class="ob-li-value">${i.department||'—'}</span></div><div class="ob-li-field"><span class="ob-li-label">Amount</span><span class="ob-li-value amount">${i.amount_display||'—'}</span></div></div></div>`).join('')
     : '<div class="ob-panel-empty"><i class="bi bi-inbox"></i><span>No line items</span></div>';
@@ -2205,10 +2219,10 @@ function renderPanel(doc){
     </div>
   `:'';
 
-  body.innerHTML=`
+  setPanelContent(`
     <div class="ob-panel-section"><div class="ob-panel-section-title"><i class="bi bi-list-ul"></i> Line Items</div>${liHTML}</div>
     <div class="ob-panel-section"><div class="ob-panel-section-title"><i class="bi bi-paperclip"></i> Attachments</div>${attHTML}</div>
-    ${transferHTML?`<div class="ob-panel-section"><div class="ob-panel-section-title"><i class="bi bi-bank"></i> Bank Transfer</div>${transferHTML}</div>`:''}`;
+    ${transferHTML?`<div class="ob-panel-section"><div class="ob-panel-section-title"><i class="bi bi-bank"></i> Bank Transfer</div>${transferHTML}</div>`:''}`);
 }
 
 // ── Toast ──
