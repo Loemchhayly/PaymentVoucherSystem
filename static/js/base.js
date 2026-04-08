@@ -177,7 +177,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // Get all style tags from head
         const styleTags = doc.querySelectorAll('head style');
         styleTags.forEach(style => {
-            // Skip base.html styles (only inject page-specific styles)
             if (style.textContent.includes('FINVAULT DESIGN SYSTEM')) return;
             if (style.textContent.includes('Prevent white flash')) return;
 
@@ -187,16 +186,25 @@ document.addEventListener('DOMContentLoaded', function () {
             document.head.appendChild(newStyle);
         });
 
-        // Get all link tags (CSS) from head
+        // Get all link tags from head
         const linkTags = doc.querySelectorAll('head link[rel="stylesheet"]');
         linkTags.forEach(link => {
             const href = link.getAttribute('href');
+            if (!href) return;
 
-            // Skip if already loaded globally (Bootstrap, Bootstrap Icons)
+            // Skip global bootstrap
             if (href.includes('bootstrap') && !href.includes('dataTables')) return;
 
-            // Check if this CSS is already loaded
-            if (!document.querySelector(`link[href="${href}"]`)) {
+            // ── FIX: match by filename only, not full path ──
+            const fileName = href.split('/').pop().split('?')[0];
+            const alreadyLoaded = Array.from(
+                document.querySelectorAll('link[rel="stylesheet"]')
+            ).some(l => {
+                const existingFile = l.getAttribute('href')?.split('/').pop().split('?')[0];
+                return existingFile === fileName;
+            });
+
+            if (!alreadyLoaded) {
                 const newLink = document.createElement('link');
                 newLink.rel = 'stylesheet';
                 newLink.href = href;
