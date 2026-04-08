@@ -14,6 +14,10 @@ from datetime import date
 import json
 
 
+KHR_TO_USD = 4100
+THB_TO_USD = 0.028
+
+
 def apply_month_filter(queryset, month_str):
     """
     Helper function to filter queryset by month.
@@ -243,31 +247,35 @@ class DashboardView(LoginRequiredMixin, ListView):
             )
         )
 
-        # ── Monthly Disbursement (Multi-Currency) ──
+        # ── Monthly Disbursement (Multi-Currency, converted to USD) ──
         # Show submitted documents (in workflow or approved), exclude drafts and rejected
-        # Calculate for each currency: USD, KHR, THB
+        # Each currency is fetched separately, then converted to USD for the combined total.
+
+        from django.db.models import Q as DQ
+
+        ACTIVE_STATUSES = ['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED']
 
         def get_monthly_by_currency(currency_code):
-            """Get monthly totals for a specific currency"""
+            """Get monthly totals (in native currency) for a specific currency."""
+            vat_sum = lambda prefix: Sum(
+                Case(
+                    When(**{f'{prefix}vat_applicable': True},
+                         then=F(f'{prefix}amount') * Decimal('1.1')),
+                    default=F(f'{prefix}amount'),
+                    output_field=DecimalField(max_digits=14, decimal_places=2)
+                ),
+                filter=DQ(**{f'{prefix}currency': currency_code})
+            )
+
             pv_monthly = (
                 PaymentVoucher.objects.filter(
                     payment_date__gte=fy_start,
                     payment_date__lte=fy_end,
-                    status__in=['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED']
+                    status__in=ACTIVE_STATUSES,
                 )
                 .annotate(month=TruncMonth('payment_date'))
                 .values('month')
-                .annotate(total=Sum(
-                    Case(
-                        When(
-                            line_items__vat_applicable=True,
-                            then=F('line_items__amount') * Decimal('1.1')
-                        ),
-                        default=F('line_items__amount'),
-                        output_field=DecimalField(max_digits=14, decimal_places=2)
-                    ),
-                    filter=__import__('django.db.models', fromlist=['Q']).Q(line_items__currency=currency_code)
-                ))
+                .annotate(total=vat_sum('line_items__'))
                 .values('month', 'total')
             )
 
@@ -275,47 +283,43 @@ class DashboardView(LoginRequiredMixin, ListView):
                 PaymentForm.objects.filter(
                     payment_date__gte=fy_start,
                     payment_date__lte=fy_end,
-                    status__in=['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED']
+                    status__in=ACTIVE_STATUSES,
                 )
                 .annotate(month=TruncMonth('payment_date'))
                 .values('month')
-                .annotate(total=Sum(
-                    Case(
-                        When(
-                            line_items__vat_applicable=True,
-                            then=F('line_items__amount') * Decimal('1.1')
-                        ),
-                        default=F('line_items__amount'),
-                        output_field=DecimalField(max_digits=14, decimal_places=2)
-                    ),
-                    filter=__import__('django.db.models', fromlist=['Q']).Q(line_items__currency=currency_code)
-                ))
+                .annotate(total=vat_sum('line_items__'))
                 .values('month', 'total')
             )
 
-            # Combine into dict keyed by month number
             monthly_totals = {m: Decimal('0') for m in fiscal_months}
             for row in pv_monthly:
                 if row['month'] and row['total']:
-                    monthly_totals[row['month'].month] = (
-                            monthly_totals.get(row['month'].month, Decimal('0')) + row['total']
-                    )
+                    monthly_totals[row['month'].month] += row['total']
             for row in pf_monthly:
                 if row['month'] and row['total']:
-                    monthly_totals[row['month'].month] = (
-                            monthly_totals.get(row['month'].month, Decimal('0')) + row['total']
-                    )
+                    monthly_totals[row['month'].month] += row['total']
             return monthly_totals
 
-        # Get totals for each currency
+        # Get totals for each currency in their native units
         monthly_usd = get_monthly_by_currency('USD')
         monthly_khr = get_monthly_by_currency('KHR')
         monthly_thb = get_monthly_by_currency('THB')
 
+        # Convert KHR and THB to USD, then sum into a single combined series
+        monthly_combined = {
+            m: (
+                monthly_usd[m]
+                + monthly_khr[m] / Decimal(str(KHR_TO_USD))
+                + monthly_thb[m] * Decimal(str(THB_TO_USD))
+            )
+            for m in fiscal_months
+        }
+
         context['chart_labels'] = [month_abbr[m] for m in fiscal_months]
         context['chart_data_usd'] = [float(monthly_usd[m]) for m in fiscal_months]
-        context['chart_data_khr'] = [float(monthly_khr[m]) for m in fiscal_months]
-        context['chart_data_thb'] = [float(monthly_thb[m]) for m in fiscal_months]
+        context['chart_data_khr'] = [float(monthly_khr[m] / Decimal(str(KHR_TO_USD))) for m in fiscal_months]
+        context['chart_data_thb'] = [float(monthly_thb[m] * Decimal(str(THB_TO_USD))) for m in fiscal_months]
+        context['chart_data_combined'] = [float(monthly_combined[m]) for m in fiscal_months]
         context['chart_current_month'] = month_abbr[today.month]
 
         # ── By Department Donut (current month, submitted/approved docs, Multi-Currency) ──

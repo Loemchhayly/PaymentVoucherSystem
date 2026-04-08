@@ -1423,21 +1423,27 @@ def reports_view(request):
         for currency, amount in totals.items():
             currency_totals[currency] += float(amount)
 
-    # Monthly data for last 6 months
+    # Monthly data for last 6 months (all currencies converted to USD)
+    from dashboard.views import KHR_TO_USD, THB_TO_USD
     monthly_data = defaultdict(lambda: {'PV': 0, 'PF': 0, 'amount': 0})
     six_months_ago = datetime.now() - timedelta(days=180)
+
+    def to_usd(totals):
+        return (
+            float(totals.get('USD', 0))
+            + float(totals.get('KHR', 0)) / KHR_TO_USD
+            + float(totals.get('THB', 0)) * THB_TO_USD
+        )
 
     for voucher in approved_vouchers.filter(payment_date__gte=six_months_ago):
         month_key = voucher.payment_date.strftime('%Y-%m')
         monthly_data[month_key]['PV'] += 1
-        totals = voucher.calculate_grand_total()
-        monthly_data[month_key]['amount'] += float(totals.get('USD', 0))
+        monthly_data[month_key]['amount'] += to_usd(voucher.calculate_grand_total())
 
     for form in approved_forms.filter(payment_date__gte=six_months_ago):
         month_key = form.payment_date.strftime('%Y-%m')
         monthly_data[month_key]['PF'] += 1
-        totals = form.calculate_grand_total()
-        monthly_data[month_key]['amount'] += float(totals.get('USD', 0))
+        monthly_data[month_key]['amount'] += to_usd(form.calculate_grand_total())
 
     # Sort monthly data
     sorted_months = sorted(monthly_data.keys())
