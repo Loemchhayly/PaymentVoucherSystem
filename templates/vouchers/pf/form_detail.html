@@ -133,10 +133,10 @@
                 <div class="vd-step-sub">{{ payment_form.submitted_at|date:"d M"|default:"Pending" }}</div>
             </div>
 
-            <!-- Step 3: L1-L2 Review (PENDING_L2 = Acct Supervisor) -->
-            {% if payment_form.status == 'PENDING_L2' %}
+            <!-- Step 3: L1 Review (PENDING_L2 / PENDING_L3) -->
+            {% if payment_form.status == 'PENDING_L2' or payment_form.status == 'PENDING_L3' %}
                 <div class="vd-step active">
-            {% elif payment_form.status == 'PENDING_L3' or payment_form.status == 'PENDING_L4' or payment_form.status == 'PENDING_L5' or payment_form.status == 'APPROVED' %}
+            {% elif payment_form.status == 'PENDING_L4' or payment_form.status == 'PENDING_L5' or payment_form.status == 'APPROVED' %}
                 <div class="vd-step done">
             {% elif payment_form.status == 'REJECTED' and approval_history %}
                 <div class="vd-step done">
@@ -144,20 +144,20 @@
                 <div class="vd-step waiting">
             {% endif %}
             <div class="vd-step-dot">
-                {% if payment_form.status == 'PENDING_L3' or payment_form.status == 'PENDING_L4' or payment_form.status == 'PENDING_L5' or payment_form.status == 'APPROVED' or payment_form.status == 'REJECTED' %}
+                {% if payment_form.status == 'PENDING_L4' or payment_form.status == 'PENDING_L5' or payment_form.status == 'APPROVED' or payment_form.status == 'REJECTED' %}
                     <i class="bi bi-check"></i>
-                {% elif payment_form.status == 'PENDING_L2' %}
+                {% elif payment_form.status == 'PENDING_L2' or payment_form.status == 'PENDING_L3' %}
                     <i class="bi bi-hourglass-split"></i>
                 {% else %}3{% endif %}
             </div>
-            <div class="vd-step-label">L1-L2 Review</div>
-            <div class="vd-step-sub">Acct / Supervisor</div>
+            <div class="vd-step-label">L1 Review</div>
+            <div class="vd-step-sub">Acct / Finance</div>
             </div>
 
-            <!-- Step 4: L3 Review (PENDING_L3 = Finance Manager) -->
-            {% if payment_form.status == 'PENDING_L3' %}
+            <!-- Step 4: L2 Review (PENDING_L4 = GM, PENDING_L5 = MD) -->
+            {% if payment_form.status == 'PENDING_L4' or payment_form.status == 'PENDING_L5' %}
                 <div class="vd-step active">
-            {% elif payment_form.status == 'PENDING_L4' or payment_form.status == 'PENDING_L5' or payment_form.status == 'APPROVED' %}
+            {% elif payment_form.status == 'APPROVED' %}
                 <div class="vd-step done">
             {% elif payment_form.status == 'REJECTED' %}
                 <div class="vd-step rejected">
@@ -165,16 +165,16 @@
                 <div class="vd-step waiting">
             {% endif %}
             <div class="vd-step-dot">
-                {% if payment_form.status == 'PENDING_L4' or payment_form.status == 'PENDING_L5' or payment_form.status == 'APPROVED' %}
+                {% if payment_form.status == 'APPROVED' %}
                     <i class="bi bi-check"></i>
                 {% elif payment_form.status == 'REJECTED' %}
                     <i class="bi bi-x"></i>
-                {% elif payment_form.status == 'PENDING_L3' %}
+                {% elif payment_form.status == 'PENDING_L4' or payment_form.status == 'PENDING_L5' %}
                     <i class="bi bi-hourglass-split"></i>
                 {% else %}4{% endif %}
             </div>
-            <div class="vd-step-label">L3 Review</div>
-            <div class="vd-step-sub">Finance Manager</div>
+            <div class="vd-step-label">L2 Review</div>
+            <div class="vd-step-sub">GM / Director</div>
             </div>
 
             <!-- Step 5: Approved -->
