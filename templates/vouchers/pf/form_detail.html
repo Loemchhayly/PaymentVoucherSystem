@@ -300,13 +300,18 @@ main { padding: 0 !important; }
 .vd-progress-title i { color: var(--v-cyan); }
 
 .vd-steps {
-    display: flex; align-items: center; gap: 0;
+    display: flex;
+    align-items: center;
+    gap: 0;
     position: relative;
 }
 
 .vd-step {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 6px; flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
     position: relative;
 }
 
@@ -314,41 +319,100 @@ main { padding: 0 !important; }
 .vd-step:not(:last-child)::after {
     content: '';
     position: absolute;
-    top: 14px; left: 50%; right: -50%;
+    top: 14px;
+    left: 50%;
+    right: -50%;
     height: 2px;
     background: var(--v-border);
     z-index: 0;
 }
+
 .vd-step.done:not(:last-child)::after {
     background: linear-gradient(90deg, var(--v-green), var(--v-border));
 }
+
 .vd-step.active:not(:last-child)::after {
     background: linear-gradient(90deg, var(--v-cyan), var(--v-border));
 }
 
 .vd-step-dot {
-    width: 28px; height: 28px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.7rem; font-weight: 700;
-    position: relative; z-index: 1;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
     transition: all 0.3s;
 }
-.vd-step.done   .vd-step-dot { background: var(--v-green-dim); border: 2px solid var(--v-green); color: var(--v-green); }
-.vd-step.active .vd-step-dot { background: var(--v-cyan-glow); border: 2px solid var(--v-cyan); color: var(--v-cyan); box-shadow: 0 0 14px rgba(6,182,212,0.4); animation: stepPulse 2s ease-in-out infinite; }
-.vd-step.waiting .vd-step-dot { background: var(--v-card); border: 2px solid var(--v-border); color: var(--v-muted); }
-.vd-step.rejected .vd-step-dot { background: var(--v-red-dim); border: 2px solid var(--v-red); color: var(--v-red); }
 
-@keyframes stepPulse {
-    0%,100% { box-shadow: 0 0 10px rgba(6,182,212,0.3); }
-    50%      { box-shadow: 0 0 22px rgba(6,182,212,0.7); }
+.vd-step.done .vd-step-dot {
+    background: var(--v-green-dim);
+    border: 2px solid var(--v-green);
+    color: var(--v-green);
 }
 
-.vd-step-label { font-size: 0.6rem; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
-.vd-step.done    .vd-step-label { color: var(--v-green); }
-.vd-step.active  .vd-step-label { color: var(--v-cyan); }
-.vd-step.waiting .vd-step-label { color: var(--v-muted); }
-.vd-step.rejected .vd-step-label { color: var(--v-red); }
-.vd-step-sub { font-size: 0.56rem; color: var(--v-muted); text-align: center; }
+.vd-step.active .vd-step-dot {
+    background: var(--v-cyan-glow);
+    border: 2px solid var(--v-cyan);
+    color: var(--v-cyan);
+    box-shadow: 0 0 14px rgba(6, 182, 212, 0.4);
+    animation: stepPulse 2s ease-in-out infinite;
+}
+
+.vd-step.waiting .vd-step-dot {
+    background: var(--v-card);
+    border: 2px solid var(--v-border);
+    color: var(--v-muted);
+}
+
+.vd-step.rejected .vd-step-dot {
+    background: var(--v-red-dim);
+    border: 2px solid var(--v-red);
+    color: var(--v-red);
+}
+
+@keyframes stepPulse {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 22px rgba(6, 182, 212, 0.7);
+    }
+}
+
+.vd-step-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.vd-step.done .vd-step-label {
+    color: var(--v-green);
+}
+
+.vd-step.active .vd-step-label {
+    color: var(--v-cyan);
+}
+
+.vd-step.waiting .vd-step-label {
+    color: var(--v-muted);
+}
+
+.vd-step.rejected .vd-step-label {
+    color: var(--v-red);
+}
+
+.vd-step-sub {
+    font-size: 0.56rem;
+    color: var(--v-muted);
+    text-align: center;
+}
 
 /* ══════════════════════════════════════
    MAIN LAYOUT: 2 COLUMNS
@@ -1669,10 +1733,8 @@ body[data-theme="light"] .vd-btn-ghost:hover {
         <div class="vd-progress-title"><i class="bi bi-diagram-3"></i> Approval Workflow</div>
         <div class="vd-steps">
             <!-- Step 1: Draft -->
-            <div class="vd-step {% if payment_form.status != 'DRAFT' %}done{% elif payment_form.status == 'DRAFT' %}active{% else %}waiting{% endif %}">
-                <div class="vd-step-dot">
-                    {% if payment_form.status != 'DRAFT' %}<i class="bi bi-check"></i>{% else %}1{% endif %}
-                </div>
+            <div class="vd-step done">
+                <div class="vd-step-dot"><i class="bi bi-check"></i></div>
                 <div class="vd-step-label">Draft</div>
                 <div class="vd-step-sub">Created</div>
             </div>
