@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (mainContent) mainContent.classList.add('page-loading');
         if (loadingIndicator) loadingIndicator.classList.add('active');
 
+        // Scroll to top immediately so the new page doesn't appear to slide up
+        window.scrollTo(0, 0);
+
         try {
             // Fetch the new page
             const response = await fetch(url, {
@@ -105,37 +108,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Execute page-specific scripts first
                 executePageScripts(doc);
 
-                // CRITICAL: Fix scroll and layout in proper sequence
-                // Step 1: Reset scroll immediately to prevent any scroll position issues
-                window.scrollTo(0, 0);
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
+                // Fix scroll and layout
+                const targetScrollY = window._restoreScrollY || 0;
+                window._restoreScrollY = null;
 
-                // Step 2: Force complete layout recalculation
+                window.scrollTo(0, targetScrollY);
+                document.documentElement.scrollTop = targetScrollY;
+                document.body.scrollTop = targetScrollY;
+
                 requestAnimationFrame(() => {
-                    // Force browser to recalculate all layouts
                     const topbar = document.querySelector('.topbar');
                     const sidebar = document.querySelector('.sidebar');
                     const contentWrapper = document.querySelector('.content-wrapper');
+                    if (topbar) topbar.offsetHeight;
+                    if (sidebar) sidebar.offsetWidth;
+                    if (contentWrapper) contentWrapper.offsetHeight;
 
-                    // Force reflow by reading dimensions
-                    if (topbar) {
-                        const topbarHeight = topbar.offsetHeight;
-                    }
-                    if (sidebar) {
-                        const sidebarWidth = sidebar.offsetWidth;
-                    }
-                    if (contentWrapper) {
-                        const contentHeight = contentWrapper.offsetHeight;
-                    }
-
-                    // Step 3: Reset scroll again after layout recalculation
                     requestAnimationFrame(() => {
-                        window.scrollTo(0, 0);
-                        document.documentElement.scrollTop = 0;
-                        document.body.scrollTop = 0;
-
-                        // Force all fixed/sticky elements to recalculate
+                        window.scrollTo(0, targetScrollY);
+                        document.documentElement.scrollTop = targetScrollY;
+                        document.body.scrollTop = targetScrollY;
                         window.dispatchEvent(new Event('resize'));
                         window.dispatchEvent(new Event('scroll'));
                     });
@@ -359,11 +351,22 @@ function executePageScripts(doc) {
     }
 
 
-    // Handle browser back/forward buttons
+    // Expose navigateToPage globally so other scripts (e.g. voucher_list.js) can use SPA navigation
+    window.navigateToPage = navigateToPage;
+
+    // Handle browser back/forward buttons — all navigation goes through SPA
     window.addEventListener('popstate', function(event) {
-        if (event.state && event.state.url) {
-            navigateToPage(event.state.url);
-        }
+        const url = (event.state && event.state.url) ? event.state.url : window.location.href;
+        // Check if we have a saved scroll position for the target URL
+        try {
+            const saved = JSON.parse(sessionStorage.getItem('pvListScroll') || 'null');
+            const targetPath = url.replace(/^https?:\/\/[^/]+/, ''); // strip origin if present
+            if (saved && saved.url === targetPath && saved.scrollY) {
+                sessionStorage.removeItem('pvListScroll');
+                window._restoreScrollY = saved.scrollY;
+            }
+        } catch(e) {}
+        navigateToPage(url);
     });
 
     // Initialize smooth navigation on page load
@@ -921,10 +924,18 @@ document.addEventListener('click', function(e) {
     // Refresh token when user returns to tab after being away
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', function() {
+    // Cleanup on page unload (pagehide is bfcache-compatible unlike beforeunload)
+    window.addEventListener('pagehide', function() {
         if (keepAliveTimer) {
             clearInterval(keepAliveTimer);
+            keepAliveTimer = null;
+        }
+    });
+
+    // Restart keep-alive when page is restored from bfcache
+    window.addEventListener('pageshow', function(e) {
+        if (e.persisted && !keepAliveTimer) {
+            startKeepAlive();
         }
     });
 })();

@@ -6,6 +6,8 @@ if (window._voucherListScriptLoaded) {
 } else {
     window._voucherListScriptLoaded = true;
 
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
 (function() {
     // currentFilters will be initialized from template via window.voucherListConfig
     window.currentFilters = window.voucherListConfig || {
@@ -16,13 +18,38 @@ if (window._voucherListScriptLoaded) {
         page: 1
     };
 
+    /* ─── Save scroll before navigating away ─── */
+    function saveScroll() {
+        try {
+            sessionStorage.setItem('pvListScroll', JSON.stringify({
+                url: window.location.pathname + window.location.search,
+                scrollY: window.scrollY
+            }));
+        } catch(e) {}
+    }
+
     /* ─── Row navigation ─── */
     window.goToVoucher = function(e, url) {
     if (e.target.tagName === 'A' || e.target.tagName === 'INPUT' ||
         e.target.tagName === 'BUTTON' || e.target.closest('a') ||
         e.target.closest('button') || e.target.closest('.row-actions')) return;
-    window.location.href = url;
+    saveScroll();
+    if (window.navigateToPage) {
+        window.navigateToPage(url);
+    } else {
+        window.location.href = url;
+    }
     };
+
+    // Also save scroll when clicking <a> links inside rows (PV/PF number links)
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a[href]');
+        if (!link) return;
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('/') && !href.includes('?') && !href.includes('#')) {
+            saveScroll();
+        }
+    }, true);
 
     /* ─── Checkbox helpers ─── */
     window.toggleSelectAll = function(master) {
@@ -378,7 +405,7 @@ function applyFilters(shouldScroll = false) {
         params.set('page', currentFilters.page);
 
     const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-    window.history.pushState({filters: currentFilters}, '', newUrl);
+    window.history.pushState({url: newUrl, filters: currentFilters}, '', newUrl);
 
     fetch(newUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(r => r.text())
@@ -441,18 +468,8 @@ function applyFilters(shouldScroll = false) {
         });
 }
 
-// Prevent multiple popstate listeners
-if (!window._popstateListenerAdded) {
-    window._popstateListenerAdded = true;
-    window.addEventListener('popstate', function(e) {
-        if (e.state && e.state.filters) {
-            currentFilters = e.state.filters;
-            applyFilters(false); // Don't scroll on browser back/forward
-        } else {
-            location.reload();
-        }
-    });
-}
+// popstate is handled entirely by base.js SPA navigation (navigateToPage)
+// No separate handler needed here — all back/forward navigation goes through base.js
 
     /* ═══════════════════════════════════════════
        BULK APPROVAL — Modal + Form Submission

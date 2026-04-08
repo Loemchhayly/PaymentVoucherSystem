@@ -6,15 +6,7 @@
     max-width: 1440px;
     margin: 0 auto;
     padding: 0 24px 40px;
-    opacity: 0;
-    animation: fadeInPage 0.4s var(--ease) 0.05s forwards;
     font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
-}
-
-@keyframes fadeInPage { to { opacity: 1; } }
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Page Header ── */
@@ -27,8 +19,6 @@
     align-items: flex-start;
     flex-wrap: wrap;
     gap: 12px;
-    opacity: 0;
-    animation: fadeUp 0.4s var(--ease) 0.08s forwards;
     margin-top: -25px;
 }
 
@@ -141,8 +131,6 @@
     font-weight: 600;
     margin-bottom: 14px;
     border: 1px solid;
-    opacity: 0;
-    animation: fadeUp 0.4s var(--ease) 0.12s forwards;
 }
 .context-banner.pending-banner {
     background: rgba(245,158,11,0.07);
@@ -526,8 +514,6 @@ body[data-theme="dark"] .month-picker-clear-btn:hover {
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     overflow: visible;
-    opacity: 0;
-    animation: fadeUp 0.4s var(--ease) 0.22s forwards;
 }
 
 /* ── Bulk Action Bar ── */
@@ -819,19 +805,9 @@ body[data-theme="dark"] .month-picker-clear-btn:hover {
 .pv-table tbody tr {
     transition: background var(--transition-fast);
     cursor: pointer;
-    opacity: 0;
-    animation: fadeUp 0.32s var(--ease) forwards;
 }
 .pv-table tbody tr.row-selected td { background: rgba(6,182,212,0.06) !important; }
 .pv-table tbody tr.row-selected td:first-child { box-shadow: inset 3px 0 0 var(--cyan-400); }
-
-.pv-table tbody tr:nth-child(1)  { animation-delay: 0.28s; }
-.pv-table tbody tr:nth-child(2)  { animation-delay: 0.33s; }
-.pv-table tbody tr:nth-child(3)  { animation-delay: 0.38s; }
-.pv-table tbody tr:nth-child(4)  { animation-delay: 0.43s; }
-.pv-table tbody tr:nth-child(5)  { animation-delay: 0.48s; }
-.pv-table tbody tr:nth-child(6)  { animation-delay: 0.53s; }
-.pv-table tbody tr:nth-child(n+7){ animation-delay: 0.58s; }
 
 .pv-table tbody tr:hover td {
     background: rgba(6,182,212,0.045);

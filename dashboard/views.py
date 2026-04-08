@@ -423,9 +423,6 @@ class PendingActionView(LoginRequiredMixin, ListView):
             from django.shortcuts import redirect
             return redirect('vouchers:md_dashboard')
         response = super().dispatch(request, *args, **kwargs)
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
         return response
 
     def get_queryset(self):
