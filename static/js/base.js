@@ -288,43 +288,38 @@ function executePageScripts(doc) {
     loadScriptsSequentially(externalScripts, 0, function () {
         inlineScripts.forEach(code => {
             try {
+                // Patch document.addEventListener BEFORE creating the script element
+                // so DOMContentLoaded listeners inside the script fire immediately
+                var _origAddEvt = document.addEventListener.bind(document);
+                document.addEventListener = function(type, fn, opts) {
+                    if (type === 'DOMContentLoaded') {
+                        // Execute immediately since DOM is already loaded
+                        setTimeout(fn, 0);
+                        return;
+                    }
+                    return _origAddEvt(type, fn, opts);
+                };
+
+                // Shim jQuery ready if jQuery exists
+                var _origReady;
+                if (window.jQuery) {
+                    _origReady = jQuery.fn.ready;
+                    jQuery.fn.ready = function(fn) {
+                        setTimeout(fn, 0);
+                        return this;
+                    };
+                }
+
                 const s = document.createElement('script');
-                // Shim both DOMContentLoaded and jQuery ready
-                s.textContent = `
-                    (function(){
-                        // Shim document.addEventListener for DOMContentLoaded
-                        var _origAddEvt = document.addEventListener.bind(document);
-                        document.addEventListener = function(type, fn, opts) {
-                            if (type === 'DOMContentLoaded') {
-                                // Execute immediately since DOM is already loaded
-                                setTimeout(fn, 0);
-                                return;
-                            }
-                            return _origAddEvt(type, fn, opts);
-                        };
-
-                        // Shim jQuery ready if jQuery exists
-                        if (window.jQuery) {
-                            var _origReady = jQuery.fn.ready;
-                            jQuery.fn.ready = function(fn) {
-                                // Execute immediately since DOM is already loaded
-                                setTimeout(fn, 0);
-                                return this;
-                            };
-                        }
-
-                        try {
-                            ${code}
-                        } finally {
-                            document.addEventListener = _origAddEvt;
-                            if (window.jQuery && _origReady) {
-                                jQuery.fn.ready = _origReady;
-                            }
-                        }
-                    })();
-                `;
+                s.textContent = code;  // run directly, no IIFE wrapper
                 s.setAttribute('data-page-specific', 'true');
                 document.body.appendChild(s);
+
+                // Restore after appending (inline scripts execute synchronously on append)
+                document.addEventListener = _origAddEvt;
+                if (window.jQuery && _origReady) {
+                    jQuery.fn.ready = _origReady;
+                }
             } catch (e) {
                 console.error('Script execution error during SPA navigation:', e);
                 console.error('Failed script preview:', code.substring(0, 200));

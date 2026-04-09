@@ -2087,10 +2087,10 @@ body[data-theme="light"] .ob-mobile-bank-detail {
 {% block extra_js %}
 <script>
 // ── Modals ──
-function showSignModal()  { document.getElementById('sign-comments').value=''; new bootstrap.Modal(document.getElementById('signModal')).show(); }
-function showRejectModal(){ document.getElementById('reject-comments').value=''; new bootstrap.Modal(document.getElementById('rejectModal')).show(); }
+window.showSignModal = function()  { document.getElementById('sign-comments').value=''; new bootstrap.Modal(document.getElementById('signModal')).show(); }
+window.showRejectModal = function(){ document.getElementById('reject-comments').value=''; new bootstrap.Modal(document.getElementById('rejectModal')).show(); }
 
-function confirmSign() {
+window.confirmSign = function() {
   const btn=document.getElementById('sign-confirm-btn'), comments=document.getElementById('sign-comments').value;
   btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Signing…';
   const fd=new FormData(); fd.append('comments',comments); fd.append('csrfmiddlewaretoken','{{ csrf_token }}');
@@ -2099,7 +2099,7 @@ function confirmSign() {
     .catch(e=>{toast('Error',e.message,'error');btn.disabled=false;btn.innerHTML='<i class="bi bi-pen"></i> Sign All Documents';});
 }
 
-function confirmReject() {
+window.confirmReject = function() {
   const btn=document.getElementById('reject-confirm-btn'),cf=document.getElementById('reject-comments'),c=cf.value.trim();
   if(!c){cf.classList.add('is-invalid');return;} cf.classList.remove('is-invalid');
   btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Rejecting…';
@@ -2110,13 +2110,13 @@ function confirmReject() {
 }
 
 let _rmType=null,_rmId=null;
-function showRemoveModal(t,id,num){
+window.showRemoveModal = function(t,id,num){
   _rmType=t; _rmId=id;
   document.getElementById('remove-doc-number').textContent=num;
   const rf=document.getElementById('remove-reason'); rf.value=''; rf.classList.remove('is-invalid');
   new bootstrap.Modal(document.getElementById('removeDocModal')).show();
 }
-function confirmRemove(){
+window.confirmRemove = function(){
   const rf=document.getElementById('remove-reason'),reason=rf.value.trim(),btn=document.getElementById('remove-confirm-btn');
   if(!reason){rf.classList.add('is-invalid');return;} rf.classList.remove('is-invalid');
   btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> Removing…';
@@ -2136,14 +2136,14 @@ function confirmRemove(){
     }).catch(e=>{toast('Error',e.message,'error');btn.disabled=false;btn.innerHTML='<i class="bi bi-dash-circle"></i> Remove Document';});
 }
 
-function deleteBatch(){
+window.deleteBatch = function(){
   fetch("{% url 'vouchers:batch_delete' batch.id %}",{method:'POST',headers:{'X-CSRFToken':'{{ csrf_token }}','X-Requested-With':'XMLHttpRequest','Content-Type':'application/json'},credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{ if(d.success) window.location.href=d.redirect_url; else toast('Error',d.error||'Failed','error'); })
     .catch(e=>toast('Error',e.message,'error'));
 }
 
 // ── Side Panel ──
-function setPanelContent(html){
+window.setPanelContent = function(html){
   const body=document.getElementById('panelBody');
   body.style.opacity='0';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
@@ -2152,7 +2152,7 @@ function setPanelContent(html){
     body.style.opacity='1';
   }));
 }
-function openPanel(docType,docId,docNumber){
+window.openPanel = function(docType,docId,docNumber){
   document.getElementById('panelTitle').textContent=(docType==='pv'?'PV ':'PF ')+docNumber;
   document.getElementById('panelSub').textContent=docType==='pv'?'Payment Voucher':'Payment Form';
   document.getElementById('panelFullLink').href=docType==='pv'?`/vouchers/pv/${docId}/`:`/vouchers/pf/${docId}/`;
@@ -2168,10 +2168,10 @@ function openPanel(docType,docId,docNumber){
     .then(r=>r.json()).then(d=>{ if(d.success) renderPanel(d.document); else renderPanelError('Failed to load document.'); })
     .catch(()=>renderPanelError('Network error.'));
 }
-function closePanel(){ document.getElementById('obOverlay').classList.remove('active'); document.body.style.overflow=''; document.body.style.paddingRight=''; }
-function renderPanelError(msg){ setPanelContent(`<div class="ob-panel-empty"><i class="bi bi-exclamation-triangle"></i><span>${msg}</span></div>`); }
+window.closePanel = function(){ document.getElementById('obOverlay').classList.remove('active'); document.body.style.overflow=''; document.body.style.paddingRight=''; }
+window.renderPanelError = function(msg){ setPanelContent(`<div class="ob-panel-empty"><i class="bi bi-exclamation-triangle"></i><span>${msg}</span></div>`); }
 
-function getBankLogo(bankAddress){
+window.getBankLogo = function(bankAddress){
   if(!bankAddress) return '';
   const upper=bankAddress.toUpperCase();
   const logos={
@@ -2188,7 +2188,7 @@ function getBankLogo(bankAddress){
   return '';
 }
 
-function renderPanel(doc){
+window.renderPanel = function(doc){
   const liHTML=doc.line_items&&doc.line_items.length
     ? doc.line_items.map(i=>`<div class="ob-line-item"><div class="ob-li-desc">${i.description||'No description'}</div><div class="ob-li-grid"><div class="ob-li-field"><span class="ob-li-label">Department</span><span class="ob-li-value">${i.department||'—'}</span></div><div class="ob-li-field"><span class="ob-li-label">Amount</span><span class="ob-li-value amount">${i.amount_display||'—'}</span></div></div></div>`).join('')
     : '<div class="ob-panel-empty"><i class="bi bi-inbox"></i><span>No line items</span></div>';
@@ -2226,7 +2226,7 @@ function renderPanel(doc){
 }
 
 // ── Toast ──
-function toast(title,message,type='info'){
+window.toast = function(title,message,type='info'){
   const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
   const bg=type==='success'?'success':type==='error'?'danger':type==='warning'?'warning':'primary';
   let tc=document.querySelector('.toast-container');
