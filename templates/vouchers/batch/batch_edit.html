@@ -1002,8 +1002,12 @@ function removeDoc(type, id) {
 
     selectedDocs[type].delete(id);
 
-    // Remove card from in-batch
+    // Read data from the card BEFORE removing it
     const card = document.querySelector(`#in-batch-list [data-type="${type}"][data-id="${id}"]`);
+    const num    = card ? card.dataset.num    : '';
+    const payee  = card ? card.dataset.payee  : '';
+    const amount = card ? card.dataset.amount : '';
+
     if (card) {
         card.style.transition = 'opacity 0.15s, transform 0.15s';
         card.style.opacity = '0';
@@ -1011,9 +1015,35 @@ function removeDoc(type, id) {
         setTimeout(() => card.remove(), 160);
     }
 
-    // Show in available
-    const avail = document.querySelector(`#avail-list [data-type="${type}"][data-id="${id}"]`);
-    if (avail) { avail.style.display = ''; }
+    // Show in available list — if already rendered just unhide, otherwise create the card.
+    // Pre-existing batch docs are excluded from available_vouchers on the server side,
+    // so they have no .avail-item element in the DOM and must be created dynamically.
+    let avail = document.querySelector(`#avail-list [data-type="${type}"][data-id="${id}"]`);
+    if (avail) {
+        avail.style.display = '';
+    } else {
+        const newCard = document.createElement('div');
+        newCard.className = 'be-doc-card avail-item';
+        newCard.dataset.type   = type;
+        newCard.dataset.id     = id;
+        newCard.dataset.num    = num;
+        newCard.dataset.payee  = payee;
+        newCard.dataset.amount = amount;
+        newCard.dataset.search = `${num.toLowerCase()} ${payee.toLowerCase()}`;
+        newCard.innerHTML = `
+            <div class="be-doc-type ${type}">${type.toUpperCase()}</div>
+            <div class="be-doc-info">
+                <span class="be-doc-num">${num}</span>
+                <span class="be-doc-meta">${payee}</span>
+                <span class="be-doc-amount">${amount}</span>
+            </div>
+            <button class="be-doc-action add"
+                    onclick="addDoc('${type}', ${id}, '${num}', '${payee}', '${amount}')"
+                    title="Add to batch">
+                <i class="bi bi-plus-lg"></i> Add
+            </button>`;
+        document.getElementById('avail-list').appendChild(newCard);
+    }
 
     setTimeout(syncUI, 170);
 }
