@@ -150,6 +150,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Clean up old page-specific resources
     function cleanupOldPageResources() {
+        const popup = document.getElementById('monthPickerPopup');
+        if (popup) popup.classList.remove('show');
         if (window.Chart) {
             Object.values(Chart.instances).forEach(chart => {
                 try { chart.destroy(); } catch(e) {}

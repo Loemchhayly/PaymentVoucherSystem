@@ -382,6 +382,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     }
 
 function applyFilters(shouldScroll = false) {
+    const popup = document.getElementById('monthPickerPopup');
+    if (popup) popup.classList.remove('show');
     const tableBody = document.querySelector('.pv-table tbody');
     const mobileCards = document.getElementById('mobileVoucherCards');
 
