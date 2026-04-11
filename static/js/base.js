@@ -290,7 +290,7 @@ function executePageScripts(doc) {
             if (src.includes('chart.umd')) {
                 setTimeout(() => {
                     loadScriptsSequentially(srcs, index + 1, callback);
-                }, 100);
+                }, 300);
             } else {
                 loadScriptsSequentially(srcs, index + 1, callback);
             }
@@ -350,7 +350,7 @@ function executePageScripts(doc) {
         // Trigger custom event after all scripts are executed
         setTimeout(() => {
             window.dispatchEvent(new Event('spa-navigation-complete'));
-        }, 100);
+        }, 300);
     });
 }
 

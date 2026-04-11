@@ -1257,14 +1257,14 @@ body[data-theme="light"] .panel-title-sub {
 
 
 // Wait for Chart.js, then initialize charts
-requestAnimationFrame(function() {
+setTimeout(function() {
     // Destroy old Chart.js instances
     if (window.Chart) {
         ['barChart', 'donutChart'].forEach(id => {
             const existing = Chart.getChart(id);
             if (existing) existing.destroy();
-        });
-    }
+
+    }, 100);
 
 
 
