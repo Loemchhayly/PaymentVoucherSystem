@@ -1487,9 +1487,9 @@ setTimeout(function() {
 }); // End of waitForChart callback
 
 // ── PV/PF filter chips ──
-let currentDocFilter = 'all';
-let originalTableRows = null; // Store original rows
-let isSearchActive = false;
+window.currentDocFilter = window.currentDocFilter || 'all';
+window.originalTableRows = window.originalTableRows || null;
+window.isSearchActive = window.isSearchActive || false;
 
 // Store original rows - works with both normal load and SPA navigation
 (function() {
@@ -1539,7 +1539,7 @@ function applyClientFilter() {
 }
 
 // ── Search functionality ──
-let searchTimeout;
+window.searchTimeout = window.searchTimeout || null;
 function searchDashDocs(query) {
   const q = query.trim();
   const clearBtn = document.getElementById('dashSearchClear');
