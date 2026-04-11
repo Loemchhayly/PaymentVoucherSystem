@@ -1256,16 +1256,16 @@ body[data-theme="light"] .panel-title-sub {
 <script>
 
 
-// Wait for Chart.js, then initialize charts
 setTimeout(function() {
-    // Destroy old Chart.js instances
     if (window.Chart) {
         ['barChart', 'donutChart'].forEach(id => {
             const existing = Chart.getChart(id);
             if (existing) existing.destroy();
+        });  // ✅ close forEach
+    }        // ✅ close if
 
-    }, 300);
-
+    // ── Data from Django ──
+    const chartLabels  = ...
 
 
     // ── Data from Django ──
