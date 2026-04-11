@@ -82,15 +82,16 @@ document.addEventListener('DOMContentLoaded', function () {
             const newContent = doc.querySelector('#mainContent');
 
             if (newContent && mainContent) {
-                // Swap content first
-                mainContent.innerHTML = newContent.innerHTML;
-                mainContent.setAttribute('data-url', url);
-
-                // Remove old page-specific styles and scripts
+                // 1. Clean up old resources (removes stale styles + aborts old listeners)
                 cleanupOldPageResources();
 
-                // Load page-specific CSS
-                loadPageStyles(doc);
+                // 2. Load new styles and WAIT — content is injected only after CSS is ready
+                //    This eliminates the flash of unstyled content on every SPA navigation.
+                await loadPageStyles(doc);
+
+                // 3. Inject content now that styles are already applied
+                mainContent.innerHTML = newContent.innerHTML;
+                mainContent.setAttribute('data-url', url);
 
                 // Update page title
                 const newTitle = doc.querySelector('title');
@@ -105,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Update active nav state
                 updateActiveNav(url);
 
-                // Execute page-specific scripts first
+                // 4. Execute page-specific scripts
                 executePageScripts(doc);
 
                 // Fix scroll and layout
@@ -152,6 +153,11 @@ document.addEventListener('DOMContentLoaded', function () {
     function cleanupOldPageResources() {
         const popup = document.getElementById('monthPickerPopup');
         if (popup) popup.classList.remove('show');
+        // Abort all page-specific event listeners registered via AbortController
+        if (window._pageAbortController) {
+            window._pageAbortController.abort();
+            window._pageAbortController = null;
+        }
         if (window.Chart) {
             Object.values(Chart.instances).forEach(chart => {
                 try { chart.destroy(); } catch(e) {}
@@ -174,9 +180,11 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('head style:not([data-base])').forEach(el => el.remove());
     }
 
-    // Load page-specific CSS from the fetched document
-    function loadPageStyles(doc) {
-        // Get all style tags from head
+    // Load page-specific CSS from the fetched document.
+    // Returns a Promise that resolves once all new <link> stylesheets have loaded,
+    // so callers can await it before injecting content (prevents FOUC).
+    async function loadPageStyles(doc) {
+        // Inject inline <style> tags synchronously (instant, no network round-trip)
         const styleTags = doc.querySelectorAll('head style');
         styleTags.forEach(style => {
             if (style.textContent.includes('FINVAULT DESIGN SYSTEM')) return;
@@ -188,7 +196,8 @@ document.addEventListener('DOMContentLoaded', function () {
             document.head.appendChild(newStyle);
         });
 
-        // Get all link tags from head
+        // Load external stylesheets and collect load promises
+        const linkPromises = [];
         const linkTags = doc.querySelectorAll('head link[rel="stylesheet"]');
         linkTags.forEach(link => {
             const href = link.getAttribute('href');
@@ -197,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Skip global bootstrap
             if (href.includes('bootstrap') && !href.includes('dataTables')) return;
 
-            // ── FIX: match by filename only, not full path ──
+            // Match by filename only, not full path
             const fileName = href.split('/').pop().split('?')[0];
             const alreadyLoaded = Array.from(
                 document.querySelectorAll('link[rel="stylesheet"]')
@@ -211,9 +220,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 newLink.rel = 'stylesheet';
                 newLink.href = href;
                 newLink.setAttribute('data-page-specific', 'true');
+                const p = new Promise(resolve => {
+                    newLink.onload = resolve;
+                    newLink.onerror = resolve;   // Don't block on CSS error
+                    setTimeout(resolve, 2000);   // Safety timeout
+                });
+                linkPromises.push(p);
                 document.head.appendChild(newLink);
             }
         });
+
+        if (linkPromises.length > 0) {
+            await Promise.all(linkPromises);
+        }
     }
 
     // Execute page-specific scripts from the fetched document

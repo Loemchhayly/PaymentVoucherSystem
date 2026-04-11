@@ -12,6 +12,12 @@ if (window._voucherListScriptLoaded) {
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
 (function() {
+    // AbortController for all document/window listeners in this IIFE.
+    // cleanupOldPageResources() aborts it on SPA navigation, removing all listeners
+    // automatically so they never stack up across navigations.
+    window._pageAbortController = new AbortController();
+    const { signal } = window._pageAbortController;
+
     // currentFilters will be initialized from template via window.voucherListConfig
     window.currentFilters = {
         doc_type: window.voucherListConfig?.doc_type || 'all',
@@ -52,7 +58,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
         if (href && href.startsWith('/') && !href.includes('?') && !href.includes('#')) {
             saveScroll();
         }
-    }, true);
+    }, { capture: true, signal });
 
     /* ─── Checkbox helpers ─── */
     window.toggleSelectAll = function(master) {
@@ -261,7 +267,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
         if (popup && btn && !popup.contains(e.target) && !btn.contains(e.target)) {
             popup.classList.remove('show');
         }
-    });
+    }, { signal });
 
     window.toggleMonthPicker = function(event) {
         console.log('toggleMonthPicker called');
@@ -554,30 +560,25 @@ function applyFilters(shouldScroll = false) {
     document.getElementById('bulk-action-form').submit();
     };
 
-    /* Close on Escape - prevent duplicate listeners */
-    if (!window._escapeListenerAdded) {
-        window._escapeListenerAdded = true;
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') {
-                hideBulkModal('approve');
-                hideBulkModal('reject');
-                hideBulkModal('submit');
-            }
-        });
-    }
+    /* Close on Escape — AbortController prevents duplication across navigations */
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            hideBulkModal('approve');
+            hideBulkModal('reject');
+            hideBulkModal('submit');
+        }
+    }, { signal });
 
-    /* Close on overlay click - prevent duplicate listeners */
-    if (!window._modalClickListenersAdded) {
-        window._modalClickListenersAdded = true;
-        ['approve-modal', 'reject-modal', 'submit-modal'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('click', function(e) {
-                    if (e.target === this) hideBulkModal(id.replace('-modal', ''));
-                });
-            }
-        });
-    }
+    /* Close on overlay click — elements are inside #mainContent so they are
+       destroyed on SPA navigation and never accumulate listeners */
+    ['approve-modal', 'reject-modal', 'submit-modal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('click', function(e) {
+                if (e.target === this) hideBulkModal(id.replace('-modal', ''));
+            });
+        }
+    });
 
     /* ═══════════════════════════════════════════
        BULK SUBMIT DRAFTS — Modal + Form Submission
