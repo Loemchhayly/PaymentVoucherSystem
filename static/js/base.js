@@ -152,7 +152,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Clean up old page-specific resources
     function cleanupOldPageResources() {
         const popup = document.getElementById('monthPickerPopup');
-        if (popup) popup.classList.remove('show');
+        if (popup) {
+            popup.classList.remove('show');
+            popup.style.display = 'none';
+            popup.remove(); // ✅ fully remove it from DOM
+        }
         // Abort all page-specific event listeners registered via AbortController
         if (window._pageAbortController) {
             window._pageAbortController.abort();
@@ -683,6 +687,31 @@ function executePageScripts(doc) {
         notifDropdown && notifDropdown.classList.remove('show');
         userDropdown  && userDropdown.classList.remove('show');
     }
+    // Close month picker when clicking outside
+    document.addEventListener('click', function(e) {
+        const popup = document.getElementById('monthPickerPopup');
+        if (!popup) return;
+        if (
+            !popup.contains(e.target) &&
+            !e.target.closest('.filter-year-btn') &&
+            !e.target.closest('.fiscal-year-btn') &&
+            !e.target.closest('[data-month-picker]')
+        ) {
+            popup.classList.remove('show');
+            popup.style.display = 'none';
+        }
+    });
+
+    // Close month picker on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const popup = document.getElementById('monthPickerPopup');
+            if (popup) {
+                popup.classList.remove('show');
+                popup.style.display = 'none';
+            }
+        }
+    });
 
     /* ── Auto-dismiss alerts ── */
     document.querySelectorAll('.modern-alert').forEach(function (alert) {
