@@ -1254,23 +1254,10 @@ body[data-theme="light"] .panel-title-sub {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-// Helper function to wait for Chart.js to be available
-function waitForChart(callback, maxAttempts = 50) {
-    let attempts = 0;
-    const checkChart = setInterval(() => {
-        attempts++;
-        if (window.Chart) {
-            clearInterval(checkChart);
-            callback();
-        } else if (attempts >= maxAttempts) {
-            clearInterval(checkChart);
-            console.error('Chart.js failed to load after', maxAttempts, 'attempts');
-        }
-    }, 100); // Check every 100ms
-}
+
 
 // Wait for Chart.js, then initialize charts
-waitForChart(function() {
+requestAnimationFrame(function() {
     // Destroy old Chart.js instances
     if (window.Chart) {
         ['barChart', 'donutChart'].forEach(id => {
@@ -1279,14 +1266,7 @@ waitForChart(function() {
         });
     }
 
-    // Replace canvas with fresh clone to fully reset any stale binding
-    ['barChart', 'donutChart'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            const clone = el.cloneNode(true);
-            el.parentNode.replaceChild(clone, el);
-        }
-    });
+
 
     // ── Data from Django ──
     const chartLabels  = {{ chart_labels|safe }};
@@ -1384,19 +1364,7 @@ waitForChart(function() {
         }
       },
     scales: {
-      x: {
-        grid: { display: false },
-        ticks: {
-          color: (c) => {
-            const isLight = document.body.getAttribute('data-theme') === 'light';
-            const label = c.chart.data.labels[c.index];
-            const isCurrent = label && label.toUpperCase() === currentMonth.toUpperCase();
-            return isCurrent ? '#0891b2' : (isLight ? '#64748b' : '#4a6480'); // ✅
-          },
-          font: { family: 'Montserrat', size: 9, weight: '700' }
-        },
-        border: { display: false }
-      },
+
     y: {
         grid: {
             color: document.body.getAttribute('data-theme') === 'light'
