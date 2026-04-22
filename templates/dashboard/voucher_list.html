@@ -320,7 +320,7 @@
                             <div class="preparer-cell">
                                 <div class="preparer-avatar {% cycle 'av-teal' 'av-purple' 'av-green' 'av-orange' 'av-pink' 'av-blue' 'av-amber' %}">
                                     {% if voucher.created_by.profile_photo %}
-                                        <img src="{{ voucher.created_by.profile_photo.url }}" alt="{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}">
+                                        <img src="{{ voucher.created_by.profile_photo.url }}" alt="{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}" width="26" height="26" style="width:26px;height:26px;object-fit:cover;display:block;">
                                     {% else %}
                                         {{ voucher.created_by.get_full_name|default:voucher.created_by.username|slice:":2"|upper }}
                                     {% endif %}
