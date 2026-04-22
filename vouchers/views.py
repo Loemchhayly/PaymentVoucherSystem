@@ -460,6 +460,11 @@ def voucher_submit(request, pk):
 @login_required
 def voucher_approve(request, pk):
     """Handle approval actions (approve, reject, return)"""
+    # Permission checks only make sense on an intentional POST — a GET to this
+    # URL (stale redirect, browser back, etc.) should never show an error toast.
+    if request.method != 'POST':
+        return redirect('vouchers:detail', pk=pk)
+
     voucher = get_object_or_404(PaymentVoucher, pk=pk)
 
     # MD users cannot approve PENDING_L5 documents individually
@@ -473,26 +478,25 @@ def voucher_approve(request, pk):
         messages.error(request, 'You are not authorized to approve this voucher')
         return redirect('vouchers:detail', pk=pk)
 
-    if request.method == 'POST':
-        form = ApprovalActionForm(request.POST, user=request.user, voucher=voucher)
+    form = ApprovalActionForm(request.POST, user=request.user, voucher=voucher)
 
-        if form.is_valid():
-            action = form.cleaned_data['action']
-            comments = form.cleaned_data.get('comments', '')
+    if form.is_valid():
+        action = form.cleaned_data['action']
+        comments = form.cleaned_data.get('comments', '')
 
-            try:
-                VoucherStateMachine.transition(voucher, action, request.user, comments)
-                messages.success(request, f'Voucher {action}d successfully!')
+        try:
+            VoucherStateMachine.transition(voucher, action, request.user, comments)
+            messages.success(request, f'Voucher {action}d successfully!')
 
-                # Redirect back to the page they came from (e.g., Pending My Action)
-                next_url = request.POST.get('next') or request.GET.get('next')
-                if next_url:
-                    return redirect(next_url)
+            # Redirect back to the page they came from (e.g., Pending My Action)
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
 
-            except ValueError as e:
-                messages.error(request, str(e))
-        else:
-            messages.error(request, 'Invalid form submission. Please check your input.')
+        except ValueError as e:
+            messages.error(request, str(e))
+    else:
+        messages.error(request, 'Invalid form submission. Please check your input.')
 
     return redirect('vouchers:detail', pk=pk)
 
@@ -532,6 +536,11 @@ def form_submit(request, pk):
 @login_required
 def form_approve(request, pk):
     """Handle approval actions for payment forms (approve, reject, return)"""
+    # Permission checks only make sense on an intentional POST — a GET to this
+    # URL (stale redirect, browser back, etc.) should never show an error toast.
+    if request.method != 'POST':
+        return redirect('vouchers:pf_detail', pk=pk)
+
     payment_form = get_object_or_404(PaymentForm, pk=pk)
 
     # MD users cannot approve PENDING_L5 documents individually
@@ -545,26 +554,25 @@ def form_approve(request, pk):
         messages.error(request, 'You are not authorized to approve this form')
         return redirect('vouchers:pf_detail', pk=pk)
 
-    if request.method == 'POST':
-        form = ApprovalActionForm(request.POST, user=request.user, voucher=payment_form)
+    form = ApprovalActionForm(request.POST, user=request.user, voucher=payment_form)
 
-        if form.is_valid():
-            action = form.cleaned_data['action']
-            comments = form.cleaned_data.get('comments', '')
+    if form.is_valid():
+        action = form.cleaned_data['action']
+        comments = form.cleaned_data.get('comments', '')
 
-            try:
-                FormStateMachine.transition(payment_form, action, request.user, comments)
-                messages.success(request, f'Payment Form {action}d successfully!')
+        try:
+            FormStateMachine.transition(payment_form, action, request.user, comments)
+            messages.success(request, f'Payment Form {action}d successfully!')
 
-                # Redirect back to the page they came from (e.g., Pending My Action)
-                next_url = request.POST.get('next') or request.GET.get('next')
-                if next_url:
-                    return redirect(next_url)
+            # Redirect back to the page they came from (e.g., Pending My Action)
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
 
-            except ValueError as e:
-                messages.error(request, str(e))
-        else:
-            messages.error(request, 'Invalid form submission. Please check your input.')
+        except ValueError as e:
+            messages.error(request, str(e))
+    else:
+        messages.error(request, 'Invalid form submission. Please check your input.')
 
     return redirect('vouchers:pf_detail', pk=pk)
 
