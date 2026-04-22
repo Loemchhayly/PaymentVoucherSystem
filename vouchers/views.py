@@ -112,13 +112,15 @@ def voucher_repeat(request, pk):
     # Get the source voucher
     source_voucher = get_object_or_404(PaymentVoucher, pk=pk)
 
-    # Check if user has access to this voucher
+    # Check if user has access to this voucher (security check runs on both GET and POST,
+    # but the error toast is only shown on POST — a GET just silently redirects away)
     if not (request.user.is_staff or
             request.user.role_level in [1, 5] or  # Account Payable and MD see all
             source_voucher.created_by == request.user or
             source_voucher.current_approver == request.user or
             source_voucher.approval_history.filter(actor=request.user).exists()):
-        messages.error(request, 'You do not have permission to repeat this voucher.')
+        if request.method == 'POST':
+            messages.error(request, 'You do not have permission to repeat this voucher.')
         return redirect('dashboard:home')
 
     if request.method == 'POST':
@@ -432,6 +434,9 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
 @login_required
 def voucher_submit(request, pk):
     """Submit voucher for approval"""
+    if request.method != 'POST':
+        return redirect('vouchers:detail', pk=pk)
+
     voucher = get_object_or_404(PaymentVoucher, pk=pk)
 
     # Check permission
@@ -508,6 +513,9 @@ def voucher_approve(request, pk):
 @login_required
 def form_submit(request, pk):
     """Submit payment form for approval"""
+    if request.method != 'POST':
+        return redirect('vouchers:pf_detail', pk=pk)
+
     payment_form = get_object_or_404(PaymentForm, pk=pk)
 
     # Check permission
@@ -1012,13 +1020,15 @@ def form_repeat(request, pk):
     # Get the source form
     source_form = get_object_or_404(PaymentForm, pk=pk)
 
-    # Check if user has access to this form
+    # Check if user has access to this form (security check runs on both GET and POST,
+    # but the error toast is only shown on POST — a GET just silently redirects away)
     if not (request.user.is_staff or
             request.user.role_level in [1, 5] or  # Account Payable and MD see all
             source_form.created_by == request.user or
             source_form.current_approver == request.user or
             source_form.approval_history.filter(actor=request.user).exists()):
-        messages.error(request, 'You do not have permission to repeat this form.')
+        if request.method == 'POST':
+            messages.error(request, 'You do not have permission to repeat this form.')
         return redirect('dashboard:home')
 
     if request.method == 'POST':
