@@ -54,7 +54,7 @@
 @keyframes statBarGrow   { from{transform:scaleX(0)} to{transform:scaleX(1)} }
 
 .dash {
-  max-width: 1440px; margin: 0 auto;
+  max-width: 100%; margin: 0 auto;
   padding: 0 28px 48px;
   opacity: 0;
   animation: fadeInPage .4s var(--ease) .05s forwards;
@@ -839,7 +839,7 @@ body[data-theme="light"] .panel-title-sub {
 {% endblock %}
 
 {% block content %}
-<div class="dash">
+<div class="dash" style="max-width:100%;">
 
   <!-- ══════════════ PAGE HEADER ══════════════ -->
   <div class="dash-header">

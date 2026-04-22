@@ -14,8 +14,13 @@ def pending_approvals(request):
     For other levels, shows only documents assigned to them.
     """
     if request.user.is_authenticated:
+        # System Admin — badge shows ALL pending documents across every level
+        if request.user.role_level == 99:
+            pv_count = PaymentVoucher.objects.filter(status__startswith='PENDING').count()
+            pf_count = PaymentForm.objects.filter(status__startswith='PENDING').count()
+            batch_count = 0
         # MD users only work through batches - they don't see individual documents
-        if request.user.role_level == 5:
+        elif request.user.role_level == 5:
             pv_count = 0
             pf_count = 0
             batch_count = SignatureBatch.objects.filter(status='PENDING').count()

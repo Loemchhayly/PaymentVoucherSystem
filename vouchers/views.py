@@ -115,7 +115,7 @@ def voucher_repeat(request, pk):
     # Check if user has access to this voucher (security check runs on both GET and POST,
     # but the error toast is only shown on POST — a GET just silently redirects away)
     if not (request.user.is_staff or
-            request.user.role_level in [1, 5] or  # Account Payable and MD see all
+            request.user.role_level in [1, 5, 99] or  # Account Payable, MD, and System Admin see all
             source_voucher.created_by == request.user or
             source_voucher.current_approver == request.user or
             source_voucher.approval_history.filter(actor=request.user).exists()):
@@ -358,8 +358,8 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
         """Filter to only vouchers user has access to"""
         user = self.request.user
 
-        # Account Payable (role 1), MD (role 5), and staff see ALL vouchers
-        if user.is_staff or user.role_level in [1, 5]:
+        # Account Payable (role 1), MD (role 5), System Admin (role 99), and staff see ALL vouchers
+        if user.is_staff or user.role_level in [1, 5, 99]:
             return PaymentVoucher.objects.all()
 
         # Other roles can see if: creator, current approver, or in approval history
@@ -395,6 +395,7 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
         voucher_status = getattr(voucher, 'status', '')
 
         context['can_approve'] = (
+            user_role != 99 and
             voucher.current_approver == user and
             voucher_status.startswith('PENDING') and
             not (user_role == 5 and voucher_status == 'PENDING_L5')
@@ -679,7 +680,7 @@ def download_attachment(request, pk, attachment_id):
         voucher.current_approver == user or
         voucher.approval_history.filter(actor=user).exists() or
         user.is_staff or
-        user.role_level in [1, 5]  # Account Payable and MD see all
+        user.role_level in [1, 5, 99]  # Account Payable, MD, and System Admin see all
     )
 
     if not has_access:
@@ -806,7 +807,7 @@ def download_form_attachment(request, pk, attachment_id):
                 payment_form.current_approver == user or
                 payment_form.approval_history.filter(actor=user).exists() or
                 user.is_staff or
-                user.role_level in [1, 5]  # Account Payable and MD see all
+                user.role_level in [1, 5, 99]  # Account Payable, MD, and System Admin see all
         )
 
         if not has_access:
@@ -869,7 +870,7 @@ def voucher_pdf(request, pk):
         voucher.current_approver == user or
         voucher.approval_history.filter(actor=user).exists() or
         user.is_staff or
-        user.role_level in [1, 5]  # Account Payable and MD see all
+        user.role_level in [1, 5, 99]  # Account Payable, MD, and System Admin see all
     )
 
     if not has_access:
@@ -1023,7 +1024,7 @@ def form_repeat(request, pk):
     # Check if user has access to this form (security check runs on both GET and POST,
     # but the error toast is only shown on POST — a GET just silently redirects away)
     if not (request.user.is_staff or
-            request.user.role_level in [1, 5] or  # Account Payable and MD see all
+            request.user.role_level in [1, 5, 99] or  # Account Payable, MD, and System Admin see all
             source_form.created_by == request.user or
             source_form.current_approver == request.user or
             source_form.approval_history.filter(actor=request.user).exists()):
@@ -1267,8 +1268,8 @@ class FormDetailView(LoginRequiredMixin, DetailView):
         """Filter to only forms user has access to"""
         user = self.request.user
 
-        # Account Payable (role 1), MD (role 5), and staff see ALL forms
-        if user.is_staff or user.role_level in [1, 5]:
+        # Account Payable (role 1), MD (role 5), System Admin (role 99), and staff see ALL forms
+        if user.is_staff or user.role_level in [1, 5, 99]:
             return PaymentForm.objects.all()
 
         # Other roles can see if: creator, current approver, or in approval history
@@ -1304,6 +1305,7 @@ class FormDetailView(LoginRequiredMixin, DetailView):
         form_status = getattr(payment_form, 'status', '')
 
         context['can_approve'] = (
+            user_role != 99 and
             payment_form.current_approver == user and
             form_status.startswith('PENDING') and
             not (user_role == 5 and form_status == 'PENDING_L5')

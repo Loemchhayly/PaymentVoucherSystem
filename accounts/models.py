@@ -12,6 +12,7 @@ class User(AbstractUser):
     3 - Finance Manager (Second Reviewer)
     4 - General Manager (Third Reviewer)
     5 - Managing Director (Final Optional Reviewer)
+    99 - System Admin (View-only monitor, cannot approve)
     """
 
     ROLE_CHOICES = [
@@ -20,6 +21,7 @@ class User(AbstractUser):
         (3, 'Finance Manager'),
         (4, 'General Manager'),
         (5, 'Managing Director'),
+        (99, 'System Admin'),
     ]
 
     role_level = models.IntegerField(
@@ -89,6 +91,11 @@ class User(AbstractUser):
     def can_approve_level(self, level):
         """Check if user can approve at given level"""
         return self.role_level == level if self.role_level else False
+
+    @property
+    def is_admin_viewer(self):
+        """System Admin role — view-only monitor, cannot approve/reject anything."""
+        return self.role_level == 99
 
     def is_account_active(self):
         """Check if account is fully active (approved, verified, and active)"""
