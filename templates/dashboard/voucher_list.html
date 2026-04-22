@@ -316,19 +316,10 @@
                             {% endif %}
                         </td>
 
-                        <td onclick="event.stopPropagation()">
-                            <div class="preparer-cell">
-                                <div class="preparer-avatar {% cycle 'av-teal' 'av-purple' 'av-green' 'av-orange' 'av-pink' 'av-blue' 'av-amber' %}">
-                                    {% if voucher.created_by.profile_photo %}
-                                        <img src="{{ voucher.created_by.profile_photo.url }}" alt="{{ voucher.created_by.get_full_name|default:voucher.created_by.username }}" width="26" height="26" style="width:26px;height:26px;object-fit:cover;display:block;">
-                                    {% else %}
-                                        {{ voucher.created_by.get_full_name|default:voucher.created_by.username|slice:":2"|upper }}
-                                    {% endif %}
-                                </div>
-                                <span class="preparer-name">
-                                    {{ voucher.created_by.get_full_name|default:voucher.created_by.username|truncatechars:14 }}
-                                </span>
-                            </div>
+                        <td>
+                            <span class="preparer-name">
+                                {{ voucher.created_by.get_full_name|default:voucher.created_by.username }}
+                            </span>
                         </td>
 
                         <td onclick="event.stopPropagation()" style="width:70px;">
