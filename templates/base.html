@@ -177,9 +177,9 @@
         <!-- User profile at bottom -->
         <div class="sidebar-footer">
             <a class="sidebar-user" href="{% url 'accounts:profile' %}" data-tooltip="{{ user.get_full_name|default:user.username }}">
-                <div class="user-avatar">
+                <div class="user-avatar" style="width:36px;height:36px;min-width:36px;border-radius:50%;overflow:hidden;flex-shrink:0;">
                     {% if user.profile_photo %}
-                        <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name|default:user.username }}">
+                        <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name|default:user.username }}" style="width:36px;height:36px;max-width:36px;max-height:36px;object-fit:cover;border-radius:50%;display:block;">
                     {% else %}
                         {{ user.get_full_name|default:user.username|slice:":2"|upper }}
                     {% endif %}
@@ -269,9 +269,9 @@
                 <!-- User chip -->
                 <div style="position:relative;">
                     <button class="topbar-user" id="userBtn" onclick="window.toggleUserDropdown(event)">
-                        <div class="user-avatar" style="width:26px;height:26px;font-size:0.62rem;">
+                        <div class="user-avatar" style="width:26px;height:26px;min-width:26px;font-size:0.62rem;border-radius:50%;overflow:hidden;flex-shrink:0;">
                             {% if user.profile_photo %}
-                                <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name|default:user.username }}">
+                                <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name|default:user.username }}" style="width:26px;height:26px;max-width:26px;max-height:26px;object-fit:cover;border-radius:50%;display:block;">
                             {% else %}
                                 {{ user.get_full_name|default:user.username|slice:":2"|upper }}
                             {% endif %}
