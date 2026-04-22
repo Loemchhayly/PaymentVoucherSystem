@@ -221,6 +221,11 @@ class DashboardView(LoginRequiredMixin, ListView):
             pending_pfs = PaymentForm.objects.filter(
                 status__startswith='PENDING'
             ).order_by('-created_at')
+            context['pending_docs'] = sorted(
+                chain(pending_pvs, pending_pfs),
+                key=attrgetter('created_at'),
+                reverse=True
+            )[:5]
         else:
             pending_pvs = PaymentVoucher.objects.filter(
                 current_approver=user,

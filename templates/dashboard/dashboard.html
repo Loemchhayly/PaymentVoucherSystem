@@ -1071,6 +1071,7 @@ body[data-theme="light"] .panel-title-sub {
             {% elif user.role_level == 3 %}Finance Manager Actions
             {% elif user.role_level == 4 %}Director Actions
             {% elif user.role_level == 5 %}Managing Director Actions
+            {% elif user.role_level == 99 %}System Admin — View Only
             {% endif %}
           </div>
         </div>
@@ -1097,6 +1098,12 @@ body[data-theme="light"] .panel-title-sub {
 
         {% if user.role_level == 5 %}
         <a href="{% url 'vouchers:md_dashboard' %}" class="action-btn action-primary"><i class="bi bi-pen"></i> Batch Signature Dashboard</a>
+        {% endif %}
+
+        {% if user.role_level == 99 %}
+        <a href="{% url 'dashboard:pending' %}" class="action-btn action-primary"><i class="bi bi-clock-history"></i> All Pending Documents</a>
+        <a href="{% url 'dashboard:in_progress' %}" class="action-btn"><i class="bi bi-arrow-repeat"></i> In Progress</a>
+        <a href="{% url 'dashboard:approved' %}" class="action-btn"><i class="bi bi-check-circle"></i> Approved Documents</a>
         {% endif %}
 
         <a href="{% url 'vouchers:all_batches_list' %}" class="action-btn"><i class="bi bi-card-list"></i> View All Batches</a>
