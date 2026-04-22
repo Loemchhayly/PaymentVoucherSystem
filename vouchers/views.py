@@ -1750,11 +1750,25 @@ def bulk_approval_action(request):
         )
 
     if error_count > 0:
-        for error in errors[:5]:  # Show first 5 errors
-            messages.error(request, error)
+        # Deduplicate by error reason so identical errors (e.g. "not the assigned approver"
+        # repeated across many documents) collapse into one toast instead of flooding the UI.
+        reason_counts = {}
+        for err in errors:
+            parts = err.split(': ', 1)
+            reason = parts[1] if len(parts) > 1 else err
+            reason_counts[reason] = reason_counts.get(reason, 0) + 1
 
-        if len(errors) > 5:
-            messages.warning(request, f"...and {len(errors) - 5} more error(s)")
+        if len(reason_counts) == 1:
+            reason, count = next(iter(reason_counts.items()))
+            msg = f"{count} document(s) failed: {reason}" if count > 1 else errors[0]
+            messages.error(request, msg)
+        else:
+            # Multiple distinct reasons — show each unique reason once (max 3 toasts)
+            for reason, count in list(reason_counts.items())[:3]:
+                prefix = f"{count}× " if count > 1 else ""
+                messages.error(request, f"{prefix}{reason}")
+            if len(reason_counts) > 3:
+                messages.warning(request, f"...and {len(reason_counts) - 3} more error type(s)")
 
     return redirect('dashboard:pending')
 

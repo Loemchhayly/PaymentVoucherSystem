@@ -713,13 +713,38 @@ function executePageScripts(doc) {
         }
     });
 
-    /* ── Auto-dismiss alerts ── */
-    document.querySelectorAll('.modern-alert').forEach(function (alert) {
-        setTimeout(function () {
-            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-            if (bsAlert) bsAlert.close();
-        }, 5000);
-    });
+    /* ── Alert toast management: dedup · cap · auto-dismiss ── */
+    (function () {
+        const container = document.querySelector('.alert-container');
+        if (!container) return;
+
+        const MAX_TOASTS = 3;
+
+        // 1. Remove duplicate messages (keep first occurrence of each text)
+        const seen = new Set();
+        container.querySelectorAll('.modern-alert').forEach(function (alert) {
+            const text = (alert.querySelector('.alert-content') || alert).textContent.trim();
+            if (seen.has(text)) {
+                alert.remove();
+            } else {
+                seen.add(text);
+            }
+        });
+
+        // 2. Cap at MAX_TOASTS — remove oldest excess alerts
+        const remaining = Array.from(container.querySelectorAll('.modern-alert'));
+        if (remaining.length > MAX_TOASTS) {
+            remaining.slice(MAX_TOASTS).forEach(function (a) { a.remove(); });
+        }
+
+        // 3. Auto-dismiss each visible toast after 4 s (stagger by 300 ms so they don't all vanish at once)
+        container.querySelectorAll('.modern-alert').forEach(function (alert, idx) {
+            setTimeout(function () {
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                if (bsAlert) bsAlert.close();
+            }, 4000 + idx * 300);
+        });
+    })();
 
     /* ── Active link highlight ── */
     const path = window.location.pathname;
