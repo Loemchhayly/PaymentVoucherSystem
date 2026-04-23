@@ -42,8 +42,30 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // URLs that opt out of SPA navigation and always do a full page load.
+    // Add paths here when SPA causes CSS/modal/layout issues on that page.
+    const SPA_EXCLUDED_PATHS = [
+        '/all-vouchers/',
+        '/pending/',
+    ];
+
+    function isSPAExcluded(url) {
+        try {
+            const path = new URL(url, window.location.origin).pathname;
+            return SPA_EXCLUDED_PATHS.some(excluded => path === excluded || path.startsWith(excluded));
+        } catch (e) {
+            return false;
+        }
+    }
+
     // Navigate to a new page via AJAX
     async function navigateToPage(url, clickedLink) {
+        // Fall back to full page load for excluded paths
+        if (isSPAExcluded(url)) {
+            window.location.href = url;
+            return;
+        }
+
         if (isNavigating) return;
         isNavigating = true;
 
