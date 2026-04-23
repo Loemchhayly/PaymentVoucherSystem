@@ -312,10 +312,11 @@ function executePageScripts(doc) {
 
     loadScriptsSequentially(externalScripts, 0, function () {
         inlineScripts.forEach(code => {
+            var _origAddEvt = document.addEventListener.bind(document);
+            var _origReady;
             try {
                 // Patch document.addEventListener BEFORE creating the script element
                 // so DOMContentLoaded listeners inside the script fire immediately
-                var _origAddEvt = document.addEventListener.bind(document);
                 document.addEventListener = function(type, fn, opts) {
                     if (type === 'DOMContentLoaded') {
                         // Execute immediately since DOM is already loaded
@@ -326,7 +327,6 @@ function executePageScripts(doc) {
                 };
 
                 // Shim jQuery ready if jQuery exists
-                var _origReady;
                 if (window.jQuery) {
                     _origReady = jQuery.fn.ready;
                     jQuery.fn.ready = function(fn) {
@@ -339,15 +339,15 @@ function executePageScripts(doc) {
                 s.textContent = code;  // run directly, no IIFE wrapper
                 s.setAttribute('data-page-specific', 'true');
                 document.body.appendChild(s);
-
-                // Restore after appending (inline scripts execute synchronously on append)
+            } catch (e) {
+                console.error('Script execution error during SPA navigation:', e);
+                console.error('Failed script preview:', code.substring(0, 200));
+            } finally {
+                // Always restore — even if the script threw on execution
                 document.addEventListener = _origAddEvt;
                 if (window.jQuery && _origReady) {
                     jQuery.fn.ready = _origReady;
                 }
-            } catch (e) {
-                console.error('Script execution error during SPA navigation:', e);
-                console.error('Failed script preview:', code.substring(0, 200));
             }
         });
 

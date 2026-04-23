@@ -237,6 +237,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     };
 
     let searchTimeout;
+    // Clear pending search timeout when the page is navigated away from
+    signal.addEventListener('abort', () => clearTimeout(searchTimeout));
+
     window.liveSearch = function(val) {
         const clearBtn = document.getElementById('searchClearBtn');
         if (clearBtn) clearBtn.style.display = val.trim() ? 'flex' : 'none';
@@ -418,7 +421,7 @@ function applyFilters(shouldScroll = false) {
     const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
     window.history.pushState({url: newUrl, filters: currentFilters}, '', newUrl);
 
-    fetch(newUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    fetch(newUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, signal })
         .then(r => r.text())
         .then(html => {
             const parser  = new DOMParser();
