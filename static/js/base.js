@@ -82,16 +82,21 @@ document.addEventListener('DOMContentLoaded', function () {
             const newContent = doc.querySelector('#mainContent');
 
             if (newContent && mainContent) {
-                // 1. Clean up old resources (removes stale styles + aborts old listeners)
+                // 1. Abort old page listeners / destroy charts — but do NOT remove CSS yet.
+                //    Removing CSS before the swap causes the old content (still visible at
+                //    30% opacity) to lose its styles, which makes the topbar/header jump.
                 cleanupOldPageResources();
 
-                // 2. Load new styles and WAIT — content is injected only after CSS is ready
-                //    This eliminates the flash of unstyled content on every SPA navigation.
+                // 2. Pre-load new styles (tagged data-new-page-style) while old CSS stays.
+                //    Awaiting here means new CSS is already parsed before we swap content.
                 await loadPageStyles(doc);
 
-                // 3. Inject content now that styles are already applied
+                // 3. Swap content, then immediately flush old CSS and promote new CSS.
+                //    Both happen in the same synchronous block so the browser sees exactly
+                //    one layout: new content + new styles, no intermediate unstyled frame.
                 mainContent.innerHTML = newContent.innerHTML;
                 mainContent.setAttribute('data-url', url);
+                flushOldPageStyles();
 
                 // Update page title
                 const newTitle = doc.querySelector('title');
@@ -109,29 +114,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 // 4. Execute page-specific scripts
                 executePageScripts(doc);
 
-                // Fix scroll and layout
+                // Restore scroll position in next frame (layout is stable by then)
                 const targetScrollY = window._restoreScrollY || 0;
                 window._restoreScrollY = null;
 
-                window.scrollTo(0, targetScrollY);
-                document.documentElement.scrollTop = targetScrollY;
-                document.body.scrollTop = targetScrollY;
-
                 requestAnimationFrame(() => {
-                    const topbar = document.querySelector('.topbar');
-                    const sidebar = document.querySelector('.sidebar');
-                    const contentWrapper = document.querySelector('.content-wrapper');
-                    if (topbar) topbar.offsetHeight;
-                    if (sidebar) sidebar.offsetWidth;
-                    if (contentWrapper) contentWrapper.offsetHeight;
-
-                    requestAnimationFrame(() => {
-                        window.scrollTo(0, targetScrollY);
-                        document.documentElement.scrollTop = targetScrollY;
-                        document.body.scrollTop = targetScrollY;
-                        window.dispatchEvent(new Event('resize'));
-                        window.dispatchEvent(new Event('scroll'));
-                    });
+                    window.scrollTo(0, targetScrollY);
                 });
             } else {
                 // Fallback to full page load
@@ -174,14 +162,27 @@ document.addEventListener('DOMContentLoaded', function () {
         delete window._modalClickListenersAdded;
         delete window._searchUIInitialized;
 
-        // Remove ALL page styles before loading new page — prevents CSS pileup
+        // CSS cleanup intentionally omitted here — deferred to flushOldPageStyles()
+        // which is called AFTER content injection to prevent layout shifts.
+        // Only scripts are removed now so stale JS doesn't linger.
+        document.querySelectorAll('script[data-page-specific]').forEach(el => el.remove());
+    }
+
+    // Swap CSS in one shot: remove old page styles, promote newly loaded styles.
+    // Called synchronously right after mainContent.innerHTML is set, so the browser
+    // paints new content + new CSS together without an unstyled intermediate frame.
+    function flushOldPageStyles() {
+        // Remove old page-specific styles
         document.querySelectorAll('style[data-page-specific]').forEach(el => el.remove());
         document.querySelectorAll('link[data-page-specific]').forEach(el => el.remove());
-        document.querySelectorAll('script[data-page-specific]').forEach(el => el.remove());
+        // Remove any unmarked inline styles (but not base styles or newly loaded styles)
+        document.querySelectorAll('head style:not([data-base]):not([data-new-page-style])').forEach(el => el.remove());
 
-        // Also remove any styles that were NOT marked but still page-specific
-        // by removing all styles added after the base styles
-        document.querySelectorAll('head style:not([data-base])').forEach(el => el.remove());
+        // Promote newly loaded styles to page-specific so they're cleaned up next navigation
+        document.querySelectorAll('[data-new-page-style]').forEach(el => {
+            el.removeAttribute('data-new-page-style');
+            el.setAttribute('data-page-specific', 'true');
+        });
     }
 
     // Load page-specific CSS from the fetched document.
@@ -189,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // so callers can await it before injecting content (prevents FOUC).
     async function loadPageStyles(doc) {
         // Inject inline <style> tags synchronously (instant, no network round-trip)
+        // Tagged data-new-page-style so flushOldPageStyles() can promote them later.
         const styleTags = doc.querySelectorAll('head style');
         styleTags.forEach(style => {
             if (style.textContent.includes('FINVAULT DESIGN SYSTEM')) return;
@@ -196,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const newStyle = document.createElement('style');
             newStyle.textContent = style.textContent;
-            newStyle.setAttribute('data-page-specific', 'true');
+            newStyle.setAttribute('data-new-page-style', 'true');
             document.head.appendChild(newStyle);
         });
 
@@ -223,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const newLink = document.createElement('link');
                 newLink.rel = 'stylesheet';
                 newLink.href = href;
-                newLink.setAttribute('data-page-specific', 'true');
+                newLink.setAttribute('data-new-page-style', 'true');
                 const p = new Promise(resolve => {
                     newLink.onload = resolve;
                     newLink.onerror = resolve;   // Don't block on CSS error
@@ -660,11 +662,6 @@ function executePageScripts(doc) {
             // Only fix header position, no auto-reload
             fixHeaderPosition();
         }
-    });
-
-    // Fix header when window regains focus
-    window.addEventListener('focus', function() {
-        fixHeaderPosition();
     });
 
     // Fix header when returning from browser back/forward (bfcache restoration)

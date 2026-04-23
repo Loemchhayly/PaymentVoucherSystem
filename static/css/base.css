@@ -167,6 +167,19 @@
             opacity: 0.3;
             pointer-events: none;
         }
+
+        /* ── Mobile-only cards: hidden on desktop, visible on mobile.
+           Rule lives in base.css (never removed by SPA cleanup) so it
+           survives every page transition regardless of which page CSS
+           is currently loaded. ── */
+        .mobile-voucher-cards {
+            display: none !important;
+        }
+        @media (max-width: 768px) {
+            .mobile-voucher-cards {
+                display: block !important;
+            }
+        }
         .nav-loading-indicator {
             position: fixed;
             top: 0;
