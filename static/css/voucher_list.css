@@ -781,7 +781,7 @@ body[data-theme="dark"] .month-picker-clear-btn:hover {
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.85px;
-    padding: 10px 14px;
+    padding: 10px 12px;
     text-align: left;
     white-space: nowrap;
 }
@@ -796,10 +796,22 @@ body[data-theme="dark"] .month-picker-clear-btn:hover {
 .pv-table td {
     font-size: 0.8rem;
     color: var(--text-secondary);
-    padding: 11px 14px;
+    padding: 10px 12px;
     border-bottom: 1px solid rgba(255,255,255,0.038);
     vertical-align: middle;
     font-family: 'Kantumruy Pro', 'Montserrat', 'Battambang', sans-serif;
+}
+
+/* Currency column (6th) — prevent text bleeding into Date */
+.pv-table th:nth-child(6),
+.pv-table td:nth-child(6) {
+    min-width: 80px;
+}
+
+/* Status column (8th) — prevent long status labels bleeding into Prepared By */
+.pv-table th:nth-child(8),
+.pv-table td:nth-child(8) {
+    min-width: 140px;
 }
 
 .pv-table tbody tr {
