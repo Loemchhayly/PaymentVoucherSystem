@@ -53,7 +53,10 @@ class PaymentVoucherForm(forms.ModelForm):
             }),
             'payment_date': forms.DateInput(attrs={
                 'class': 'form-control',
-                'type': 'date'
+                'type': 'text',
+                'placeholder': 'Select date',
+                'autocomplete': 'off',
+                'data-flatpickr': 'true',
             }),
             'company_bank_account': forms.Select(attrs={
                 'class': 'form-control'
@@ -270,7 +273,10 @@ class PaymentFormForm(forms.ModelForm):
             }),
             'payment_date': forms.DateInput(attrs={
                 'class': 'form-control',
-                'type': 'date'
+                'type': 'text',
+                'placeholder': 'Select date',
+                'autocomplete': 'off',
+                'data-flatpickr': 'true',
             }),
             'company_bank_account': forms.Select(attrs={
                 'class': 'form-control'
