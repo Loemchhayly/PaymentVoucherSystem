@@ -394,16 +394,11 @@ function applyFilters(shouldScroll = false) {
     const popup = document.getElementById('monthPickerPopup');
     if (popup) popup.classList.remove('show');
     const tableBody = document.querySelector('.pv-table tbody');
-    const mobileCards = document.getElementById('mobileVoucherCards');
 
-    // Dim both desktop table and mobile cards
+    // Dim desktop table while loading
     if (tableBody) {
         tableBody.style.opacity = '0.4';
         tableBody.style.pointerEvents = 'none';
-    }
-    if (mobileCards) {
-        mobileCards.style.opacity = '0.4';
-        mobileCards.style.pointerEvents = 'none';
     }
 
     const params = new URLSearchParams();
@@ -435,12 +430,11 @@ function applyFilters(shouldScroll = false) {
                 tableBody.style.pointerEvents = 'auto';
             }
 
-            // Update mobile cards
+            // Update mobile cards content — visibility is controlled by CSS media query only
+            const mobileCards = document.getElementById('mobileVoucherCards');
             const newMobileCards = doc.getElementById('mobileVoucherCards');
             if (newMobileCards && mobileCards) {
                 mobileCards.innerHTML = newMobileCards.innerHTML;
-                mobileCards.style.opacity = '1';
-                mobileCards.style.pointerEvents = 'auto';
             }
 
             // Update pagination footer
@@ -474,10 +468,6 @@ function applyFilters(shouldScroll = false) {
             if (tableBody) {
                 tableBody.style.opacity = '1';
                 tableBody.style.pointerEvents = 'auto';
-            }
-            if (mobileCards) {
-                mobileCards.style.opacity = '1';
-                mobileCards.style.pointerEvents = 'auto';
             }
         });
 }

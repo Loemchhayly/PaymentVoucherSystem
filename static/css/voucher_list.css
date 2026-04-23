@@ -593,7 +593,7 @@ body[data-theme="dark"] .month-picker-clear-btn:hover {
 ═══════════════════════════════════════════════════════ */
 
 .mobile-voucher-cards {
-    display: none;
+    display: none !important;
 }
 
 .mobile-voucher-card {
