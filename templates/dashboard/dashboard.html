@@ -201,7 +201,7 @@
 .apv-name { font-size:.8rem; font-weight:600; color:var(--text-primary); margin-bottom:2px; }
 .apv-meta { display:flex; justify-content:space-between; align-items:center; }
 .apv-sub  { font-size:.72rem; color:var(--text-muted); }
-.apv-amt  { font-family:'Kantumruy Pro','Montserrat','Battambang',monospace; font-size:.85rem; font-weight:700; }
+.apv-amt  { font-family:'Kantumruy Pro','Montserrat','Battambang',monospace; font-size:.85rem; font-weight:700; color:var(--amber-400); }
 
 /* ── BADGES ── */
 .pv-num {
@@ -578,6 +578,7 @@ body[data-theme="light"] .amount-val {
   font-weight: 700;
 }
 body[data-theme="light"] .apv-amt {
+  color: #92400e;
   font-weight: 800;
 }
 
@@ -1020,7 +1021,7 @@ body[data-theme="light"] .panel-title-sub {
             <div class="apv-name">{{ pending_batches }} Signature Batch{{ pending_batches|pluralize:"es" }} Awaiting</div>
             <div class="apv-meta">
               <span class="apv-sub">Requires MD signature</span>
-              <span class="apv-amt" style="color:var(--amber-400)">→ Sign Now</span>
+              <span class="apv-amt">→ Sign Now</span>
             </div>
           </a>
           {% else %}
@@ -1042,7 +1043,7 @@ body[data-theme="light"] .panel-title-sub {
             <div class="apv-name">{{ doc.payee_name }}</div>
             <div class="apv-meta">
               <span class="apv-sub">{{ doc.created_at|date:"M d, Y" }}</span>
-              <span class="apv-amt" style="color:var(--amber-400)">{{ doc.get_grand_total_display }}</span>
+              <span class="apv-amt">{{ doc.get_grand_total_display }}</span>
             </div>
           </a>
           {% endfor %}
