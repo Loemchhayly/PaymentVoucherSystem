@@ -492,6 +492,12 @@
                                                     <a href="{% url 'vouchers:download_attachment' voucher.pk attachment.pk %}"
                                                        class="vd-file-btn dl" title="Download"><i
                                                             class="bi bi-download"></i></a>
+                                                    {% if can_upload_attachment %}
+                                                    <form method="post" action="{% url 'vouchers:delete_attachment' voucher.pk attachment.pk %}" style="display:inline;" onsubmit="return confirm('Delete {{ attachment.filename }}?');">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="vd-file-btn del" title="Delete"><i class="bi bi-trash"></i></button>
+                                                    </form>
+                                                    {% endif %}
                                                 </div>
                                             </div>
                                         {% endfor %}

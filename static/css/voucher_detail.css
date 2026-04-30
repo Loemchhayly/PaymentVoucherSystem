@@ -1351,6 +1351,13 @@
             border: 1px solid var(--v-border-bright);
         }
 
+        .vd-file-btn.del {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 0;
+        }
+
         .vd-file-btn:hover {
             transform: translateY(-1px);
             filter: brightness(1.2);

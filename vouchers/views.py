@@ -651,18 +651,28 @@ def upload_attachment(request, pk):
 @login_required
 def delete_attachment(request, pk, attachment_id):
     """Delete an attachment"""
-    voucher = get_object_or_404(PaymentVoucher, pk=pk, created_by=request.user)
+    voucher = get_object_or_404(PaymentVoucher, pk=pk)
     attachment = get_object_or_404(VoucherAttachment, pk=attachment_id, voucher=voucher)
 
-    if not voucher.is_editable():
-        messages.error(request, 'Cannot delete attachments from locked vouchers')
+    is_creator = voucher.created_by == request.user
+    is_ap_user = request.user.role_level == 1
+    is_editable = voucher.is_editable()
+    is_approved = voucher.status == 'APPROVED'
+
+    can_delete = (is_creator and is_editable) or (is_ap_user and is_approved)
+
+    if not can_delete:
+        messages.error(request, 'You do not have permission to delete this attachment')
         return redirect('vouchers:detail', pk=pk)
 
     if request.method == 'POST':
         filename = attachment.filename
-        attachment.file.delete()  # Delete the actual file
-        attachment.delete()  # Delete the database record
-        messages.success(request, f'Attachment "{filename}" deleted successfully!')
+        try:
+            attachment.file.delete(save=False)
+            attachment.delete()
+            messages.success(request, f'Attachment "{filename}" deleted successfully!')
+        except Exception as e:
+            messages.error(request, f'Error deleting attachment: {str(e)}')
 
     return redirect('vouchers:detail', pk=pk)
 
@@ -761,25 +771,25 @@ def upload_form_attachment(request, pk):
 @login_required
 def delete_form_attachment(request, pk, attachment_id):
     """Delete a form attachment with proper error handling"""
-    try:
-        payment_form = get_object_or_404(PaymentForm, pk=pk, created_by=request.user)
-        attachment = get_object_or_404(FormAttachment, pk=attachment_id, payment_form=payment_form)
-    except PaymentForm.DoesNotExist:
-        messages.error(request, f'Payment Form #{pk} not found.')
-        return redirect('dashboard:home')
-    except FormAttachment.DoesNotExist:
-        messages.error(request, f'Attachment not found.')
-        return redirect('vouchers:pf_detail', pk=pk)
+    payment_form = get_object_or_404(PaymentForm, pk=pk)
+    attachment = get_object_or_404(FormAttachment, pk=attachment_id, payment_form=payment_form)
 
-    if not payment_form.is_editable():
-        messages.error(request, 'Cannot delete attachments from locked forms')
+    is_creator = payment_form.created_by == request.user
+    is_ap_user = request.user.role_level == 1
+    is_editable = payment_form.is_editable()
+    is_approved = payment_form.status == 'APPROVED'
+
+    can_delete = (is_creator and is_editable) or (is_ap_user and is_approved)
+
+    if not can_delete:
+        messages.error(request, 'You do not have permission to delete this attachment')
         return redirect('vouchers:pf_detail', pk=pk)
 
     if request.method == 'POST':
         filename = attachment.filename
         try:
-            attachment.file.delete()  # Delete the actual file
-            attachment.delete()  # Delete the database record
+            attachment.file.delete(save=False)
+            attachment.delete()
             messages.success(request, f'Attachment "{filename}" deleted successfully!')
         except Exception as e:
             messages.error(request, f'Error deleting attachment: {str(e)}')

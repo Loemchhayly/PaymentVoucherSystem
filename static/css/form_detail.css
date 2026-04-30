@@ -741,6 +741,7 @@ main { padding: 0 !important; }
 }
 .vd-file-btn.view { background: var(--v-green-dim); color: var(--v-green); border: 1px solid rgba(16,185,129,0.2); }
 .vd-file-btn.dl   { background: var(--v-cyan-glow); color: var(--v-cyan); border: 1px solid var(--v-border-bright); }
+.vd-file-btn.del  { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); padding: 0; }
 .vd-file-btn:hover { transform: translateY(-1px); filter: brightness(1.2); }
 
 .vd-upload-zone {

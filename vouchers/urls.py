@@ -19,6 +19,7 @@ urlpatterns = [
     # PV Attachments
     path('pv/<int:pk>/upload/', views.upload_attachment, name='upload_attachment'),
     path('pv/<int:pk>/attachments/<int:attachment_id>/', views.download_attachment, name='download_attachment'),
+    path('pv/<int:pk>/attachments/<int:attachment_id>/delete/', views.delete_attachment, name='delete_attachment'),
 
     # PV PDF Generation
     path('pv/<int:pk>/pdf/', views.voucher_pdf, name='pdf'),
