@@ -164,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const popup = document.getElementById('monthPickerPopup');
         if (popup) {
             popup.classList.remove('show');
-            popup.style.display = 'none';
             popup.remove(); // ✅ fully remove it from DOM
         }
         // Abort all page-specific event listeners registered via AbortController

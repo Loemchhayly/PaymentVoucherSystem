@@ -285,6 +285,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
             return;
         }
 
+        // Clear any stale inline display style (can be left by SPA navigation cleanup)
+        popup.style.removeProperty('display');
         popup.classList.toggle('show');
         console.log('Popup show class toggled, has show:', popup.classList.contains('show'));
         console.log('Popup computed styles:', window.getComputedStyle(popup).opacity, window.getComputedStyle(popup).display);
@@ -381,6 +383,13 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
         // Apply filters
         applyFilters(false);
     };
+
+    // Ensure popup starts fully closed (clears any stale state from SPA navigation)
+    const _initPopup = document.getElementById('monthPickerPopup');
+    if (_initPopup) {
+        _initPopup.classList.remove('show');
+        _initPopup.style.removeProperty('display');
+    }
 
     // Initialize month picker button state on page load
     if (currentFilters.month) {
