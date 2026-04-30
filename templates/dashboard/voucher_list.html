@@ -235,7 +235,7 @@
                         <th>Amount</th>
                         <th>Currency</th>
                         <th>
-                            <a href="?sort=created_at&dir={% if request.GET.sort == 'created_at' and request.GET.dir == 'asc' %}desc{% else %}asc{% endif %}"
+                            <a href="?sort=payment_date&dir={% if request.GET.sort == 'payment_date' and request.GET.dir == 'asc' %}desc{% else %}asc{% endif %}"
                                style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:4px;">
                                 Date <i class="bi bi-chevron-expand" style="font-size:.6rem;opacity:.5"></i>
                             </a>
@@ -299,7 +299,7 @@
                         </td>
 
                         <td>
-                            <span class="date-cell">{{ voucher.created_at|date:"M d, Y" }}</span>
+                            <span class="date-cell">{{ voucher.payment_date|date:"M d, Y" }}</span>
                         </td>
 
                         <td>
@@ -480,7 +480,7 @@
                     </div>
                     <div class="mobile-card-row">
                         <span class="mobile-card-label">Date</span>
-                        <span class="mobile-card-value">{{ voucher.created_at|date:"M d, Y" }}</span>
+                        <span class="mobile-card-value">{{ voucher.payment_date|date:"M d, Y" }}</span>
                     </div>
                     <div class="mobile-card-row">
                         <span class="mobile-card-label">Prepared By</span>
