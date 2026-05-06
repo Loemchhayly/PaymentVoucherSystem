@@ -338,7 +338,7 @@ class PasswordResetRequestView(FormView):
         email = form.cleaned_data['email']
 
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email__iexact=email)
 
             # Send password reset email
             if send_password_reset_email(self.request, user):
