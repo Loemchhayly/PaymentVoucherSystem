@@ -136,11 +136,20 @@ class VoucherStateMachine:
         # Get next state
         next_state = cls.STATE_TRANSITIONS[voucher.status][action]
 
-
         # Handle special cases
         if action == 'return':
-            # Clear all approval signatures when returned for revision
-            voucher.approval_history.filter(action='APPROVE').delete()
+            returning_level = user.role_level
+            if returning_level in (3, 4):
+                # FM or GM: store level and only clear approvals at/above that level
+                voucher.revision_return_level = returning_level
+                level_to_status = {3: 'PENDING_L3', 4: 'PENDING_L4', 5: 'PENDING_L5'}
+                levels_to_clear = [l for l in (3, 4, 5) if l >= returning_level]
+                statuses_to_clear = [level_to_status[l] for l in levels_to_clear]
+                voucher.approval_history.filter(action='APPROVE', actor__role_level__in=levels_to_clear).delete()
+            else:
+                # L2 or others: full reset, clear all approvals
+                voucher.revision_return_level = None
+                voucher.approval_history.filter(action='APPROVE').delete()
 
         if action == 'submit':
             if voucher.status == 'DRAFT':
@@ -151,9 +160,13 @@ class VoucherStateMachine:
             elif voucher.status == 'ON_REVISION':
                 # Resubmission after revision
                 voucher.submitted_at = timezone.now()
+                # If FM/GM returned it, route back directly to that level
+                if voucher.revision_return_level in (3, 4):
+                    level_to_status = {3: 'PENDING_L3', 4: 'PENDING_L4'}
+                    next_state = level_to_status[voucher.revision_return_level]
+                voucher.revision_return_level = None
 
         # Update voucher state
-
         voucher.status = next_state
         voucher.current_approver = cls.get_next_approver(next_state)
         voucher.save()
@@ -405,12 +418,18 @@ class FormStateMachine:
         # Get next state
         next_state = cls.STATE_TRANSITIONS[payment_form.status][action]
 
-
-
         # Handle special cases
         if action == 'return':
-            # Clear all approval signatures when returned for revision
-            payment_form.approval_history.filter(action='APPROVE').delete()
+            returning_level = user.role_level
+            if returning_level in (3, 4):
+                # FM or GM: store level and only clear approvals at/above that level
+                payment_form.revision_return_level = returning_level
+                levels_to_clear = [l for l in (3, 4, 5) if l >= returning_level]
+                payment_form.approval_history.filter(action='APPROVE', actor__role_level__in=levels_to_clear).delete()
+            else:
+                # L2 or others: full reset, clear all approvals
+                payment_form.revision_return_level = None
+                payment_form.approval_history.filter(action='APPROVE').delete()
 
         if action == 'submit':
             if payment_form.status == 'DRAFT':
@@ -421,6 +440,11 @@ class FormStateMachine:
             elif payment_form.status == 'ON_REVISION':
                 # Resubmission after revision
                 payment_form.submitted_at = timezone.now()
+                # If FM/GM returned it, route back directly to that level
+                if payment_form.revision_return_level in (3, 4):
+                    level_to_status = {3: 'PENDING_L3', 4: 'PENDING_L4'}
+                    next_state = level_to_status[payment_form.revision_return_level]
+                payment_form.revision_return_level = None
 
         # Update form state
         old_status = payment_form.status

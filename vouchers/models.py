@@ -169,6 +169,13 @@ class PaymentVoucher(models.Model):
         related_name='vouchers_pending'
     )
 
+    # Revision routing: when FM/GM returns for revision, store the level so resubmit goes back directly
+    revision_return_level = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Role level of approver who returned for revision. Resubmission routes back to this level."
+    )
+
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -435,6 +442,13 @@ class PaymentForm(models.Model):
         null=True,
         blank=True,
         related_name='forms_pending'
+    )
+
+    # Revision routing: when FM/GM returns for revision, store the level so resubmit goes back directly
+    revision_return_level = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Role level of approver who returned for revision. Resubmission routes back to this level."
     )
 
     class Meta:
