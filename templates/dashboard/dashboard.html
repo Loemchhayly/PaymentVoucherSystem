@@ -1397,11 +1397,25 @@ setTimeout(function() {
                   : 'rgba(255,255,255,0.04)',
                 drawBorder: false
               },
+              afterBuildTicks: function(scale) {
+                // Only keep exact powers of 10 within the data range — max 6 ticks, no overlap
+                const ticks = [];
+                for (let exp = -1; exp <= 7; exp++) {
+                  const val = Math.pow(10, exp);
+                  if (val >= scale.min * 0.8 && val <= scale.max * 1.2) {
+                    ticks.push({ value: val });
+                  }
+                }
+                scale.ticks = ticks;
+              },
               ticks: {
                 color: document.body.getAttribute('data-theme') === 'light' ? '#374151' : '#4a6480',
                 font: { family: 'Montserrat', size: 10, weight: '600' },
+                maxTicksLimit: 6,
                 callback: function(v) {
-                  if (v === 0) return '0';
+                  // Only label exact powers of 10
+                  const log = Math.log10(v);
+                  if (Math.abs(log - Math.round(log)) > 0.01) return '';
                   const formatted = v >= 1000000 ? (v/1000000).toFixed(0)+'M'
                                   : v >= 1000    ? (v/1000).toFixed(0)+'K'
                                   : v;
