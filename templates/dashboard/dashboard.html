@@ -154,7 +154,7 @@
 .stat-link:hover i { transform:translateX(3px); }
 
 /* ── CHARTS ROW ── */
-.charts-row { display:grid; grid-template-columns:2fr 1fr; gap:14px; margin-bottom:18px; }
+.charts-row { display:grid; grid-template-columns:3fr 1fr; gap:14px; margin-bottom:18px; }
 .panel {
   background:var(--surface-card); border:1px solid var(--border); border-radius:var(--r-xl); overflow:hidden;
   opacity:0; animation:fadeUp .45s var(--ease) .42s forwards;
@@ -1299,21 +1299,18 @@ setTimeout(function() {
       // Build datasets array dynamically
       const datasets = [];
 
-      const isLight = document.body.getAttribute('data-theme') === 'light';
-      const currencySymbols = { 'USD ($)': '$', 'KHR (៛)': '៛', 'THB (฿)': '฿', 'RMB (¥)': '¥' };
-
       if (hasUSD) {
         datasets.push({
           label: 'USD ($)',
           data: chartDataUSD,
-          backgroundColor: 'rgba(6,182,212,0.85)',
+          backgroundColor: 'rgba(6,182,212,0.8)',
           borderColor: 'rgba(6,182,212,1)',
           borderWidth: 1,
-          borderRadius: 6,
+          borderRadius: 4,
           borderSkipped: false,
-          minBarLength: 8,
-          barPercentage: 0.75,
-          categoryPercentage: 0.8,
+          minBarLength: 6,
+          barPercentage: 0.85,
+          categoryPercentage: 0.9,
         });
       }
 
@@ -1321,14 +1318,14 @@ setTimeout(function() {
         datasets.push({
           label: 'KHR (៛)',
           data: chartDataKHR,
-          backgroundColor: 'rgba(34,197,94,0.85)',
+          backgroundColor: 'rgba(34,197,94,0.8)',
           borderColor: 'rgba(34,197,94,1)',
           borderWidth: 1,
-          borderRadius: 6,
+          borderRadius: 4,
           borderSkipped: false,
-          minBarLength: 8,
-          barPercentage: 0.75,
-          categoryPercentage: 0.8,
+          minBarLength: 6,
+          barPercentage: 0.85,
+          categoryPercentage: 0.9,
         });
       }
 
@@ -1336,14 +1333,14 @@ setTimeout(function() {
         datasets.push({
           label: 'THB (฿)',
           data: chartDataTHB,
-          backgroundColor: 'rgba(245,158,11,0.85)',
+          backgroundColor: 'rgba(245,158,11,0.8)',
           borderColor: 'rgba(245,158,11,1)',
           borderWidth: 1,
-          borderRadius: 6,
+          borderRadius: 4,
           borderSkipped: false,
-          minBarLength: 8,
-          barPercentage: 0.75,
-          categoryPercentage: 0.8,
+          minBarLength: 6,
+          barPercentage: 0.85,
+          categoryPercentage: 0.9,
         });
       }
 
@@ -1351,22 +1348,16 @@ setTimeout(function() {
         datasets.push({
           label: 'RMB (¥)',
           data: chartDataRMB,
-          backgroundColor: 'rgba(239,68,68,0.85)',
+          backgroundColor: 'rgba(239,68,68,0.8)',
           borderColor: 'rgba(239,68,68,1)',
           borderWidth: 1,
-          borderRadius: 6,
+          borderRadius: 4,
           borderSkipped: false,
-          minBarLength: 8,
-          barPercentage: 0.75,
-          categoryPercentage: 0.8,
+          minBarLength: 6,
+          barPercentage: 0.85,
+          categoryPercentage: 0.9,
         });
       }
-
-      // Compute max value across all datasets to decide Y scale
-      const allValues = datasets.flatMap(d => d.data).filter(v => v > 0);
-      const maxVal = allValues.length ? Math.max(...allValues) : 100;
-      const minVal = allValues.length ? Math.min(...allValues) : 0;
-      const useLog = maxVal > 0 && minVal > 0 && (maxVal / minVal) > 50;
 
       new Chart(ctx, {
         type: 'bar',
@@ -1374,64 +1365,52 @@ setTimeout(function() {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: { padding: { top: 8, right: 8, bottom: 0, left: 0 } },
           plugins: {
             legend: {
-              display: true,
+              display: datasets.length > 1,
               position: 'top',
-              align: 'end',
               labels: {
-                color: isLight ? '#374151' : '#94a3b8',
-                font: { family: 'Montserrat', size: 11, weight: '600' },
-                padding: 12,
+                color: document.body.getAttribute('data-theme') === 'light' ? '#374151' : '#94a3b8',
+                font: { family: 'Montserrat', size: 10, weight: '600' },
+                padding: 8,
                 usePointStyle: true,
-                pointStyle: 'rectRounded',
-                boxWidth: 10,
-                boxHeight: 10,
+                pointStyle: 'circle'
               }
             },
             tooltip: {
-              mode: 'index',
-              intersect: false,
-              backgroundColor: isLight ? '#fff' : '#1e293b',
-              titleColor: isLight ? '#0891b2' : '#38bdf8',
-              bodyColor: isLight ? '#374151' : '#cbd5e1',
-              borderColor: isLight ? '#e2e8f0' : '#334155',
-              borderWidth: 1,
-              padding: 12,
-              cornerRadius: 8,
-              titleFont: { family: 'Montserrat', size: 12, weight: '700' },
-              bodyFont: { family: 'Montserrat', size: 11 },
+              backgroundColor: '#0891b2',
+              titleColor: '#fff',
+              bodyColor: '#cffafe',
+              padding: 8,
+              cornerRadius: 4,
               callbacks: {
-                title: function(items) { return items[0].label; },
-                label: function(item) {
-                  const symbol = currencySymbols[item.dataset.label] || '';
-                  const val = item.parsed.y;
-                  if (val === 0) return null;
-                  return '  ' + item.dataset.label + ':  ' + symbol + val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                },
-                filter: function(item) { return item.parsed.y > 0; }
+                label: function(ctx) {
+                  const currencyMap = { 'USD ($)': '$', 'KHR (៛)': '៛', 'THB (฿)': '฿', 'RMB (¥)': '¥' };
+                  const symbol = currencyMap[ctx.dataset.label] || '$';
+                  return ctx.dataset.label + ': ' + symbol + ctx.parsed.y.toLocaleString(undefined, {maximumFractionDigits:0});
+                }
               }
             }
           },
           scales: {
             y: {
-              type: useLog ? 'logarithmic' : 'linear',
-              min: useLog ? undefined : 0,
-              grace: '15%',
+              min: 0,
+              grace: '10%',
               grid: {
-                color: isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)',
-                drawBorder: false,
+                color: document.body.getAttribute('data-theme') === 'light'
+                  ? 'rgba(0,0,0,0.08)'
+                  : 'rgba(255,255,255,0.04)',
+                drawBorder: false
               },
               ticks: {
-                color: isLight ? '#374151' : '#64748b',
-                font: { family: 'Montserrat', size: 11, weight: '600' },
-                maxTicksLimit: 6,
+                color: document.body.getAttribute('data-theme') === 'light' ? '#374151' : '#4a6480',
+                font: { family: 'Montserrat', size: 10, weight: '600' },
                 callback: function(v) {
-                  if (v === 0) return '0';
-                  if (v >= 1000000) return (v / 1000000).toFixed(1) + 'M';
-                  if (v >= 1000) return (v / 1000).toFixed(0) + 'K';
-                  return v;
+                  if (hasUSD && !hasKHR && !hasTHB && !hasRMB) return '$' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
+                  if (!hasUSD && hasKHR && !hasTHB && !hasRMB) return '៛' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
+                  if (!hasUSD && !hasKHR && hasTHB && !hasRMB) return '฿' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
+                  if (!hasUSD && !hasKHR && !hasTHB && hasRMB) return '¥' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
+                  return (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
                 }
               },
               border: { display: false }
@@ -1440,16 +1419,17 @@ setTimeout(function() {
               grid: { display: false },
               ticks: {
                 color: (c) => {
+                  const isLight = document.body.getAttribute('data-theme') === 'light';
                   const label = c.chart.data.labels[c.index];
                   const isCurrent = label && label.toUpperCase() === currentMonth.toUpperCase();
-                  return isCurrent ? '#0891b2' : (isLight ? '#374151' : '#64748b');
+                  return isCurrent ? '#0891b2' : (isLight ? '#374151' : '#4a6480');
                 },
-                font: { family: 'Montserrat', size: 11, weight: '700' }
+                font: { family: 'Montserrat', size: 10, weight: '700' }
               },
               border: { display: false }
             }
           },
-          animation: { duration: 800, easing: 'easeInOutQuart' }
+          animation: { duration: 900, easing: 'easeInOutQuart' }
         }
       });
     })();
