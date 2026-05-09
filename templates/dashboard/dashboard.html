@@ -292,7 +292,7 @@
 .empty-state p { font-size:.9375rem; margin:0 0 16px; color:var(--text-secondary); }
 
 /* chart canvas containers */
-.chart-canvas-wrap { position:relative; width:100%; height:320px; }
+.chart-canvas-wrap { position:relative; width:100%; height:160px; }
 
 /* ── Responsive Breakpoints ── */
 
@@ -1309,8 +1309,7 @@ setTimeout(function() {
           borderRadius: 4,
           borderSkipped: false,
           minBarLength: 6,
-          barPercentage: 0.85,
-          categoryPercentage: 0.9,
+          barThickness: 8,
         });
       }
 
@@ -1324,8 +1323,7 @@ setTimeout(function() {
           borderRadius: 4,
           borderSkipped: false,
           minBarLength: 6,
-          barPercentage: 0.85,
-          categoryPercentage: 0.9,
+          barThickness: 8,
         });
       }
 
@@ -1339,8 +1337,7 @@ setTimeout(function() {
           borderRadius: 4,
           borderSkipped: false,
           minBarLength: 6,
-          barPercentage: 0.85,
-          categoryPercentage: 0.9,
+          barThickness: 8,
         });
       }
 
@@ -1354,8 +1351,7 @@ setTimeout(function() {
           borderRadius: 4,
           borderSkipped: false,
           minBarLength: 6,
-          barPercentage: 0.85,
-          categoryPercentage: 0.9,
+          barThickness: 8,
         });
       }
 
@@ -1394,8 +1390,7 @@ setTimeout(function() {
           },
           scales: {
             y: {
-              min: 0,
-              grace: '10%',
+              type: 'logarithmic',
               grid: {
                 color: document.body.getAttribute('data-theme') === 'light'
                   ? 'rgba(0,0,0,0.08)'
@@ -1406,11 +1401,15 @@ setTimeout(function() {
                 color: document.body.getAttribute('data-theme') === 'light' ? '#374151' : '#4a6480',
                 font: { family: 'Montserrat', size: 10, weight: '600' },
                 callback: function(v) {
-                  if (hasUSD && !hasKHR && !hasTHB && !hasRMB) return '$' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
-                  if (!hasUSD && hasKHR && !hasTHB && !hasRMB) return '៛' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
-                  if (!hasUSD && !hasKHR && hasTHB && !hasRMB) return '฿' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
-                  if (!hasUSD && !hasKHR && !hasTHB && hasRMB) return '¥' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
-                  return (v >= 1000 ? (v/1000).toFixed(0)+'K' : v);
+                  if (v === 0) return '0';
+                  const formatted = v >= 1000000 ? (v/1000000).toFixed(0)+'M'
+                                  : v >= 1000    ? (v/1000).toFixed(0)+'K'
+                                  : v;
+                  if (hasUSD && !hasKHR && !hasTHB && !hasRMB) return '$' + formatted;
+                  if (!hasUSD && hasKHR && !hasTHB && !hasRMB) return '៛' + formatted;
+                  if (!hasUSD && !hasKHR && hasTHB && !hasRMB) return '฿' + formatted;
+                  if (!hasUSD && !hasKHR && !hasTHB && hasRMB) return '¥' + formatted;
+                  return formatted;
                 }
               },
               border: { display: false }
