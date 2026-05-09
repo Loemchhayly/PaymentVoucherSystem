@@ -92,6 +92,25 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:  # New object
             obj.created_by = request.user
+        else:
+            # When status is manually changed in admin, clear approval history so
+            # approvers can re-approve without hitting the duplicate-approval block.
+            if 'status' in form.changed_data:
+                from workflow.models import ApprovalHistory
+                new_status = obj.status
+                status_to_level = {
+                    'DRAFT': 0, 'PENDING_L2': 2, 'PENDING_L3': 3,
+                    'PENDING_L4': 4, 'PENDING_L5': 5,
+                }
+                reset_level = status_to_level.get(new_status)
+                if reset_level is not None:
+                    # Clear approvals at or above the new level so those approvers can re-approve
+                    ApprovalHistory.objects.filter(
+                        voucher=obj,
+                        action='APPROVE',
+                        actor__role_level__gte=max(reset_level, 2)
+                    ).delete()
+                    obj.revision_return_level = None
         super().save_model(request, obj, form, change)
 
     def delete_model(self, request, obj):
@@ -148,65 +167,81 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
     def reset_to_l2(self, request, queryset):
         """Reset documents to PENDING_L2 status"""
         from accounts.models import User
+        from workflow.models import ApprovalHistory
         updated = 0
         for voucher in queryset:
-            # Find L2 approver (Department Manager)
-            l2_user = User.objects.filter(role_level=2).first()
+            l2_user = User.objects.filter(role_level=2, is_active=True, is_approved=True, email_verified=True).first()
             if l2_user:
+                # Clear all approval history so approvers can re-approve
+                ApprovalHistory.objects.filter(voucher=voucher, action='APPROVE').delete()
                 voucher.status = 'PENDING_L2'
                 voucher.current_approver = l2_user
+                voucher.revision_return_level = None
                 voucher.save()
                 updated += 1
-        self.message_user(request, f'{updated} voucher(s) reset to L2 (Department Manager)')
+        self.message_user(request, f'{updated} voucher(s) reset to L2')
 
-    @admin.action(description='Reset to L3 (Project Manager)')
+    @admin.action(description='Reset to L3 (Finance Manager)')
     def reset_to_l3(self, request, queryset):
         """Reset documents to PENDING_L3 status"""
         from accounts.models import User
+        from workflow.models import ApprovalHistory
         updated = 0
         for voucher in queryset:
-            # Find L3 approver (Project Manager)
-            l3_user = User.objects.filter(role_level=3).first()
+            l3_user = User.objects.filter(role_level=3, is_active=True, is_approved=True, email_verified=True).first()
             if l3_user:
+                # Clear approvals at L3 and above so FM and above can re-approve
+                ApprovalHistory.objects.filter(voucher=voucher, action='APPROVE', actor__role_level__gte=3).delete()
                 voucher.status = 'PENDING_L3'
                 voucher.current_approver = l3_user
+                voucher.revision_return_level = None
                 voucher.save()
                 updated += 1
-        self.message_user(request, f'{updated} voucher(s) reset to L3 (Project Manager)')
+        self.message_user(request, f'{updated} voucher(s) reset to L3')
 
     @admin.action(description='Reset to L4 (General Manager)')
     def reset_to_l4(self, request, queryset):
         """Reset documents to PENDING_L4 status"""
         from accounts.models import User
+        from workflow.models import ApprovalHistory
         updated = 0
         for voucher in queryset:
-            # Find L4 approver (General Manager)
-            l4_user = User.objects.filter(role_level=4).first()
+            l4_user = User.objects.filter(role_level=4, is_active=True, is_approved=True, email_verified=True).first()
             if l4_user:
+                # Clear approvals at L4 and above so GM and above can re-approve
+                ApprovalHistory.objects.filter(voucher=voucher, action='APPROVE', actor__role_level__gte=4).delete()
                 voucher.status = 'PENDING_L4'
                 voucher.current_approver = l4_user
+                voucher.revision_return_level = None
                 voucher.save()
                 updated += 1
-        self.message_user(request, f'{updated} voucher(s) reset to L4 (General Manager)')
+        self.message_user(request, f'{updated} voucher(s) reset to L4')
 
     @admin.action(description='Reset to L5 (Managing Director)')
     def reset_to_l5(self, request, queryset):
         """Reset documents to PENDING_L5 status"""
         from accounts.models import User
+        from workflow.models import ApprovalHistory
         updated = 0
         for voucher in queryset:
-            # Find L5 approver (MD)
-            l5_user = User.objects.filter(role_level=5).first()
+            l5_user = User.objects.filter(role_level=5, is_active=True, is_approved=True, email_verified=True).first()
             if l5_user:
+                ApprovalHistory.objects.filter(voucher=voucher, action='APPROVE', actor__role_level__gte=5).delete()
                 voucher.status = 'PENDING_L5'
                 voucher.current_approver = l5_user
+                voucher.revision_return_level = None
                 voucher.save()
                 updated += 1
-        self.message_user(request, f'{updated} voucher(s) reset to L5 (MD)')
+        self.message_user(request, f'{updated} voucher(s) reset to L5')
 
     @admin.action(description='Reset to Draft')
     def reset_to_draft(self, request, queryset):
-        """Reset documents to DRAFT status"""
+        """Reset documents to DRAFT status and clear all approval history"""
+        from workflow.models import ApprovalHistory
+        for voucher in queryset:
+            ApprovalHistory.objects.filter(voucher=voucher, action='APPROVE').delete()
+            voucher.revision_return_level = None
+            voucher.save()
         updated = queryset.update(status='DRAFT', current_approver=None)
         self.message_user(request, f'{updated} voucher(s) reset to DRAFT')
 
@@ -278,6 +313,24 @@ class PaymentFormAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:  # New object
             obj.created_by = request.user
+        else:
+            # When status is manually changed in admin, clear approval history so
+            # approvers can re-approve without hitting the duplicate-approval block.
+            if 'status' in form.changed_data:
+                from workflow.models import FormApprovalHistory
+                new_status = obj.status
+                status_to_level = {
+                    'DRAFT': 0, 'PENDING_L2': 2, 'PENDING_L3': 3,
+                    'PENDING_L4': 4, 'PENDING_L5': 5,
+                }
+                reset_level = status_to_level.get(new_status)
+                if reset_level is not None:
+                    FormApprovalHistory.objects.filter(
+                        payment_form=obj,
+                        action='APPROVE',
+                        actor__role_level__gte=max(reset_level, 2)
+                    ).delete()
+                    obj.revision_return_level = None
         super().save_model(request, obj, form, change)
 
     def delete_model(self, request, obj):
@@ -334,65 +387,78 @@ class PaymentFormAdmin(admin.ModelAdmin):
     def reset_to_l2(self, request, queryset):
         """Reset documents to PENDING_L2 status"""
         from accounts.models import User
+        from workflow.models import FormApprovalHistory
         updated = 0
         for form in queryset:
-            # Find L2 approver (Department Manager)
-            l2_user = User.objects.filter(role_level=2).first()
+            l2_user = User.objects.filter(role_level=2, is_active=True, is_approved=True, email_verified=True).first()
             if l2_user:
+                FormApprovalHistory.objects.filter(payment_form=form, action='APPROVE').delete()
                 form.status = 'PENDING_L2'
                 form.current_approver = l2_user
+                form.revision_return_level = None
                 form.save()
                 updated += 1
-        self.message_user(request, f'{updated} payment form(s) reset to L2 (Department Manager)')
+        self.message_user(request, f'{updated} payment form(s) reset to L2')
 
-    @admin.action(description='Reset to L3 (Project Manager)')
+    @admin.action(description='Reset to L3 (Finance Manager)')
     def reset_to_l3(self, request, queryset):
         """Reset documents to PENDING_L3 status"""
         from accounts.models import User
+        from workflow.models import FormApprovalHistory
         updated = 0
         for form in queryset:
-            # Find L3 approver (Project Manager)
-            l3_user = User.objects.filter(role_level=3).first()
+            l3_user = User.objects.filter(role_level=3, is_active=True, is_approved=True, email_verified=True).first()
             if l3_user:
+                FormApprovalHistory.objects.filter(payment_form=form, action='APPROVE', actor__role_level__gte=3).delete()
                 form.status = 'PENDING_L3'
                 form.current_approver = l3_user
+                form.revision_return_level = None
                 form.save()
                 updated += 1
-        self.message_user(request, f'{updated} payment form(s) reset to L3 (Project Manager)')
+        self.message_user(request, f'{updated} payment form(s) reset to L3')
 
     @admin.action(description='Reset to L4 (General Manager)')
     def reset_to_l4(self, request, queryset):
         """Reset documents to PENDING_L4 status"""
         from accounts.models import User
+        from workflow.models import FormApprovalHistory
         updated = 0
         for form in queryset:
-            # Find L4 approver (General Manager)
-            l4_user = User.objects.filter(role_level=4).first()
+            l4_user = User.objects.filter(role_level=4, is_active=True, is_approved=True, email_verified=True).first()
             if l4_user:
+                FormApprovalHistory.objects.filter(payment_form=form, action='APPROVE', actor__role_level__gte=4).delete()
                 form.status = 'PENDING_L4'
                 form.current_approver = l4_user
+                form.revision_return_level = None
                 form.save()
                 updated += 1
-        self.message_user(request, f'{updated} payment form(s) reset to L4 (General Manager)')
+        self.message_user(request, f'{updated} payment form(s) reset to L4')
 
     @admin.action(description='Reset to L5 (Managing Director)')
     def reset_to_l5(self, request, queryset):
         """Reset documents to PENDING_L5 status"""
         from accounts.models import User
+        from workflow.models import FormApprovalHistory
         updated = 0
         for form in queryset:
-            # Find L5 approver (MD)
-            l5_user = User.objects.filter(role_level=5).first()
+            l5_user = User.objects.filter(role_level=5, is_active=True, is_approved=True, email_verified=True).first()
             if l5_user:
+                FormApprovalHistory.objects.filter(payment_form=form, action='APPROVE', actor__role_level__gte=5).delete()
                 form.status = 'PENDING_L5'
                 form.current_approver = l5_user
+                form.revision_return_level = None
                 form.save()
                 updated += 1
-        self.message_user(request, f'{updated} payment form(s) reset to L5 (MD)')
+        self.message_user(request, f'{updated} payment form(s) reset to L5')
 
     @admin.action(description='Reset to Draft')
     def reset_to_draft(self, request, queryset):
-        """Reset documents to DRAFT status"""
+        """Reset documents to DRAFT status and clear all approval history"""
+        from workflow.models import FormApprovalHistory
+        for form in queryset:
+            FormApprovalHistory.objects.filter(payment_form=form, action='APPROVE').delete()
+            form.revision_return_level = None
+            form.save()
         updated = queryset.update(status='DRAFT', current_approver=None)
         self.message_user(request, f'{updated} payment form(s) reset to DRAFT')
 
