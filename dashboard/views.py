@@ -16,6 +16,7 @@ import json
 
 KHR_TO_USD = 4100
 THB_TO_USD = 0.028
+RMB_TO_USD = 0.138
 
 
 def apply_month_filter(queryset, month_str):
@@ -322,13 +323,15 @@ class DashboardView(LoginRequiredMixin, ListView):
         monthly_usd = get_monthly_by_currency('USD')
         monthly_khr = get_monthly_by_currency('KHR')
         monthly_thb = get_monthly_by_currency('THB')
+        monthly_rmb = get_monthly_by_currency('RMB')
 
-        # Convert KHR and THB to USD, then sum into a single combined series
+        # Convert all currencies to USD, then sum into a single combined series
         monthly_combined = {
             m: (
                 monthly_usd[m]
                 + monthly_khr[m] / Decimal(str(KHR_TO_USD))
                 + monthly_thb[m] * Decimal(str(THB_TO_USD))
+                + monthly_rmb[m] * Decimal(str(RMB_TO_USD))
             )
             for m in fiscal_months
         }
@@ -337,6 +340,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         context['chart_data_usd'] = [float(monthly_usd[m]) for m in fiscal_months]
         context['chart_data_khr'] = [float(monthly_khr[m] / Decimal(str(KHR_TO_USD))) for m in fiscal_months]
         context['chart_data_thb'] = [float(monthly_thb[m] * Decimal(str(THB_TO_USD))) for m in fiscal_months]
+        context['chart_data_rmb'] = [float(monthly_rmb[m] * Decimal(str(RMB_TO_USD))) for m in fiscal_months]
         context['chart_data_combined'] = [float(monthly_combined[m]) for m in fiscal_months]
         context['chart_current_month'] = month_abbr[today.month]
 
@@ -397,6 +401,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         dept_usd = get_dept_totals_by_currency('USD')
         dept_khr = get_dept_totals_by_currency('KHR')
         dept_thb = get_dept_totals_by_currency('THB')
+        dept_rmb = get_dept_totals_by_currency('RMB')
 
         # Build donut data for USD (primary display)
         grand_total_usd = sum(v for _, v in dept_usd) or Decimal('1')
@@ -416,11 +421,13 @@ class DashboardView(LoginRequiredMixin, ListView):
         context['donut_data'] = donut_data
         context['donut_grand_usd'] = float(grand_total_usd)
 
-        # Add KHR and THB totals for display
+        # Add KHR, THB, and RMB totals for display
         grand_total_khr = sum(v for _, v in dept_khr)
         grand_total_thb = sum(v for _, v in dept_thb)
+        grand_total_rmb = sum(v for _, v in dept_rmb)
         context['donut_grand_khr'] = float(grand_total_khr)
         context['donut_grand_thb'] = float(grand_total_thb)
+        context['donut_grand_rmb'] = float(grand_total_rmb)
 
         # Add search parameters to context
         context['search_query'] = self.request.GET.get('search', '')

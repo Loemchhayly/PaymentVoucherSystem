@@ -18,6 +18,7 @@ CURRENCY_CHOICES = [
     ('USD', 'US Dollar ($)'),
     ('KHR', 'Cambodian Riel (៛)'),
     ('THB', 'Thai Baht (฿)'),
+    ('RMB', 'Chinese Yuan (¥)'),
 ]
 
 
@@ -200,7 +201,7 @@ class PaymentVoucher(models.Model):
     def get_grand_total_display(self):
         """Return formatted grand total string for display"""
         totals = self.calculate_grand_total()
-        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿', 'RMB': '¥'}
 
         if not totals:
             return "$0.00"
@@ -291,7 +292,7 @@ class VoucherLineItem(models.Model):
 
     def get_currency_symbol(self):
         """Return currency symbol"""
-        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿', 'RMB': '¥'}
         return symbols.get(self.currency, '$')
 
     def get_total_with_currency(self):
@@ -475,7 +476,7 @@ class PaymentForm(models.Model):
     def get_grand_total_display(self):
         """Return formatted grand total string for display"""
         totals = self.calculate_grand_total()
-        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿', 'RMB': '¥'}
 
         if not totals:
             return "$0.00"
@@ -566,7 +567,7 @@ class FormLineItem(models.Model):
 
     def get_currency_symbol(self):
         """Return currency symbol"""
-        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿', 'RMB': '¥'}
         return symbols.get(self.currency, '$')
 
     def get_total_with_currency(self):
@@ -783,7 +784,7 @@ class SignatureBatch(models.Model):
 
     def get_total_amount(self):
         """Calculate total amount of all documents in batch"""
-        total = {'USD': Decimal('0'), 'KHR': Decimal('0'), 'THB': Decimal('0')}
+        total = {'USD': Decimal('0'), 'KHR': Decimal('0'), 'THB': Decimal('0'), 'RMB': Decimal('0')}
 
         # Add voucher totals
         for item in self.voucher_items.all():
@@ -802,7 +803,7 @@ class SignatureBatch(models.Model):
     def get_total_amount_display(self):
         """Return formatted total amount string for display"""
         totals = self.get_total_amount()
-        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿'}
+        symbols = {'USD': '$', 'KHR': '៛', 'THB': '฿', 'RMB': '¥'}
 
         # Filter out zero amounts
         parts = []
