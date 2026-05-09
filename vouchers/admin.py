@@ -93,10 +93,11 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
         if not change:  # New object
             obj.created_by = request.user
         else:
-            # When status is manually changed in admin, clear approval history so
-            # approvers can re-approve without hitting the duplicate-approval block.
+            # When status is manually changed in admin, auto-set current_approver
+            # and clear approval history so approvers can re-approve cleanly.
             if 'status' in form.changed_data:
                 from workflow.models import ApprovalHistory
+                from workflow.state_machine import VoucherStateMachine
                 new_status = obj.status
                 status_to_level = {
                     'DRAFT': 0, 'PENDING_L2': 2, 'PENDING_L3': 3,
@@ -104,6 +105,11 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
                 }
                 reset_level = status_to_level.get(new_status)
                 if reset_level is not None:
+                    # Auto-set current_approver to the correct user for the new status
+                    if new_status == 'DRAFT':
+                        obj.current_approver = None
+                    else:
+                        obj.current_approver = VoucherStateMachine.get_next_approver(new_status)
                     # Clear approvals at or above the new level so those approvers can re-approve
                     ApprovalHistory.objects.filter(
                         voucher=obj,
@@ -314,10 +320,11 @@ class PaymentFormAdmin(admin.ModelAdmin):
         if not change:  # New object
             obj.created_by = request.user
         else:
-            # When status is manually changed in admin, clear approval history so
-            # approvers can re-approve without hitting the duplicate-approval block.
+            # When status is manually changed in admin, auto-set current_approver
+            # and clear approval history so approvers can re-approve cleanly.
             if 'status' in form.changed_data:
                 from workflow.models import FormApprovalHistory
+                from workflow.state_machine import VoucherStateMachine
                 new_status = obj.status
                 status_to_level = {
                     'DRAFT': 0, 'PENDING_L2': 2, 'PENDING_L3': 3,
@@ -325,6 +332,12 @@ class PaymentFormAdmin(admin.ModelAdmin):
                 }
                 reset_level = status_to_level.get(new_status)
                 if reset_level is not None:
+                    # Auto-set current_approver to the correct user for the new status
+                    if new_status == 'DRAFT':
+                        obj.current_approver = None
+                    else:
+                        obj.current_approver = VoucherStateMachine.get_next_approver(new_status)
+                    # Clear approvals at or above the new level so those approvers can re-approve
                     FormApprovalHistory.objects.filter(
                         payment_form=obj,
                         action='APPROVE',
