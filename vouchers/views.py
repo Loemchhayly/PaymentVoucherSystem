@@ -1723,12 +1723,20 @@ def bulk_approval_action(request):
 
     success_count = 0
     error_count = 0
+    skipped_count = 0
     errors = []
 
     # Process Payment Vouchers
     for pv_id in pv_ids:
         try:
             voucher = PaymentVoucher.objects.get(pk=pv_id)
+
+            # Silently skip documents not assigned to this user (e.g. stale IDs from
+            # a browser back-button re-submit after a previous bulk approve already
+            # moved the document to the next approver).
+            if voucher.current_approver != user:
+                skipped_count += 1
+                continue
 
             # Check permissions
             can_do, error = VoucherStateMachine.can_transition(voucher, action, user)
@@ -1752,6 +1760,11 @@ def bulk_approval_action(request):
     for pf_id in pf_ids:
         try:
             payment_form = PaymentForm.objects.get(pk=pf_id)
+
+            # Silently skip documents not assigned to this user (same reason as above).
+            if payment_form.current_approver != user:
+                skipped_count += 1
+                continue
 
             # Check permissions
             can_do, error = FormStateMachine.can_transition(payment_form, action, user)
@@ -1800,7 +1813,9 @@ def bulk_approval_action(request):
             if len(reason_counts) > 3:
                 messages.warning(request, f"...and {len(reason_counts) - 3} more error type(s)")
 
-    return redirect('dashboard:pending')
+    response = redirect('dashboard:pending')
+    response['Cache-Control'] = 'no-store'
+    return response
 
 
 @login_required
