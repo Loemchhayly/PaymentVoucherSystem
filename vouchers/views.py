@@ -1442,19 +1442,23 @@ def reports_view(request):
     approved_forms = PaymentForm.objects.filter(status__in=allowed_statuses)
 
     # Calculate totals by currency
-    currency_totals = {'USD': 0, 'KHR': 0, 'THB': 0}
+    currency_totals = {'USD': 0, 'KHR': 0, 'THB': 0, 'RMB': 0}
     for voucher in approved_vouchers:
         totals = voucher.calculate_grand_total()
         for currency, amount in totals.items():
+            if currency not in currency_totals:
+                currency_totals[currency] = 0
             currency_totals[currency] += float(amount)
 
     for form in approved_forms:
         totals = form.calculate_grand_total()
         for currency, amount in totals.items():
+            if currency not in currency_totals:
+                currency_totals[currency] = 0
             currency_totals[currency] += float(amount)
 
     # Monthly data for last 6 months (all currencies converted to USD)
-    from dashboard.views import KHR_TO_USD, THB_TO_USD
+    from dashboard.views import KHR_TO_USD, THB_TO_USD, RMB_TO_USD
     monthly_data = defaultdict(lambda: {'PV': 0, 'PF': 0, 'amount': 0})
     six_months_ago = datetime.now() - timedelta(days=180)
 
@@ -1463,6 +1467,7 @@ def reports_view(request):
             float(totals.get('USD', 0))
             + float(totals.get('KHR', 0)) / KHR_TO_USD
             + float(totals.get('THB', 0)) * THB_TO_USD
+            + float(totals.get('RMB', 0)) * RMB_TO_USD
         )
 
     for voucher in approved_vouchers.filter(payment_date__gte=six_months_ago):
