@@ -20,7 +20,7 @@ def pending_approvals(request):
             pf_count = PaymentForm.objects.filter(status__startswith='PENDING').count()
             batch_count = 0
         # MD users only work through batches - they don't see individual documents
-        elif request.user.role_level == 5:
+        elif request.user.role_level == 6:
             pv_count = 0
             pf_count = 0
             batch_count = SignatureBatch.objects.filter(status='PENDING').count()

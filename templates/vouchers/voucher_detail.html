@@ -149,7 +149,7 @@
                 <!-- Step 3: L1 Review (PENDING_L2 / PENDING_L3) -->
                 {% if voucher.status == 'PENDING_L2' or voucher.status == 'PENDING_L3' %}
                     <div class="vd-step active">
-                {% elif voucher.status in 'PENDING_L4,PENDING_L5,APPROVED' %}
+                {% elif voucher.status in 'PENDING_L4,PENDING_L5,PENDING_L6,APPROVED' %}
                     <div class="vd-step done">
                 {% elif voucher.status == 'REJECTED' and approval_history %}
                     <div class="vd-step done">
@@ -157,7 +157,7 @@
                     <div class="vd-step waiting">
                 {% endif %}
                 <div class="vd-step-dot">
-                    {% if voucher.status in 'PENDING_L4,PENDING_L5,APPROVED,REJECTED' %}
+                    {% if voucher.status in 'PENDING_L4,PENDING_L5,PENDING_L6,APPROVED,REJECTED' %}
                         <i class="bi bi-check"></i>
                     {% elif voucher.status == 'PENDING_L2' or voucher.status == 'PENDING_L3' %}
                         <i class="bi bi-hourglass-split"></i>
@@ -167,8 +167,8 @@
                 <div class="vd-step-sub">Acct / Finance</div>
                 </div>
 
-                <!-- Step 4: L2 Review (PENDING_L4 = GM, PENDING_L5 = MD) -->
-                {% if voucher.status == 'PENDING_L4' or voucher.status == 'PENDING_L5' %}
+                <!-- Step 4: L2 Review (PENDING_L4=FC, PENDING_L5=GM, PENDING_L6=MD) -->
+                {% if voucher.status == 'PENDING_L4' or voucher.status == 'PENDING_L5' or voucher.status == 'PENDING_L6' %}
                     <div class="vd-step active">
                 {% elif voucher.status == 'APPROVED' %}
                     <div class="vd-step done">
@@ -182,12 +182,12 @@
                         <i class="bi bi-check"></i>
                     {% elif voucher.status == 'REJECTED' %}
                         <i class="bi bi-x"></i>
-                    {% elif voucher.status == 'PENDING_L4' or voucher.status == 'PENDING_L5' %}
+                    {% elif voucher.status == 'PENDING_L4' or voucher.status == 'PENDING_L5' or voucher.status == 'PENDING_L6' %}
                         <i class="bi bi-hourglass-split"></i>
                     {% else %}4{% endif %}
                 </div>
                 <div class="vd-step-label">L2 Review</div>
-                <div class="vd-step-sub">GM / Director</div>
+                <div class="vd-step-sub">FC / GM / MD</div>
                 </div>
 
                 <!-- Step 5: Approved -->

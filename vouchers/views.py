@@ -115,7 +115,7 @@ def voucher_repeat(request, pk):
     # Check if user has access to this voucher (security check runs on both GET and POST,
     # but the error toast is only shown on POST — a GET just silently redirects away)
     if not (request.user.is_staff or
-            request.user.role_level in [1, 5, 99] or  # Account Payable, MD, and System Admin see all
+            request.user.role_level in [1, 6, 99] or  # Account Payable, MD, and System Admin see all
             source_voucher.created_by == request.user or
             source_voucher.current_approver == request.user or
             source_voucher.approval_history.filter(actor=request.user).exists()):
@@ -358,8 +358,8 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
         """Filter to only vouchers user has access to"""
         user = self.request.user
 
-        # Account Payable (role 1), MD (role 5), System Admin (role 99), and staff see ALL vouchers
-        if user.is_staff or user.role_level in [1, 5, 99]:
+        # Account Payable (role 1), MD (role 6), System Admin (role 99), and staff see ALL vouchers
+        if user.is_staff or user.role_level in [1, 6, 99]:
             return PaymentVoucher.objects.all()
 
         # Other roles can see if: creator, current approver, or in approval history
@@ -389,7 +389,7 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
         )
 
         # Allow approval only if user is the assigned approver
-        # MD users cannot approve PENDING_L5 individually - they must use batches
+        # MD users cannot approve PENDING_L6 individually - they must use batches
         # Safe check: ensure user has role_level attribute and voucher has status
         user_role = getattr(user, 'role_level', 0)
         voucher_status = getattr(voucher, 'status', '')
@@ -398,7 +398,7 @@ class VoucherDetailView(LoginRequiredMixin, DetailView):
             user_role != 99 and
             voucher.current_approver == user and
             voucher_status.startswith('PENDING') and
-            not (user_role == 5 and voucher_status == 'PENDING_L5')
+            not (user_role == 6 and voucher_status == 'PENDING_L6')
         )
 
         context['can_edit'] = (
@@ -473,9 +473,9 @@ def voucher_approve(request, pk):
 
     voucher = get_object_or_404(PaymentVoucher, pk=pk)
 
-    # MD users cannot approve PENDING_L5 documents individually
+    # MD users cannot approve PENDING_L6 documents individually
     # They must use signature batches (FM controls which documents to send)
-    if request.user.role_level == 5 and voucher.status == 'PENDING_L5':
+    if request.user.role_level == 6 and voucher.status == 'PENDING_L6':
         messages.error(request, 'MD users cannot approve individual documents. Please ask Finance Manager to create a signature batch.')
         return redirect('vouchers:detail', pk=pk)
 
@@ -552,9 +552,9 @@ def form_approve(request, pk):
 
     payment_form = get_object_or_404(PaymentForm, pk=pk)
 
-    # MD users cannot approve PENDING_L5 documents individually
+    # MD users cannot approve PENDING_L6 documents individually
     # They must use signature batches (FM controls which documents to send)
-    if request.user.role_level == 5 and payment_form.status == 'PENDING_L5':
+    if request.user.role_level == 6 and payment_form.status == 'PENDING_L6':
         messages.error(request, 'MD users cannot approve individual documents. Please ask Finance Manager to create a signature batch.')
         return redirect('vouchers:pf_detail', pk=pk)
 
@@ -690,7 +690,7 @@ def download_attachment(request, pk, attachment_id):
         voucher.current_approver == user or
         voucher.approval_history.filter(actor=user).exists() or
         user.is_staff or
-        user.role_level in [1, 5, 99]  # Account Payable, MD, and System Admin see all
+        user.role_level in [1, 6, 99]  # Account Payable, MD, and System Admin see all
     )
 
     if not has_access:
@@ -817,7 +817,7 @@ def download_form_attachment(request, pk, attachment_id):
                 payment_form.current_approver == user or
                 payment_form.approval_history.filter(actor=user).exists() or
                 user.is_staff or
-                user.role_level in [1, 5, 99]  # Account Payable, MD, and System Admin see all
+                user.role_level in [1, 6, 99]  # Account Payable, MD, and System Admin see all
         )
 
         if not has_access:
@@ -880,7 +880,7 @@ def voucher_pdf(request, pk):
         voucher.current_approver == user or
         voucher.approval_history.filter(actor=user).exists() or
         user.is_staff or
-        user.role_level in [1, 5, 99]  # Account Payable, MD, and System Admin see all
+        user.role_level in [1, 6, 99]  # Account Payable, MD, and System Admin see all
     )
 
     if not has_access:
@@ -1034,7 +1034,7 @@ def form_repeat(request, pk):
     # Check if user has access to this form (security check runs on both GET and POST,
     # but the error toast is only shown on POST — a GET just silently redirects away)
     if not (request.user.is_staff or
-            request.user.role_level in [1, 5, 99] or  # Account Payable, MD, and System Admin see all
+            request.user.role_level in [1, 6, 99] or  # Account Payable, MD, and System Admin see all
             source_form.created_by == request.user or
             source_form.current_approver == request.user or
             source_form.approval_history.filter(actor=request.user).exists()):
@@ -1278,8 +1278,8 @@ class FormDetailView(LoginRequiredMixin, DetailView):
         """Filter to only forms user has access to"""
         user = self.request.user
 
-        # Account Payable (role 1), MD (role 5), System Admin (role 99), and staff see ALL forms
-        if user.is_staff or user.role_level in [1, 5, 99]:
+        # Account Payable (role 1), MD (role 6), System Admin (role 99), and staff see ALL forms
+        if user.is_staff or user.role_level in [1, 6, 99]:
             return PaymentForm.objects.all()
 
         # Other roles can see if: creator, current approver, or in approval history
@@ -1309,7 +1309,7 @@ class FormDetailView(LoginRequiredMixin, DetailView):
         )
 
         # Allow approval only if user is the assigned approver
-        # MD users cannot approve PENDING_L5 individually - they must use batches
+        # MD users cannot approve PENDING_L6 individually - they must use batches
         # Safe check: ensure user has role_level attribute and form has status
         user_role = getattr(user, 'role_level', 0)
         form_status = getattr(payment_form, 'status', '')
@@ -1318,7 +1318,7 @@ class FormDetailView(LoginRequiredMixin, DetailView):
             user_role != 99 and
             payment_form.current_approver == user and
             form_status.startswith('PENDING') and
-            not (user_role == 5 and form_status == 'PENDING_L5')
+            not (user_role == 6 and form_status == 'PENDING_L6')
         )
 
         context['can_edit'] = (
@@ -1436,8 +1436,8 @@ def reports_view(request):
     from datetime import datetime, timedelta
 
     # Get documents after L2 (Account Supervisor) approval
-    # This includes: PENDING_L3, PENDING_L4, PENDING_L5, and APPROVED
-    allowed_statuses = ['PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED']
+    # This includes: PENDING_L3, PENDING_L4, PENDING_L5, PENDING_L6, and APPROVED
+    allowed_statuses = ['PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'PENDING_L6', 'APPROVED']
     approved_vouchers = PaymentVoucher.objects.filter(status__in=allowed_statuses)
     approved_forms = PaymentForm.objects.filter(status__in=allowed_statuses)
 
@@ -1702,7 +1702,7 @@ def bulk_approval_action(request):
 
     # MD users cannot bulk approve individual documents
     # They must use signature batches (FM controls which documents to send)
-    if user.role_level == 5:
+    if user.role_level == 6:
         messages.error(request, "MD users cannot approve individual documents. Please use signature batches.")
         return redirect('dashboard:pending')
 

@@ -62,7 +62,7 @@ class ReportGenerator:
         else:
             # If no status filter specified, show documents after L2 approval
             # (PENDING_L3 onwards means L2 has already approved)
-            allowed_statuses = ['PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED']
+            allowed_statuses = ['PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'PENDING_L6', 'APPROVED']
             vouchers_qs = vouchers_qs.filter(status__in=allowed_statuses)
             forms_qs = forms_qs.filter(status__in=allowed_statuses)
 

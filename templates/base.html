@@ -109,7 +109,7 @@
                 <span class="nav-label">All Vouchers</span>
             </a>
 
-            {% if user.role_level == 5 %}
+            {% if user.role_level == 6 %}
             <a class="sidebar-link" href="{% url 'vouchers:md_dashboard' %}" data-tooltip="Signature Batches">
                 <i class="bi bi-inbox nav-icon"></i>
                 <span class="nav-label">Signature Batches</span>
@@ -164,7 +164,7 @@
                 <span class="nav-label">All Batches</span>
             </a>
 
-            {% if user.role_level == 5 %}
+            {% if user.role_level == 6 %}
             <span class="nav-section-label">MD Actions</span>
             <a class="sidebar-link" href="{% url 'vouchers:md_dashboard' %}" data-tooltip="Sign Batches">
                 <i class="bi bi-pen nav-icon"></i>
@@ -238,13 +238,13 @@
                         </div>
                         {% if pending_count > 0 %}
                         <a class="notif-item"
-                           href="{% if user.role_level == 5 %}{% url 'vouchers:md_dashboard' %}{% else %}{% url 'dashboard:pending' %}{% endif %}">
+                           href="{% if user.role_level == 6 %}{% url 'vouchers:md_dashboard' %}{% else %}{% url 'dashboard:pending' %}{% endif %}">
                             <div class="notif-icon warn">
                                 <i class="bi bi-clock-history"></i>
                             </div>
                             <div class="notif-body">
                                 <strong>{{ pending_count }} item{{ pending_count|pluralize }} pending</strong>
-                                <small>{% if user.role_level == 5 %}Awaiting your signature{% else %}Requires your approval{% endif %}</small>
+                                <small>{% if user.role_level == 6 %}Awaiting your signature{% else %}Requires your approval{% endif %}</small>
                             </div>
                         </a>
                         {% else %}
@@ -254,7 +254,7 @@
                         </div>
                         {% endif %}
                         <div class="td-footer">
-                            <a href="{% if user.role_level == 5 %}{% url 'vouchers:md_dashboard' %}{% else %}{% url 'dashboard:pending' %}{% endif %}">
+                            <a href="{% if user.role_level == 6 %}{% url 'vouchers:md_dashboard' %}{% else %}{% url 'dashboard:pending' %}{% endif %}">
                                 View all →
                             </a>
                         </div>
@@ -356,7 +356,7 @@
                         <h5>Quick Links</h5>
                         {% if user.is_authenticated %}
                             <a href="{% url 'dashboard:home' %}"><i class="bi bi-speedometer2" style="margin-right:5px;"></i>Dashboard</a>
-                            {% if user.role_level == 5 %}
+                            {% if user.role_level == 6 %}
                                 <a href="{% url 'vouchers:md_dashboard' %}"><i class="bi bi-pen" style="margin-right:5px;"></i>Signature Batches</a>
                             {% else %}
                                 <a href="{% url 'dashboard:pending' %}"><i class="bi bi-clock-history" style="margin-right:5px;"></i>Pending Actions</a>

@@ -40,7 +40,7 @@ class NotificationService:
             if action == 'submit':
                 NotificationService._notify_next_approver(voucher, actor)
             elif action == 'approve':
-                if voucher.status in ['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5']:
+                if voucher.status in ['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'PENDING_L6']:
                     # Still pending - notify next approver
                     NotificationService._notify_next_approver(voucher, actor)
                 elif voucher.status == 'APPROVED':

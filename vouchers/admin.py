@@ -59,7 +59,7 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
     readonly_fields = ['pv_number', 'created_by', 'created_at', 'updated_at', 'submitted_at']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
-    actions = ['reset_to_l2', 'reset_to_l3', 'reset_to_l4', 'reset_to_l5', 'reset_to_draft', 'mark_approved']
+    actions = ['reset_to_l2', 'reset_to_l3', 'reset_to_l4', 'reset_to_l5', 'reset_to_l6', 'reset_to_draft', 'mark_approved']
 
     fieldsets = (
         ('Voucher Information', {
@@ -101,7 +101,7 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
                 new_status = obj.status
                 status_to_level = {
                     'DRAFT': 0, 'PENDING_L2': 2, 'PENDING_L3': 3,
-                    'PENDING_L4': 4, 'PENDING_L5': 5,
+                    'PENDING_L4': 4, 'PENDING_L5': 5, 'PENDING_L6': 6,
                 }
                 reset_level = status_to_level.get(new_status)
                 if reset_level is not None:
@@ -205,7 +205,7 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
                 updated += 1
         self.message_user(request, f'{updated} voucher(s) reset to L3')
 
-    @admin.action(description='Reset to L4 (General Manager)')
+    @admin.action(description='Reset to L4 (Finance Controller)')
     def reset_to_l4(self, request, queryset):
         """Reset documents to PENDING_L4 status"""
         from accounts.models import User
@@ -214,7 +214,7 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
         for voucher in queryset:
             l4_user = User.objects.filter(role_level=4, is_active=True, is_approved=True, email_verified=True).first()
             if l4_user:
-                # Clear approvals at L4 and above so GM and above can re-approve
+                # Clear approvals at L4 and above so FC and above can re-approve
                 ApprovalHistory.objects.filter(voucher=voucher, action='APPROVE', actor__role_level__gte=4).delete()
                 voucher.status = 'PENDING_L4'
                 voucher.current_approver = l4_user
@@ -223,7 +223,7 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
                 updated += 1
         self.message_user(request, f'{updated} voucher(s) reset to L4')
 
-    @admin.action(description='Reset to L5 (Managing Director)')
+    @admin.action(description='Reset to L5 (General Manager)')
     def reset_to_l5(self, request, queryset):
         """Reset documents to PENDING_L5 status"""
         from accounts.models import User
@@ -239,6 +239,23 @@ class PaymentVoucherAdmin(admin.ModelAdmin):
                 voucher.save()
                 updated += 1
         self.message_user(request, f'{updated} voucher(s) reset to L5')
+
+    @admin.action(description='Reset to L6 (Managing Director)')
+    def reset_to_l6(self, request, queryset):
+        """Reset documents to PENDING_L6 status"""
+        from accounts.models import User
+        from workflow.models import ApprovalHistory
+        updated = 0
+        for voucher in queryset:
+            l6_user = User.objects.filter(role_level=6, is_active=True, is_approved=True, email_verified=True).first()
+            if l6_user:
+                ApprovalHistory.objects.filter(voucher=voucher, action='APPROVE', actor__role_level__gte=6).delete()
+                voucher.status = 'PENDING_L6'
+                voucher.current_approver = l6_user
+                voucher.revision_return_level = None
+                voucher.save()
+                updated += 1
+        self.message_user(request, f'{updated} voucher(s) reset to L6')
 
     @admin.action(description='Reset to Draft')
     def reset_to_draft(self, request, queryset):
@@ -286,7 +303,7 @@ class PaymentFormAdmin(admin.ModelAdmin):
     readonly_fields = ['pf_number', 'created_by', 'created_at', 'updated_at', 'submitted_at']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
-    actions = ['reset_to_l2', 'reset_to_l3', 'reset_to_l4', 'reset_to_l5', 'reset_to_draft', 'mark_approved']
+    actions = ['reset_to_l2', 'reset_to_l3', 'reset_to_l4', 'reset_to_l5', 'reset_to_l6', 'reset_to_draft', 'mark_approved']
 
     fieldsets = (
         ('Payment Form Information', {
@@ -328,7 +345,7 @@ class PaymentFormAdmin(admin.ModelAdmin):
                 new_status = obj.status
                 status_to_level = {
                     'DRAFT': 0, 'PENDING_L2': 2, 'PENDING_L3': 3,
-                    'PENDING_L4': 4, 'PENDING_L5': 5,
+                    'PENDING_L4': 4, 'PENDING_L5': 5, 'PENDING_L6': 6,
                 }
                 reset_level = status_to_level.get(new_status)
                 if reset_level is not None:
@@ -430,7 +447,7 @@ class PaymentFormAdmin(admin.ModelAdmin):
                 updated += 1
         self.message_user(request, f'{updated} payment form(s) reset to L3')
 
-    @admin.action(description='Reset to L4 (General Manager)')
+    @admin.action(description='Reset to L4 (Finance Controller)')
     def reset_to_l4(self, request, queryset):
         """Reset documents to PENDING_L4 status"""
         from accounts.models import User
@@ -447,7 +464,7 @@ class PaymentFormAdmin(admin.ModelAdmin):
                 updated += 1
         self.message_user(request, f'{updated} payment form(s) reset to L4')
 
-    @admin.action(description='Reset to L5 (Managing Director)')
+    @admin.action(description='Reset to L5 (General Manager)')
     def reset_to_l5(self, request, queryset):
         """Reset documents to PENDING_L5 status"""
         from accounts.models import User
@@ -463,6 +480,23 @@ class PaymentFormAdmin(admin.ModelAdmin):
                 form.save()
                 updated += 1
         self.message_user(request, f'{updated} payment form(s) reset to L5')
+
+    @admin.action(description='Reset to L6 (Managing Director)')
+    def reset_to_l6(self, request, queryset):
+        """Reset documents to PENDING_L6 status"""
+        from accounts.models import User
+        from workflow.models import FormApprovalHistory
+        updated = 0
+        for form in queryset:
+            l6_user = User.objects.filter(role_level=6, is_active=True, is_approved=True, email_verified=True).first()
+            if l6_user:
+                FormApprovalHistory.objects.filter(payment_form=form, action='APPROVE', actor__role_level__gte=6).delete()
+                form.status = 'PENDING_L6'
+                form.current_approver = l6_user
+                form.revision_return_level = None
+                form.save()
+                updated += 1
+        self.message_user(request, f'{updated} payment form(s) reset to L6')
 
     @admin.action(description='Reset to Draft')
     def reset_to_draft(self, request, queryset):

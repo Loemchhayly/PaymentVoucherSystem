@@ -14,9 +14,9 @@ class VoucherStateMachine:
 
     State Flow:
     DRAFT → [submit] → PENDING_L2 → [approve] → PENDING_L3 → [approve] → PENDING_L4
-    → [approve] → PENDING_L5 → [approve] → APPROVED
+    → [approve] → PENDING_L5 → [approve] → PENDING_L6 → [approve] → APPROVED
 
-    All documents require full approval chain including MD (Level 5).
+    All documents require full approval chain including MD (Level 6).
 
     At any PENDING_L* stage: [reject] → REJECTED or [return] → ON_REVISION
     ON_REVISION → [submit] → PENDING_L2 (starts new approval chain)
@@ -37,11 +37,16 @@ class VoucherStateMachine:
             'return': 'ON_REVISION',
         },
         'PENDING_L4': {
-            'approve': 'PENDING_L5',  # Always requires MD approval
+            'approve': 'PENDING_L5',
             'reject': 'REJECTED',
             'return': 'ON_REVISION',
         },
         'PENDING_L5': {
+            'approve': 'PENDING_L6',  # Always requires MD approval
+            'reject': 'REJECTED',
+            'return': 'ON_REVISION',
+        },
+        'PENDING_L6': {
             'approve': 'APPROVED',
             'reject': 'REJECTED',
             'return': 'ON_REVISION',
@@ -58,6 +63,7 @@ class VoucherStateMachine:
         3: 'PENDING_L3',
         4: 'PENDING_L4',
         5: 'PENDING_L5',
+        6: 'PENDING_L6',
     }
 
     @classmethod
@@ -81,13 +87,13 @@ class VoucherStateMachine:
                 return False, "Only the creator can submit this voucher"
         else:
             # For approve/reject/return actions
-            # MD users cannot approve PENDING_L5 documents individually (unless via batch)
+            # MD users cannot approve PENDING_L6 documents individually (unless via batch)
             # They must use signature batches (FM controls which documents to send)
-            if voucher.status == 'PENDING_L5' and user.role_level == 5 and action == 'approve' and not via_batch:
+            if voucher.status == 'PENDING_L6' and user.role_level == 6 and action == 'approve' and not via_batch:
                 return False, "MD users cannot approve individual documents. Please ask Finance Manager to create a signature batch."
 
-            # For batch operations, allow any MD user to approve PENDING_L5
-            if via_batch and voucher.status == 'PENDING_L5' and user.role_level == 5:
+            # For batch operations, allow any MD user to approve PENDING_L6
+            if via_batch and voucher.status == 'PENDING_L6' and user.role_level == 6:
                 pass  # Allow batch approval
             # Otherwise check if user is the assigned approver
             elif voucher.current_approver != user:
@@ -139,11 +145,11 @@ class VoucherStateMachine:
         # Handle special cases
         if action == 'return':
             returning_level = user.role_level
-            if returning_level in (3, 4):
-                # FM or GM: store level and only clear approvals at/above that level
+            if returning_level in (3, 4, 5):
+                # FM, FC, or GM: store level and only clear approvals at/above that level
                 voucher.revision_return_level = returning_level
-                level_to_status = {3: 'PENDING_L3', 4: 'PENDING_L4', 5: 'PENDING_L5'}
-                levels_to_clear = [l for l in (3, 4, 5) if l >= returning_level]
+                level_to_status = {3: 'PENDING_L3', 4: 'PENDING_L4', 5: 'PENDING_L5', 6: 'PENDING_L6'}
+                levels_to_clear = [l for l in (3, 4, 5, 6) if l >= returning_level]
                 statuses_to_clear = [level_to_status[l] for l in levels_to_clear]
                 voucher.approval_history.filter(action='APPROVE', actor__role_level__in=levels_to_clear).delete()
             else:
@@ -160,9 +166,9 @@ class VoucherStateMachine:
             elif voucher.status == 'ON_REVISION':
                 # Resubmission after revision
                 voucher.submitted_at = timezone.now()
-                # If FM/GM returned it, route back directly to that level
-                if voucher.revision_return_level in (3, 4):
-                    level_to_status = {3: 'PENDING_L3', 4: 'PENDING_L4'}
+                # If FM/FC/GM returned it, route back directly to that level
+                if voucher.revision_return_level in (3, 4, 5):
+                    level_to_status = {3: 'PENDING_L3', 4: 'PENDING_L4', 5: 'PENDING_L5'}
                     next_state = level_to_status[voucher.revision_return_level]
                 voucher.revision_return_level = None
 
@@ -263,6 +269,7 @@ class VoucherStateMachine:
             'PENDING_L3': 3,
             'PENDING_L4': 4,
             'PENDING_L5': 5,
+            'PENDING_L6': 6,
         }
 
         if status not in role_map:
@@ -286,6 +293,7 @@ class VoucherStateMachine:
             'PENDING_L3': 3,
             'PENDING_L4': 4,
             'PENDING_L5': 5,
+            'PENDING_L6': 6,
         }
         return level_map.get(status)
 
@@ -296,9 +304,9 @@ class FormStateMachine:
 
     State Flow:
     DRAFT → [submit] → PENDING_L2 → [approve] → PENDING_L3 → [approve] → PENDING_L4
-    → [approve] → PENDING_L5 → [approve] → APPROVED
+    → [approve] → PENDING_L5 → [approve] → PENDING_L6 → [approve] → APPROVED
 
-    All documents require full approval chain including MD (Level 5).
+    All documents require full approval chain including MD (Level 6).
 
     At any PENDING_L* stage: [reject] → REJECTED or [return] → ON_REVISION
     ON_REVISION → [submit] → PENDING_L2 (starts new approval chain)
@@ -319,11 +327,16 @@ class FormStateMachine:
             'return': 'ON_REVISION',
         },
         'PENDING_L4': {
-            'approve': 'PENDING_L5',  # Always requires MD approval
+            'approve': 'PENDING_L5',
             'reject': 'REJECTED',
             'return': 'ON_REVISION',
         },
         'PENDING_L5': {
+            'approve': 'PENDING_L6',  # Always requires MD approval
+            'reject': 'REJECTED',
+            'return': 'ON_REVISION',
+        },
+        'PENDING_L6': {
             'approve': 'APPROVED',
             'reject': 'REJECTED',
             'return': 'ON_REVISION',
@@ -340,6 +353,7 @@ class FormStateMachine:
         3: 'PENDING_L3',
         4: 'PENDING_L4',
         5: 'PENDING_L5',
+        6: 'PENDING_L6',
     }
 
     @classmethod
@@ -363,13 +377,13 @@ class FormStateMachine:
                 return False, "Only the creator can submit this form"
         else:
             # For approve/reject/return actions
-            # MD users cannot approve PENDING_L5 documents individually (unless via batch)
+            # MD users cannot approve PENDING_L6 documents individually (unless via batch)
             # They must use signature batches (FM controls which documents to send)
-            if payment_form.status == 'PENDING_L5' and user.role_level == 5 and action == 'approve' and not via_batch:
+            if payment_form.status == 'PENDING_L6' and user.role_level == 6 and action == 'approve' and not via_batch:
                 return False, "MD users cannot approve individual documents. Please ask Finance Manager to create a signature batch."
 
-            # For batch operations, allow any MD user to approve PENDING_L5
-            if via_batch and payment_form.status == 'PENDING_L5' and user.role_level == 5:
+            # For batch operations, allow any MD user to approve PENDING_L6
+            if via_batch and payment_form.status == 'PENDING_L6' and user.role_level == 6:
                 pass  # Allow batch approval
             # Otherwise check if user is the assigned approver
             elif payment_form.current_approver != user:
@@ -421,10 +435,11 @@ class FormStateMachine:
         # Handle special cases
         if action == 'return':
             returning_level = user.role_level
-            if returning_level in (3, 4):
-                # FM or GM: store level and only clear approvals at/above that level
+            if returning_level in (3, 4, 5):
+                # FM, FC, or GM: store level and only clear approvals at/above that level
                 payment_form.revision_return_level = returning_level
-                levels_to_clear = [l for l in (3, 4, 5) if l >= returning_level]
+                level_to_status = {3: 'PENDING_L3', 4: 'PENDING_L4', 5: 'PENDING_L5', 6: 'PENDING_L6'}
+                levels_to_clear = [l for l in (3, 4, 5, 6) if l >= returning_level]
                 payment_form.approval_history.filter(action='APPROVE', actor__role_level__in=levels_to_clear).delete()
             else:
                 # L2 or others: full reset, clear all approvals
@@ -440,9 +455,9 @@ class FormStateMachine:
             elif payment_form.status == 'ON_REVISION':
                 # Resubmission after revision
                 payment_form.submitted_at = timezone.now()
-                # If FM/GM returned it, route back directly to that level
-                if payment_form.revision_return_level in (3, 4):
-                    level_to_status = {3: 'PENDING_L3', 4: 'PENDING_L4'}
+                # If FM/FC/GM returned it, route back directly to that level
+                if payment_form.revision_return_level in (3, 4, 5):
+                    level_to_status = {3: 'PENDING_L3', 4: 'PENDING_L4', 5: 'PENDING_L5'}
                     next_state = level_to_status[payment_form.revision_return_level]
                 payment_form.revision_return_level = None
 
@@ -484,6 +499,7 @@ class FormStateMachine:
             'PENDING_L3': 3,
             'PENDING_L4': 4,
             'PENDING_L5': 5,
+            'PENDING_L6': 6,
         }
 
         if status not in role_map:
@@ -507,5 +523,6 @@ class FormStateMachine:
             'PENDING_L3': 3,
             'PENDING_L4': 4,
             'PENDING_L5': 5,
+            'PENDING_L6': 6,
         }
         return level_map.get(status)

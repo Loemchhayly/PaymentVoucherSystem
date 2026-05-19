@@ -29,9 +29,9 @@ from .models import (
 @login_required
 def batch_select_documents(request):
     """
-    Account Payable or Finance Manager selects PENDING_L5 vouchers/forms for batch signature
+    Account Payable or Finance Manager selects PENDING_L6 vouchers/forms for batch signature
     Accessible by Account Payable (role_level 1) and Finance Manager (role_level 3)
-    Documents at PENDING_L5 status means GM has approved and waiting for MD
+    Documents at PENDING_L6 status means GM has approved and waiting for MD
     """
     # Check permission - Account Payable or Finance Manager
     if request.user.role_level not in [1, 3]:
@@ -47,16 +47,16 @@ def batch_select_documents(request):
         batch__status='PENDING'
     ).values_list('payment_form_id', flat=True))
 
-    # Get ALL PENDING_L5 documents (after GM approval, waiting for MD)
+    # Get ALL PENDING_L6 documents (after GM approval, waiting for MD)
     # Exclude documents already in a pending batch
     vouchers = PaymentVoucher.objects.filter(
-        status='PENDING_L5'
+        status='PENDING_L6'
     ).exclude(
         id__in=pending_voucher_ids
     ).select_related('created_by').prefetch_related('line_items').order_by('-created_at')
 
     forms = PaymentForm.objects.filter(
-        status='PENDING_L5'
+        status='PENDING_L6'
     ).exclude(
         id__in=pending_form_ids
     ).select_related('created_by').prefetch_related('line_items').order_by('-created_at')
@@ -94,23 +94,23 @@ def batch_create(request):
             fm_notes=fm_notes
         )
 
-        # Add vouchers to batch (must be PENDING_L5 - after GM approval)
+        # Add vouchers to batch (must be PENDING_L6 - after GM approval)
         for voucher_id in voucher_ids:
             try:
                 voucher = PaymentVoucher.objects.get(
                     id=voucher_id,
-                    status='PENDING_L5'
+                    status='PENDING_L6'
                 )
                 BatchVoucherItem.objects.create(batch=batch, voucher=voucher)
             except PaymentVoucher.DoesNotExist:
                 pass
 
-        # Add forms to batch (must be PENDING_L5 - after GM approval)
+        # Add forms to batch (must be PENDING_L6 - after GM approval)
         for form_id in form_ids:
             try:
                 form = PaymentForm.objects.get(
                     id=form_id,
-                    status='PENDING_L5'
+                    status='PENDING_L6'
                 )
                 BatchFormItem.objects.create(batch=batch, payment_form=form)
             except PaymentForm.DoesNotExist:
@@ -173,10 +173,10 @@ def fm_batch_list(request):
 def md_dashboard(request):
     """
     Managing Director dashboard to view and sign batches
-    Only accessible by MD (role_level 5)
+    Only accessible by MD (role_level 6)
     """
     # Check permission
-    if request.user.role_level != 5:
+    if request.user.role_level != 6:
         messages.error(request, 'Only Managing Director can access this dashboard')
         return redirect('dashboard:home')
 
@@ -460,7 +460,7 @@ def batch_edit(request, batch_id):
         # Add new vouchers
         for pv_id in pv_ids:
             try:
-                voucher = PaymentVoucher.objects.get(id=pv_id, status='PENDING_L5')
+                voucher = PaymentVoucher.objects.get(id=pv_id, status='PENDING_L6')
                 BatchVoucherItem.objects.create(batch=batch, voucher=voucher)
             except PaymentVoucher.DoesNotExist:
                 pass
@@ -468,7 +468,7 @@ def batch_edit(request, batch_id):
         # Add new forms
         for pf_id in pf_ids:
             try:
-                form = PaymentForm.objects.get(id=pf_id, status='PENDING_L5')
+                form = PaymentForm.objects.get(id=pf_id, status='PENDING_L6')
                 BatchFormItem.objects.create(batch=batch, payment_form=form)
             except PaymentForm.DoesNotExist:
                 pass
@@ -498,14 +498,14 @@ def batch_edit(request, batch_id):
         batch=batch
     ).values_list('payment_form_id', flat=True))
 
-    # Get available documents: PENDING_L5 that are NOT in other pending batches AND not already in this batch
-    available_vouchers = PaymentVoucher.objects.filter(status='PENDING_L5').exclude(
+    # Get available documents: PENDING_L6 that are NOT in other pending batches AND not already in this batch
+    available_vouchers = PaymentVoucher.objects.filter(status='PENDING_L6').exclude(
         id__in=other_batch_pv_ids
     ).exclude(
         id__in=current_pv_ids
     )
 
-    available_forms = PaymentForm.objects.filter(status='PENDING_L5').exclude(
+    available_forms = PaymentForm.objects.filter(status='PENDING_L6').exclude(
         id__in=other_batch_pf_ids
     ).exclude(
         id__in=current_pf_ids
@@ -556,7 +556,7 @@ def batch_sign(request, batch_id):
     MD signs all documents in a batch
     """
     # Check permission
-    if request.user.role_level != 5:
+    if request.user.role_level != 6:
         return JsonResponse({'error': 'Only MD can sign batches'}, status=403)
 
     batch = get_object_or_404(SignatureBatch, id=batch_id, status='PENDING')
@@ -586,8 +586,8 @@ def batch_sign(request, batch_id):
         for item in batch.voucher_items.all():
             try:
                 voucher = item.voucher
-                # Validate the voucher is at PENDING_L5
-                if voucher.status == 'PENDING_L5':
+                # Validate the voucher is at PENDING_L6
+                if voucher.status == 'PENDING_L6':
                     VoucherStateMachine.transition(voucher, 'approve', request.user, comment_text, via_batch=True)
                     success_count += 1
                 else:
@@ -601,8 +601,8 @@ def batch_sign(request, batch_id):
         for item in batch.form_items.all():
             try:
                 form = item.payment_form
-                # Validate the form is at PENDING_L5
-                if form.status == 'PENDING_L5':
+                # Validate the form is at PENDING_L6
+                if form.status == 'PENDING_L6':
                     FormStateMachine.transition(form, 'approve', request.user, comment_text, via_batch=True)
                     success_count += 1
                 else:
@@ -645,7 +645,7 @@ def batch_bulk_sign(request):
     MD signs multiple batches at once
     """
     # Check permission
-    if request.user.role_level != 5:
+    if request.user.role_level != 6:
         messages.error(request, 'Only MD can sign batches')
         return redirect('vouchers:md_dashboard')
 
@@ -682,7 +682,7 @@ def batch_bulk_sign(request):
                 for item in batch.voucher_items.all():
                     try:
                         voucher = item.voucher
-                        if voucher.status == 'PENDING_L5':
+                        if voucher.status == 'PENDING_L6':
                             VoucherStateMachine.transition(voucher, 'approve', request.user, comment_text, via_batch=True)
                             success_count += 1
                         else:
@@ -694,7 +694,7 @@ def batch_bulk_sign(request):
                 for item in batch.form_items.all():
                     try:
                         form = item.payment_form
-                        if form.status == 'PENDING_L5':
+                        if form.status == 'PENDING_L6':
                             FormStateMachine.transition(form, 'approve', request.user, comment_text, via_batch=True)
                             success_count += 1
                         else:
@@ -736,7 +736,7 @@ def batch_reject(request, batch_id):
     MD rejects a batch
     """
     # Check permission
-    if request.user.role_level != 5:
+    if request.user.role_level != 6:
         return JsonResponse({'error': 'Only MD can reject batches'}, status=403)
 
     batch = get_object_or_404(SignatureBatch, id=batch_id, status='PENDING')
@@ -772,7 +772,7 @@ def batch_remove_document(request, batch_id):
     MD removes a single document from a pending batch
     """
     # Check permission
-    if request.user.role_level != 5:
+    if request.user.role_level != 6:
         return JsonResponse({'error': 'Only MD can remove documents from batches'}, status=403)
 
     batch = get_object_or_404(SignatureBatch, id=batch_id, status='PENDING')

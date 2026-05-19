@@ -50,8 +50,8 @@ class DashboardView(LoginRequiredMixin, ListView):
         month_filter = self.request.GET.get('month', '').strip()
 
         # Base querysets
-        # Account Payable (role 1), MD (role 5), System Admin (role 99), and staff see ALL documents
-        if user.is_staff or user.role_level in [1, 5, 99]:
+        # Account Payable (role 1), MD (role 6), System Admin (role 99), and staff see ALL documents
+        if user.is_staff or user.role_level in [1, 6, 99]:
             pv_queryset = PaymentVoucher.objects.all()
             pf_queryset = PaymentForm.objects.all()
         else:
@@ -162,7 +162,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         from django.db.models.functions import TruncMonth
 
         # ── Base querysets ──
-        if user.is_staff or user.role_level in [5, 99]:
+        if user.is_staff or user.role_level in [6, 99]:
             pv_base = PaymentVoucher.objects.all()
             pf_base = PaymentForm.objects.all()
         else:
@@ -183,7 +183,7 @@ class DashboardView(LoginRequiredMixin, ListView):
             pending_vouchers = PaymentVoucher.objects.filter(status__startswith='PENDING').count()
             pending_forms = PaymentForm.objects.filter(status__startswith='PENDING').count()
             pending_batches = 0
-        elif user.role_level == 5:
+        elif user.role_level == 6:
             pending_vouchers = 0
             pending_forms = 0
             pending_batches = SignatureBatch.objects.filter(status='PENDING').count()
@@ -212,7 +212,7 @@ class DashboardView(LoginRequiredMixin, ListView):
         )
 
         # ── Pending docs panel ──
-        if user.role_level == 5:
+        if user.role_level == 6:
             context['pending_docs'] = []
         elif user.role_level == 99:
             # System Admin sees all pending documents across every level
@@ -272,7 +272,7 @@ class DashboardView(LoginRequiredMixin, ListView):
 
         from django.db.models import Q as DQ
 
-        ACTIVE_STATUSES = ['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED']
+        ACTIVE_STATUSES = ['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'PENDING_L6', 'APPROVED']
 
         def get_monthly_by_currency(currency_code):
             """Get monthly totals (in native currency) for a specific currency."""
@@ -360,7 +360,7 @@ class DashboardView(LoginRequiredMixin, ListView):
                 .filter(
                     voucher__payment_date__gte=month_start,
                     voucher__payment_date__lt=month_end,
-                    voucher__status__in=['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED'],
+                    voucher__status__in=['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'PENDING_L6', 'APPROVED'],
                     currency=currency_code
                 )
                 .values('department__name')
@@ -373,7 +373,7 @@ class DashboardView(LoginRequiredMixin, ListView):
                 .filter(
                     payment_form__payment_date__gte=month_start,
                     payment_form__payment_date__lt=month_end,
-                    payment_form__status__in=['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'APPROVED'],
+                    payment_form__status__in=['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'PENDING_L6', 'APPROVED'],
                     currency=currency_code
                 )
                 .values('department__name')
@@ -444,7 +444,7 @@ class PendingActionView(LoginRequiredMixin, ListView):
     paginate_by = 20
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated and hasattr(request.user, 'role_level') and request.user.role_level == 5:
+        if request.user.is_authenticated and hasattr(request.user, 'role_level') and request.user.role_level == 6:
             from django.shortcuts import redirect
             return redirect('vouchers:md_dashboard')
         response = super().dispatch(request, *args, **kwargs)
@@ -568,7 +568,7 @@ class InProgressView(LoginRequiredMixin, ListView):
         search_field = self.request.GET.get('search_field', 'all')
         month_filter = self.request.GET.get('month', '').strip()
 
-        if user.is_staff or user.role_level in [5, 99]:
+        if user.is_staff or user.role_level in [6, 99]:
             pv_queryset = PaymentVoucher.objects.filter(status__startswith='PENDING')
             pf_queryset = PaymentForm.objects.filter(status__startswith='PENDING')
         else:
@@ -682,7 +682,7 @@ class ApprovedView(LoginRequiredMixin, ListView):
         search_field = self.request.GET.get('search_field', 'all')
         month_filter = self.request.GET.get('month', '').strip()
 
-        if user.is_staff or user.role_level in [5, 99]:
+        if user.is_staff or user.role_level in [6, 99]:
             pv_queryset = PaymentVoucher.objects.filter(status='APPROVED')
             pf_queryset = PaymentForm.objects.filter(status='APPROVED')
         else:
@@ -792,7 +792,7 @@ class CancelledView(LoginRequiredMixin, ListView):
         search_field = self.request.GET.get('search_field', 'all')
         month_filter = self.request.GET.get('month', '').strip()
 
-        if user.is_staff or user.role_level in [5, 99]:
+        if user.is_staff or user.role_level in [6, 99]:
             pv_queryset = PaymentVoucher.objects.filter(status='REJECTED')
             pf_queryset = PaymentForm.objects.filter(status='REJECTED')
         else:
@@ -1113,7 +1113,7 @@ class AllVouchersView(LoginRequiredMixin, ListView):
         month_filter = self.request.GET.get('month', '').strip()
 
         # Base querysets
-        if user.is_staff or user.role_level in [5, 99]:
+        if user.is_staff or user.role_level in [6, 99]:
             pv_queryset = PaymentVoucher.objects.all()
             pf_queryset = PaymentForm.objects.all()
         else:
@@ -1356,7 +1356,7 @@ def dashboard_search(request):
     user = request.user
 
     # Base querysets - same logic as DashboardView
-    if user.is_staff or user.role_level in [5, 99]:
+    if user.is_staff or user.role_level in [6, 99]:
         pv_queryset = PaymentVoucher.objects.all()
         pf_queryset = PaymentForm.objects.all()
     else:

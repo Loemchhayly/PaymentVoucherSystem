@@ -1679,7 +1679,7 @@ body[data-theme="light"] .ob-mobile-bank-detail {
         {% endif %}
       </div>
 
-      {% if user.role_level == 5 and batch.status == 'PENDING' %}
+      {% if user.role_level == 6 and batch.status == 'PENDING' %}
       <div class="ob-card-actions">
         <button type="button" class="ob-action-sign" onclick="showSignModal()">
           <i class="bi bi-check-circle-fill"></i> Sign All
@@ -1743,7 +1743,7 @@ body[data-theme="light"] .ob-mobile-bank-detail {
               </td>
               <td><span class="ob-amount">{{ item.voucher.get_grand_total_display }}</span></td>
               <td onclick="event.stopPropagation()">
-                {% if user.role_level == 5 and batch.status == 'PENDING' %}
+                {% if user.role_level == 6 and batch.status == 'PENDING' %}
                 <button class="ob-remove" onclick="showRemoveModal('voucher',{{ item.voucher.id }},'{{ item.voucher.pv_number }}')">
                   <i class="bi bi-x-lg"></i>
                 </button>
@@ -1767,7 +1767,7 @@ body[data-theme="light"] .ob-mobile-bank-detail {
                 <span class="ob-mobile-doc-badge pv">PV</span>
                 <strong style="color: var(--cyan-400); font-size: 0.8125rem; font-weight: 700;">{{ item.voucher.pv_number }}</strong>
               </div>
-              {% if user.role_level == 5 and batch.status == 'PENDING' %}
+              {% if user.role_level == 6 and batch.status == 'PENDING' %}
               <button class="ob-mobile-doc-remove" onclick="event.stopPropagation(); showRemoveModal('voucher',{{ item.voucher.id }},'{{ item.voucher.pv_number }}')">
                 <i class="bi bi-x-lg"></i>
               </button>
@@ -1859,7 +1859,7 @@ body[data-theme="light"] .ob-mobile-bank-detail {
               </td>
               <td><span class="ob-amount">{{ item.payment_form.get_grand_total_display }}</span></td>
               <td onclick="event.stopPropagation()">
-                {% if user.role_level == 5 and batch.status == 'PENDING' %}
+                {% if user.role_level == 6 and batch.status == 'PENDING' %}
                 <button class="ob-remove" onclick="showRemoveModal('form',{{ item.payment_form.id }},'{{ item.payment_form.pf_number }}')">
                   <i class="bi bi-x-lg"></i>
                 </button>
@@ -1883,7 +1883,7 @@ body[data-theme="light"] .ob-mobile-bank-detail {
                 <span class="ob-mobile-doc-badge pf">PF</span>
                 <strong style="color: var(--success); font-size: 0.8125rem; font-weight: 700;">{{ item.payment_form.pf_number }}</strong>
               </div>
-              {% if user.role_level == 5 and batch.status == 'PENDING' %}
+              {% if user.role_level == 6 and batch.status == 'PENDING' %}
               <button class="ob-mobile-doc-remove" onclick="event.stopPropagation(); showRemoveModal('form',{{ item.payment_form.id }},'{{ item.payment_form.pf_number }}')">
                 <i class="bi bi-x-lg"></i>
               </button>

@@ -870,7 +870,7 @@ body[data-theme="light"] .panel-title-sub {
         <div>
           <div class="stat-label">Pending My Action</div>
           <div class="stat-value">{{ pending_my_action }}</div>
-          {% if user.role_level == 5 and pending_batches > 0 %}
+          {% if user.role_level == 6 and pending_batches > 0 %}
           <div class="stat-extra"><i class="bi bi-pen"></i> {{ pending_batches }} batch{{ pending_batches|pluralize:"es" }} to sign</div>
           {% endif %}
         </div>
@@ -1010,7 +1010,7 @@ body[data-theme="light"] .panel-title-sub {
       </div>
       <div class="panel-body" style="padding:12px">
 
-        {% if user.role_level == 5 %}
+        {% if user.role_level == 6 %}
           {# MD sees batches, not individual docs #}
           {% if pending_batches > 0 %}
           <a class="apv-item" href="{% url 'vouchers:md_dashboard' %}">
@@ -1070,8 +1070,9 @@ body[data-theme="light"] .panel-title-sub {
             {% if user.role_level == 1 %}Staff Actions
             {% elif user.role_level == 2 %}Checker Actions
             {% elif user.role_level == 3 %}Finance Manager Actions
-            {% elif user.role_level == 4 %}Director Actions
-            {% elif user.role_level == 5 %}Managing Director Actions
+            {% elif user.role_level == 4 %}Finance Controller Actions
+            {% elif user.role_level == 5 %}General Manager Actions
+            {% elif user.role_level == 6 %}Managing Director Actions
             {% elif user.role_level == 99 %}System Admin — View Only
             {% endif %}
           </div>
@@ -1093,11 +1094,11 @@ body[data-theme="light"] .panel-title-sub {
         <a href="{% url 'dashboard:pending' %}" class="action-btn"><i class="bi bi-clock-history"></i> Pending Approvals</a>
         {% endif %}
 
-        {% if user.role_level == 2 or user.role_level == 4 %}
+        {% if user.role_level == 2 or user.role_level == 4 or user.role_level == 5 %}
         <a href="{% url 'dashboard:pending' %}" class="action-btn action-primary"><i class="bi bi-clock-history"></i> Pending Approvals</a>
         {% endif %}
 
-        {% if user.role_level == 5 %}
+        {% if user.role_level == 6 %}
         <a href="{% url 'vouchers:md_dashboard' %}" class="action-btn action-primary"><i class="bi bi-pen"></i> Batch Signature Dashboard</a>
         {% endif %}
 

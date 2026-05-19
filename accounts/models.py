@@ -10,8 +10,9 @@ class User(AbstractUser):
     1 - Account Payable (Creator)
     2 - Account Supervisor (First Reviewer)
     3 - Finance Manager (Second Reviewer)
-    4 - General Manager (Third Reviewer)
-    5 - Managing Director (Final Optional Reviewer)
+    4 - Finance Controller (Third Reviewer)
+    5 - General Manager (Fourth Reviewer)
+    6 - Managing Director (Final Reviewer)
     99 - System Admin (View-only monitor, cannot approve)
     """
 
@@ -19,8 +20,9 @@ class User(AbstractUser):
         (1, 'Account Payable'),
         (2, 'Account Supervisor'),
         (3, 'Finance Manager'),
-        (4, 'General Manager'),
-        (5, 'Managing Director'),
+        (4, 'Finance Controller'),
+        (5, 'General Manager'),
+        (6, 'Managing Director'),
         (99, 'System Admin'),
     ]
 
