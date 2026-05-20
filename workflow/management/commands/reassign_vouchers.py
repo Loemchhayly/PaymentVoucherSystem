@@ -17,7 +17,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING('Searching for orphaned vouchers...'))
 
         # Find vouchers that are in pending status but have no approver
-        pending_statuses = ['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5']
+        pending_statuses = ['PENDING_L2', 'PENDING_L3', 'PENDING_L4', 'PENDING_L5', 'PENDING_L6']
         orphaned_vouchers = PaymentVoucher.objects.filter(
             status__in=pending_statuses,
             current_approver__isnull=True

@@ -28,6 +28,7 @@ def reassign_orphaned_vouchers(sender, instance, created, **kwargs):
         3: 'PENDING_L3',
         4: 'PENDING_L4',
         5: 'PENDING_L5',
+        6: 'PENDING_L6',
     }
 
     target_status = status_map.get(instance.role_level)
