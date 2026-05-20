@@ -29,13 +29,13 @@ from .models import (
 @login_required
 def batch_select_documents(request):
     """
-    Account Payable or Finance Manager selects PENDING_L6 vouchers/forms for batch signature
-    Accessible by Account Payable (role_level 1) and Finance Manager (role_level 3)
+    Account Payable, Finance Manager, or Finance Controller selects PENDING_L6 vouchers/forms for batch signature
+    Accessible by Account Payable (role_level 1), Finance Manager (role_level 3), Finance Controller (role_level 4)
     Documents at PENDING_L6 status means GM has approved and waiting for MD
     """
-    # Check permission - Account Payable or Finance Manager
-    if request.user.role_level not in [1, 3]:
-        messages.error(request, 'Only Account Payable or Finance Managers can create signature batches')
+    # Check permission - Account Payable, Finance Manager, or Finance Controller
+    if request.user.role_level not in [1, 3, 4]:
+        messages.error(request, 'Only Account Payable, Finance Managers, or Finance Controllers can create signature batches')
         return redirect('dashboard:home')
 
     # Get IDs of documents already in PENDING batches to exclude them
@@ -74,8 +74,8 @@ def batch_create(request):
     """
     Create a new signature batch from selected documents
     """
-    # Check permission - Account Payable or Finance Manager
-    if request.user.role_level not in [1, 3]:
+    # Check permission - Account Payable, Finance Manager, or Finance Controller
+    if request.user.role_level not in [1, 3, 4]:
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     if request.method == 'POST':
@@ -137,11 +137,11 @@ def batch_create(request):
 def fm_batch_list(request):
     """
     View to track batches created by current user
-    Accessible by Account Payable (role_level 1) and Finance Manager (role_level 3)
+    Accessible by Account Payable (role_level 1), Finance Manager (role_level 3), Finance Controller (role_level 4)
     """
-    # Check permission - Account Payable or Finance Manager
-    if request.user.role_level not in [1, 3]:
-        messages.error(request, 'Only Account Payable or Finance Managers can access this page')
+    # Check permission - Account Payable, Finance Manager, or Finance Controller
+    if request.user.role_level not in [1, 3, 4]:
+        messages.error(request, 'Only Account Payable, Finance Managers, or Finance Controllers can access this page')
         return redirect('dashboard:home')
 
     # Get all batches created by this user

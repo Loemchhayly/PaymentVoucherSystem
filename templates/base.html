@@ -148,7 +148,7 @@
 
             <span class="nav-section-label">Batches</span>
 
-            {% if user.role_level == 1 or user.role_level == 3 %}
+            {% if user.role_level == 1 or user.role_level == 3 or user.role_level == 4 %}
             <a class="sidebar-link" href="{% url 'vouchers:batch_select' %}" data-tooltip="Create Batch">
                 <i class="bi bi-plus-circle nav-icon"></i>
                 <span class="nav-label">Create Batch</span>
