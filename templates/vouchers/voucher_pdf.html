@@ -539,7 +539,9 @@
             <div class="signature-box">
                 <!-- Display Role/Position Title -->
                 <div class="signature-role">
-                    {% if approval.actor.role_level %}
+                    {% if approval.actor_role_level == 2 %}
+                        CHECKED BY
+                    {% elif approval.actor.role_level %}
                         {{ approval.actor.get_role_level_display|upper }}
                     {% elif approval.actor.position %}
                         {{ approval.actor.position|upper }}

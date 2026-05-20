@@ -115,7 +115,7 @@
                         {% endif %}
                         {% if can_approve %}
                             <button type="button" class="vd-btn vd-btn-warning" onclick="vdModal('approve')">
-                                <i class="bi bi-clipboard-check"></i> Approval Decision
+                                <i class="bi bi-clipboard-check"></i> {% if request.user.role_level == 2 %}Check Document{% else %}Approval Decision{% endif %}
                             </button>
                         {% endif %}
                     </div>
@@ -554,7 +554,7 @@
                                                             <div class="vd-tl-info">
                                                                 {% if history.action == 'APPROVE' %}
                                                                     <span class="vd-badge approve"><i
-                                                                            class="bi bi-check-circle"></i> {{ history.get_action_display }}</span>
+                                                                            class="bi bi-check-circle"></i> {% if history.actor_role_level == 2 %}Checked{% else %}{{ history.get_action_display }}{% endif %}</span>
                                                                 {% elif history.action == 'REJECT' %}
                                                                     <span class="vd-badge reject"><i
                                                                             class="bi bi-x-circle"></i> {{ history.get_action_display }}</span>
@@ -775,7 +775,7 @@
                             <div class="vd-modal-head">
                                 <i class="bi bi-clipboard-check vd-modal-head-icon amber"></i>
                                 <div>
-                                    <div class="vd-modal-title">Approval Decision</div>
+                                    <div class="vd-modal-title">{% if request.user.role_level == 2 %}Check Document{% else %}Approval Decision{% endif %}</div>
                                     <div class="vd-modal-sub">Select action and add comments</div>
                                 </div>
                             </div>
@@ -792,7 +792,7 @@
                                         class="bi bi-x"></i> Cancel
                                 </button>
                                 <button type="button" class="vd-btn vd-btn-warning" onclick="vdConfirm('approve')"><i
-                                        class="bi bi-check-circle"></i> Submit Decision
+                                        class="bi bi-check-circle"></i> {% if request.user.role_level == 2 %}Confirm Check{% else %}Submit Decision{% endif %}
                                 </button>
                             </div>
                         </div>
