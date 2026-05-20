@@ -327,6 +327,37 @@
             line-height: 1.3;
         }
 
+        /* Checked-by bar (Account Supervisor) */
+        .checked-by-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 3px 8px;
+            margin-bottom: 8px;
+            border: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            font-size: 7.5pt;
+        }
+        .checked-by-label {
+            font-weight: bold;
+            color: #2c3e50;
+            white-space: nowrap;
+            min-width: 70px;
+        }
+        .checked-by-sig {
+            max-height: 32px;
+            max-width: 80px;
+        }
+        .checked-by-name {
+            color: #495057;
+        }
+        .checked-by-time {
+            color: #6c757d;
+            font-size: 6.5pt;
+            white-space: nowrap;
+            margin-left: auto;
+        }
+
         /* Footer - Minimal */
         .footer {
             margin-top: 8px;
@@ -496,14 +527,26 @@
         </table>
     </div>
 
-    <!-- Approval Signatures - 5 Columns -->
+    <!-- Approval Signatures -->
     <div class="signatures-section">
         <div class="signatures-title">Approvals & Signatures</div>
 
+        <!-- Checked By bar (Account Supervisor L2) -->
+        {% for approval in approval_history %}{% if approval.actor_role_level == 2 %}
+        <div class="checked-by-bar">
+            <span class="checked-by-label">Checked By:</span>
+            {% if approval.actor.signature_image %}
+                <img src="{{ approval.actor.signature_image.name }}" class="checked-by-sig" alt="Signature">
+            {% endif %}
+            <span class="checked-by-name">{{ approval.actor.get_full_name|default:approval.actor.username }}</span>
+            <span class="checked-by-time">{{ approval.timestamp|date:"d/m/Y H:i" }}</span>
+        </div>
+        {% endif %}{% endfor %}
+
+        <!-- Main signature grid: Prepared By + FM/FC/GM/MD -->
         <div class="signature-grid">
-            <!-- PREPARED BY - Always first box -->
+            <!-- PREPARED BY -->
             <div class="signature-box">
-                <!-- Display Role/Position Title -->
                 <div class="signature-role">
                     {% if voucher.created_by.role_level %}
                         {{ voucher.created_by.get_role_level_display|upper }}
@@ -513,13 +556,9 @@
                         PREPARED BY
                     {% endif %}
                 </div>
-
-                <!-- Display User's Full Name -->
                 <div class="signature-name">
                     {{ voucher.created_by.get_full_name|default:voucher.created_by.username }}
                 </div>
-
-                <!-- Signature Image -->
                 <div class="signature-image-container">
                     {% if voucher.created_by.signature_image %}
                         <img src="{{ voucher.created_by.signature_image.name }}" class="signature-image" alt="Signature">
@@ -527,21 +566,16 @@
                         <div class="digital-sig-text">[Digital Signature]</div>
                     {% endif %}
                 </div>
-
-                <!-- Timestamp -->
                 <div class="signature-timestamp">
                     {{ voucher.created_at|date:"d/m/Y H:i" }}
                 </div>
             </div>
 
-            <!-- APPROVERS - Following boxes -->
-            {% for approval in approval_history %}
+            <!-- APPROVERS (FM, FC, GM, MD — skip AS) -->
+            {% for approval in approval_history %}{% if approval.actor_role_level != 2 %}
             <div class="signature-box">
-                <!-- Display Role/Position Title -->
                 <div class="signature-role">
-                    {% if approval.actor_role_level == 2 %}
-                        CHECKED BY
-                    {% elif approval.actor.role_level %}
+                    {% if approval.actor.role_level %}
                         {{ approval.actor.get_role_level_display|upper }}
                     {% elif approval.actor.position %}
                         {{ approval.actor.position|upper }}
@@ -549,13 +583,9 @@
                         APPROVER
                     {% endif %}
                 </div>
-
-                <!-- Display User's Full Name -->
                 <div class="signature-name">
                     {{ approval.actor.get_full_name|default:approval.actor.username }}
                 </div>
-
-                <!-- Signature Image -->
                 <div class="signature-image-container">
                     {% if approval.actor.signature_image %}
                         <img src="{{ approval.actor.signature_image.name }}" class="signature-image" alt="Signature">
@@ -563,13 +593,11 @@
                         <div class="digital-sig-text">[Digital Signature]</div>
                     {% endif %}
                 </div>
-
-                <!-- Timestamp -->
                 <div class="signature-timestamp">
                     {{ approval.timestamp|date:"d/m/Y H:i" }}
                 </div>
             </div>
-            {% endfor %}
+            {% endif %}{% endfor %}
         </div>
     </div>
 
